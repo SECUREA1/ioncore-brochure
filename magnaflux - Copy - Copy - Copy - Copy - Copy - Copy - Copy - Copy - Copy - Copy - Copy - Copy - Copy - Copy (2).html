@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>InertiaCharge Energy System - Product Cost Breakdown</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #003366;
+        }
+        table {
+            width: 90%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff;
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #e6f2ff;
+        }
+        tr:hover {
+            background-color: #f1f9ff;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+        .section-header {
+            background-color: #cce5ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>InertiaCharge Portable Generator</h1>
+    <h2>Cost Breakdown (CAD)</h2>
+    <table>
+        <tr class="section-header"><th>Category</th><th>Description</th><th>Subtotal</th></tr>
+        <tr><td rowspan="6">Mechanical & Magnets</td><td>Polycarbonate housing</td><td>$70.00</td></tr>
+        <tr><td>End-caps & handle</td><td>$40.00</td></tr>
+        <tr><td>SS304 shaft</td><td>$45.00</td></tr>
+        <tr><td>Magnetic bearings (×2)</td><td>$120.00</td></tr>
+        <tr><td>NdFeB preload discs (×2)</td><td>$18.00</td></tr>
+        <tr><td>NdFeB rotor blocks (×8)</td><td>$40.00</td></tr>
+
+        <tr class="section-header"><td rowspan="2">Stator & Windings</td><td>Steel laminations (×4)</td><td>$60.00</td></tr>
+        <tr><td>Copper wire (×4 coils)</td><td>$48.00</td></tr>
+
+        <tr class="section-header"><td rowspan="3">Electronics & Control</td><td>Custom PCB + parts</td><td>$70.00</td></tr>
+        <tr><td>MOSFET bridges (×2)</td><td>$28.00</td></tr>
+        <tr><td>Arduino Nano</td><td>$34.00</td></tr>
+
+        <tr class="section-header"><td rowspan="2">Sensors</td><td>Hall sensors (×4)</td><td>$28.00</td></tr>
+        <tr><td>Optical encoder</td><td>$40.00</td></tr>
+
+        <tr class="section-header"><td rowspan="5">Cooling System</td><td>Cooling plates (×2)</td><td>$28.00</td></tr>
+        <tr><td>Micro pump</td><td>$20.00</td></tr>
+        <tr><td>Micro fans (×2)</td><td>$36.00</td></tr>
+        <tr><td>Radiator</td><td>$35.00</td></tr>
+        <tr><td>Tubing & coolant</td><td>$20.00</td></tr>
+
+        <tr class="section-header"><td rowspan="3">Energy Storage</td><td>Li-ion cells (×2)</td><td>$140.00</td></tr>
+        <tr><td>2-cell BMS</td><td>$28.00</td></tr>
+        <tr><td>Cell holders (×2)</td><td>$16.00</td></tr>
+
+        <tr class="section-header"><td rowspan="3">Power Conversion</td><td>DC/DC boost conv.</td><td>$25.00</td></tr>
+        <tr><td>Pure-sine inverter</td><td>$65.00</td></tr>
+        <tr><td>Outlet & connectors</td><td>$12.00</td></tr>
+
+        <tr class="section-header"><td rowspan="3">Wiring & Connectors</td><td>Silicone wire (5 m)</td><td>$30.00</td></tr>
+        <tr><td>Connector kits</td><td>$12.00</td></tr>
+        <tr><td>Heat-shrink & ties</td><td>$26.00</td></tr>
+
+        <tr class="section-header"><td rowspan="3">Thermals & Consumables</td><td>Thermal epoxy</td><td>$20.00</td></tr>
+        <tr><td>Thermal grease</td><td>$12.00</td></tr>
+        <tr><td>Tape & sleeving</td><td>$8.00</td></tr>
+
+        <tr class="total-row"><td colspan="2">Parts Total</td><td>$1,229.00</td></tr>
+        <tr class="total-row"><td colspan="2">Assembly & Testing</td><td>$150.00</td></tr>
+        <tr class="total-row"><td colspan="2">10% Contingency</td><td>$137.90</td></tr>
+        <tr class="total-row"><td colspan="2"><strong>Total Estimated Build</strong></td><td><strong>≈ $1,516.90</strong></td></tr>
+    </table>
+</body>
+</html>

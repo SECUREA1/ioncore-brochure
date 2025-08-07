@@ -1,0 +1,162 @@
+# Create a full HTML layout for the OmniCore X15 brochure
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OmniCore X15 - Self-Sustaining Energy Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 20px auto;
+            max-width: 1000px;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #34495e;
+            color: white;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        .highlight {
+            color: #e67e22;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>OmniCore X15</h1>
+    <h2>Self-Sustaining Energy Generator</h2>
+    <p><strong>Revolutionizing Independent Energy Systems for Homes, Businesses & Off-Grid Living</strong></p>
+
+    <div class="section">
+        <h3>🌟 Product Overview</h3>
+        <p>The OmniCore X15 is a compact, high-output energy system that combines magnetic inertia generation, intelligent thermal management, and next-gen lithium energy storage. Engineered for reliability and self-sufficiency, the X15 provides consistent, clean, and uninterrupted power without dependence on traditional grids or fuel.</p>
+    </div>
+
+    <div class="section">
+        <h3>🧬 Core Technology</h3>
+        <table>
+            <tr><th>Feature</th><th>Description</th></tr>
+            <tr><td>Magnetic Inertia Generator</td><td>Converts rotational energy into electricity using near-zero friction flywheel mechanics.</td></tr>
+            <tr><td>Hybrid Ceramic Bearings</td><td>Allows high-speed motion with minimal drag and extended durability.</td></tr>
+            <tr><td>High-Efficiency Electromagnets</td><td>Harness magnetic induction for seamless energy conversion.</td></tr>
+            <tr><td>AI-Controlled Power Module</td><td>Real-time optimization of temperature, load, and battery cycles.</td></tr>
+            <tr><td>Cryo-Cooling Integration</td><td>Optional liquid nitrogen system keeps the generator ultra-efficient.</td></tr>
+            <tr><td>Battery Management System (BMS)</td><td>Balances prismatic lithium-ion cells to extend lifespan and performance.</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📦 Specifications</h3>
+        <table>
+            <tr><th>Category</th><th>Details</th></tr>
+            <tr><td>Rated Power</td><td>8 kW Continuous / 12 kW Peak Surge</td></tr>
+            <tr><td>Daily Output</td><td>Up to 80 kWh</td></tr>
+            <tr><td>Energy Storage</td><td>30 kWh (Expandable to 50+ kWh)</td></tr>
+            <tr><td>Battery Type</td><td>Prismatic Lithium-Ion (LiFePO₄ or NMC)</td></tr>
+            <tr><td>Cooling</td><td>Dual-mode: Fan-cooled + Cryogenic-ready</td></tr>
+            <tr><td>Control</td><td>Touchscreen OLED + IoT-connected controller</td></tr>
+            <tr><td>Inverter</td><td>Pure Sine Wave, Grid/Off-Grid Selectable</td></tr>
+            <tr><td>Noise Level</td><td>&lt; 35 dB (whisper quiet)</td></tr>
+            <tr><td>Size (H×W×D)</td><td>1100mm × 600mm × 400mm</td></tr>
+            <tr><td>Weight</td><td>~185 kg (408 lbs)</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>🧩 Modular Components</h3>
+        <ul>
+            <li>Magnetic Rotor & Flywheel</li>
+            <li>Electromagnetic Coil Rings</li>
+            <li>Smart Display & Controls</li>
+            <li>Battery Stack (6–12 Units)</li>
+            <li>Cryogenic Coil Chamber</li>
+            <li>Industrial Fan Module</li>
+            <li>Power Bus Output</li>
+            <li>Reinforced Alloy Housing</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>🛠️ Use Cases</h3>
+        <table>
+            <tr><th>Application</th><th>Capability</th></tr>
+            <tr><td>Home Power Backup</td><td>Full-day power for medium-sized homes</td></tr>
+            <tr><td>Remote Living</td><td>Reliable off-grid energy for cabins/RVs</td></tr>
+            <tr><td>Medical/Rescue Ops</td><td>Silent, portable backup for equipment</td></tr>
+            <tr><td>Retail/Commercial</td><td>Stabilized power for POS, servers, HVAC</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>🧾 What’s Included</h3>
+        <ul>
+            <li>OmniCore X15 Generator Unit</li>
+            <li>Smart Control Interface (Preconfigured)</li>
+            <li>30 kWh Battery Stack</li>
+            <li>Cooling System (Fan + Liquid-ready base)</li>
+            <li>Wiring Harness + Connectors</li>
+            <li>Mounting & Shock Pads</li>
+            <li>2-Year Warranty</li>
+            <li>Owner’s Manual & Quick Setup Guide</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>🔐 Certifications</h3>
+        <ul>
+            <li>CE Certified</li>
+            <li>RoHS Compliant</li>
+            <li>ISO 9001:2023 Certified Manufacturing</li>
+            <li>UL Pending</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>💬 Optional Upgrades</h3>
+        <ul>
+            <li>Cryogenic Cooling Kit</li>
+            <li>Extra Battery Modules</li>
+            <li>Solar + Wind Hybrid Input Adapter</li>
+            <li>Remote Monitoring App (iOS + Android)</li>
+            <li>Custom Finishes (Stealth Black, CopperTech, Industrial Gray)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2 class="highlight">💰 Price: $15,000 USD</h2>
+        <p>(Includes setup kit, delivery, and warranty)</p>
+    </div>
+
+</body>
+</html>
+"""
+
+# Save the HTML file
+html_file_path = "/mnt/data/omnicore_x15_brochure.html"
+with open(html_file_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+html_file_path

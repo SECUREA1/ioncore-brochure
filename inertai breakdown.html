@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnetic Inertia System Brochure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #0073e6;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+        section {
+            padding: 20px;
+            margin: 10px;
+        }
+        h2 {
+            color: #0073e6;
+        }
+        .content {
+            margin-top: 20px;
+        }
+        .parts-list, .energy-storage, .applications-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .parts-list li, .energy-storage li, .applications-list li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            background-color: #0073e6;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        .table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .table th {
+            background-color: #0073e6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Magnetic Inertia System</h1>
+    <p>Powering Efficiency Through Innovation</p>
+</header>
+
+<!-- Page 1 -->
+<section>
+    <h2>Key Components</h2>
+    <p>The Magnetic Inertia System is built upon the latest advancements in magnetic bearings, electromagnets, and regenerative energy capture. Below is a breakdown of the essential components that make up this cutting-edge system:</p>
+    <ul class="parts-list">
+        <li><strong>Shaft:</strong> Constructed from high-strength steel alloy, 10mm in diameter and 200mm in length. It ensures a stable, efficient rotational motion with minimal wear over time.</li>
+        <li><strong>Bearings:</strong> Deep groove ball bearings (Inner Diameter: 10mm, Outer Diameter: 30mm), which are used for smooth rotation while maintaining minimal friction and high tolerance for heavy loads.</li>
+        <li><strong>Gear:</strong> A spur gear with a module of 1.5, 20 teeth, and constructed from either steel or brass, providing the system with the ability to transfer torque effectively while reducing friction.</li>
+        <li><strong>Magnetic Bearings:</strong> Active magnetic bearings designed to support high-speed rotations without physical contact. They utilize electromagnets to create a controlled magnetic field to levitate and stabilize the shaft.</li>
+        <li><strong>Electromagnets:</strong> Custom-wound coils made from high-conductivity copper, encased in soft iron or laminated silicon steel cores. These electromagnets generate a strong magnetic field that enables efficient rotational force and braking systems.</li>
+        <li><strong>Sensors:</strong> Hall effect sensors and optical encoders are strategically placed throughout the system for real-time feedback, ensuring accurate control of the electromagnets and overall system performance.</li>
+        <li><strong>Control Unit:</strong> The system is managed by a microcontroller (e.g., Arduino or Raspberry Pi), which receives data from the sensors and adjusts the magnetic fields to maintain optimal speed and torque.</li>
+        <li><strong>Power Supply:</strong> A 24V DC, 10A power supply that provides reliable, continuous energy to operate the system’s components, ensuring high efficiency during both operation and energy storage.</li>
+    </ul>
+</section>
+
+<!-- Page 2 -->
+<section>
+    <h2>Energy Conversion and Storage</h2>
+    <div class="content">
+        <h3>Regenerative Braking System</h3>
+        <p>The regenerative braking system is one of the core innovations of the Magnetic Inertia System. When the system needs to slow down or stop, it converts the kinetic energy of the rotating shaft back into usable electrical energy. This energy is then stored in the energy storage unit for later use. The braking process is controlled by the electromagnets, which adjust their polarity to induce the necessary deceleration.</p>
+        
+        <h3>Energy Storage and Calculation</h3>
+        <p>The stored energy in the system is calculated using the formula: <strong>Energy Stored = C × V²</strong>, where <strong>C</strong> represents the capacitance and <strong>V</strong> is the voltage. This ensures that the system’s energy storage is both efficient and adaptable to varying energy input levels, enabling real-time energy harvesting from rotational motion.</p>
+        
+        <h3>Battery Technology</h3>
+        <p>The energy storage unit incorporates high-performance lithium-ion cells, configured to provide maximum energy density and a long lifespan. These cells are arranged in a series-parallel setup to meet the voltage and capacity requirements of the system.</p>
+        
+        <ul class="energy-storage">
+            <li><strong>Capacity:</strong> 200 kWh minimum, providing ample energy storage for industrial, commercial, or residential use.</li>
+            <li><strong>Battery Cells:</strong> Prismatic lithium-ion cells with an integrated Battery Management System (BMS) to monitor voltage, temperature, and current.</li>
+            <li><strong>Cooling:</strong> An advanced cooling system designed to prevent overheating and maintain the optimal performance of the cells over their lifespan.</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Page 3 -->
+<section>
+    <h2>How It Works</h2>
+    <p>The operation of the Magnetic Inertia System is centered around its efficient conversion of mechanical energy into electrical energy. Here’s how it works:</p>
+    <ul>
+        <li><strong>Electromagnetic Induction:</strong> The system uses custom-wound electromagnets to generate a rotating magnetic field. This field interacts with the rotating shaft, creating rotational motion without direct mechanical contact.</li>
+        <li><strong>Energy Capture:</strong> During braking or deceleration, the system’s electromagnetic fields are reversed to capture the kinetic energy generated by the spinning shaft and store it in the battery system.</li>
+        <li><strong>Real-Time Control:</strong> The control unit uses feedback from sensors (Hall effect or optical encoders) to adjust the magnetic fields of the electromagnets, ensuring smooth rotation, optimized braking, and efficient energy capture at all times.</li>
+    </ul>
+</section>
+
+<!-- Page 4 -->
+<section>
+    <h2>Applications</h2>
+    <p>The versatility of the Magnetic Inertia System allows for a wide range of applications in both stationary and mobile systems. Below are some potential areas where this technology can be implemented:</p>
+    <ul class="applications-list">
+        <li><strong>Renewable Energy Generation:</strong> Ideal for integration with wind turbines and solar energy systems to provide continuous, efficient energy harvesting from natural resources.</li>
+        <li><strong>Backup Power Systems:</strong> Used in homes, offices, and emergency backup systems to store excess energy for later use during power outages or high-demand periods.</li>
+        <li><strong>Industrial Applications:</strong> Suitable for large-scale machinery such as manufacturing equipment, where energy recovery and operational efficiency are critical for long-term cost savings.</li>
+        <li><strong>Portable Power Solutions:</strong> Can be integrated into portable devices, such as handheld power units, providing mobility with sustainable energy options.</li>
+        <li><strong>Healthcare Energy Solutions:</strong> Perfect for hospitals and medical centers requiring uninterrupted energy for life-saving equipment and systems.</li>
+    </ul>
+</section>
+
+<!-- Page 5 -->
+<section>
+    <h2>Efficiency Comparison</h2>
+    <div class="content">
+        <h3>Magnetic Inertia System vs. Traditional Systems</h3>
+        <p>Compared to traditional mechanical or electrical energy systems, the Magnetic Inertia System offers superior energy efficiency, reduced wear-and-tear, and minimal environmental impact. Below is a detailed comparison:</p>
+        <table class="table">
+            <tr>
+                <th>System Type</th>
+                <th>Energy Efficiency</th>
+                <th>Energy Conversion Loss</th>
+                <th>Environmental Impact</th>
+            </tr>
+            <tr>
+                <td>Traditional Systems</td>
+                <td>60-70%</td>
+                <td>30-40%</td>
+                <td>High CO2 emissions and waste</td>
+            </tr>
+            <tr>
+                <td>Magnetic Inertia System</td>
+                <td>90%+</td>
+                <td>5-10%</td>
+                <td>Low emissions, sustainable, minimal environmental footprint</td>
+            </tr>
+        </table>
+    </div>
+</section>
+
+<!-- Page 6 -->
+<section>
+    <h2>Maintenance and Support</h2>
+    <p>To ensure optimal performance and longevity, regular maintenance is required. Below are the key maintenance steps for the Magnetic Inertia System:</p>
+    <ul class="energy-storage">
+        <li><strong>Magnetic Bearings:</strong> Periodic inspection for wear and lubrication. Bearings should be replaced if friction increases beyond acceptable limits.</li>
+        <li><strong>Electromagnets:</strong> Check for alignment and coil integrity. Any distortion can affect magnetic field generation and system efficiency.</li>
+        <li><strong>Cooling System:</strong> Ensure the cooling system operates without blockages. Regularly clean filters and ensure sufficient airflow.</li>
+        <li><strong>Control Unit:</strong> Perform software updates and recalibrate sensors as needed to ensure the control system functions accurately.</li>
+        <li><strong>Energy Storage:</strong> Test battery management system (BMS) for capacity and health. Perform charge/discharge cycles to maintain battery health.</li>
+    </ul>
+    <p>If you encounter issues with your system, our expert support team is available for troubleshooting, upgrades, and optimization consultations.</p>
+</section>
+
+<footer>
+    <p>&copy; 2025 Magnetic Inertia Systems. All rights reserved. | Contact us: [Your Contact Info]</p>
+</footer>
+
+</body>
+</html>

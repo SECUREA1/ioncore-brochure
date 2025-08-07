@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InertiaCharge 200 - BOM & Cost Breakdown</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
+    .container { max-width: 960px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.08); }
+    h1 { color: #2c3e50; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #2c3e50; color: white; }
+    .subtotal { font-weight: bold; }
+    .category { background: #ecf0f1; font-weight: bold; }
+    .total-row td { font-weight: bold; border-top: 2px solid #2c3e50; }
+    .highlight { background: #eafaf1; font-size: 1.1em; color: #27ae60; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>InertiaCharge 200 – BOM & Estimated Cost Breakdown</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th style="text-align:right;">Subtotal (CAD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="category"><td>Mechanical & Magnets</td><td style="text-align:right;">$368.00</td></tr>
+        <tr><td>- Polycarbonate housing</td><td style="text-align:right;">$70.00</td></tr>
+        <tr><td>- End-caps & handle</td><td style="text-align:right;">$40.00</td></tr>
+        <tr><td>- SS304 shaft</td><td style="text-align:right;">$45.00</td></tr>
+        <tr><td>- Magnetic bearings (×2)</td><td style="text-align:right;">$120.00</td></tr>
+        <tr><td>- NdFeB preload discs (×2)</td><td style="text-align:right;">$18.00</td></tr>
+        <tr><td>- NdFeB rotor blocks (×8)</td><td style="text-align:right;">$40.00</td></tr>
+
+        <tr class="category"><td>Stator & Windings</td><td style="text-align:right;">$108.00</td></tr>
+        <tr><td>- Steel laminations (×4)</td><td style="text-align:right;">$60.00</td></tr>
+        <tr><td>- Copper wire (×4 coils)</td><td style="text-align:right;">$48.00</td></tr>
+
+        <tr class="category"><td>Electronics & Control</td><td style="text-align:right;">$132.00</td></tr>
+        <tr><td>- Custom PCB + parts</td><td style="text-align:right;">$70.00</td></tr>
+        <tr><td>- MOSFET bridges (×2)</td><td style="text-align:right;">$28.00</td></tr>
+        <tr><td>- Arduino Nano</td><td style="text-align:right;">$34.00</td></tr>
+
+        <tr class="category"><td>Sensors</td><td style="text-align:right;">$68.00</td></tr>
+        <tr><td>- Hall sensors (×4)</td><td style="text-align:right;">$28.00</td></tr>
+        <tr><td>- Optical encoder</td><td style="text-align:right;">$40.00</td></tr>
+
+        <tr class="category"><td>Cooling System</td><td style="text-align:right;">$139.00</td></tr>
+        <tr><td>- Cooling plates (×2)</td><td style="text-align:right;">$28.00</td></tr>
+        <tr><td>- Micro pump</td><td style="text-align:right;">$20.00</td></tr>
+        <tr><td>- Micro fans (×2)</td><td style="text-align:right;">$36.00</td></tr>
+        <tr><td>- Radiator</td><td style="text-align:right;">$35.00</td></tr>
+        <tr><td>- Tubing & coolant</td><td style="text-align:right;">$20.00</td></tr>
+
+        <tr class="category"><td>Energy Storage</td><td style="text-align:right;">$204.00</td></tr>
+        <tr><td>- Li-ion cells (×2)</td><td style="text-align:right;">$140.00</td></tr>
+        <tr><td>- 2-cell BMS</td><td style="text-align:right;">$28.00</td></tr>
+        <tr><td>- Cell holders (×2)</td><td style="text-align:right;">$16.00</td></tr>
+
+        <tr class="category"><td>Power Conversion</td><td style="text-align:right;">$102.00</td></tr>
+        <tr><td>- DC/DC boost converter</td><td style="text-align:right;">$25.00</td></tr>
+        <tr><td>- Pure-sine inverter</td><td style="text-align:right;">$65.00</td></tr>
+        <tr><td>- Outlet & connectors</td><td style="text-align:right;">$12.00</td></tr>
+
+        <tr class="category"><td>Wiring & Connectors</td><td style="text-align:right;">$68.00</td></tr>
+        <tr><td>- Silicone wire (5 m)</td><td style="text-align:right;">$30.00</td></tr>
+        <tr><td>- Connector kits</td><td style="text-align:right;">$12.00</td></tr>
+        <tr><td>- Heat-shrink & ties</td><td style="text-align:right;">$26.00</td></tr>
+
+        <tr class="category"><td>Thermals & Consumables</td><td style="text-align:right;">$40.00</td></tr>
+        <tr><td>- Thermal epoxy</td><td style="text-align:right;">$20.00</td></tr>
+        <tr><td>- Thermal grease</td><td style="text-align:right;">$12.00</td></tr>
+        <tr><td>- Tape & sleeving</td><td style="text-align:right;">$8.00</td></tr>
+
+        <tr class="total-row highlight"><td>Parts Total</td><td style="text-align:right;">$1,229.00</td></tr>
+        <tr><td>Assembly & Testing</td><td style="text-align:right;">$150.00</td></tr>
+        <tr><td>10% Contingency</td><td style="text-align:right;">$137.90</td></tr>
+        <tr class="total-row highlight"><td>Total Estimated Build</td><td style="text-align:right;">≈ $1,516.90</td></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

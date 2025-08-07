@@ -1,0 +1,161 @@
+# Update the HTML content with a cleaner structure and revised pricing (adding 15% profit margin to $15,000)
+
+base_price = 15000
+profit_margin = 0.15
+new_price = base_price * (1 + profit_margin)
+
+# Create cleaned-up HTML content with adjusted pricing
+cleaned_html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OmniCore X15 - Self-Sustaining Energy Generator</title>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+            max-width: 960px;
+            margin: auto;
+            padding: 40px;
+        }}
+        h1, h2, h3 {{
+            color: #1a1a1a;
+        }}
+        h1 {{
+            border-bottom: 2px solid #e67e22;
+            padding-bottom: 10px;
+        }}
+        .section {{
+            margin-top: 40px;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }}
+        table, th, td {{
+            border: 1px solid #dddddd;
+        }}
+        th {{
+            background-color: #f4f4f4;
+            text-align: left;
+            padding: 12px;
+        }}
+        td {{
+            padding: 12px;
+        }}
+        ul {{
+            margin-top: 10px;
+            padding-left: 20px;
+        }}
+        .price-tag {{
+            background-color: #e67e22;
+            color: #fff;
+            font-size: 24px;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            border-radius: 6px;
+        }}
+    </style>
+</head>
+<body>
+
+    <h1>OmniCore X15</h1>
+    <h2>Self-Sustaining Energy Generator</h2>
+    <p><strong>Independent Energy for Homes, Businesses & Remote Living</strong></p>
+
+    <div class="section">
+        <h3>🌟 Product Overview</h3>
+        <p>The OmniCore X15 is a compact, high-output energy system that combines magnetic inertia generation, intelligent cooling, and advanced lithium storage. Designed for durability and off-grid freedom, it delivers clean, continuous power anywhere.</p>
+    </div>
+
+    <div class="section">
+        <h3>🧬 Core Technologies</h3>
+        <table>
+            <tr><th>Feature</th><th>Description</th></tr>
+            <tr><td>Magnetic Inertia Generator</td><td>High-efficiency rotational energy conversion</td></tr>
+            <tr><td>Hybrid Ceramic Bearings</td><td>Supports ultra-low friction, high-speed rotation</td></tr>
+            <tr><td>AI-Controlled Power Unit</td><td>Real-time thermal, voltage, and load optimization</td></tr>
+            <tr><td>Cryo-Cooling Ready</td><td>Supports liquid nitrogen for ultra-low heat ops</td></tr>
+            <tr><td>BMS-Integrated Lithium Storage</td><td>30 kWh scalable system with cell balancing</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📦 Specifications</h3>
+        <table>
+            <tr><th>Category</th><th>Details</th></tr>
+            <tr><td>Rated Power</td><td>8 kW continuous / 12 kW surge</td></tr>
+            <tr><td>Storage Capacity</td><td>30 kWh (expandable)</td></tr>
+            <tr><td>Daily Output</td><td>Up to 80 kWh</td></tr>
+            <tr><td>Cooling</td><td>Fan + optional cryogenic module</td></tr>
+            <tr><td>Noise</td><td>&lt;35 dB</td></tr>
+            <tr><td>Control Panel</td><td>OLED + Smart App (iOS/Android)</td></tr>
+            <tr><td>Dimensions</td><td>1100 × 600 × 400 mm</td></tr>
+            <tr><td>Weight</td><td>~185 kg</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>🧩 Included Modules</h3>
+        <ul>
+            <li>OmniCore Generator Unit</li>
+            <li>30 kWh Battery Stack</li>
+            <li>Smart Control Panel</li>
+            <li>Industrial Fan Cooling</li>
+            <li>Shock-Proof Frame & Housing</li>
+            <li>AC/DC Output Bus</li>
+            <li>Setup Kit + Connectors</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>🛠 Use Cases</h3>
+        <ul>
+            <li>Home Backup Power</li>
+            <li>Off-Grid Cabins & RVs</li>
+            <li>Medical & Emergency Systems</li>
+            <li>Retail & Mobile Businesses</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>📋 Certifications</h3>
+        <ul>
+            <li>CE Certified</li>
+            <li>RoHS Compliant</li>
+            <li>ISO 9001:2023 Manufacturing</li>
+            <li>UL Pending</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>🎯 Optional Add-ons</h3>
+        <ul>
+            <li>Extra Battery Expansion (10–20 kWh)</li>
+            <li>Cryogenic Cooling System</li>
+            <li>Solar/Wind Input Adapter</li>
+            <li>Custom Exterior Finish</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="price-tag">
+            Retail Price: ${new_price:,.2f} USD
+        </div>
+    </div>
+
+</body>
+</html>
+"""
+
+# Save cleaned and updated HTML file
+clean_html_path = "/mnt/data/omnicore_x15_brochure_cleaned.html"
+with open(clean_html_path, "w", encoding="utf-8") as file:
+    file.write(cleaned_html_content)
+
+clean_html_path

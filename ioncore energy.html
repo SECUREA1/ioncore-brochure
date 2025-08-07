@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IonCore Energy 3D Brochure</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #004e92, #000428);
+      color: white;
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+    header p {
+      font-size: 1.2rem;
+      margin-top: 0.5rem;
+    }
+    section {
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .features, .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .feature-card, .product-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      background: #f9f9f9;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .feature-card h3, .product-card h3 {
+      margin-top: 0;
+    }
+    .model-viewer-container {
+      width: 100%;
+      height: 300px;
+      margin-bottom: 1rem;
+    }
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background-color: #ececec;
+      border-radius: 4px;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
+    a.button {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #004e92;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #121212; color: #ddd; }
+      section { background: #121212; }
+      .feature-card, .product-card { background: #1e1e1e; border-color: #333; }
+      footer { background: #1e1e1e; border-top-color: #333; }
+      a.button { background: #0062cc; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>IonCore Energy</h1>
+  <p>Portable Magnetic-Bearing Flywheel Generators<br>“Grid-Quality Power, Anywhere”</p>
+</header>
+
+<section>
+  <h2>How It Works</h2>
+  <p>Our Gen-1 unit fits in a 150 × 100 × 50 mm, sub-1 kg enclosure. A stainless-steel flywheel spins on magnetic bearings, storing kinetic energy. Dual-mode stator windings drive the flywheel as a motor and harvest energy as a generator. Onboard Li-ion cells buffer energy, while a boost-inverter chain provides 5 – 150 W of pure-sine AC or USB-PD output. A micro-cooling loop keeps coils below 60 °C under load.</p>
+  
+  <div class="features">
+    <div class="feature-card">
+      <h3>Magnetic Bearings</h3>
+      <p>Friction-free ceramic bearings with N52 preload magnets for zero mechanical wear.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Dual-Mode Stator</h3>
+      <p>M19 laminated cores and 1 000-turn windings switch seamlessly between motor/generator modes.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Liquid Micro-Cooling</h3>
+      <p>Compact pump, tubing & radiator keep stator temperatures under 60 °C at full load.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Integrated Inverter</h3>
+      <p>Built-in DC-DC boost and 100 W pure-sine inverter or USB-PD provides versatile output.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Product Line-Up</h2>
+  <div class="products">
+    <div class="product-card">
+      <div class="model-viewer-container">
+        <model-viewer src="gen1.glb" alt="Gen-1 Model" camera-controls auto-rotate></model-viewer>
+      </div>
+      <h3>Gen-1 Micro</h3>
+      <p><strong>50 W</strong> continuous | <strong>0.2 kWh</strong>/4 h</p>
+      <p>Ideal for emergency comms, camping & UAV battery swaps.</p>
+    </div>
+    <div class="product-card">
+      <div class="model-viewer-container">
+        <model-viewer src="gen2.glb" alt="Gen-2 Model" camera-controls auto-rotate></model-viewer>
+      </div>
+      <h3>Gen-2 Compact</h3>
+      <p><strong>150 W</strong> continuous | <strong>0.6 kWh</strong>/4 h</p>
+      <p>Perfect for mobile clinics, outdoor film crews, remote offices.</p>
+    </div>
+    <div class="product-card">
+      <div class="model-viewer-container">
+        <model-viewer src="gen3.glb" alt="Gen-3 Model" camera-controls auto-rotate></model-viewer>
+      </div>
+      <h3>Gen-3 Modular</h3>
+      <p><strong>600 W</strong> continuous | <strong>2.4 kWh</strong>/4 h</p>
+      <p>Stackable modules for construction drones & remote IoT hubs.</p>
+    </div>
+    <div class="product-card">
+      <div class="model-viewer-container">
+        <model-viewer src="gen4.glb" alt="Gen-4 Model" camera-controls auto-rotate></model-viewer>
+      </div>
+      <h3>Gen-4 Rack</h3>
+      <p><strong>2 kW</strong> continuous | <strong>8 kWh</strong>/4 h</p>
+      <p>Micro-grid buffering & forward operating base power supply.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Join the Future of Portable Power</h2>
+  <p>Whether for emergency preparedness, off-grid adventures, or enterprise deployments, IonCore Energy’s scalable flywheel platform delivers silent, emission-free, self-recharging power—anywhere you need it.</p>
+  <a href="mailto:info@ioncore-energy.com" class="button">Contact Us</a>
+</section>
+
+<footer>
+  <p>&copy; 2025 IonCore Energy Inc. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

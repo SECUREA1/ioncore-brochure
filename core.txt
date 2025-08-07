@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mag-Inertia One™ v1 System Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+    header { background: #333; color: #fff; padding: 1rem; text-align: center; }
+    section { margin: 1rem; padding: 1rem; background: #fff; border-radius: 5px; }
+    h2 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #eee; }
+    .calculator input { width: 4rem; margin-right: 0.5rem; }
+    .calculator label { margin-right: 0.5rem; }
+    .output { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mag-Inertia One™ v1 System Dashboard</h1>
+    <p>Integrated Axial-Flux Drive & Energy Module</p>
+  </header>
+
+  <section id="overview">
+    <h2>1. System Overview</h2>
+    <table>
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr><td>Footprint (L×W×H)</td><td>305 × 305 × 390 mm</td></tr>
+      <tr><td>Dry Mass</td><td>265 kg ± 3%</td></tr>
+      <tr><td>On-board Energy</td><td>94 kWh NMC + 150 F super-cap</td></tr>
+      <tr><td>Continuous Electrical Export</td><td>170 kW</td></tr>
+      <tr><td>Continuous Mechanical Power</td><td>184 kW @ 3 000 rpm</td></tr>
+      <tr><td>Continuous Shaft Torque</td><td>1.46 kN·m</td></tr>
+      <tr><td>Peak Shaft Torque (10 s)</td><td>2.00 kN·m</td></tr>
+      <tr><td>Idle Loss</td><td>< 200 W</td></tr>
+    </table>
+  </section>
+
+  <section id="subsystems">
+    <h2>2. Core Subsystems</h2>
+    <ul>
+      <li><strong>Rotor & Stator:</strong> 200 mm Halbach disk, 1 mm gap, 1.2 T flux</li>
+      <li><strong>Field Coils:</strong> 6 × 95 turns AWG-17 @ 10 A</li>
+      <li><strong>Active Magnetic Bearings:</strong> 2 × radial, 1 × axial, 20 kHz control</li>
+      <li><strong>Power Electronics:</strong> SiC rectifier, 2 × 350 A inverters, DC-link caps</li>
+      <li><strong>Energy Storage:</strong> 94 kWh battery + 150 F super-cap</li>
+      <li><strong>Cooling:</strong> Glycol loop, 10 kW radiator</li>
+      <li><strong>Control:</strong> dSPACE VCU + H2W AMB DSP</li>
+    </ul>
+  </section>
+
+  <section id="calculator">
+    <h2>3. Interactive Calculator</h2>
+    <div class="calculator">
+      <p>Compute Shaft Torque from Field & Geometry:</p>
+      <label for="fieldB">Flux Density B (T):</label>
+      <input type="number" id="fieldB" value="1.2" step="0.01"> 
+      <label for="util">Utilization k<sub>τ</sub>:</label>
+      <input type="number" id="util" value="0.65" step="0.01"><br><br>
+      <label for="radius">Mean Radius r (m):</label>
+      <input type="number" id="radius" value="0.05" step="0.005"> 
+      <label for="length">Active Length ℓ (m):</label>
+      <input type="number" id="length" value="0.10" step="0.01"><br><br>
+      <button onclick="computeTorque()">Calculate Torque</button>
+      <p class="output">Torque: <span id="torqueOut">–</span> kN·m</p>
+    </div>
+  </section>
+
+  <section id="powerflow">
+    <h2>4. Power-Flow Logic</h2>
+    <pre>
+// Pseudocode for energy-mode decision
+if (torque_request > 0) {
+  mode = 'Motor';
+  Iq = +Iq_demand;
+} else if (battery_SOC < 0.9 && torque_request == 0) {
+  mode = 'Charging';
+  Iq = -Iq_max;
+} else {
+  mode = 'Idle';
+  Iq = 0;
+}
+    </pre>
+  </section>
+
+  <script>
+    function computeTorque() {
+      const B = parseFloat(document.getElementById('fieldB').value);
+      const k = parseFloat(document.getElementById('util').value);
+      const r = parseFloat(document.getElementById('radius').value);
+      const l = parseFloat(document.getElementById('length').value);
+      const mu0 = 4 * Math.PI * 1e-7;
+      const tau = k * B * B / (2 * mu0);                        // Pa
+      const area = 2 * Math.PI * r * l;                         // m^2
+      const F = tau * area;                                     // N
+      const T = (F * r) / 1000;                                 // kN·m
+      document.getElementById('torqueOut').innerText = T.toFixed(2);
+    }
+  </script>
+</body>
+</html>

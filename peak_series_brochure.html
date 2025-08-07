@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peak Series 3D Brochure</title>
+  <style>
+    body { margin: 0; padding: 0; background: #f7f7f7; font-family: Arial, sans-serif; }
+    .container { perspective: 1500px; width: 1100px; height: 500px; margin: 60px auto; position: relative; }
+    .brochure { width: 1100px; height: 500px; transform-style: preserve-3d; transition: transform 1s; }
+    .brochure:hover { transform: rotateY(-10deg); }
+    .panel {
+      width: 260px; height: 500px; position: absolute; top: 0; background: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2); backface-visibility: hidden;
+      border: 1px solid #ddd; border-radius: 4px;
+    }
+    .panel1 { left: 0; transform-origin: left; transform: rotateY(0deg); }
+    .panel2 { left: 280px; transform-origin: left; transform: rotateY(0deg); }
+    .panel3 { left: 560px; transform-origin: left; transform: rotateY(0deg); }
+    .panel4 { left: 840px; transform-origin: left; transform: rotateY(0deg); }
+    .panel .content { padding: 20px; }
+    .panel h2 { margin-top: 0; font-size: 24px; color: #333; }
+    .panel img { width: 100%; height: auto; border: 1px solid #ccc; margin-bottom: 10px; }
+    .panel ul { padding-left: 18px; margin: 0; }
+    .panel ul li { margin-bottom: 10px; color: #555; font-size: 14px; }
+    .panel .price { font-size: 20px; color: #d35400; margin: 10px 0; }
+    .panel .footer { font-size: 12px; color: #999; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brochure">
+      <!-- Peak 30 -->
+      <div class="panel panel1">
+        <div class="content">
+          <h2>Peak 30</h2>
+          <img src="peak30.jpg" alt="Peak 30">
+          <ul>
+            <li>30 W continuous DC (12 V @ 2.5 A)</li>
+            <li>60 W surge for 5 s</li>
+            <li>≈ 80 Wh deliverable energy</li>
+            <li>12 V barrel jack + USB-C PD port</li>
+            <li>Liquid micro-loop + twin 40 mm fans</li>
+          </ul>
+          <div class="price">MSRP $1 175 USD</div>
+        </div>
+      </div>
+      <!-- Peak 50 -->
+      <div class="panel panel2">
+        <div class="content">
+          <h2>Peak 50</h2>
+          <img src="peak50.jpg" alt="Peak 50">
+          <ul>
+            <li>50 W continuous AC / DC</li>
+            <li>120 W surge for 5 s</li>
+            <li>≈ 80 Wh deliverable energy</li>
+            <li>120 VAC outlet + 12 V + USB-C PD</li>
+            <li>Pure‑sine inverter built‑in</li>
+          </ul>
+          <div class="price">MSRP $1 299 USD</div>
+        </div>
+      </div>
+      <!-- How It Works -->
+      <div class="panel panel3">
+        <div class="content">
+          <h2>How It Works</h2>
+          <ul>
+            <li><strong>Charge:</strong> Boost to 24 V & motor-mode spins flywheel</li>
+            <li><strong>Store:</strong> 6–7 Wh kinetic + 74 Wh chemical</li>
+            <li><strong>Discharge:</strong> Generator-mode recovers kinetic energy</li>
+            <li><strong>Deliver:</strong> Clean DC bus, or 120 VAC on Peak 50</li>
+            <li><strong>Control:</strong> Arduino Nano with Hall sensor feedback</li>
+          </ul>
+          <div class="price">Efficiency 85 %</div>
+        </div>
+      </div>
+      <!-- Order & Support -->
+      <div class="panel panel4">
+        <div class="content">
+          <h2>Order & Support</h2>
+          <ul>
+            <li><strong>SKUs:</strong> PK30-BASIC, PK50-PROTOTYPE</li>
+            <li>Peak 30: in stock, ships in 2 days</li>
+            <li>Peak 50: prototype, 4–6 week lead time</li>
+            <li>Accessories: carry case, spare pack, adapters</li>
+            <li>Warranty: 2-year limited</li>
+            <li>Support: support@peakseries.com</li>
+          </ul>
+          <div class="footer">© 2025 Peak Series Innovations</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

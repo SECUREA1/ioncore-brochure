@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from ace_tools import display_dataframe_to_user
+
+# Define the base parts list
+data = [
+    ("Mechanical & Magnets", "Polycarbonate housing", 70, 50, 70, 120),
+    ("Mechanical & Magnets", "End-caps & handle", 40, 30, 40, 65),
+    ("Mechanical & Magnets", "SS304 shaft", 45, 35, 45, 80),
+    ("Mechanical & Magnets", "Magnetic bearings (×2)", 120, 90, 120, 180),
+    ("Mechanical & Magnets", "NdFeB preload discs (×2)", 18, 12, 18, 30),
+    ("Mechanical & Magnets", "NdFeB rotor blocks (×8)", 40, 28, 40, 60),
+    ("Stator & Windings", "Steel laminations (×4)", 60, 45, 60, 90),
+    ("Stator & Windings", "Copper wire (×4 coils)", 48, 35, 48, 75),
+    ("Electronics & Control", "Custom PCB + parts", 70, 50, 70, 100),
+    ("Electronics & Control", "MOSFET bridges (×2)", 28, 20, 28, 45),
+    ("Electronics & Control", "Arduino Nano", 34, 25, 34, 50),
+    ("Sensors", "Hall sensors (×4)", 28, 20, 28, 42),
+    ("Sensors", "Optical encoder", 40, 30, 40, 60),
+    ("Cooling System", "Cooling plates (×2)", 28, 20, 28, 42),
+    ("Cooling System", "Micro pump", 20, 15, 20, 30),
+    ("Cooling System", "Micro fans (×2)", 36, 25, 36, 55),
+    ("Cooling System", "Radiator", 35, 25, 35, 50),
+    ("Cooling System", "Tubing & coolant", 20, 15, 20, 30),
+    ("Energy Storage", "Li-ion cells (×2)", 140, 100, 140, 200),
+    ("Energy Storage", "2-cell BMS", 28, 20, 28, 40),
+    ("Energy Storage", "Cell holders (×2)", 16, 12, 16, 25),
+    ("Power Conversion", "DC/DC boost conv.", 25, 18, 25, 40),
+    ("Power Conversion", "Pure-sine inverter", 65, 50, 65, 90),
+    ("Power Conversion", "Outlet & connectors", 12, 8, 12, 20),
+    ("Wiring & Connectors", "Silicone wire (5 m)", 30, 22, 30, 45),
+    ("Wiring & Connectors", "Connector kits", 12, 9, 12, 18),
+    ("Wiring & Connectors", "Heat-shrink & ties", 26, 18, 26, 38),
+    ("Thermals & Consumables", "Thermal epoxy", 20, 15, 20, 30),
+    ("Thermals & Consumables", "Thermal grease", 12, 8, 12, 18),
+    ("Thermals & Consumables", "Tape & sleeving", 8, 5, 8, 12),
+    ("Assembly & Testing", "Labor", 150, 100, 150, 200),
+    ("Install & Shipping", "Install & packaging", 180, 120, 180, 250),
+]
+
+columns = ["Category", "Item", "Base Cost (CAD)", "Low-Grade", "Mid-Grade", "High-Grade"]
+df = pd.DataFrame(data, columns=columns)
+
+# Show full list with all grading options
+display_dataframe_to_user("Full Product Line Cost Breakdown", df)

@@ -1,0 +1,14 @@
+{
+  "name": "ioncore-brochure",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "fetch-images": "node scripts/download-images.js",
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

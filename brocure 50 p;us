@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InertiaCharge 50 Brochure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+        }
+        nav {
+            background-color: #34495e;
+            padding: 1em;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .page {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        footer {
+            background-color: #34495e;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>InertiaCharge 50 Brochure</h1>
+    </header>
+
+    <nav>
+        <a href="javascript:void(0)" onclick="showPage(1)">Page 1: Overview</a>
+        <a href="javascript:void(0)" onclick="showPage(2)">Page 2: Technology</a>
+        <a href="javascript:void(0)" onclick="showPage(3)">Page 3: Features</a>
+        <a href="javascript:void(0)" onclick="showPage(4)">Page 4: Specifications</a>
+        <a href="javascript:void(0)" onclick="showPage(5)">Page 5: Assembly</a>
+        <a href="javascript:void(0)" onclick="showPage(6)">Page 6: Pricing & Applications</a>
+    </nav>
+
+    <div class="content">
+        <div id="page1" class="page active">
+            <h2>InertiaCharge 50: The Next Generation of Portable Power</h2>
+            <p>The InertiaCharge 50 is a revolutionary portable power generator designed to meet modern energy demands with minimal environmental impact. It utilizes magnetic inertia technology—a cutting-edge approach to harnessing clean, renewable energy without relying on traditional batteries or fuel-based generators. This system is perfect for outdoor enthusiasts, off-grid living, and emergency situations where reliable power is crucial.</p>
+
+            <h3>Background</h3>
+            <p>The idea for the InertiaCharge 50 stemmed from a desire to create a more sustainable power solution that could replace traditional, fuel-dependent generators. With growing concerns about the environmental impact of conventional energy sources, engineers sought to develop a system that could generate power efficiently while being portable and eco-friendly. The magnetic inertia concept emerged as an ideal solution due to its low friction, high efficiency, and longevity.</p>
+
+            <h3>Why Magnetic Inertia?</h3>
+            <p>Magnetic inertia is a form of energy storage that uses rotational energy to store power in a flywheel. This system utilizes magnetic bearings to minimize friction, ensuring that the flywheel can spin freely for long durations without significant energy loss. By using electromagnets to both start and generate power, the InertiaCharge 50 offers a sustainable and reliable power source.</p>
+        </div>
+
+        <div id="page2" class="page">
+            <h2>The Science of Magnetic Inertia – How InertiaCharge 50 Generates Power</h2>
+            <h3>Magnetic Bearings</h3>
+            <p>The InertiaCharge 50 uses hybrid ceramic bearings to reduce friction during operation. These bearings suspend the rotor, allowing it to rotate with minimal resistance. The lack of physical contact between the moving parts ensures high efficiency and long-lasting performance.</p>
+
+            <h3>Electromagnet Assembly</h3>
+            <p>Electromagnets play a critical role in both the motor and generator functions of the InertiaCharge 50. During startup, the electromagnets are energized to create a rotating magnetic field that accelerates the rotor. Once the rotor reaches full speed, the same electromagnets are used to generate electrical power by converting the kinetic energy of the rotating rotor into usable electricity.</p>
+
+            <h3>Flywheel and Energy Storage</h3>
+            <p>The flywheel stores kinetic energy as it spins. The system’s precise design ensures that the flywheel can store energy without significant loss due to friction. This rotational energy is then harvested by the electromagnets, generating power. The energy produced is stored in the lithium-ion battery pack for later use.</p>
+        </div>
+
+        <div id="page3" class="page">
+            <h2>InertiaCharge 50 Features – Cutting-Edge Technology for Sustainable Power</h2>
+            <h3>1. Magnetic Bearings</h3>
+            <p><strong>Advantages:</strong> Low friction, reduced wear and tear, and longer operational life.</p>
+            <p><strong>How It Works:</strong> The hybrid ceramic bearings suspend the rotor without physical contact, allowing for smooth rotation and efficient energy conversion.</p>
+
+            <h3>2. Electromagnetic Motor/Generator</h3>
+            <p><strong>Advantages:</strong> Provides high torque during startup, and efficient power generation once the rotor is spinning.</p>
+            <p><strong>How It Works:</strong> Four precision-wound copper coils surround the rotor. The coils are energized in a precise sequence to accelerate the rotor during startup, and then act as generators to convert rotational energy into electrical power.</p>
+
+            <h3>3. Advanced Cooling System</h3>
+            <p><strong>Advantages:</strong> Prevents overheating and ensures reliable performance during long periods of use.</p>
+            <p><strong>How It Works:</strong> The integrated cooling system uses a micro-pump, cooling plates, and low-noise fans to keep critical components within optimal temperature ranges, even under high power draw.</p>
+
+            <h3>4. Modular Energy Storage</h3>
+            <p><strong>Advantages:</strong> Reliable, safe energy storage with the flexibility to expand capacity.</p>
+            <p><strong>How It Works:</strong> The system uses two 3.7 V, 10 Ah Li-ion cells in a series-parallel configuration, managed by a Battery Management System (BMS) to ensure safe operation and maximum battery life.</p>
+        </div>
+
+        <div id="page4" class="page">
+            <h2>In-Depth Technical Breakdown of the InertiaCharge 50</h2>
+            <h3>Power Output and Storage:</h3>
+            <p>Continuous Power Output: 50 W (DC)</p>
+            <p>Energy Storage: 200 Wh (from two 10 Ah prismatic Li-ion cells)</p>
+
+            <h3>Dimensions and Weight:</h3>
+            <p>Dimensions: 150 mm (L) × 100 mm (W) × 50 mm (H)</p>
+            <p>Weight: 0.9 kg (approx.)</p>
+
+            <h3>Cooling System:</h3>
+            <p>Cooling Plates: Aluminum, 50 × 50 × 5 mm</p>
+            <p>Pump Flow Rate: 100 mL/min (submersible micro pump)</p>
+
+            <h3>Electronics and Control:</h3>
+            <p>Microcontroller: Arduino Nano V3</p>
+            <p>Power MOSFETs: IRF3710 (50 V, 62 A)</p>
+        </div>
+
+        <div id="page5" class="page">
+            <h2>Step-by-Step Guide to Building the InertiaCharge 50</h2>
+            <h3>1. Gather Your Parts:</h3>
+            <p>Major Components: Magnetic bearings, copper coils, stainless-steel shafts, Li-ion cells, and more.</p>
+
+            <h3>2. Mechanical Assembly:</h3>
+            <p>Step-by-step guide on assembling the enclosure, bearings, rotor, and cooling system.</p>
+
+            <h3>3. Control Electronics and Wiring:</h3>
+            <p>Details for wiring the microcontroller, coils, sensors, and power stage.</p>
+
+            <h3>4. Final Assembly:</h3>
+            <p>Instructions for closing the enclosure, connecting the battery pack, and testing the system.</p>
+        </div>
+
+        <div id="page6" class="page">
+            <h2>Pricing and Applications – The InertiaCharge 50 in Action</h2>
+            <h3>Pricing:</h3>
+            <p>Retail Price: Approximately $1,995</p>
+            <p>Wholesale Price: $1,020–$2,190</p>
+
+            <h3>Models Available:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Price</th>
+                        <th>Power Output</th>
+                        <th>Energy Storage</th>
+                        <th>Applications</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>InertiaCharge 50</td>
+                        <td>$1,995</td>
+                        <td>50W (DC)</td>
+                        <td>200Wh</td>
+                        <td>Portable power, emergency backup, off-grid</td>
+                    </tr>
+                    <tr>
+                        <td>InertiaCharge 100</td>
+                        <td>$2,695</td>
+                        <td>100W (DC)</td>
+                        <td>400Wh</td>
+                        <td>Industrial use, outdoor work, RVs</td>
+                    </tr>
+                    <tr>
+                        <td>InertiaCharge 200</td>
+                        <td>$3,495</td>
+                        <td>200W (DC)</td>
+                        <td>800Wh</td>
+                        <td>Heavy machinery, large backup power systems</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Applications:</h3>
+            <p>Emergency Backup: Keep essential devices powered during blackouts or power outages.</p>
+            <p>Outdoor and Off-Grid Use: Ideal for camping, hiking, and off-grid living.</p>
+            <p>Mobile Workspaces: Support field-based professionals with reliable power for laptops, tools, and communication devices.</p>
+
+            <h3>Future Use and Development:</h3>
+            <p>The InertiaCharge 50 can be expanded for larger applications, including industrial backup power and integration with renewable energy systems.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 InertiaCharge. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function showPage(pageNumber) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById('page' + pageNumber).classList.add('active');
+        }
+    </script>
+
+</body>
+</html>

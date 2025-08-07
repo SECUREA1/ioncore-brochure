@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "fetch-images": "node scripts/download-images.js",
-    "test": "echo \"No tests specified\""
+    "test": "echo \"No tests specified\"",
+    "build-index": "node scripts/build-index.js"
   },
   "dependencies": {
     "express": "^5.1.0"

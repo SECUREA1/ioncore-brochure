@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magnetic Inertia Generator Brochure</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #003366;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    section {
+      padding: 20px 40px;
+    }
+    h1, h2, h3 {
+      color: #003366;
+    }
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    .spec-table th, .spec-table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    .highlight {
+      background-color: #e6f2ff;
+    }
+    .footer {
+      background: #003366;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Magnetic Inertia Generator</h1>
+  <p>High-Efficiency | Low Friction | Modular | 3000 RPM Stable Output</p>
+</header>
+
+<section>
+  <h2>Overview</h2>
+  <p>
+    The Magnetic Inertia Generator (MIG-3000) is an advanced power generation system designed for high-efficiency operation at 3000 RPM. It utilizes magnetic field propulsion and inertia stabilization principles to provide reliable energy output with low friction and scalable architecture.
+  </p>
+</section>
+
+<section>
+  <h2>Core Features</h2>
+  <ul>
+    <li>Stable 3 kW output at 3000 RPM</li>
+    <li>2:1 Helical Gear Reduction for Torque Management</li>
+    <li>Integrated Oil & Air Cooling Hybrid System</li>
+    <li>High-Efficiency Neodymium PMSG Generator</li>
+    <li>Flywheel-Based Energy Smoothing System</li>
+    <li>Real-Time Sensor Array with Microcontroller Logic</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Detailed Specifications</h2>
+  <table class="spec-table">
+    <tr class="highlight">
+      <th>Component</th>
+      <th>Specification</th>
+    </tr>
+    <tr>
+      <td>Shaft</td>
+      <td>19.05 mm AISI 4340 Alloy Steel, Length 250 mm</td>
+    </tr>
+    <tr>
+      <td>Gear Ratio</td>
+      <td>2:1 Helical (50:25 Teeth)</td>
+    </tr>
+    <tr>
+      <td>Flywheel</td>
+      <td>Radius 100 mm, Thickness 30 mm, Steel, 172.7 J Stored Energy</td>
+    </tr>
+    <tr>
+      <td>Generator</td>
+      <td>3-phase Neodymium Rotor PMSG @ 1500 RPM, 92-95% Efficiency</td>
+    </tr>
+    <tr>
+      <td>Cooling</td>
+      <td>Dual: Oil Spraying @ 0.7 L/min + Air Radiator with 80 mm Fan</td>
+    </tr>
+    <tr>
+      <td>Sensors</td>
+      <td>RPM, Temperature, Torque, Oil Flow, Vibration (MEMS)</td>
+    </tr>
+    <tr>
+      <td>Controller</td>
+      <td>STM32/ESP32 MCU with PID Control & Emergency Shutdown</td>
+    </tr>
+    <tr>
+      <td>Power Output</td>
+      <td>AC (120/240V via inverter), DC (12V/24V Rails), LiFePO4 Support</td>
+    </tr>
+  </table>
+</section>
+
+<section>
+  <h2>Thermal & Safety System</h2>
+  <p>
+    The cooling subsystem ensures operation under 80°C. A dual-layer thermal response integrates:
+    <ul>
+      <li>Active air fan at 60°C</li>
+      <li>Oil circulation at 70°C</li>
+      <li>Fail-safe shutdown at 90°C</li>
+    </ul>
+  </p>
+</section>
+
+<section>
+  <h2>Applications</h2>
+  <p>
+    Ideal for:
+    <ul>
+      <li>Off-grid renewable energy systems</li>
+      <li>Hybrid electric vehicles</li>
+      <li>Microgrids and industrial redundancy</li>
+      <li>Field-based energy deployment systems</li>
+    </ul>
+  </p>
+</section>
+
+<section>
+  <h2>Modular Architecture</h2>
+  <p>
+    The MIG-3000 is stackable. Multiple units can synchronize across a DC bus to deliver up to 30 kW using 10 parallel modules. Control boards support dynamic load balancing and power routing.
+  </p>
+</section>
+
+<div class="footer">
+  <p>&copy; 2025 Magnetic Inertia Systems | Engineered for Next-Gen Energy</p>
+</div>
+
+</body>
+</html>

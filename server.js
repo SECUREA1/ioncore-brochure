@@ -41,9 +41,9 @@ app.get('/', async (req, res) => {
     );
     items.sort((a, b) => a.title.localeCompare(b.title));
     const list = items
-      .map((i) => `<li><a href="/view?f=${encodeURIComponent(i.rel)}">${i.title}</a></li>`)
-      .join('\n');
-    res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Brochures</title></head><body><h1>Brochures</h1><ul>${list}</ul></body></html>`);
+      .map((i) => `<div class="card"><h2>${i.title}</h2><a class="btn" href="/view?f=${encodeURIComponent(i.rel)}">View</a></div>`)
+      .join('');
+    res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Brochures</title><style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;}h1{text-align:center;}.grid{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}.card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 2px 4px rgba(0,0,0,0.1);width:260px;}.card h2{margin-top:0;font-size:1.2em;}.btn{display:inline-block;margin-top:10px;padding:8px 12px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;}.btn:hover{background:#0056b3;}</style></head><body><h1>Brochures</h1><div class="grid">${list}</div></body></html>`);
   } catch (err) {
     res.status(500).send('Failed to load index');
   }

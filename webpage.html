@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ioncore Energy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ioncore Energy – Powering Tomorrow, Today. Clean, scalable, and reliable energy solutions for a sustainable future.">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-bg: #131E2A;
+      --accent: #5FE084;
+      --card-bg: #1B313F;
+      --cta-bg: #44C47F;
+      --light: #F8F9FB;
+      --gray: #c7d2dd;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0;}
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--main-bg) 60%, #1B313F 100%);
+      color: var(--light);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    header {
+      text-align: center;
+      padding: 70px 20px 40px 20px;
+      background: rgba(25, 49, 63, 0.92);
+    }
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: 2px;
+    }
+    header h1 span { color: var(--accent);}
+    header p {
+      max-width: 550px;
+      margin: 0 auto 30px auto;
+      color: var(--gray);
+      font-size: 1.1rem;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #102C19;
+      padding: 15px 38px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+      box-shadow: 0 6px 24px 0 rgba(95,224,132,0.12);
+      transition: background 0.2s, box-shadow 0.2s;
+      margin-top: 8px;
+    }
+    .cta-btn:hover {
+      background: var(--cta-bg);
+      box-shadow: 0 8px 36px 0 rgba(68,196,127,0.14);
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 32px;
+      margin: 50px auto 0 auto;
+      max-width: 950px;
+      padding: 0 16px;
+    }
+    .feature-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 2px 18px rgba(15, 24, 40, 0.13);
+      padding: 36px 24px 30px 24px;
+      width: 220px;
+      min-width: 210px;
+      text-align: center;
+      transition: transform 0.16s, box-shadow 0.16s;
+    }
+    .feature-card:hover {
+      transform: translateY(-6px) scale(1.04);
+      box-shadow: 0 8px 32px rgba(68,196,127,0.13);
+    }
+    .feature-icon {
+      font-size: 2.7rem;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    .feature-title {
+      font-size: 1.18rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .feature-desc {
+      font-size: 0.99rem;
+      color: var(--gray);
+    }
+
+    .about-section {
+      max-width: 700px;
+      margin: 70px auto 0 auto;
+      padding: 0 16px;
+      text-align: center;
+    }
+    .about-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    .about-section p {
+      color: var(--gray);
+      font-size: 1.11rem;
+      margin-bottom: 10px;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding: 36px 12px 20px 12px;
+      background: #14232B;
+      text-align: center;
+      border-radius: 24px 24px 0 0;
+    }
+    footer h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+    footer p {
+      color: var(--gray);
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+    .footer-btn {
+      background: var(--accent);
+      color: #14232B;
+      border: none;
+      padding: 13px 32px;
+      border-radius: 28px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: background 0.2s;
+    }
+    .footer-btn:hover {
+      background: var(--cta-bg);
+    }
+    .copyright {
+      color: #475569;
+      font-size: 0.92rem;
+      margin-top: 20px;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 900px) {
+      .features { flex-wrap: wrap; gap: 22px;}
+      .feature-card { width: 44vw; min-width: 170px;}
+    }
+    @media (max-width: 600px) {
+      header h1 { font-size: 2rem;}
+      .features { flex-direction: column; gap: 20px;}
+      .feature-card { width: 92vw;}
+      .about-section h2 { font-size: 1.35rem;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Powering Tomorrow, <span>Today</span></h1>
+    <p>
+      Ioncore Energy delivers advanced, sustainable energy solutions designed for the future – today.<br>
+      Clean. Scalable. Reliable.
+    </p>
+    <a href="#contact" class="cta-btn">Get in Touch</a>
+  </header>
+
+  <section class="features">
+    <div class="feature-card">
+      <div class="feature-icon">⚡️</div>
+      <div class="feature-title">Clean Energy</div>
+      <div class="feature-desc">Harnessing the latest in green technology to deliver zero-emission power for homes, businesses, and industry.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔥</div>
+      <div class="feature-title">High Efficiency</div>
+      <div class="feature-desc">Our magnetic inertia systems maximize output and minimize waste for unmatched energy efficiency.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌍</div>
+      <div class="feature-title">Global Impact</div>
+      <div class="feature-desc">Empowering communities worldwide, from remote villages to urban centers, with scalable energy solutions.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚀</div>
+      <div class="feature-title">Innovative Growth</div>
+      <div class="feature-desc">Advancing battery storage, microgrids, and AI-powered management for a sustainable future.</div>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <h2>Who We Are</h2>
+    <p>
+      Ioncore Energy is at the forefront of the clean energy revolution.<br>
+      <strong style="color:var(--accent);">Our mission is simple:</strong> accelerate the world’s transition to sustainable energy.
+    </p>
+    <p>
+      Through advanced engineering, patented technology, and a passion for a greener tomorrow, we provide cutting-edge solutions in renewable power generation, storage, and intelligent management systems.<br>
+      Join us as we electrify the path to a brighter, cleaner world.
+    </p>
+  </section>
+
+  <footer id="contact">
+    <h3>Ready to Energize Your Future?</h3>
+    <p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p>
+    <a href="mailto:info@ioncoreenergy.com" class="footer-btn">Contact Us</a>
+    <div class="copyright">
+      &copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>

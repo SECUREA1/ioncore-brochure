@@ -158,3 +158,25 @@ footer p {
   .about-section h2 { font-size: 1.35rem; }
 }
 
+.index-table {
+  width: 90%;
+  margin: 40px auto;
+  border-collapse: collapse;
+}
+
+.index-table th,
+.index-table td {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.index-table th {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.index-table td .btn {
+  margin-top: 0;
+}
+

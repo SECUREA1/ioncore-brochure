@@ -39,7 +39,9 @@ header p {
   flex-wrap: wrap;
 }
 .cta-btn, .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--accent);
   color: #102C19;
   padding: 15px 38px;

@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IonCore Energy 3D Brochure</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <title>IonCore Energy Brochure</title>
   <style>
     body {
       margin: 0;
@@ -49,14 +48,15 @@
     .feature-card h3, .product-card h3 {
       margin-top: 0;
     }
-    .model-viewer-container {
+    .product-image-container {
       width: 100%;
       height: 300px;
       margin-bottom: 1rem;
     }
-    model-viewer {
+    .product-image {
       width: 100%;
       height: 100%;
+      object-fit: contain;
       background-color: #ececec;
       border-radius: 4px;
     }
@@ -127,32 +127,32 @@
   <img src="GEN4.png" alt="Gen 1 through Gen 4 lineup" class="gen-lineup">
   <div class="products">
     <div class="product-card">
-      <div class="model-viewer-container">
-        <model-viewer src="gen1.glb" alt="Gen-1 Model" camera-controls auto-rotate></model-viewer>
+      <div class="product-image-container">
+        <img src="GEN1.png" alt="Gen-1 Micro" class="product-image">
       </div>
       <h3>Gen-1 Micro</h3>
       <p><strong>50 W</strong> continuous | <strong>0.2 kWh</strong>/4 h</p>
       <p>Ideal for emergency comms, camping & UAV battery swaps.</p>
     </div>
     <div class="product-card">
-      <div class="model-viewer-container">
-        <model-viewer src="gen2.glb" alt="Gen-2 Model" camera-controls auto-rotate></model-viewer>
+      <div class="product-image-container">
+        <img src="GEN2.png" alt="Gen-2 Compact" class="product-image">
       </div>
       <h3>Gen-2 Compact</h3>
       <p><strong>150 W</strong> continuous | <strong>0.6 kWh</strong>/4 h</p>
       <p>Perfect for mobile clinics, outdoor film crews, remote offices.</p>
     </div>
     <div class="product-card">
-      <div class="model-viewer-container">
-        <model-viewer src="gen3.glb" alt="Gen-3 Model" camera-controls auto-rotate></model-viewer>
+      <div class="product-image-container">
+        <img src="GEN3.png" alt="Gen-3 Modular" class="product-image">
       </div>
       <h3>Gen-3 Modular</h3>
       <p><strong>600 W</strong> continuous | <strong>2.4 kWh</strong>/4 h</p>
       <p>Stackable modules for construction drones & remote IoT hubs.</p>
     </div>
     <div class="product-card">
-      <div class="model-viewer-container">
-        <model-viewer src="gen4.glb" alt="Gen-4 Model" camera-controls auto-rotate></model-viewer>
+      <div class="product-image-container">
+        <img src="GEN4.png" alt="Gen-4 Rack" class="product-image">
       </div>
       <h3>Gen-4 Rack</h3>
       <p><strong>2 kW</strong> continuous | <strong>8 kWh</strong>/4 h</p>

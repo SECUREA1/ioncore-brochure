@@ -1,15 +1,15 @@
 :root {
-  --main-bg: #080C13;
-  --accent: #D4AF37;
-  --card-bg: #0F1923;
-  --cta-bg: #B8860B;
-  --light: #F8F9FB;
-  --gray: #c7d2dd;
+  --main-bg: #000000;
+  --accent: #00b894;
+  --card-bg: #0d0d0d;
+  --cta-bg: #00966c;
+  --light: #e0e0e0;
+  --gray: #b0b0b0;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Montserrat', Arial, sans-serif;
-  background: linear-gradient(135deg, var(--main-bg) 60%, #0F1923 100%);
+  background: linear-gradient(135deg, var(--main-bg) 60%, #050505 100%);
   color: var(--light);
   min-height: 100vh;
   line-height: 1.6;
@@ -17,7 +17,7 @@ body {
 header {
   text-align: center;
   padding: 70px 20px 40px 20px;
-  background: rgba(15, 24, 35, 0.92);
+  background: rgba(10, 10, 10, 0.92);
 }
 header h1 {
   font-family: 'Playfair Display', serif;
@@ -48,19 +48,20 @@ header p {
   align-items: center;
   gap: 8px;
   background: var(--accent);
-  color: #0A0D12;
+  color: #000;
   padding: 15px 38px;
   border-radius: 30px;
   font-weight: 700;
   font-size: 1.15rem;
   text-decoration: none;
-  box-shadow: 0 6px 24px 0 rgba(212,175,55,0.15);
+  border: 1px solid var(--light);
+  box-shadow: 0 6px 24px 0 rgba(0,184,148,0.15);
   transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
   margin-top: 8px;
 }
 .cta-btn:hover, .btn:hover {
   background: var(--cta-bg);
-  box-shadow: 0 8px 36px 0 rgba(212,175,55,0.2);
+  box-shadow: 0 8px 36px 0 rgba(0,184,148,0.25);
   transform: translateY(-2px);
 }
 .features, .grid {
@@ -120,9 +121,10 @@ header p {
 footer {
   margin-top: 60px;
   padding: 36px 12px 20px 12px;
-  background: #14232B;
+  background: #0a0a0a;
   text-align: center;
   border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--light);
 }
 footer h3 {
   font-size: 1.4rem;
@@ -136,8 +138,8 @@ footer p {
 }
 .footer-btn {
   background: var(--accent);
-  color: #14232B;
-  border: none;
+  color: #000;
+  border: 1px solid var(--light);
   padding: 13px 32px;
   border-radius: 28px;
   font-size: 1.05rem;
@@ -195,9 +197,24 @@ footer p {
   padding: 40px 30px;
   border-radius: 20px;
   box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  border: 1px solid var(--light);
 }
 
+.index-table tbody tr {
+  transition: background 0.2s, transform 0.2s;
+}
 .index-table tbody tr:hover {
-  background: rgba(212,175,55,0.05);
+  background: rgba(0,184,148,0.1);
+  transform: translateX(4px);
+}
+
+.index-icon {
+  margin-right: 10px;
+  color: var(--accent);
+  transition: color 0.2s;
+}
+
+.index-table tbody tr:hover .index-icon {
+  color: var(--light);
 }
 

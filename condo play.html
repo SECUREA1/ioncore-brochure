@@ -15,6 +15,9 @@
     .stats-list li { margin: 0.5rem 0; }
     .highlight { background: #e7f7ea; padding: 1rem; border-left: 5px solid #2e7d32; margin-top: 1rem; }
     .btn { background: #0f3057; color: white; padding: 0.6rem 1rem; text-decoration: none; display: inline-block; margin-top: 1rem; }
+    .gallery { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-bottom: 1rem; }
+    .gallery img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    @media (min-width: 600px) { .gallery img { max-width: 45%; } }
   </style>
 </head>
 <body>
@@ -25,6 +28,10 @@
 
   <main>
     <div class="container">
+      <div class="gallery">
+        <img src="condo1.png" alt="Exterior rendering of the Ioncore condo energy system" />
+        <img src="condo2.png" alt="Interior layout of the Ioncore condo energy system" />
+      </div>
       <h2>🏙️ Urban Energy Revolution</h2>
       <p>Designed for mid-rise and high-rise residential structures, the Ioncore Condo System offers energy autonomy using a next-generation magnetic inertia engine, reducing reliance on external grids.</p>
 

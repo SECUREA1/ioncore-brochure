@@ -2,75 +2,14 @@ import express from 'express';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
-import session from 'express-session';
-import bcrypt from 'bcrypt';
-import { loadUsers, saveUsers } from './userStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const users = await loadUsers();
-
-app.use(express.json());
-app.use(
-  session({
-    secret: 'ioncore-secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
-  })
-);
-
 // Serve static assets like CSS and HTML files
 app.use(express.static(__dirname));
-
-app.post('/register', async (req, res) => {
-  const { username, password, profile = {} } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Missing credentials' });
-  }
-  if (users[username]) {
-    return res.status(400).json({ error: 'User exists' });
-  }
-  const hash = await bcrypt.hash(password, 10);
-  users[username] = { password: hash, profile };
-  await saveUsers(users);
-  res.json({ status: 'registered' });
-});
-
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = users[username];
-  if (!user) {
-    return res.status(400).json({ error: 'Invalid credentials' });
-  }
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) {
-    return res.status(400).json({ error: 'Invalid credentials' });
-  }
-  req.session.user = username;
-  res.json({ status: 'logged_in' });
-});
-
-app.get('/profile', (req, res) => {
-  const username = req.session.user;
-  if (!username || !users[username]) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  res.json({ username, profile: users[username].profile });
-});
-
-app.put('/profile', async (req, res) => {
-  const username = req.session.user;
-  if (!username || !users[username]) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  users[username].profile = req.body.profile || {};
-  await saveUsers(users);
-  res.json({ status: 'updated' });
-});
 
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });

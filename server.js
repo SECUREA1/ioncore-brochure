@@ -11,6 +11,21 @@ const PORT = process.env.PORT || 3000;
 // Serve static assets like CSS and HTML files
 app.use(express.static(__dirname));
 
+function auth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const [scheme, encoded] = header.split(' ');
+  if (scheme !== 'Basic' || !encoded) {
+    res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
+    return res.status(401).send('Authentication required');
+  }
+  const [user, pass] = Buffer.from(encoded, 'base64').toString().split(':');
+  if (user === 'admin' && pass === '1234') {
+    return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
+  res.status(401).send('Authentication required');
+}
+
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   let files = [];
@@ -33,7 +48,7 @@ async function getTitle(filePath) {
   return match ? match[1].trim() : path.basename(filePath);
 }
 
-app.get('/', async (req, res) => {
+app.get('/', auth, async (req, res) => {
   try {
     const files = await getHtmlFiles(__dirname);
     const items = await Promise.all(
@@ -52,7 +67,7 @@ app.get('/', async (req, res) => {
   }
 });
 
-app.get('/view', async (req, res) => {
+app.get('/view', auth, async (req, res) => {
   const rel = req.query.f;
   if (!rel) return res.status(400).send('Missing file');
   const filePath = path.join(__dirname, rel);

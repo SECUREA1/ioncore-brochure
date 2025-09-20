@@ -8,15 +8,51 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const baseAccessConfig = {
+  membershipName: sanitizeEnv(process.env.IONCORE_APES_NAME) || 'Ioncore Apes',
+  requiredChainId: sanitizeEnv(process.env.IONCORE_APES_CHAIN_ID) || '0x1',
+  tokenType: (sanitizeEnv(process.env.IONCORE_APES_TOKEN_TYPE) || 'erc721').toLowerCase()
+};
+
+const optionalAccessConfig = {
+  membershipContract: sanitizeEnv(process.env.IONCORE_APES_CONTRACT),
+  tokenId: sanitizeEnv(process.env.IONCORE_APES_TOKEN_ID),
+  minBalance: sanitizeEnv(process.env.IONCORE_APES_MIN_BALANCE)
+};
+
+for (const [key, value] of Object.entries(optionalAccessConfig)) {
+  if (value !== undefined) {
+    baseAccessConfig[key] = value;
+  }
+}
+
+const WALLET_CONFIG_TAG = `<script>window.__IONCORE_ACCESS__ = ${JSON.stringify(baseAccessConfig)};</script>`;
 const WALLET_GUARD_TAG = '<script type="module" src="/wallet-guard.js"></script>';
+
+function sanitizeEnv(value) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : undefined;
+}
+
+function injectTag(html, tag) {
+  if (html.includes('</body>')) {
+    return html.replace('</body>', `${tag}</body>`);
+  }
+  return `${html}\n${tag}`;
+}
 
 function injectWalletGuard(html) {
   if (!html || typeof html !== 'string') return html;
-  if (html.includes('wallet-guard.js')) return html;
-  if (html.includes('</body>')) {
-    return html.replace('</body>', `${WALLET_GUARD_TAG}</body>`);
+  let output = html;
+  if (!output.includes('__IONCORE_ACCESS__')) {
+    output = injectTag(output, WALLET_CONFIG_TAG);
   }
-  return `${html}\n${WALLET_GUARD_TAG}`;
+  if (!output.includes('wallet-guard.js')) {
+    output = injectTag(output, WALLET_GUARD_TAG);
+  }
+  return output;
 }
 
 async function sendHtmlWithGuard(res, filePath) {

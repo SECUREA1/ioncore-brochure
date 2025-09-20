@@ -1,8 +1,60 @@
 const OVERLAY_ID = 'wallet-guard-overlay';
 const BODY_LOCK_CLASS = 'wallet-guard-locked';
+const STORAGE_KEY = 'ioncoreApesAccess';
+
+const DEFAULT_ACCESS_CONFIG = {
+  membershipName: 'Ioncore Apes',
+  requiredChainId: '0x1',
+  membershipContract: '',
+  tokenType: 'erc721',
+  tokenId: null,
+  minBalance: 1n
+};
+
+const ACCESS_CONFIG = (() => {
+  const raw = window.__IONCORE_ACCESS__ || {};
+  return {
+    membershipName: typeof raw.membershipName === 'string' && raw.membershipName.trim()
+      ? raw.membershipName.trim()
+      : DEFAULT_ACCESS_CONFIG.membershipName,
+    requiredChainId: typeof raw.requiredChainId === 'string' && raw.requiredChainId.trim()
+      ? raw.requiredChainId.trim()
+      : DEFAULT_ACCESS_CONFIG.requiredChainId,
+    membershipContract: typeof raw.membershipContract === 'string' && raw.membershipContract.trim()
+      ? raw.membershipContract.trim().toLowerCase()
+      : DEFAULT_ACCESS_CONFIG.membershipContract,
+    tokenType: typeof raw.tokenType === 'string' && raw.tokenType.trim()
+      ? raw.tokenType.trim().toLowerCase()
+      : DEFAULT_ACCESS_CONFIG.tokenType,
+    tokenId: raw.tokenId ?? DEFAULT_ACCESS_CONFIG.tokenId,
+    minBalance: parseMinBalance(raw.minBalance ?? DEFAULT_ACCESS_CONFIG.minBalance)
+  };
+})();
+
+let isVerifying = false;
+let accessGranted = false;
+
+function parseMinBalance(value) {
+  try {
+    if (typeof value === 'bigint') return value;
+    if (typeof value === 'number') return BigInt(Math.max(1, value));
+    if (typeof value === 'string' && value.trim()) {
+      return BigInt(value.trim());
+    }
+  } catch (err) {
+    console.warn('Invalid Ioncore Apes minimum balance, defaulting to 1', err);
+  }
+  return DEFAULT_ACCESS_CONFIG.minBalance;
+}
+
+function hasMetaMask() {
+  return typeof window.ethereum !== 'undefined' && Boolean(window.ethereum.isMetaMask);
+}
 
 function createOverlay() {
-  if (document.getElementById(OVERLAY_ID)) return document.getElementById(OVERLAY_ID);
+  const existing = document.getElementById(OVERLAY_ID);
+  if (existing) return existing;
+
   const overlay = document.createElement('div');
   overlay.id = OVERLAY_ID;
   overlay.style.position = 'fixed';
@@ -19,18 +71,19 @@ function createOverlay() {
   overlay.style.backdropFilter = 'blur(4px)';
 
   const title = document.createElement('h2');
-  title.textContent = 'Connect Phantom Wallet';
+  title.textContent = `${ACCESS_CONFIG.membershipName} Access Required`;
   title.style.fontFamily = "'Montserrat', Arial, sans-serif";
   title.style.marginBottom = '16px';
 
   const message = document.createElement('p');
-  message.innerHTML = 'A verified Phantom wallet connection is required to access Ioncore resources.';
+  message.innerHTML = `Verify your ${ACCESS_CONFIG.membershipName} membership with MetaMask to continue.`;
   message.style.maxWidth = '420px';
-  message.style.marginBottom = '24px';
+  message.style.marginBottom = '20px';
   message.style.lineHeight = '1.6';
+  message.dataset.message = 'true';
 
   const button = document.createElement('button');
-  button.textContent = 'Connect Phantom Wallet';
+  button.textContent = `Verify ${ACCESS_CONFIG.membershipName} Access`;
   button.style.background = '#5FE084';
   button.style.color = '#071521';
   button.style.border = 'none';
@@ -40,17 +93,25 @@ function createOverlay() {
   button.style.cursor = 'pointer';
   button.style.fontFamily = "'Montserrat', Arial, sans-serif";
   button.style.fontSize = '1rem';
-  button.addEventListener('click', connectWallet);
+  button.addEventListener('click', () => verifyAccess(true));
+
+  const feedback = document.createElement('p');
+  feedback.dataset.feedback = 'true';
+  feedback.style.display = 'none';
+  feedback.style.marginTop = '16px';
+  feedback.style.maxWidth = '420px';
+  feedback.style.lineHeight = '1.5';
 
   const download = document.createElement('a');
-  download.textContent = 'Install Phantom';
-  download.href = 'https://phantom.app/download';
+  download.textContent = 'Install MetaMask';
+  download.href = 'https://metamask.io/download/';
   download.style.color = '#93c5fd';
   download.style.marginTop = '18px';
+  download.style.display = 'inline-block';
   download.target = '_blank';
   download.rel = 'noopener noreferrer';
 
-  overlay.append(title, message, button, download);
+  overlay.append(title, message, button, feedback, download);
   document.body.appendChild(overlay);
   document.body.classList.add(BODY_LOCK_CLASS);
   document.body.style.overflow = 'hidden';
@@ -66,62 +127,285 @@ function removeOverlay() {
   document.body.style.overflow = '';
 }
 
-async function connectWallet() {
-  if (!window.solana || !window.solana.isPhantom) {
-    createOverlay();
+function setFeedback(message, type = 'error') {
+  const overlay = document.getElementById(OVERLAY_ID);
+  if (!overlay) return;
+  const feedback = overlay.querySelector('[data-feedback="true"]');
+  if (!feedback) return;
+  if (!message) {
+    feedback.style.display = 'none';
+    feedback.textContent = '';
     return;
   }
+  feedback.textContent = message;
+  feedback.style.display = 'block';
+  feedback.style.color = type === 'error' ? '#fca5a5' : '#93c5fd';
+}
 
-  const overlay = createOverlay();
+function setButtonState({ disabled, label }) {
+  const overlay = document.getElementById(OVERLAY_ID);
+  if (!overlay) return;
   const button = overlay.querySelector('button');
-  button.disabled = true;
-  button.textContent = 'Connecting…';
-  try {
-    const response = await window.solana.connect();
-    if (!response || !response.publicKey) {
-      throw new Error('Connection rejected');
-    }
-    removeOverlay();
-  } catch (err) {
-    console.warn('Wallet connection failed', err);
-    button.disabled = false;
-    button.textContent = 'Connect Phantom Wallet';
+  if (!button) return;
+  if (typeof disabled === 'boolean') {
+    button.disabled = disabled;
+    button.style.opacity = disabled ? '0.7' : '1';
+    button.style.cursor = disabled ? 'not-allowed' : 'pointer';
+  }
+  if (typeof label === 'string') {
+    button.textContent = label;
   }
 }
 
-async function enforceConnection() {
-  if (!window.solana || !window.solana.isPhantom) {
-    createOverlay();
-    return;
-  }
+function normalizeHex(value) {
+  if (typeof value !== 'string') return value;
+  return value.startsWith('0x') ? value.toLowerCase() : `0x${value.toLowerCase()}`;
+}
 
+async function ensureCorrectChain() {
+  if (!ACCESS_CONFIG.requiredChainId) return;
+  const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
+  if (currentChain === ACCESS_CONFIG.requiredChainId) return;
   try {
-    const resp = await window.solana.connect({ onlyIfTrusted: true });
-    if (resp && resp.publicKey) {
-      removeOverlay();
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: ACCESS_CONFIG.requiredChainId }]
+    });
+  } catch (err) {
+    if (err && err.code === 4902 && ACCESS_CONFIG.addChainParameters) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [ACCESS_CONFIG.addChainParameters]
+      });
       return;
     }
+    throw new Error('WRONG_CHAIN');
+  }
+}
+
+function encodeAddress(address) {
+  if (typeof address !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    throw new Error('INVALID_ADDRESS');
+  }
+  return address.toLowerCase().replace('0x', '').padStart(64, '0');
+}
+
+function encodeUint(value) {
+  const bigintValue = typeof value === 'bigint' ? value : BigInt(value);
+  return bigintValue.toString(16).padStart(64, '0');
+}
+
+async function callContract(data) {
+  const contract = ACCESS_CONFIG.membershipContract;
+  if (!contract) {
+    throw new Error('MISSING_CONTRACT');
+  }
+  const result = await window.ethereum.request({
+    method: 'eth_call',
+    params: [
+      {
+        to: normalizeHex(contract),
+        data
+      },
+      'latest'
+    ]
+  });
+  if (!result || result === '0x') return '0x0';
+  return result;
+}
+
+async function checkErc721Balance(address) {
+  const payload = `0x70a08231${encodeAddress(address)}`;
+  const balanceHex = await callContract(payload);
+  try {
+    const balance = BigInt(balanceHex);
+    return balance >= ACCESS_CONFIG.minBalance;
+  } catch {
+    return false;
+  }
+}
+
+async function checkErc721Token(address) {
+  if (ACCESS_CONFIG.tokenId === null || ACCESS_CONFIG.tokenId === undefined) {
+    return checkErc721Balance(address);
+  }
+  const payload = `0x6352211e${encodeUint(ACCESS_CONFIG.tokenId)}`;
+  try {
+    const ownerHex = await callContract(payload);
+    const owner = `0x${ownerHex.slice(-40)}`.toLowerCase();
+    return owner === address.toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+async function checkErc1155Balance(address) {
+  if (ACCESS_CONFIG.tokenId === null || ACCESS_CONFIG.tokenId === undefined) {
+    throw new Error('MISSING_TOKEN_ID');
+  }
+  const payload = `0x00fdd58e${encodeAddress(address)}${encodeUint(ACCESS_CONFIG.tokenId)}`;
+  const balanceHex = await callContract(payload);
+  try {
+    const balance = BigInt(balanceHex);
+    return balance >= ACCESS_CONFIG.minBalance;
+  } catch {
+    return false;
+  }
+}
+
+async function verifyMembership(address) {
+  if (ACCESS_CONFIG.tokenType === 'erc1155') {
+    return checkErc1155Balance(address);
+  }
+  return checkErc721Token(address);
+}
+
+function rememberAccess(address) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, address.toLowerCase());
   } catch (err) {
-    console.debug('Wallet not trusted yet', err);
+    console.debug('Unable to persist Ioncore Apes access', err);
+  }
+}
+
+function clearRememberedAccess() {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch (err) {
+    console.debug('Unable to clear Ioncore Apes access cache', err);
+  }
+}
+
+function friendlyError(err) {
+  if (!err) return 'Verification failed. Please try again.';
+  const code = typeof err === 'string' ? err : err.message;
+  if (code === 'NO_ACCOUNTS') {
+    return 'Connect your MetaMask wallet to continue.';
+  }
+  if (code === 'WRONG_CHAIN') {
+    return 'Switch to the required network in MetaMask and try again.';
+  }
+  if (code === 'MISSING_CONTRACT') {
+    return 'Ioncore Apes membership contract is not configured.';
+  }
+  if (code === 'MISSING_TOKEN_ID') {
+    return 'Ioncore Apes token ID is required for ERC-1155 verification.';
+  }
+  if (err.code === 4001) {
+    return 'MetaMask request was rejected. Please authorize to continue.';
+  }
+  if (err.code === -32002) {
+    return 'Complete the pending MetaMask request to continue.';
+  }
+  return err.message || 'Verification failed. Please try again.';
+}
+
+async function verifyAccess(interactive = false) {
+  createOverlay();
+  setFeedback('');
+
+  if (!hasMetaMask()) {
+    setFeedback('MetaMask is required to verify Ioncore Apes access. Install it to continue.');
+    return false;
   }
 
-  createOverlay();
+  if (isVerifying) return false;
+  isVerifying = true;
+
+  try {
+    setButtonState({ disabled: true, label: 'Verifying…' });
+    const method = interactive ? 'eth_requestAccounts' : 'eth_accounts';
+    const accounts = await window.ethereum.request({ method });
+    if (!accounts || accounts.length === 0) {
+      setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
+      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+      return false;
+    }
+    const address = accounts[0];
+    try {
+      await ensureCorrectChain();
+    } catch (err) {
+      setFeedback(friendlyError(err), 'error');
+      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+      return false;
+    }
+
+    const hasAccess = await verifyMembership(address);
+    if (hasAccess) {
+      accessGranted = true;
+      rememberAccess(address);
+      setButtonState({ disabled: true, label: 'Access Granted' });
+      setFeedback('');
+      removeOverlay();
+      return true;
+    }
+
+    clearRememberedAccess();
+    setFeedback(`Verified address does not hold a ${ACCESS_CONFIG.membershipName} token.`);
+    setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+    return false;
+  } catch (err) {
+    console.warn('Ioncore Apes verification failed', err);
+    setFeedback(friendlyError(err));
+    setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+    return false;
+  } finally {
+    isVerifying = false;
+  }
+}
+
+async function enforceAccess() {
+  if (accessGranted) return;
+  const stored = (() => {
+    try {
+      return sessionStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  })();
+
+  await verifyAccess(false);
+
+  if (accessGranted || !stored || !hasMetaMask()) return;
+
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts && accounts.some((addr) => addr.toLowerCase() === stored)) {
+      accessGranted = true;
+      removeOverlay();
+    }
+  } catch (err) {
+    console.debug('Unable to reuse stored Ioncore Apes access', err);
+  }
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', enforceConnection);
+  document.addEventListener('DOMContentLoaded', enforceAccess);
 } else {
-  enforceConnection();
+  enforceAccess();
 }
 
-if (!window.solana) {
-  window.addEventListener('solana#initialized', enforceConnection, { once: true });
-  setTimeout(enforceConnection, 500);
+if (window.ethereum && window.ethereum.on) {
+  window.ethereum.on('accountsChanged', async (accounts) => {
+    accessGranted = false;
+    if (!accounts || accounts.length === 0) {
+      clearRememberedAccess();
+      createOverlay();
+      setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
+      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+      return;
+    }
+    await verifyAccess(false);
+  });
+
+  window.ethereum.on('chainChanged', async () => {
+    accessGranted = false;
+    await verifyAccess(false);
+  });
 }
 
-window.addEventListener('focus', enforceConnection);
-
-if (window.solana) {
-  window.solana.on && window.solana.on('disconnect', createOverlay);
-  window.solana.on && window.solana.on('connect', removeOverlay);
-}
+window.addEventListener('focus', () => {
+  if (!accessGranted) {
+    verifyAccess(false);
+  }
+});

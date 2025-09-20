@@ -26,6 +26,12 @@ for (const [key, value] of Object.entries(optionalAccessConfig)) {
   }
 }
 
+const chainOptions = parseChainOptions(sanitizeEnv(process.env.IONCORE_APES_CHAIN_OPTIONS), baseAccessConfig.requiredChainId);
+if (chainOptions.length > 0) {
+  baseAccessConfig.chainOptions = chainOptions;
+  baseAccessConfig.requiredChainId = chainOptions[0].chainId;
+}
+
 const WALLET_CONFIG_TAG = `<script>window.__IONCORE_ACCESS__ = ${JSON.stringify(baseAccessConfig)};</script>`;
 const WALLET_GUARD_TAG = '<script type="module" src="/wallet-guard.js"></script>';
 
@@ -34,6 +40,90 @@ function sanitizeEnv(value) {
   if (typeof value !== 'string') return value;
   const trimmed = value.trim();
   return trimmed.length ? trimmed : undefined;
+}
+
+const CHAIN_NAME_MAP = {
+  '0x1': 'Ethereum',
+  '0x5': 'Goerli',
+  '0xa': 'Optimism',
+  '0x89': 'Polygon',
+  '0x13881': 'Polygon Mumbai',
+  '0xa4b1': 'Arbitrum One',
+  '0x2105': 'Base',
+  '0x38': 'BNB Chain',
+  '0x2a': 'Kovan'
+};
+
+function normalizeChainId(value) {
+  if (typeof value === 'bigint') {
+    return value > 0n ? `0x${value.toString(16)}` : undefined;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) return undefined;
+    return `0x${Math.trunc(value).toString(16)}`;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim().toLowerCase();
+    if (!trimmed) return undefined;
+    if (/^0x[0-9a-f]+$/i.test(trimmed)) {
+      return trimmed.startsWith('0x') ? trimmed : `0x${trimmed}`;
+    }
+    if (/^[0-9]+$/.test(trimmed)) {
+      try {
+        return `0x${BigInt(trimmed).toString(16)}`;
+      } catch {
+        return undefined;
+      }
+    }
+  }
+  return undefined;
+}
+
+function inferChainLabel(chainId) {
+  return CHAIN_NAME_MAP[chainId] || `Chain ${chainId}`;
+}
+
+function createChainOption(chainIdValue, labelValue) {
+  const chainId = normalizeChainId(chainIdValue);
+  if (!chainId) return undefined;
+  const label = typeof labelValue === 'string' && labelValue.trim() ? labelValue.trim() : inferChainLabel(chainId);
+  return { chainId, label };
+}
+
+function parseChainOptions(raw, fallbackChain) {
+  const options = [];
+  const seen = new Set();
+  if (typeof raw === 'string' && raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        for (const entry of parsed) {
+          const option = createChainOption(entry?.chainId ?? entry?.id ?? entry?.network, entry?.label ?? entry?.name);
+          if (option && !seen.has(option.chainId)) {
+            options.push(option);
+            seen.add(option.chainId);
+          }
+        }
+      }
+    } catch {
+      const parts = raw.split(',');
+      for (const part of parts) {
+        const [id, name] = part.split(':');
+        const option = createChainOption(id, name);
+        if (option && !seen.has(option.chainId)) {
+          options.push(option);
+          seen.add(option.chainId);
+        }
+      }
+    }
+  }
+  if (options.length === 0 && fallbackChain) {
+    const fallback = createChainOption(fallbackChain);
+    if (fallback) {
+      options.push(fallback);
+    }
+  }
+  return options;
 }
 
 function injectTag(html, tag) {
@@ -64,29 +154,6 @@ async function sendHtmlWithGuard(res, filePath) {
     res.status(404).send('Not found');
   }
 }
-
-function auth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const [scheme, encoded] = header.split(' ');
-  if (scheme !== 'Basic' || !encoded) {
-    res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
-    return res.status(401).send('Authentication required');
-  }
-  const [user, pass] = Buffer.from(encoded, 'base64').toString().split(':');
-  if (user === 'admin' && pass === '1234') {
-    return next();
-  }
-  res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
-  res.status(401).send('Authentication required');
-}
-
-// Require authentication for direct HTML requests
-app.use((req, res, next) => {
-  if (req.path.toLowerCase().endsWith('.html') && req.path !== '/webpage.html') {
-    return auth(req, res, next);
-  }
-  next();
-});
 
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -127,8 +194,8 @@ app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
 // Serve static assets but disable automatic index fallback
 app.use(express.static(__dirname, { index: false }));
 
-// Password-protected HTML file listing
-app.get('/admin', auth, async (req, res) => {
+// NFT-gated HTML file listing
+app.get('/admin', async (req, res) => {
   try {
     const files = await getHtmlFiles(__dirname);
     const items = await Promise.all(
@@ -149,7 +216,7 @@ app.get('/admin', auth, async (req, res) => {
   }
 });
 
-app.get('/view', auth, async (req, res) => {
+app.get('/view', async (req, res) => {
   const rel = req.query.f;
   if (!rel) return res.status(400).send('Missing file');
   const filePath = path.join(__dirname, rel);

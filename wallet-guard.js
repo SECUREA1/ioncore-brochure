@@ -2,24 +2,99 @@ const OVERLAY_ID = 'wallet-guard-overlay';
 const BODY_LOCK_CLASS = 'wallet-guard-locked';
 const STORAGE_KEY = 'ioncoreApesAccess';
 
+const CHAIN_NAME_MAP = {
+  '0x1': 'Ethereum Mainnet',
+  '0x5': 'Goerli',
+  '0xa': 'Optimism',
+  '0x89': 'Polygon',
+  '0x13881': 'Polygon Mumbai',
+  '0xa4b1': 'Arbitrum One',
+  '0x2105': 'Base',
+  '0x38': 'BNB Chain',
+  '0x2a': 'Kovan'
+};
+
+function normalizeChainId(value) {
+  if (typeof value === 'bigint') {
+    return value > 0n ? `0x${value.toString(16)}` : null;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) return null;
+    return `0x${Math.trunc(value).toString(16)}`;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (/^0x[0-9a-f]+$/i.test(trimmed)) {
+      return trimmed.toLowerCase();
+    }
+    if (/^[0-9]+$/.test(trimmed)) {
+      try {
+        return `0x${BigInt(trimmed).toString(16)}`;
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function inferChainLabel(chainId) {
+  return CHAIN_NAME_MAP[chainId] || `Chain ${chainId}`;
+}
+
+function createChainOption(chainIdValue, labelValue) {
+  const chainId = normalizeChainId(chainIdValue);
+  if (!chainId) return null;
+  const label = typeof labelValue === 'string' && labelValue.trim() ? labelValue.trim() : inferChainLabel(chainId);
+  return { chainId, label };
+}
+
+function parseChainOptions(raw, fallbackChainId) {
+  if (!Array.isArray(raw)) {
+    if (fallbackChainId) {
+      const fallback = createChainOption(fallbackChainId);
+      return fallback ? [fallback] : [];
+    }
+    return [];
+  }
+  const seen = new Set();
+  const options = [];
+  for (const entry of raw) {
+    const option = createChainOption(entry?.chainId ?? entry?.id ?? entry?.network, entry?.label ?? entry?.name);
+    if (option && !seen.has(option.chainId)) {
+      options.push(option);
+      seen.add(option.chainId);
+    }
+  }
+  if (options.length === 0 && fallbackChainId) {
+    const fallback = createChainOption(fallbackChainId);
+    if (fallback) {
+      options.push(fallback);
+    }
+  }
+  return options;
+}
+
 const DEFAULT_ACCESS_CONFIG = {
   membershipName: 'Ioncore Apes',
   requiredChainId: '0x1',
   membershipContract: '',
   tokenType: 'erc721',
   tokenId: null,
-  minBalance: 1n
+  minBalance: 1n,
+  chainOptions: []
 };
 
 const ACCESS_CONFIG = (() => {
   const raw = window.__IONCORE_ACCESS__ || {};
+  const defaultChainId = normalizeChainId(raw.requiredChainId) ?? DEFAULT_ACCESS_CONFIG.requiredChainId;
+  const chainOptions = parseChainOptions(raw.chainOptions, defaultChainId);
   return {
     membershipName: typeof raw.membershipName === 'string' && raw.membershipName.trim()
       ? raw.membershipName.trim()
       : DEFAULT_ACCESS_CONFIG.membershipName,
-    requiredChainId: typeof raw.requiredChainId === 'string' && raw.requiredChainId.trim()
-      ? raw.requiredChainId.trim()
-      : DEFAULT_ACCESS_CONFIG.requiredChainId,
+    requiredChainId: chainOptions.length > 0 ? chainOptions[0].chainId : defaultChainId,
     membershipContract: typeof raw.membershipContract === 'string' && raw.membershipContract.trim()
       ? raw.membershipContract.trim().toLowerCase()
       : DEFAULT_ACCESS_CONFIG.membershipContract,
@@ -27,12 +102,40 @@ const ACCESS_CONFIG = (() => {
       ? raw.tokenType.trim().toLowerCase()
       : DEFAULT_ACCESS_CONFIG.tokenType,
     tokenId: raw.tokenId ?? DEFAULT_ACCESS_CONFIG.tokenId,
-    minBalance: parseMinBalance(raw.minBalance ?? DEFAULT_ACCESS_CONFIG.minBalance)
+    minBalance: parseMinBalance(raw.minBalance ?? DEFAULT_ACCESS_CONFIG.minBalance),
+    chainOptions
   };
 })();
 
 let isVerifying = false;
 let accessGranted = false;
+let activeChainId = ACCESS_CONFIG.requiredChainId;
+
+function getActiveChain() {
+  return activeChainId;
+}
+
+function setActiveChain(chainId, { updateSelect = true } = {}) {
+  const normalized = normalizeChainId(chainId);
+  if (!normalized) return;
+  if (ACCESS_CONFIG.chainOptions.length > 0) {
+    const supported = ACCESS_CONFIG.chainOptions.some((option) => option.chainId === normalized);
+    if (!supported) return;
+  }
+  activeChainId = normalized;
+  ACCESS_CONFIG.requiredChainId = normalized;
+  if (!updateSelect) return;
+  const overlay = document.getElementById(OVERLAY_ID);
+  if (!overlay) return;
+  const select = overlay.querySelector('[data-chain-select="true"]');
+  if (select && select.value !== normalized) {
+    select.value = normalized;
+  }
+}
+
+function getUnlockLabel() {
+  return `Unlock ${ACCESS_CONFIG.membershipName}`;
+}
 
 function parseMinBalance(value) {
   try {
@@ -76,14 +179,67 @@ function createOverlay() {
   title.style.marginBottom = '16px';
 
   const message = document.createElement('p');
-  message.innerHTML = `Verify your ${ACCESS_CONFIG.membershipName} membership with MetaMask to continue.`;
+  if (ACCESS_CONFIG.chainOptions.length > 1) {
+    message.innerHTML = `Select the network that holds your ${ACCESS_CONFIG.membershipName} NFT, then connect MetaMask to unlock access.`;
+  } else {
+    message.innerHTML = `Verify your ${ACCESS_CONFIG.membershipName} membership with MetaMask to continue.`;
+  }
   message.style.maxWidth = '420px';
   message.style.marginBottom = '20px';
   message.style.lineHeight = '1.6';
   message.dataset.message = 'true';
 
+  let selectorContainer = null;
+  if (ACCESS_CONFIG.chainOptions.length > 0) {
+    selectorContainer = document.createElement('div');
+    selectorContainer.style.display = 'flex';
+    selectorContainer.style.flexDirection = 'column';
+    selectorContainer.style.alignItems = 'stretch';
+    selectorContainer.style.gap = '8px';
+    selectorContainer.style.marginBottom = '20px';
+
+    const selectLabel = document.createElement('label');
+    selectLabel.textContent = ACCESS_CONFIG.chainOptions.length > 1 ? 'Choose Network' : 'Selected Network';
+    selectLabel.style.fontFamily = "'Montserrat', Arial, sans-serif";
+    selectLabel.style.fontSize = '0.95rem';
+    selectLabel.style.fontWeight = '600';
+    selectLabel.style.textAlign = 'left';
+
+    const select = document.createElement('select');
+    select.dataset.chainSelect = 'true';
+    select.style.padding = '12px 16px';
+    select.style.borderRadius = '12px';
+    select.style.border = '1px solid rgba(148, 163, 184, 0.35)';
+    select.style.background = 'rgba(15, 23, 42, 0.85)';
+    select.style.color = '#e2e8f0';
+    select.style.fontFamily = "'Montserrat', Arial, sans-serif";
+    select.style.fontSize = '0.95rem';
+    select.style.cursor = ACCESS_CONFIG.chainOptions.length > 1 ? 'pointer' : 'default';
+    select.style.outline = 'none';
+    select.style.transition = 'border-color 0.2s ease';
+
+    for (const option of ACCESS_CONFIG.chainOptions) {
+      const opt = document.createElement('option');
+      opt.value = option.chainId;
+      opt.textContent = option.label;
+      select.appendChild(opt);
+    }
+
+    select.value = getActiveChain();
+    if (ACCESS_CONFIG.chainOptions.length === 1) {
+      select.disabled = true;
+      select.style.opacity = '0.8';
+    }
+
+    select.addEventListener('change', (event) => {
+      setActiveChain(event.target.value, { updateSelect: false });
+    });
+
+    selectorContainer.append(selectLabel, select);
+  }
+
   const button = document.createElement('button');
-  button.textContent = `Verify ${ACCESS_CONFIG.membershipName} Access`;
+  button.textContent = getUnlockLabel();
   button.style.background = '#5FE084';
   button.style.color = '#071521';
   button.style.border = 'none';
@@ -111,10 +267,15 @@ function createOverlay() {
   download.target = '_blank';
   download.rel = 'noopener noreferrer';
 
-  overlay.append(title, message, button, feedback, download);
+  if (selectorContainer) {
+    overlay.append(title, message, selectorContainer, button, feedback, download);
+  } else {
+    overlay.append(title, message, button, feedback, download);
+  }
   document.body.appendChild(overlay);
   document.body.classList.add(BODY_LOCK_CLASS);
   document.body.style.overflow = 'hidden';
+  setActiveChain(getActiveChain());
   return overlay;
 }
 
@@ -154,6 +315,8 @@ function setButtonState({ disabled, label }) {
   }
   if (typeof label === 'string') {
     button.textContent = label;
+  } else if (label === undefined) {
+    button.textContent = getUnlockLabel();
   }
 }
 
@@ -260,9 +423,33 @@ async function verifyMembership(address) {
   return checkErc721Token(address);
 }
 
+function getStoredAccess() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && typeof parsed.address === 'string') {
+        return {
+          address: parsed.address.toLowerCase(),
+          chainId: typeof parsed.chainId === 'string' ? normalizeChainId(parsed.chainId) : null
+        };
+      }
+    } catch {
+      if (typeof raw === 'string') {
+        return { address: raw.toLowerCase(), chainId: null };
+      }
+    }
+  } catch (err) {
+    console.debug('Unable to read Ioncore Apes access cache', err);
+  }
+  return null;
+}
+
 function rememberAccess(address) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, address.toLowerCase());
+    const payload = JSON.stringify({ address: address.toLowerCase(), chainId: getActiveChain() });
+    sessionStorage.setItem(STORAGE_KEY, payload);
   } catch (err) {
     console.debug('Unable to persist Ioncore Apes access', err);
   }
@@ -283,7 +470,7 @@ function friendlyError(err) {
     return 'Connect your MetaMask wallet to continue.';
   }
   if (code === 'WRONG_CHAIN') {
-    return 'Switch to the required network in MetaMask and try again.';
+    return 'Switch to the selected network in MetaMask and try again.';
   }
   if (code === 'MISSING_CONTRACT') {
     return 'Ioncore Apes membership contract is not configured.';
@@ -300,8 +487,12 @@ function friendlyError(err) {
   return err.message || 'Verification failed. Please try again.';
 }
 
-async function verifyAccess(interactive = false) {
+async function verifyAccess(interactive = false, preferredChainId) {
   createOverlay();
+  if (preferredChainId) {
+    setActiveChain(preferredChainId);
+  }
+  setActiveChain(getActiveChain());
   setFeedback('');
 
   if (!hasMetaMask()) {
@@ -313,12 +504,12 @@ async function verifyAccess(interactive = false) {
   isVerifying = true;
 
   try {
-    setButtonState({ disabled: true, label: 'Verifying…' });
+    setButtonState({ disabled: true, label: 'Unlocking…' });
     const method = interactive ? 'eth_requestAccounts' : 'eth_accounts';
     const accounts = await window.ethereum.request({ method });
     if (!accounts || accounts.length === 0) {
       setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
-      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+      setButtonState({ disabled: false, label: getUnlockLabel() });
       return false;
     }
     const address = accounts[0];
@@ -326,7 +517,7 @@ async function verifyAccess(interactive = false) {
       await ensureCorrectChain();
     } catch (err) {
       setFeedback(friendlyError(err), 'error');
-      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+      setButtonState({ disabled: false, label: getUnlockLabel() });
       return false;
     }
 
@@ -341,13 +532,13 @@ async function verifyAccess(interactive = false) {
     }
 
     clearRememberedAccess();
-    setFeedback(`Verified address does not hold a ${ACCESS_CONFIG.membershipName} token.`);
-    setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+    setFeedback(`Verified address does not hold a ${ACCESS_CONFIG.membershipName} token on the selected network.`);
+    setButtonState({ disabled: false, label: getUnlockLabel() });
     return false;
   } catch (err) {
     console.warn('Ioncore Apes verification failed', err);
     setFeedback(friendlyError(err));
-    setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+    setButtonState({ disabled: false, label: getUnlockLabel() });
     return false;
   } finally {
     isVerifying = false;
@@ -356,22 +547,20 @@ async function verifyAccess(interactive = false) {
 
 async function enforceAccess() {
   if (accessGranted) return;
-  const stored = (() => {
-    try {
-      return sessionStorage.getItem(STORAGE_KEY);
-    } catch {
-      return null;
-    }
-  })();
+  const stored = getStoredAccess();
+  if (stored?.chainId) {
+    setActiveChain(stored.chainId, { updateSelect: false });
+  }
 
-  await verifyAccess(false);
+  await verifyAccess(false, stored?.chainId ?? getActiveChain());
 
-  if (accessGranted || !stored || !hasMetaMask()) return;
+  if (accessGranted || !stored || !stored.address || !hasMetaMask()) return;
 
   try {
     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    if (accounts && accounts.some((addr) => addr.toLowerCase() === stored)) {
+    if (accounts && accounts.some((addr) => addr.toLowerCase() === stored.address)) {
       accessGranted = true;
+      setActiveChain(stored.chainId ?? getActiveChain());
       removeOverlay();
     }
   } catch (err) {
@@ -392,20 +581,24 @@ if (window.ethereum && window.ethereum.on) {
       clearRememberedAccess();
       createOverlay();
       setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
-      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+      setButtonState({ disabled: false, label: getUnlockLabel() });
       return;
     }
-    await verifyAccess(false);
+    const stored = getStoredAccess();
+    if (stored?.chainId) {
+      setActiveChain(stored.chainId, { updateSelect: false });
+    }
+    await verifyAccess(false, stored?.chainId ?? getActiveChain());
   });
 
   window.ethereum.on('chainChanged', async () => {
     accessGranted = false;
-    await verifyAccess(false);
+    await verifyAccess(false, getActiveChain());
   });
 }
 
 window.addEventListener('focus', () => {
   if (!accessGranted) {
-    verifyAccess(false);
+    verifyAccess(false, getActiveChain());
   }
 });

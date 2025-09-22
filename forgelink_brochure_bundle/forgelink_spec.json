@@ -1,0 +1,23 @@
+{
+  "brand": "IonCore Energy",
+  "product": "ForgeLink",
+  "msrp": {
+    "Base": 18000,
+    "Pro": 22500,
+    "Ultra": 28500
+  },
+  "positioning": {
+    "segments": [
+      "Field robotics",
+      "Industrial MRO",
+      "Remote infrastructure",
+      "Aerospace labs"
+    ],
+    "differentiators": [
+      "Modular Yb-fiber platform",
+      "AI thermal regulator",
+      "Energy-dense buffering",
+      "Class-4 safety"
+    ]
+  }
+}

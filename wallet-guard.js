@@ -5,7 +5,8 @@ const STORAGE_KEY = 'ioncoreApesAccess';
 const DEFAULT_ACCESS_CONFIG = {
   membershipName: 'Ioncore Apes',
   requiredChainId: '0x1',
-  membershipContract: '',
+  // Matches DEFAULT_MEMBERSHIP_CONTRACT in server.js so standalone pages still gate properly.
+  membershipContract: '0xaef8b6346ca4dadaa71783dddf4a3d00633b679d',
   tokenType: 'erc721',
   tokenId: null,
   minBalance: 1n

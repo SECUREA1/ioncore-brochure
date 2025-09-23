@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const DEFAULT_MEMBERSHIP_CONTRACT = '0x495f947276749ce646f68ac8c248420045cb7b5e';
+
 const baseAccessConfig = {
   membershipName: sanitizeEnv(process.env.IONCORE_APES_NAME) || 'Ioncore Apes',
   requiredChainId: sanitizeEnv(process.env.IONCORE_APES_CHAIN_ID) || '0x1',
@@ -15,7 +17,7 @@ const baseAccessConfig = {
 };
 
 const optionalAccessConfig = {
-  membershipContract: sanitizeEnv(process.env.IONCORE_APES_CONTRACT),
+  membershipContract: sanitizeEnv(process.env.IONCORE_APES_CONTRACT) || DEFAULT_MEMBERSHIP_CONTRACT,
   tokenId: sanitizeEnv(process.env.IONCORE_APES_TOKEN_ID),
   minBalance: sanitizeEnv(process.env.IONCORE_APES_MIN_BALANCE)
 };

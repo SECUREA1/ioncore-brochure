@@ -1,0 +1,56 @@
+name: Deploy Time Pieces to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare site folder
+        run: |
+          rm -rf site
+          mkdir -p site/timepieces
+          unzip ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip -d site/timepieces
+
+          if [ ! -f index.html ]; then
+            cat > site/index.html <<'HTML'
+<!doctype html><html><head><meta charset="utf-8"><title>IonCore Brochure</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:system-ui;margin:2rem">
+  <h1>IonCore Brochure</h1>
+  <p><a style="padding:.6rem 1rem;border:1px solid #333;border-radius:.5rem;text-decoration:none"
+        href="./timepieces/index.html">Time Pieces</a></p>
+</body></html>
+HTML
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

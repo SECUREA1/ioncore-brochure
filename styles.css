@@ -283,6 +283,8 @@ main {
   padding: 42px;
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  display: grid;
+  gap: 24px;
 }
 
 .hero__visual::before,
@@ -300,6 +302,35 @@ main {
   width: 120px;
   height: 120px;
   background: radial-gradient(circle, rgba(94, 249, 180, 0.2) 0%, rgba(94, 249, 180, 0) 72%);
+}
+.hero__visual-list {
+  display: grid;
+  gap: 16px;
+}
+
+.hero__visual-list h3 {
+  margin: 0;
+  font-size: 1.18rem;
+}
+
+.product-hero__figure {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.product-hero__image {
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(5, 12, 24, 0.68);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.product-hero__caption {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .hero__visual h3 {
@@ -374,6 +405,13 @@ main {
 
 .detail-card li i {
   color: var(--accent);
+}
+
+.section-heading {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 32px;
+  max-width: 780px;
 }
 
 .metric-grid {
@@ -454,6 +492,20 @@ main {
   flex-direction: column;
   gap: 16px;
   align-items: flex-start;
+}
+
+.price-highlight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 28px;
+  border-radius: 18px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 1.6rem;
+  font-weight: 700;
+  min-width: 220px;
 }
 
 .trusted-logos {

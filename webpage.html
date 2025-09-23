@@ -90,6 +90,15 @@
       transform: translateY(-6px) scale(1.04);
       box-shadow: 0 8px 32px rgba(68,196,127,0.13);
     }
+    .card[aria-disabled="true"] {
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+    }
+    .card[aria-disabled="true"]:hover {
+      transform: none;
+      box-shadow: 0 2px 18px rgba(15, 24, 40, 0.13);
+    }
     .feature-icon {
       font-size: 2.7rem;
       margin-bottom: 16px;
@@ -187,26 +196,26 @@
         <div class="feature-title">IonCore Brochure</div>
         <div class="feature-desc">Overview of our energy solutions.</div>
       </a>
-      <a href="fundraising.html" class="card">
-        <div class="feature-icon">💰</div>
-        <div class="feature-title">Fundraising Model</div>
-        <div class="feature-desc">Investment and funding details.</div>
+      <a href="/timepieces" class="card">
+        <div class="feature-icon">⌚</div>
+        <div class="feature-title">Time Pieces</div>
+        <div class="feature-desc">Explore our precision-engineered collection.</div>
       </a>
-        <a href="Mag-Inertia%20One%E2%84%A2%20v1%20System%20Dashboard.html" class="card">
-          <div class="feature-icon">📊</div>
-          <div class="feature-title">System Dashboard</div>
-          <div class="feature-desc">Interactive performance metrics.</div>
-        </a>
-        <a href="holophone.html" class="card">
-          <div class="feature-icon">📱</div>
-          <div class="feature-title">HoloPhone</div>
-          <div class="feature-desc">Discover holographic communication.</div>
-        </a>
-        <a href="#contact" class="card">
-          <div class="feature-icon">✉️</div>
-          <div class="feature-title">Get in Touch</div>
-          <div class="feature-desc">Connect with our team.</div>
-        </a>
+      <a href="Mag-Inertia%20One%E2%84%A2%20v1%20System%20Dashboard.html" class="card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">System Dashboard</div>
+        <div class="feature-desc">Interactive performance metrics.</div>
+      </a>
+      <a href="holophone.html" class="card">
+        <div class="feature-icon">📱</div>
+        <div class="feature-title">HoloPhone</div>
+        <div class="feature-desc">Discover holographic communication.</div>
+      </a>
+      <a href="#" class="card" aria-disabled="true" onclick="return false;">
+        <div class="feature-icon">🏭</div>
+        <div class="feature-title">Industrial Power Plants</div>
+        <div class="feature-desc">Coming soon – large-scale deployment insights.</div>
+      </a>
       <a href="index.html" class="card">
         <div class="feature-icon">📚</div>
         <div class="feature-title">Brochure Index</div>

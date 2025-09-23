@@ -8,59 +8,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const DEFAULT_MEMBERSHIP_CONTRACT = '0xaef8B6346CA4DaDaA71783dDdF4a3D00633B679d';
-
-const baseAccessConfig = {
-  membershipName: sanitizeEnv(process.env.IONCORE_APES_NAME) || 'Ioncore Apes',
-  requiredChainId: sanitizeEnv(process.env.IONCORE_APES_CHAIN_ID) || '0x1',
-  tokenType: (sanitizeEnv(process.env.IONCORE_APES_TOKEN_TYPE) || 'erc721').toLowerCase()
-};
-
-const optionalAccessConfig = {
-  membershipContract: sanitizeEnv(process.env.IONCORE_APES_CONTRACT) || DEFAULT_MEMBERSHIP_CONTRACT,
-  tokenId: sanitizeEnv(process.env.IONCORE_APES_TOKEN_ID),
-  minBalance: sanitizeEnv(process.env.IONCORE_APES_MIN_BALANCE)
-};
-
-for (const [key, value] of Object.entries(optionalAccessConfig)) {
-  if (value !== undefined) {
-    baseAccessConfig[key] = value;
-  }
-}
-
-const WALLET_CONFIG_TAG = `<script>window.__IONCORE_ACCESS__ = ${JSON.stringify(baseAccessConfig)};</script>`;
-const WALLET_GUARD_TAG = '<script type="module" src="/wallet-guard.js"></script>';
-
-function sanitizeEnv(value) {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value !== 'string') return value;
-  const trimmed = value.trim();
-  return trimmed.length ? trimmed : undefined;
-}
-
-function injectTag(html, tag) {
-  if (html.includes('</body>')) {
-    return html.replace('</body>', `${tag}</body>`);
-  }
-  return `${html}\n${tag}`;
-}
-
-function injectWalletGuard(html) {
-  if (!html || typeof html !== 'string') return html;
-  let output = html;
-  if (!output.includes('__IONCORE_ACCESS__')) {
-    output = injectTag(output, WALLET_CONFIG_TAG);
-  }
-  if (!output.includes('wallet-guard.js')) {
-    output = injectTag(output, WALLET_GUARD_TAG);
-  }
-  return output;
-}
-
-async function sendHtmlWithGuard(res, filePath) {
+async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
-    html = injectWalletGuard(html);
     res.type('html').send(html);
   } catch {
     res.status(404).send('Not found');
@@ -114,7 +64,7 @@ async function getTitle(filePath) {
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtmlWithGuard(res, path.join(__dirname, 'webpage.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage.html'));
 });
 
 app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
@@ -123,7 +73,7 @@ app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
   if (!filePath.startsWith(__dirname)) {
     return res.status(400).send('Invalid path');
   }
-  await sendHtmlWithGuard(res, filePath);
+  await sendHtml(res, filePath);
 });
 
 // Serve static assets but disable automatic index fallback
@@ -144,7 +94,7 @@ app.get('/admin', auth, async (req, res) => {
       .map((i) => `<div class="card"><h2>${i.title}</h2><a class="btn" href="/view?f=${encodeURIComponent(i.rel)}">View</a></div>`)
       .join('');
     res.send(
-      injectWalletGuard(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Brochures</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`)
+      `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Brochures</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`
     );
   } catch (err) {
     res.status(500).send('Failed to load index');
@@ -160,7 +110,7 @@ app.get('/view', auth, async (req, res) => {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
     res.send(
-      injectWalletGuard(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${title}</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`)
+      `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${title}</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`
     );
   } catch {
     res.status(404).send('Not found');

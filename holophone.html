@@ -1,215 +1,551 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Holophone™ | New Product Line</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holophone™ | Immersive Product Line</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    :root{
-      --bg:#0b0f14;--panel:#121824;--muted:#6b7a90;--text:#e8f1ff;--brand:#4cc3ff;--accent:#ffd166;--ok:#2dd4bf;--warn:#f59e0b;
-      --radius:16px;--shadow:0 8px 30px rgba(0,0,0,.35)
+    .holo-hero {
+      position: relative;
+      overflow: hidden;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b0f14 0%,#0e1420 60%,#0b0f14 100%);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    a{color:var(--brand);text-decoration:none}
-    .wrap{max-width:1160px;margin:auto;padding:28px}
-    header.hero{padding:64px 0;background:radial-gradient(1200px 600px at 80% -10%,rgba(76,195,255,.18),transparent 60%)}
-    .badge{display:inline-block;padding:6px 12px;border:1px solid #2b3b52;border-radius:999px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:600;font-size:12px}
-    h1{font-size:44px;line-height:1.12;margin:.5rem 0}
-    .lead{max-width:760px;color:#bfd3f5}
-    .cta{margin-top:22px;display:flex;gap:14px;flex-wrap:wrap}
-    .btn{padding:12px 18px;border-radius:12px;border:1px solid #2a3a52;background:#192233;color:#dce9ff;cursor:pointer;box-shadow:var(--shadow);transition:.2s}
-    .btn.primary{background:linear-gradient(135deg,#22b6ff,#4cc3ff);color:#04121e;border-color:#29aaf3;font-weight:700}
-    .btn.secondary{border-color:#364a6b}
-    .grid{display:grid;gap:22px}
-    .cols-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-    section.card{background:rgba(20,28,40,.75);backdrop-filter:blur(8px);border:1px solid #1f2a3e;border-radius:var(--radius);box-shadow:var(--shadow);padding:26px}
-    h2{margin:0 0 12px}
-    h3{margin:0 0 8px}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:8px}
-    .kpi{background:#0f1624;border:1px solid #1e2a3f;border-radius:14px;padding:14px}
-    .kpi b{font-size:22px;color:#fff}
-    .muted{color:var(--muted)}
-    ul{margin:8px 0 0 20px}
-    .price{font-size:38px;font-weight:800;color:var(--accent)}
-    .table{width:100%;border-collapse:collapse;margin-top:8px}
-    .table th,.table td{border:1px solid #24324a;padding:12px;border-radius:6px}
-    .table th{background:#10192b;color:#cfe6ff;text-align:left}
-    details{border:1px solid #22314a;border-radius:12px;padding:12px;background:#0e1524}
-    details+details{margin-top:10px}
-    summary{cursor:pointer;font-weight:700}
-    footer{color:#94aac8;padding:32px 0;text-align:center}
-    .inline-badge{background:#0c1322;border:1px solid #24324a;color:#b7cae6;padding:2px 8px;border-radius:999px;font-size:12px}
+
+    .holo-hero::after {
+      content: "";
+      position: absolute;
+      inset: -120px -260px auto auto;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(94, 249, 180, 0.22) 0%, rgba(94, 249, 180, 0) 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .holo-hero .hero__visual {
+      min-height: 100%;
+      display: grid;
+      align-content: flex-start;
+    }
+
+    .holo-hero .hero__visual figure {
+      margin: 0;
+    }
+
+    .holo-hero .hero__visual img {
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: rgba(5, 12, 24, 0.72);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .holo-hero .hero__visual ul {
+      list-style: none;
+      margin: 28px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .holo-hero .hero__visual li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-med);
+      font-size: 0.92rem;
+    }
+
+    .holo-hero .hero__visual li i {
+      color: var(--accent);
+    }
+
+    .holo-kpis {
+      margin-top: 48px;
+    }
+
+    .holo-kpis .metric-card h3 {
+      font-size: 1.9rem;
+      color: var(--text-high);
+    }
+
+    .holo-kpis .metric-label {
+      letter-spacing: 0.16em;
+    }
+
+    .detail-card p {
+      color: var(--text-med);
+    }
+
+    .detail-card strong {
+      color: var(--text-high);
+    }
+
+    .gallery-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .gallery-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+    }
+
+    .gallery-card img {
+      border-radius: 18px;
+      width: 100%;
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--accent);
+      box-shadow: 0 36px 64px rgba(6, 14, 30, 0.52);
+    }
+
+    .gallery-card span {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .pricing-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 24px;
+      padding: 28px;
+      display: grid;
+      gap: 12px;
+      align-content: flex-start;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .pricing-card h3 {
+      margin: 0;
+      font-size: 1.16rem;
+    }
+
+    .pricing-card .price {
+      font-size: 2rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .pricing-card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .pricing-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(94, 249, 180, 0.12);
+      border: 1px solid rgba(94, 249, 180, 0.28);
+      color: var(--accent);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .spec-section {
+      display: grid;
+      gap: 24px;
+    }
+
+    .spec-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      gap: 16px;
+    }
+
+    .spec-card h3 {
+      margin: 0;
+      font-size: 1.18rem;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .spec-table th,
+    .spec-table td {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      color: var(--text-med);
+      font-size: 0.92rem;
+    }
+
+    .spec-table th {
+      width: 30%;
+      color: var(--text-high);
+      font-weight: 600;
+    }
+
+    .spec-table tr:last-child th,
+    .spec-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .faq-accordion {
+      display: grid;
+      gap: 16px;
+    }
+
+    .faq-accordion details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 22px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .faq-accordion summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-high);
+      list-style: none;
+    }
+
+    .faq-accordion summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq-accordion details[open] summary {
+      color: var(--accent);
+    }
+
+    .faq-accordion p {
+      margin: 12px 0 0;
+    }
+
+    @media (max-width: 720px) {
+      .pricing-card {
+        padding: 22px;
+      }
+
+      .spec-card {
+        padding: 22px;
+      }
+    }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="wrap">
-      <span class="badge">New Product Line</span>
-      <h1>Holophone™ + Power Coin™ — Reality, Powered.</h1>
-      <p class="lead">A chrome‑titanium Holophone with a detachable <strong>Power Coin</strong> and magnetic charging base. Project holograms, share products in AR, and pay with a gesture. Private storage and instant power—no cables, no friction.</p>
-      <div class="cta">
-        <a class="btn primary" href="#pricing">Preorder from $2,799</a>
-        <a class="btn secondary" href="#specs">View full specs</a>
-        <a class="btn secondary" href="holopitch.html">Investor opportunity</a>
-      </div>
-    </div>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
   </header>
 
-  <main class="wrap">
+  <main>
+    <section class="container page-section holo-hero">
+      <div class="hero product-hero">
+        <div class="hero__content">
+          <span class="eyebrow">New product line</span>
+          <h1 class="section-title">Holophone™ + Power Coin™ — Reality, Powered.</h1>
+          <p class="section-subtitle">A chrome-titanium Holophone with detachable <strong>Power Coin</strong> energy modules and a magnetic fast-charging base. Project holograms, transact securely, and keep experiences portable with encrypted on-coin storage.</p>
+          <div class="hero__actions">
+            <a class="btn btn-primary" href="#pricing">Preorder from $2,799</a>
+            <a class="btn btn-outline" href="#specs">View full specs</a>
+            <a class="btn btn-outline" href="holopitch.html">Investor opportunity</a>
+          </div>
+        </div>
+        <div class="hero__visual">
+          <figure class="product-hero__figure">
+            <img class="product-hero__image" src="classic%20holo.png" alt="Holophone device on magnetic base">
+            <figcaption class="product-hero__caption">Holophone kit with detachable Power Coin energy module.</figcaption>
+          </figure>
+          <ul>
+            <li><i class="fa-solid fa-magnet"></i>Magnetically docking energy + storage coins</li>
+            <li><i class="fa-solid fa-bolt"></i>HoloSync™ 60W bidirectional charging</li>
+            <li><i class="fa-solid fa-shield"></i>Secure biometric handshake with on-coin enclave</li>
+          </ul>
+        </div>
+      </div>
+      <div class="metric-grid holo-kpis">
+        <div class="metric-card">
+          <span class="metric-label">Energy reserve</span>
+          <h3>4,000 mAh</h3>
+          <p>Solid-state capacity per Power Coin module.</p>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Storage</span>
+          <h3>1 TB</h3>
+          <p>Hardware-encrypted NVMe for AR assets and wallets.</p>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Rapid charge</span>
+          <h3>&lt; 15 min</h3>
+          <p>Boost to 80% with Qi 2.0 magnetic fast-charge.</p>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Projection</span>
+          <h3>Spatial AR</h3>
+          <p>Eye-safe holographic output for shared experiences.</p>
+        </div>
+      </div>
+    </section>
 
-    <!-- HOW IT WORKS -->
-    <section class="card" id="how">
-      <h2>How it works</h2>
-      <div class="grid cols-3">
-        <div>
+    <section class="container page-section">
+      <div class="section-heading">
+        <span class="eyebrow">Holophone experience</span>
+        <h2 class="section-title">Snap, sync, and share in three fluid steps.</h2>
+        <p class="section-subtitle">Holophone™ pairs precision hardware with adaptive software. Each Power Coin auto-aligns, authenticates, and energizes the handset for uninterrupted projection and commerce.</p>
+      </div>
+      <div class="detail-grid">
+        <article class="detail-card">
           <h3>1) Snap</h3>
-          <p class="muted">The <strong>Power Coin</strong> magnetically docks to the Holophone. Hall sensors auto‑align coils; a secure handshake authenticates the coin.</p>
-        </div>
-        <div>
+          <p>The <strong>Power Coin</strong> magnetically docks. Hall sensors and micro-alignment rails ensure a precise seal before the secure handshake begins.</p>
+        </article>
+        <article class="detail-card">
           <h3>2) Power + Sync</h3>
-          <p class="muted">Qi 2.0 inductive charging delivers up to <b>60W</b>. At the same time, the coin’s encrypted NVMe storage mounts for instant AR assets and wallet access.</p>
-        </div>
-        <div>
+          <p>Qi 2.0 inductive charging delivers up to <strong>60 W</strong> while encrypted NVMe storage mounts for instant AR assets, identity credentials, and wallet balances.</p>
+        </article>
+        <article class="detail-card">
           <h3>3) Project + Pay</h3>
-          <p class="muted">Launch holograms, beam product demos, and approve payments with a gesture. Remove the coin to hot‑swap—device stays live via supercap buffer.</p>
-        </div>
-      </div>
-      <div class="kpis">
-        <div class="kpi"><b>4,000 mAh</b><div class="muted">Solid‑state battery in each Power Coin</div></div>
-        <div class="kpi"><b>1 TB</b><div class="muted">Encrypted NVMe coin storage</div></div>
-        <div class="kpi"><b>&lt;15 min</b><div class="muted">HoloSync™ fast‑charge to 80%</div></div>
-        <div class="kpi"><b>60 W</b><div class="muted">Bidirectional magnetic charging</div></div>
+          <p>Launch volumetric demos, beam spatial meetings, and approve payments with biometric gestures. Hot-swap coins while the supercap buffer keeps the phone online.</p>
+        </article>
       </div>
     </section>
 
-    <!-- WHAT IT WILL DO / USE CASES -->
-    <section class="card" id="uses">
-      <h2>What it will do</h2>
-      <div class="grid cols-3">
-        <div>
+    <section class="container page-section">
+      <div class="section-heading">
+        <span class="eyebrow">Holophone in action</span>
+        <h2 class="section-title">Designed for creators, teams, and travelers.</h2>
+        <p class="section-subtitle">From commerce to collaboration, Holophone™ opens holographic workflows anywhere and keeps power independent from wall sockets.</p>
+      </div>
+      <div class="use-case-grid">
+        <article class="use-case-card">
           <h3>AR product sharing</h3>
-          <p class="muted">Show life‑size 3D products, specs, and reviews hovering in space. Tap to save or purchase.</p>
-        </div>
-        <div>
+          <ul>
+            <li><i class="fa-solid fa-box"></i>Life-sized demos with spec overlays.</li>
+            <li><i class="fa-solid fa-cart-shopping"></i>Tap to purchase within the hologram.</li>
+          </ul>
+        </article>
+        <article class="use-case-card">
           <h3>Instant payments</h3>
-          <p class="muted">NFC + biometric gestures approve HoloPay in a second—no cards, no codes.</p>
-        </div>
-        <div>
+          <ul>
+            <li><i class="fa-solid fa-credit-card"></i>NFC + biometrics approve HoloPay.</li>
+            <li><i class="fa-solid fa-lock"></i>Offline token vaulting on Power Coin.</li>
+          </ul>
+        </article>
+        <article class="use-case-card">
           <h3>Creator mode</h3>
-          <p class="muted">Record volumetric moments, store on the coin, and beam them to friends or events.</p>
-        </div>
-        <div>
+          <ul>
+            <li><i class="fa-solid fa-video"></i>Capture volumetric moments.</li>
+            <li><i class="fa-solid fa-share-nodes"></i>Beam scenes to events or clients.</li>
+          </ul>
+        </article>
+        <article class="use-case-card">
           <h3>Work & collaboration</h3>
-          <p class="muted">Spin 3D models in meetings, annotate in AR, and hand off a coin with the full scene set.</p>
-        </div>
-        <div>
+          <ul>
+            <li><i class="fa-solid fa-users"></i>Spin 3D models in spatial meetings.</li>
+            <li><i class="fa-solid fa-diagram-project"></i>Hand off coins with full project states.</li>
+          </ul>
+        </article>
+        <article class="use-case-card">
           <h3>Travel & tickets</h3>
-          <p class="muted">Keep boarding passes, hotel keys, and city AR maps on‑coin for offline reliability.</p>
-        </div>
-        <div>
+          <ul>
+            <li><i class="fa-solid fa-plane"></i>Store boarding passes and smart hotel keys.</li>
+            <li><i class="fa-solid fa-map-location-dot"></i>Offline AR maps for city navigation.</li>
+          </ul>
+        </article>
+        <article class="use-case-card">
           <h3>Energy freedom</h3>
-          <p class="muted">Swap charged coins throughout the day. The multi‑dock tops up three coins at once.</p>
-        </div>
+          <ul>
+            <li><i class="fa-solid fa-battery-full"></i>Swap fresh coins throughout the day.</li>
+            <li><i class="fa-solid fa-solar-panel"></i>Multi-dock tops up three coins at once.</li>
+          </ul>
+        </article>
       </div>
     </section>
 
-    <!-- PRODUCT GALLERY -->
-    <section class="card" id="gallery">
-      <h2>Product gallery</h2>
-      <div class="grid cols-3">
-        <figure>
-          <img src="classic%20holo.png" alt="Classic Holophone" style="width:100%;border-radius:12px" />
-          <figcaption class="muted">Classic Holophone</figcaption>
-        </figure>
-        <figure>
-          <img src="holosilver.png" alt="Holophone Silver" style="width:100%;border-radius:12px" />
-          <figcaption class="muted">Holophone Silver</figcaption>
-        </figure>
-        <figure>
-          <img src="hologold.png" alt="Holophone Gold" style="width:100%;border-radius:12px" />
-          <figcaption class="muted">Holophone Gold</figcaption>
-        </figure>
-        <figure>
-          <img src="powercoin.png" alt="Power Coin and charger" style="width:100%;border-radius:12px" />
-          <figcaption class="muted">Power Coin & charger</figcaption>
-        </figure>
-        <figure>
-          <img src="kit2.png" alt="Kit 2 with EMG glasses and neural sensors" style="width:100%;border-radius:12px" />
-          <figcaption class="muted">Kit 2: EMG glasses & neural sensors</figcaption>
-        </figure>
-        <figure>
-          <img src="bundle.png" alt="AR glasses bundle with wireless charger and Power Coin" style="width:100%;border-radius:12px" />
-          <figcaption class="muted">Bundle: AR glasses, charger & Power Coin</figcaption>
-        </figure>
+    <section class="container page-section">
+      <div class="section-heading">
+        <span class="eyebrow">Product gallery</span>
+        <h2 class="section-title">Choose finishes and launch configurations.</h2>
+        <p class="section-subtitle">Premium metal finishes and bundled accessories keep Holophone™ presentation-ready for retail, hospitality, and executive deployments.</p>
+      </div>
+      <div class="gallery-grid">
+        <article class="gallery-card">
+          <img src="classic%20holo.png" alt="Classic Holophone">
+          <span>Classic Holophone</span>
+        </article>
+        <article class="gallery-card">
+          <img src="holosilver.png" alt="Holophone Silver">
+          <span>Holophone Silver Edition</span>
+        </article>
+        <article class="gallery-card">
+          <img src="hologold.png" alt="Holophone Gold">
+          <span>Holophone Gold Edition</span>
+        </article>
+        <article class="gallery-card">
+          <img src="powercoin.png" alt="Power Coin and charger">
+          <span>Power Coin™ and magnetic charger</span>
+        </article>
+        <article class="gallery-card">
+          <img src="kit2.png" alt="Kit 2 with EMG glasses and neural sensors">
+          <span>Kit 2: EMG glasses & neural sensors</span>
+        </article>
+        <article class="gallery-card">
+          <img src="bundle.png" alt="AR glasses bundle with wireless charger and Power Coin">
+          <span>Executive bundle with AR eyewear</span>
+        </article>
       </div>
     </section>
 
-    <!-- PRICING -->
-    <section class="card" id="pricing">
-      <h2>Pricing</h2>
-      <div class="grid cols-3">
-        <div class="kpi"><b class="price">$2,799</b><div>Holophone™ Kit</div><div class="muted">Device + 1 Power Coin + Magnetic Charging Base</div></div>
-        <div class="kpi"><b class="price">$499</b><div>Extra Power Coin™</div><div class="muted">Add capacity, storage, and uptime</div></div>
-        <div class="kpi"><b class="price">$179</b><div>HoloDock Base</div><div class="muted">Triple‑bay magnetic fast‑charger</div></div>
+    <section class="container page-section" id="pricing">
+      <div class="section-heading">
+        <span class="eyebrow">Investment tiers</span>
+        <h2 class="section-title">Holophone™ launch pricing.</h2>
+        <p class="section-subtitle">Pre-release units include concierge onboarding, developer SDK access, and priority Power Coin replenishment.</p>
       </div>
-      <p class="muted" style="margin-top:10px">Bulk, education, and developer program pricing available. <span class="inline-badge">Pre‑release</span></p>
+      <div class="pricing-grid">
+        <article class="pricing-card">
+          <div class="pricing-badge">Flagship</div>
+          <div class="price">$2,799</div>
+          <h3>Holophone™ Kit</h3>
+          <p>Device, 1 × Power Coin™, magnetic charging base, premium case.</p>
+        </article>
+        <article class="pricing-card">
+          <div class="pricing-badge">Expansion</div>
+          <div class="price">$499</div>
+          <h3>Extra Power Coin™</h3>
+          <p>Add capacity, encrypted storage, and uptime redundancy.</p>
+        </article>
+        <article class="pricing-card">
+          <div class="pricing-badge">Infrastructure</div>
+          <div class="price">$179</div>
+          <h3>HoloDock Base</h3>
+          <p>Triple-bay magnetic fast charger with LED status dashboard.</p>
+        </article>
+      </div>
+      <p class="section-subtitle" style="margin-top: 22px; max-width: 620px;">Bulk, education, and developer program pricing available upon request. <span class="pricing-badge">Pre-release</span></p>
     </section>
 
-    <!-- SPECS -->
-    <section class="card" id="specs">
-      <h2>Technical Specs</h2>
-      <h3>Holophone™</h3>
-      <table class="table">
-        <tr><th>Body</th><td>Chrome‑titanium frame, sapphire‑coated glass back</td></tr>
-        <tr><th>Display</th><td>AR‑optimized OLED, 1200 nits peak, eye‑safe holographic projection</td></tr>
-        <tr><th>Compute</th><td>Octa‑core AI SoC with Neural Engine, 12GB RAM</td></tr>
-        <tr><th>Cameras</th><td>Dual sensors + depth Lidar for spatial mapping</td></tr>
-        <tr><th>Connectivity</th><td>Wi‑Fi 7, BT 5.4, 6G‑ready modem, UWB</td></tr>
-        <tr><th>Security</th><td>Face + voice + EMG gesture biometrics; on‑device Secure Enclave</td></tr>
-      </table>
-
-      <h3 style="margin-top:18px">Power Coin™</h3>
-      <table class="table">
-        <tr><th>Energy</th><td>4,000 mAh solid‑state lithium ceramic; bidirectional Qi 2.0 magnetic charging up to 60W</td></tr>
-        <tr><th>Storage</th><td>Up to 1 TB encrypted NVMe (AES‑256 with hardware keys)</td></tr>
-        <tr><th>Auth</th><td>Secure element + paired biometric handshake; NFC tap for pay & access</td></tr>
-        <tr><th>Thermals</th><td>Micro vapor chamber + copper/graphene heat spreaders</td></tr>
-        <tr><th>I/O</th><td>Magnetic pogo for service mode; BLE for low‑power sync</td></tr>
-        <tr><th>Swap</th><td>Hot‑swap supported; phone supercap keeps session alive ~20s</td></tr>
-      </table>
-
-      <h3 style="margin-top:18px">Magnetic Charging Base</h3>
-      <table class="table">
-        <tr><th>Bays</th><td>3 × Power Coin fast‑charge cradles</td></tr>
-        <tr><th>Input</th><td>USB‑C PD 3.1 (140W max)</td></tr>
-        <tr><th>Charge Time</th><td>0–80% in under 15 minutes (per coin)</td></tr>
-        <tr><th>Dashboard</th><td>LED/OSD for coin SOC, storage usage, ID status</td></tr>
-      </table>
+    <section class="container page-section" id="specs">
+      <div class="section-heading">
+        <span class="eyebrow">Technical architecture</span>
+        <h2 class="section-title">Engineering that keeps the holographic stack live.</h2>
+        <p class="section-subtitle">Every component is optimized for secure holographic projection, fast-charging, and modular energy storage.</p>
+      </div>
+      <div class="spec-section">
+        <article class="spec-card">
+          <h3>Holophone™</h3>
+          <table class="spec-table">
+            <tr><th>Body</th><td>Chrome-titanium frame with sapphire-coated glass back.</td></tr>
+            <tr><th>Display</th><td>AR-optimized OLED, 1200 nits peak, eye-safe holographic projection optics.</td></tr>
+            <tr><th>Compute</th><td>Octa-core AI SoC with Neural Engine, 12 GB RAM, dedicated XR ISP.</td></tr>
+            <tr><th>Sensors</th><td>Dual cameras + depth LiDAR, EMG gesture band input, spatial mics.</td></tr>
+            <tr><th>Connectivity</th><td>Wi-Fi 7, Bluetooth 5.4, 6G-ready modem, UWB, secure mesh beacons.</td></tr>
+            <tr><th>Security</th><td>Face, voice & EMG biometrics with on-device Secure Enclave.</td></tr>
+          </table>
+        </article>
+        <article class="spec-card">
+          <h3>Power Coin™</h3>
+          <table class="spec-table">
+            <tr><th>Energy</th><td>4,000 mAh solid-state lithium-ceramic cell with 60 W bidirectional charging.</td></tr>
+            <tr><th>Storage</th><td>Up to 1 TB hardware-encrypted NVMe (AES-256 with physical keys).</td></tr>
+            <tr><th>Authentication</th><td>Secure element + paired biometric handshake; NFC tap for pay and access.</td></tr>
+            <tr><th>Thermals</th><td>Micro vapor chamber with copper/graphene heat spreaders.</td></tr>
+            <tr><th>I/O</th><td>Magnetic pogo service mode; BLE for low-power sync and telemetry.</td></tr>
+            <tr><th>Swap</th><td>Hot-swap support with 20 s supercap session buffer.</td></tr>
+          </table>
+        </article>
+        <article class="spec-card">
+          <h3>Magnetic charging base</h3>
+          <table class="spec-table">
+            <tr><th>Bays</th><td>3 × Power Coin fast-charge cradles with adaptive cooling.</td></tr>
+            <tr><th>Input</th><td>USB-C PD 3.1 (140 W max) with smart load balancing.</td></tr>
+            <tr><th>Charge time</th><td>0–80% in under 15 minutes per coin.</td></tr>
+            <tr><th>Dashboard</th><td>LED/OSD for coin SoC, storage usage, device identity, and alerts.</td></tr>
+          </table>
+        </article>
+      </div>
     </section>
 
-    <!-- FAQ / ACCORDION -->
-    <section class="card" id="faq">
-      <h2>FAQs</h2>
-      <details>
-        <summary>Is data on the coin private?</summary>
-        <p class="muted">Yes. Storage is hardware‑encrypted and only mounts after a biometric handshake with your Holophone.</p>
-      </details>
-      <details>
-        <summary>Can I use multiple coins?</summary>
-        <p class="muted">Absolutely—swap coins throughout the day or dedicate one for work, one for media, one for travel. The phone stays live while swapping.</p>
-      </details>
-      <details>
-        <summary>Does it work offline?</summary>
-        <p class="muted">Yes. AR assets, tickets, and payment tokens can be stored on‑coin for offline use, then sync when you’re back online.</p>
-      </details>
+    <section class="container page-section" id="faq">
+      <div class="section-heading">
+        <span class="eyebrow">FAQ</span>
+        <h2 class="section-title">Answers for launch partners.</h2>
+        <p class="section-subtitle">Holophone™ was engineered for enterprise storytelling and premium consumer experiences. Here are the questions we hear most.</p>
+      </div>
+      <div class="faq-accordion">
+        <details>
+          <summary>Is data on the Power Coin private?</summary>
+          <p>Yes. Storage is hardware-encrypted and only mounts after a biometric handshake with your Holophone.</p>
+        </details>
+        <details>
+          <summary>Can I operate multiple coins?</summary>
+          <p>Absolutely. Swap coins throughout the day or dedicate modules for work, media, and travel. The phone stays live via the supercap buffer.</p>
+        </details>
+        <details>
+          <summary>Does the system work offline?</summary>
+          <p>Yes. AR assets, tickets, and payment tokens remain on-coin for offline use, then sync when connectivity returns.</p>
+        </details>
+      </div>
     </section>
-
   </main>
 
-  <footer>
-    <div class="wrap">
-      <p>© 2025 Holophone Technologies. Holophone™, Power Coin™, HoloSync™ are trademarks. Specs & pricing subject to change.</p>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+          <p>Access the Holophone™ ecosystem alongside Ioncore’s magnetic inertia innovations.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Holophone™ holographic commerce platform.</span>
+      </div>
     </div>
   </footer>
 </body>

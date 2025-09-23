@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ioncore Full Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Step inside the Ioncore Energy full experience environment — an immersive command suite for magnetic inertia systems and prestige estates.">
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040912;
+      --bg-alt: #0c1726;
+      --accent: #5bf8b3;
+      --accent-strong: #28dea0;
+      --text: #f4f8ff;
+      --muted: #b2c3db;
+      --card: rgba(9, 22, 34, 0.78);
+      --border: rgba(255, 255, 255, 0.06);
+      --shadow: 0 34px 120px rgba(2, 10, 24, 0.68);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(120% 140% at 10% 0%, rgba(91, 248, 179, 0.16), transparent 60%),
+        radial-gradient(100% 100% at 90% 20%, rgba(40, 222, 160, 0.08), transparent 70%),
+        linear-gradient(140deg, #02070d, #071425 55%, #050912 100%);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(91, 248, 179, 0.06), transparent 35%),
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.04), transparent 55%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    header {
+      position: relative;
+      padding: 42px clamp(18px, 4vw, 54px) 32px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      font-size: 0.95rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: border 0.2s ease, color 0.2s ease, background 0.2s ease;
+      color: var(--muted);
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      color: var(--text);
+      border-color: rgba(91, 248, 179, 0.35);
+      background: rgba(91, 248, 179, 0.08);
+      outline: none;
+    }
+
+    main {
+      padding: 0 clamp(18px, 4vw, 54px) 100px;
+    }
+
+    .hero {
+      max-width: 1160px;
+      margin: 52px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: clamp(32px, 4vw, 60px);
+      align-items: center;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 22px;
+    }
+
+    .hero-copy h1 span {
+      color: var(--accent);
+    }
+
+    .hero-copy p {
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2vw, 1.22rem);
+      margin-bottom: 24px;
+    }
+
+    .hero-pills {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .hero-pills li {
+      background: rgba(91, 248, 179, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(91, 248, 179, 0.24);
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .primary-btn,
+    .ghost-btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+      color: #011311;
+      box-shadow: 0 20px 40px rgba(91, 248, 179, 0.22);
+      border: none;
+    }
+
+    .primary-btn:hover,
+    .primary-btn:focus {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 26px 56px rgba(91, 248, 179, 0.28);
+      outline: none;
+    }
+
+    .ghost-btn {
+      border: 1px solid rgba(91, 248, 179, 0.45);
+      color: var(--accent);
+      background: rgba(91, 248, 179, 0.08);
+    }
+
+    .ghost-btn:hover,
+    .ghost-btn:focus {
+      transform: translateY(-1px) scale(1.01);
+      background: rgba(91, 248, 179, 0.16);
+      outline: none;
+    }
+
+    .experience-intro {
+      max-width: 960px;
+      margin: 80px auto 0;
+      text-align: center;
+    }
+
+    .experience-intro h2 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      margin-bottom: 18px;
+    }
+
+    .experience-intro p {
+      color: var(--muted);
+      font-size: clamp(1rem, 1.6vw, 1.12rem);
+    }
+
+    .module-grid {
+      margin: 70px auto 0;
+      max-width: 1120px;
+      display: grid;
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .module-card {
+      position: relative;
+      padding: 32px;
+      border-radius: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.22s ease, border-color 0.22s ease;
+    }
+
+    .module-card::before {
+      content: attr(data-phase);
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      font-size: 0.74rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(91, 248, 179, 0.56);
+    }
+
+    .module-card h3 {
+      font-size: 1.28rem;
+      margin-bottom: 14px;
+    }
+
+    .module-card p {
+      color: var(--muted);
+      font-size: 0.98rem;
+      margin-bottom: 18px;
+    }
+
+    .module-card ul {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .module-card ul li::before {
+      content: '▸';
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    .module-card:hover,
+    .module-card:focus-within {
+      transform: translateY(-6px);
+      border-color: rgba(91, 248, 179, 0.45);
+    }
+
+    .journey {
+      margin: 100px auto 0;
+      max-width: 1100px;
+      padding: 48px clamp(18px, 4vw, 54px);
+      background: linear-gradient(125deg, rgba(91, 248, 179, 0.16), rgba(5, 12, 24, 0.76));
+      border-radius: 32px;
+      border: 1px solid rgba(91, 248, 179, 0.22);
+      box-shadow: 0 28px 80px rgba(8, 20, 32, 0.52);
+    }
+
+    .journey h2 {
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+      margin-bottom: 28px;
+    }
+
+    .journey-steps {
+      display: grid;
+      gap: 24px;
+    }
+
+    .step {
+      display: grid;
+      gap: 12px;
+      padding: 22px;
+      border-radius: 20px;
+      background: rgba(1, 10, 18, 0.65);
+      border: 1px solid rgba(91, 248, 179, 0.18);
+    }
+
+    .step strong {
+      letter-spacing: 0.12em;
+      color: rgba(91, 248, 179, 0.7);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    .step h3 {
+      font-size: 1.18rem;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .immersive-gallery {
+      max-width: 1120px;
+      margin: 90px auto 0;
+    }
+
+    .gallery-heading {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .gallery-heading h2 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+    }
+
+    .gallery-heading p {
+      color: var(--muted);
+      max-width: 460px;
+      font-size: 0.98rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      gap: 22px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .gallery-card {
+      padding: 22px;
+      border-radius: 20px;
+      background: rgba(5, 12, 22, 0.78);
+      border: 1px solid rgba(91, 248, 179, 0.16);
+      display: grid;
+      gap: 10px;
+    }
+
+    .gallery-card span {
+      font-size: 2rem;
+    }
+
+    .gallery-card h3 {
+      font-size: 1.1rem;
+    }
+
+    .gallery-card p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .cta {
+      margin: 110px auto 0;
+      padding: 46px clamp(18px, 5vw, 78px);
+      max-width: 1080px;
+      text-align: center;
+      border-radius: 36px;
+      background: linear-gradient(135deg, rgba(91, 248, 179, 0.24), rgba(4, 12, 24, 0.88));
+      border: 1px solid rgba(91, 248, 179, 0.28);
+      box-shadow: 0 30px 70px rgba(10, 24, 38, 0.6);
+    }
+
+    .cta h3 {
+      font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+      margin-bottom: 16px;
+    }
+
+    .cta p {
+      color: var(--muted);
+      max-width: 620px;
+      margin: 0 auto 28px;
+      font-size: 1rem;
+    }
+
+    footer {
+      margin: 90px auto 0;
+      padding: 28px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 720px) {
+      .nav {
+        flex-direction: column;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .journey {
+        padding: 40px 26px;
+      }
+
+      .gallery-heading {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">Ioncore Energy</div>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="#modules">Modules</a>
+        <a href="#journey">Journey</a>
+        <a href="#immersions">Immersions</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero" id="overview">
+      <div class="hero-copy">
+        <h1>Command the <span>Full Experience</span> environment.</h1>
+        <p>
+          Immerse clients in the magnetic inertia control suite with cinematic dashboards, tactile controls,
+          and concierge-level onboarding. Every screen is choreographed to sell the future of resilient luxury energy.
+        </p>
+        <ul class="hero-pills">
+          <li>Real-time orchestration</li>
+          <li>Immersive storytelling</li>
+          <li>Investor-ready flows</li>
+        </ul>
+        <div class="hero-actions">
+          <a class="primary-btn" href="mailto:ioncoreenergy@gmail.com?subject=Ioncore%20Full%20Experience%20Demo">Request a guided demo</a>
+          <a class="ghost-btn" href="/webpage.html">Return to homepage</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="GEN4.png" alt="Ioncore control suite render" style="width:100%;max-width:480px;border-radius:26px;border:1px solid rgba(91,248,179,0.22);box-shadow:0 28px 80px rgba(2,12,22,0.66);mix-blend-mode:screen;" />
+      </div>
+    </section>
+
+    <section class="experience-intro">
+      <h2>Designed to make prospects feel the future in minutes.</h2>
+      <p>
+        The Full Experience session stages every component of Ioncore Energy — from kinetic flywheels and adaptive storage
+        to concierge-grade monitoring — in a single immersive walkthrough tailored for investors, developers, and luxury estate partners.
+      </p>
+    </section>
+
+    <section class="module-grid" id="modules">
+      <article class="module-card" data-phase="Phase 01">
+        <h3>Arrival &amp; Atmospherics</h3>
+        <p>Welcome stakeholders with cinematic motion, curated lighting, and bespoke messaging that frames the engagement.</p>
+        <ul>
+          <li>Personalized scene presets</li>
+          <li>Synchronized lighting and audio</li>
+          <li>Executive briefing overlays</li>
+        </ul>
+      </article>
+      <article class="module-card" data-phase="Phase 02">
+        <h3>Interactive Operations Deck</h3>
+        <p>Guide audiences through live dashboards engineered to display uptime assurance, load balancing, and energy artistry.</p>
+        <ul>
+          <li>Adaptive performance models</li>
+          <li>Touch-enabled system maps</li>
+          <li>Investor narrative prompts</li>
+        </ul>
+      </article>
+      <article class="module-card" data-phase="Phase 03">
+        <h3>Scenario Theater</h3>
+        <p>Deploy curated what-if scenarios that contrast Ioncore resilience with conventional grids to underscore ROI clarity.</p>
+        <ul>
+          <li>Rapid stress simulations</li>
+          <li>Luxury estate case studies</li>
+          <li>Environmental impact visuals</li>
+        </ul>
+      </article>
+      <article class="module-card" data-phase="Phase 04">
+        <h3>Concierge Close-Out</h3>
+        <p>Finish with bespoke proposal builders, contract-ready documents, and direct scheduling for next-step activations.</p>
+        <ul>
+          <li>Automated dossier export</li>
+          <li>Stakeholder follow-up scripts</li>
+          <li>White-glove service booking</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="journey" id="journey">
+      <h2>How the experience unfolds for your guests.</h2>
+      <div class="journey-steps">
+        <div class="step">
+          <strong>00 · Prelude</strong>
+          <h3>Warm welcome &amp; brand immersion</h3>
+          <p>Concierge greets each guest by name, calibrating lighting, audio, and messaging to reflect their profile within seconds.</p>
+        </div>
+        <div class="step">
+          <strong>01 · Exploration</strong>
+          <h3>Active system navigation</h3>
+          <p>Guests touch through the Ioncore stack — from kinetic batteries to cryogenic cooling — with data points adapting in real time.</p>
+        </div>
+        <div class="step">
+          <strong>02 · Vision</strong>
+          <h3>Signature deployment narratives</h3>
+          <p>High-value case studies, architectural pairings, and investment frameworks coalesce to form a bespoke vision for their portfolio.</p>
+        </div>
+        <div class="step">
+          <strong>03 · Commitment</strong>
+          <h3>Next steps without friction</h3>
+          <p>Immediate scheduling, curated documentation, and secured investor portals invite confident decision-making on the spot.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="immersive-gallery" id="immersions">
+      <div class="gallery-heading">
+        <h2>Immersion layers that make every second unforgettable.</h2>
+        <p>Every module flexes with adaptive content blocks, allowing you to tailor the journey for investors, municipalities, or estate developers.</p>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-card">
+          <span>🎛️</span>
+          <h3>Spatial Controls</h3>
+          <p>Multi-room synchronization extends visuals and audio into adjacent lounges for extended hospitality moments.</p>
+        </div>
+        <div class="gallery-card">
+          <span>🛰️</span>
+          <h3>Live Telemetry</h3>
+          <p>Pull authenticated data feeds from deployed Ioncore assets for proof-of-performance during high-stakes demos.</p>
+        </div>
+        <div class="gallery-card">
+          <span>🧊</span>
+          <h3>Cooling Capsule</h3>
+          <p>Highlight cryogenic innovations with immersive 3D renderings that respond to guest interaction.</p>
+        </div>
+        <div class="gallery-card">
+          <span>🏛️</span>
+          <h3>Architectural Pairings</h3>
+          <p>Curate cross-industry deployments, from superyacht marinas to private aerospace hangars, in seconds.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="contact">
+      <h3>Stage the signature Ioncore showcase for your next investor summit.</h3>
+      <p>
+        Partner with our experience architects to tailor an on-brand control suite. From scripted flows to concierge staffing,
+        we orchestrate the full performance so you can focus on sealing the deal.
+      </p>
+      <a class="primary-btn" href="mailto:ioncoreenergy@gmail.com?subject=Ioncore%20Experience%20Consultation">Book an experience architect</a>
+    </section>
+  </main>
+  <footer>
+    &copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.
+  </footer>
+</body>
+</html>

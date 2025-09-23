@@ -1,232 +1,859 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flywheel Self‑Charging Unit — Product Brochure</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flywheel Self‑Charging Unit — Ioncore Energy</title>
+  <meta name="description" content="Explore the Flywheel Self-Charging Unit from Ioncore Energy — a precision kinetic energy system delivering silent, on-demand power for connected environments.">
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#0b0f14;--panel:#111826;--text:#eaf2ff;--muted:#95a7c4;--brand:#58c6ff;--accent:#ffd166;--ok:#22d3ee;--warn:#f59e0b;--border:#23324b;--card:#131c2a;--radius:16px;--shadow:0 12px 40px rgba(0,0,0,.35)
+    :root {
+      --bg: #040912;
+      --bg-alt: rgba(7, 20, 37, 0.82);
+      --card: rgba(9, 22, 34, 0.78);
+      --card-strong: rgba(10, 24, 38, 0.9);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f4f8ff;
+      --muted: #a8b8d3;
+      --accent: #5bf8b3;
+      --accent-strong: #28dea0;
+      --accent-soft: rgba(91, 248, 179, 0.14);
+      --shadow: 0 34px 120px rgba(2, 10, 24, 0.65);
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
+      --spacing: clamp(18px, 4vw, 48px);
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b0f14 0%,#101828 60%,#0b0f14 100%);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    a{color:var(--brand);text-decoration:none}
-    .wrap{max-width:1200px;margin:auto;padding:28px}
-    header.hero{padding:72px 0;background:radial-gradient(1200px 600px at 85% -5%,rgba(88,198,255,.16),transparent 60%)}
-    .badge{display:inline-block;padding:6px 12px;border:1px solid var(--border);border-radius:999px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-weight:700;font-size:12px}
-    h1{font-size:48px;line-height:1.1;margin:.6rem 0}
-    .lead{max-width:840px;color:#cfe1ff}
-    .cta{margin-top:22px;display:flex;gap:14px;flex-wrap:wrap}
-    .btn{padding:12px 18px;border-radius:12px;border:1px solid var(--border);background:#1b2436;color:#dce9ff;cursor:pointer;box-shadow:var(--shadow);transition:.2s}
-    .btn.primary{background:linear-gradient(135deg,#1fb6ff,#58c6ff);color:#04121e;border-color:#29aaf3;font-weight:800}
-    .btn.secondary{border-color:#3a4d70}
-    section.card{background:rgba(19,28,42,.85);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin:0 0 22px}
-    h2{margin:0 0 14px}
-    h3{margin:0 0 8px}
-    .grid{display:grid;gap:18px}
-    .cols-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-    .cols-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:10px}
-    .kpi{background:#0e1523;border:1px solid var(--border);border-radius:14px;padding:14px}
-    .kpi b{font-size:22px;color:#fff}
-    .img-block{background:#0e1523;border:1px solid var(--border);border-radius:14px;padding:14px}
-    .img-block img{width:100%;border-radius:8px;display:block}
-    .muted{color:var(--muted)}
-    .price{font-size:38px;font-weight:900;color:var(--accent)}
-    .table{width:100%;border-collapse:collapse;margin-top:10px}
-    .table th,.table td{border:1px solid var(--border);padding:12px;vertical-align:top}
-    .table th{background:#0f192a;color:#cfe4ff;text-align:left}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#0c1320;color:#b7cae6;font-size:12px}
-    .hr{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);margin:20px 0}
-    footer{color:#9fb3d6;padding:40px 0;text-align:center}
-    .note{font-size:13px;color:#90a6c8}
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(130% 110% at 12% -4%, rgba(91, 248, 179, 0.18), transparent 58%),
+        radial-gradient(90% 80% at 88% 12%, rgba(40, 222, 160, 0.12), transparent 64%),
+        linear-gradient(140deg, #02070d, #071425 54%, #050912 100%);
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(140% 140% at 18% 24%, rgba(91, 248, 179, 0.08), transparent 68%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 45%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1120px, 92vw);
+      margin: 0 auto;
+    }
+
+    .site-header {
+      padding: 28px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(18px, 4vw, 38px);
+      padding: 0 var(--spacing);
+    }
+
+    .logo {
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: clamp(16px, 3vw, 30px);
+      font-size: 0.96rem;
+    }
+
+    .nav-links a {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
+      color: var(--muted);
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      border-color: rgba(91, 248, 179, 0.32);
+      background: var(--accent-soft);
+      color: var(--text);
+      outline: none;
+    }
+
+    .nav-cta {
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text);
+      background: transparent;
+      font-weight: 600;
+      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-cta:hover,
+    .nav-cta:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(91, 248, 179, 0.2);
+      outline: none;
+    }
+
+    .hero {
+      padding: clamp(32px, 6vw, 80px) 0 clamp(40px, 8vw, 110px);
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: clamp(28px, 4vw, 58px);
+      align-items: center;
+      padding: 0 var(--spacing);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(91, 248, 179, 0.24);
+      background: rgba(91, 248, 179, 0.12);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      line-height: 1.1;
+      margin: 0 0 24px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero-copy p {
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2vw, 1.24rem);
+      margin-bottom: 32px;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 34px;
+      list-style: none;
+      padding: 0;
+    }
+
+    .hero-pills li {
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(91, 248, 179, 0.22);
+      background: rgba(91, 248, 179, 0.12);
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+      color: #03130b;
+      box-shadow: 0 18px 40px rgba(40, 222, 160, 0.28);
+      border: none;
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 28px 68px rgba(40, 222, 160, 0.36);
+      outline: none;
+    }
+
+    .btn-outline {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text);
+      background: transparent;
+    }
+
+    .btn-outline:hover,
+    .btn-outline:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .hero-media {
+      position: relative;
+      border-radius: var(--radius-lg);
+      padding: clamp(24px, 3vw, 42px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-media::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 120% at 86% 12%, rgba(91, 248, 179, 0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-media img {
+      border-radius: var(--radius-sm);
+    }
+
+    .badge-stack {
+      position: absolute;
+      inset: auto clamp(18px, 4vw, 36px) clamp(18px, 4vw, 36px) auto;
+      display: grid;
+      gap: 8px;
+      text-align: right;
+    }
+
+    .badge-stack span {
+      background: rgba(4, 13, 19, 0.72);
+      border: 1px solid rgba(91, 248, 179, 0.22);
+      color: var(--accent);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .section {
+      padding: clamp(32px, 6vw, 80px) var(--spacing);
+    }
+
+    .section-inner {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: clamp(28px, 5vw, 58px);
+      display: grid;
+      gap: clamp(28px, 4vw, 48px);
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .section-title {
+      font-size: clamp(1.9rem, 3vw, 2.4rem);
+      margin: 0;
+    }
+
+    .section-subtitle {
+      max-width: 540px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: clamp(18px, 3vw, 28px);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .card-item {
+      background: var(--card-strong);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: clamp(18px, 3vw, 26px);
+      display: grid;
+      gap: 12px;
+    }
+
+    .card-item h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: clamp(16px, 3vw, 28px);
+    }
+
+    .metric {
+      background: rgba(4, 15, 22, 0.74);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(91, 248, 179, 0.18);
+      padding: clamp(16px, 3vw, 24px);
+      display: grid;
+      gap: 6px;
+    }
+
+    .metric strong {
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+
+    .note {
+      font-size: 0.85rem;
+      color: rgba(168, 184, 211, 0.76);
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: clamp(18px, 3vw, 28px);
+    }
+
+    .gallery figure {
+      margin: 0;
+      background: rgba(4, 13, 20, 0.74);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .gallery figcaption {
+      padding: 14px 18px 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(2, 10, 18, 0.78);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: clamp(18px, 3vw, 28px);
+    }
+
+    .price-card {
+      background: rgba(4, 15, 22, 0.82);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(91, 248, 179, 0.18);
+      padding: clamp(22px, 3vw, 32px);
+      display: grid;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .price-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 120% at 80% 0%, rgba(91, 248, 179, 0.18), transparent 72%);
+      pointer-events: none;
+    }
+
+    .price {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .price-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91, 248, 179, 0.18), transparent);
+    }
+
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(4, 15, 22, 0.74);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .spec-table th,
+    .spec-table td {
+      padding: 16px 18px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .spec-table th {
+      width: 28%;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+    }
+
+    .spec-table tr:last-child th,
+    .spec-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .cta-panel {
+      background: rgba(9, 24, 36, 0.84);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(91, 248, 179, 0.2);
+      box-shadow: 0 32px 80px rgba(7, 20, 37, 0.55);
+      padding: clamp(28px, 6vw, 52px);
+      text-align: center;
+      display: grid;
+      gap: 18px;
+    }
+
+    .cta-panel h2 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.6rem);
+    }
+
+    .cta-panel p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .site-footer {
+      padding: clamp(38px, 6vw, 72px) var(--spacing);
+      background: rgba(2, 8, 15, 0.8);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      margin-top: clamp(32px, 8vw, 96px);
+    }
+
+    .footer-inner {
+      display: grid;
+      gap: clamp(24px, 4vw, 38px);
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: clamp(18px, 3vw, 32px);
+    }
+
+    .footer-col h4 {
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .footer-col a {
+      color: var(--muted);
+      font-size: 0.92rem;
+      transition: color 0.2s ease;
+    }
+
+    .footer-col a:hover,
+    .footer-col a:focus-visible {
+      color: var(--text);
+      outline: none;
+    }
+
+    .footer-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: rgba(168, 184, 211, 0.68);
+    }
+
+    @media (max-width: 720px) {
+      .site-nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .hero-actions {
+        width: 100%;
+      }
+
+      .hero-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="wrap">
-      <span class="badge">New Energy Platform</span>
-      <h1>Flywheel Self‑Charging Unit (FSCU)</h1>
-      <p class="lead">A compact, near‑frictionless <strong>rotational energy system</strong> that stores kinetic energy and delivers clean, rapid power for phones, AR glasses, and edge devices. Bidirectional wireless charging, hot‑swap buffering, and grid‑friendly load levelling—without cable clutter.</p>
-      <div class="cta">
-        <a class="btn primary" href="#pricing">Reserve from $699</a>
-        <a class="btn secondary" href="#specs">View full specs</a>
-      </div>
+  <header class="site-header">
+    <div class="site-nav container" role="navigation" aria-label="Primary">
+      <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+      <nav class="nav-links" aria-label="Section links">
+        <a href="#how">How it works</a>
+        <a href="#uses">Use cases</a>
+        <a href="#pricing">Models</a>
+        <a href="#specs">Specs</a>
+      </nav>
+      <a class="nav-cta" href="mailto:ioncoreenergy@gmail.com">Request briefing</a>
     </div>
   </header>
 
-  <main class="wrap">
-
-    <!-- HOW IT WORKS -->
-    <section class="card" id="how">
-      <h2>How it works</h2>
-      <div class="grid cols-3">
-        <div>
-          <h3>1) Spin</h3>
-          <p class="muted">A carbon‑composite <strong>flywheel rotor</strong> is magnetically levitated and accelerated by a brushless stator. Vacuum housing keeps drag ultra‑low.</p>
-        </div>
-        <div>
-          <h3>2) Store</h3>
-          <p class="muted">Kinetic energy is retained at high RPM. The <strong>Power Control PCB</strong> manages RPM, temperature, and safety while a <strong>supercap buffer</strong> smooths peaks.</p>
-        </div>
-        <div>
-          <h3>3) Serve</h3>
-          <p class="muted">On demand, the motor runs as a generator, feeding power to devices via <strong>Qi 2.0 magnetic wireless</strong> or USB‑C PD. Load leveling extends battery life.</p>
-        </div>
-      </div>
-      <div class="kpis">
-        <div class="kpi"><b>50,000+ RPM</b><div class="muted">Precision‑balanced rotor</div></div>
-        <div class="kpi"><b>2–5 kW</b><div class="muted">Burst power support*</div></div>
-        <div class="kpi"><b>&lt;15 min</b><div class="muted">80% top‑up via HoloDock</div></div>
-        <div class="kpi"><b>≤40 °C</b><div class="muted">Under typical loads</div></div>
-      </div>
-      <p class="note">*Burst rating for milliseconds–seconds; continuous output sized per model tier.</p>
-    </section>
-
-    <!-- USES -->
-    <section class="card" id="uses">
-      <h2>What it will do</h2>
-      <div class="grid cols-3">
-        <div>
-          <h3>All‑day mobile</h3>
-          <p class="muted">Keep phones and AR glasses topped up. Hot‑swap friendly—devices stay live through a supercapacitor buffer.</p>
-        </div>
-        <div>
-          <h3>Creator & events</h3>
-          <p class="muted">Handle power spikes for holographic projection, live recording, or drone pods without brown‑outs.</p>
-        </div>
-        <div>
-          <h3>Grid‑friendly</h3>
-          <p class="muted">Charge off‑peak, serve on‑peak. Ideal for mobile retail booths, pop‑ups, field teams, and classrooms.</p>
-        </div>
-        <div>
-          <h3>Emergency reserve</h3>
-          <p class="muted">Instant, silent backup during outages—safe indoors, no fumes.</p>
-        </div>
-        <div>
-          <h3>Developer mode</h3>
-          <p class="muted">Telemetry over BLE/Wi‑Fi, configurable RPM profiles, web console.</p>
-        </div>
-        <div>
-          <h3>Sustainable</h3>
-          <p class="muted">No lithium wear for bursts; extends battery life by reducing deep cycles.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SHOWCASE -->
-    <section class="card" id="showcase">
-      <h2>Flywheel Showcase</h2>
-      <div class="grid cols-3">
-        <div class="img-block"><img src="GEN1.png" alt="First generation flywheel"></div>
-        <div class="img-block"><img src="flywheel.png" alt="Flywheel rendering"></div>
-        <div class="img-block"><img src="flywheelcoin.png" alt="Flywheel coin concept"></div>
-      </div>
-    </section>
-
-    <!-- MODELS & PRICING -->
-    <section class="card" id="pricing">
-      <h2>Models & pricing</h2>
-      <div class="grid cols-3">
-        <div class="kpi">
-          <b class="price">$699</b>
-          <div><strong>FSCU‑Mini</strong></div>
-          <div class="muted">Portable, desk size. 120 W continuous, 500 W burst. Qi 2.0 pad + USB‑C (100 W PD).</div>
-        </div>
-        <div class="kpi">
-          <b class="price">$1,299</b>
-          <div><strong>FSCU‑Pro</strong></div>
-          <div class="muted">Studio & retail. 300 W continuous, 2 kW burst. Dual Qi 2.0 pads + 2× USB‑C (140 W PD).</div>
-        </div>
-        <div class="kpi">
-          <b class="price">$2,499</b>
-          <div><strong>FSCU‑Edge</strong></div>
-          <div class="muted">Deployments & events. 600 W continuous, 5 kW burst. Triple Qi 2.0 trays + 4× USB‑C (240 W PD).</div>
-        </div>
-      </div>
-      <div class="hr"></div>
-      <div class="grid cols-3">
-        <div><h3>Add‑ons</h3>
-          <ul class="muted">
-            <li>Hot‑swap rotor cartridge <span class="pill">$179</span></li>
-            <li>Vacuum dome service kit <span class="pill">$59</span></li>
-            <li>Rack mount rails (Pro/Edge) <span class="pill">$89</span></li>
-            <li>Telemetry API license <span class="pill">$49/yr</span></li>
+  <main>
+    <section class="hero">
+      <div class="hero-inner container">
+        <div class="hero-copy">
+          <span class="eyebrow">New Energy Platform</span>
+          <h1><span>Flywheel</span> Self‑Charging Unit</h1>
+          <p>A precision-balanced kinetic storage core that spins silently above magnetic bearings, delivering high-availability power for mobile ecosystems, immersive retail, and resilient field deployments.</p>
+          <ul class="hero-pills">
+            <li>50,000+ RPM</li>
+            <li>2–5 kW Burst</li>
+            <li>Qi 2.0 Magnetic</li>
+            <li>USB‑C PD 3.1</li>
           </ul>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#pricing">Reserve from $699</a>
+            <a class="btn btn-outline" href="#specs">Download spec sheet</a>
+          </div>
         </div>
-        <div><h3>Bundles</h3>
-          <ul class="muted">
-            <li>Pro + 2 Power Coins <span class="pill">$1,999</span></li>
-            <li>Edge + 3 Power Coins + HoloDock <span class="pill">$3,199</span></li>
-          </ul>
-        </div>
-        <div><h3>Warranty & service</h3>
-          <ul class="muted">
-            <li>Standard 2‑year warranty</li>
-            <li>Advance exchange program (Pro/Edge)</li>
-            <li>Annual calibration service <span class="pill">$79</span></li>
-          </ul>
+        <div class="hero-media">
+          <img src="flywheel.png" alt="Flywheel Self-Charging Unit render">
+          <div class="badge-stack">
+            <span>Hot-swap ready</span>
+            <span>Grid-aware firmware</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- TECH SPECS -->
-    <section class="card" id="specs">
-      <h2>Technical specifications</h2>
-      <h3>Mechanical & thermal</h3>
-      <table class="table">
-        <tr><th>Rotor</th><td>Carbon‑fiber rim / tungsten hub; precision balanced; sealed vacuum chamber</td></tr>
-        <tr><th>Bearings</th><td>Active magnetic levitation (radial/axial) with position sensing</td></tr>
-        <tr><th>Cooling</th><td>Graphene spreaders + micro vapor chamber; optional micro‑fan (Pro/Edge)</td></tr>
-        <tr><th>Housing</th><td>CNC aluminum shell, ceramic hard‑coat; shock‑isolated inner frame</td></tr>
-      </table>
-
-      <h3 style="margin-top:16px">Power & control</h3>
-      <table class="table">
-        <tr><th>Stator / Inverter</th><td>High‑efficiency BLDC drive; bidirectional inverter with regenerative braking</td></tr>
-        <tr><th>Buffer</th><td>Graphene supercapacitors for transient loads and hot‑swap hold (20–60 s)</td></tr>
-        <tr><th>Wireless power</th><td>Qi 2.0 magnetic pads; ferrite‑shielded copper coils; NFC alignment & auth</td></tr>
-        <tr><th>Ports</th><td>USB‑C PD 3.1 (up to 240 W on Edge), service UART</td></tr>
-        <tr><th>Control</th><td>ARM MCU; RPM/thermal/vibration sensors; BLE/Wi‑Fi telemetry</td></tr>
-        <tr><th>Safety</th><td>Overspeed, overtemp, vacuum loss, and imbalance trip; auto‑spin‑down</td></tr>
-      </table>
-
-      <h3 style="margin-top:16px">Dimensions</h3>
-      <table class="table">
-        <tr><th>Mini</th><td>180 × 120 × 60 mm • 1.2 kg</td></tr>
-        <tr><th>Pro</th><td>260 × 180 × 80 mm • 2.6 kg</td></tr>
-        <tr><th>Edge</th><td>320 × 220 × 95 mm • 4.1 kg</td></tr>
-      </table>
+    <section class="section" id="how">
+      <div class="section-inner container">
+        <div class="section-header">
+          <h2 class="section-title">How the FSCU keeps energy in motion</h2>
+          <p class="section-subtitle">The Flywheel Self-Charging Unit (FSCU) captures rotational inertia inside a low-drag vacuum shell, converting every watt into responsive, cable-free power.</p>
+        </div>
+        <div class="grid grid-3">
+          <article class="card-item">
+            <h3>1 • Spin</h3>
+            <p class="muted">Carbon-composite flywheel levitated on active magnetic bearings accelerates within a sealed vacuum housing to minimize friction losses.</p>
+          </article>
+          <article class="card-item">
+            <h3>2 • Store</h3>
+            <p class="muted">A graphene supercapacitor buffer and Power Control PCB orchestrate RPM, temperature, and balance, banking kinetic energy with millisecond telemetry.</p>
+          </article>
+          <article class="card-item">
+            <h3>3 • Serve</h3>
+            <p class="muted">Bidirectional inverter converts momentum into on-demand output via Qi 2.0 magnetic wireless pads or USB‑C PD 3.1 while smoothing loads on the grid.</p>
+          </article>
+        </div>
+        <div class="metrics">
+          <div class="metric"><strong>≤15 min</strong><span class="muted">Rapid charge to 80% via HoloDock interface</span></div>
+          <div class="metric"><strong>≤40 °C</strong><span class="muted">Graphene thermal stack maintains safe temps</span></div>
+          <div class="metric"><strong>99.2%</strong><span class="muted">Inverter efficiency with regenerative braking</span></div>
+          <div class="metric"><strong>24/7</strong><span class="muted">Remote diagnostics over BLE + Wi‑Fi</span></div>
+        </div>
+        <p class="note">Burst output ratings apply to millisecond-to-second intervals; continuous delivery scales by model.</p>
+      </div>
     </section>
 
-    <!-- FAQ -->
-    <section class="card" id="faq">
-      <h2>FAQs</h2>
-      <div class="grid cols-2">
-        <div>
-          <h3>Is it safe indoors?</h3>
-          <p class="muted">Yes. The rotor is sealed in a vacuum dome with multi‑layer containment and active overspeed protection.</p>
+    <section class="section" id="uses">
+      <div class="section-inner container">
+        <div class="section-header">
+          <h2 class="section-title">Where the FSCU leads</h2>
+          <p class="section-subtitle">Engineered for teams that expect premium performance in compact, customer-facing environments.</p>
         </div>
-        <div>
-          <h3>Can I charge while using it?</h3>
-          <p class="muted">Absolutely. The inverter manages input and output simultaneously with priority to device loads.</p>
-        </div>
-        <div>
-          <h3>Does it replace my battery?</h3>
-          <p class="muted">It complements batteries by handling spikes and reducing deep cycles—extending overall lifespan.</p>
-        </div>
-        <div>
-          <h3>API access?</h3>
-          <p class="muted">Pro and Edge expose RPM, temperature, SOC, and event logs over BLE/Wi‑Fi with a local web console.</p>
+        <div class="grid grid-3">
+          <article class="card-item">
+            <h3>Immersive retail</h3>
+            <p class="muted">Silent kinetic power drives holographic displays, AR mirrors, and digital product tables without floor cabling.</p>
+          </article>
+          <article class="card-item">
+            <h3>Creator studios</h3>
+            <p class="muted">Stabilizes power draw for cameras, lighting, and audio gear, preventing voltage sag during performance spikes.</p>
+          </article>
+          <article class="card-item">
+            <h3>Edge deployments</h3>
+            <p class="muted">Supports field kits, drone pods, and research instruments with portable energy buffering and telemetry control.</p>
+          </article>
+          <article class="card-item">
+            <h3>Smart campuses</h3>
+            <p class="muted">Strategically charges off-peak to provide surge power for labs, classrooms, and collaborative lounges.</p>
+          </article>
+          <article class="card-item">
+            <h3>Emergency reserve</h3>
+            <p class="muted">Indoors-safe, emissions-free energy source that keeps communications, lighting, and sensors online.</p>
+          </article>
+          <article class="card-item">
+            <h3>Developer mode</h3>
+            <p class="muted">Open API with RPM profiles, vibration analytics, and over-the-air updates for product partners.</p>
+          </article>
         </div>
       </div>
     </section>
 
+    <section class="section" id="showcase">
+      <div class="section-inner container">
+        <div class="section-header">
+          <h2 class="section-title">Design showcase</h2>
+          <p class="section-subtitle">Iterative prototypes reveal the FSCU evolution from studio concept to deployable field unit.</p>
+        </div>
+        <div class="gallery">
+          <figure>
+            <img src="GEN1.png" alt="First generation Flywheel prototype">
+            <figcaption>Generation I: proof-of-spin chassis validating magnetic levitation tolerances.</figcaption>
+          </figure>
+          <figure>
+            <img src="flywheel.png" alt="Flywheel Self-Charging Unit render">
+            <figcaption>Current FSCU render: dual Qi 2.0 pads and precision-machined vacuum dome.</figcaption>
+          </figure>
+          <figure>
+            <img src="flywheelcoin.png" alt="Power Coin accessory concept">
+            <figcaption>Power Coin accessories enable modular hot-swap packs for events and field teams.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="section-inner container">
+        <div class="section-header">
+          <h2 class="section-title">Models & tiered programs</h2>
+          <p class="section-subtitle">Select the capacity profile that aligns with your deployment. Reserve inventory or build a pilot cohort with Ioncore specialists.</p>
+        </div>
+        <div class="pricing-grid">
+          <article class="price-card">
+            <h3>FSCU‑Mini</h3>
+            <span class="price">$699</span>
+            <p class="muted">Portable desk unit with Qi 2.0 pad and USB‑C PD (100 W). Ideal for executive suites and pop-up activations.</p>
+            <ul class="muted">
+              <li>120 W continuous / 500 W burst</li>
+              <li>Hot-swap rotor cartridge</li>
+              <li>12-hour telemetry log</li>
+            </ul>
+          </article>
+          <article class="price-card">
+            <h3>FSCU‑Pro</h3>
+            <span class="price">$1,299</span>
+            <p class="muted">Studio and retail grade system with dual Qi 2.0 pads and dual USB‑C (140 W PD).</p>
+            <ul class="muted">
+              <li>300 W continuous / 2 kW burst</li>
+              <li>Active thermal assist with micro vapor chamber</li>
+              <li>Advance exchange service</li>
+            </ul>
+          </article>
+          <article class="price-card">
+            <h3>FSCU‑Edge</h3>
+            <span class="price">$2,499</span>
+            <p class="muted">Deployment-ready hub featuring triple Qi 2.0 trays and four USB‑C PD 3.1 outputs (240 W).</p>
+            <ul class="muted">
+              <li>600 W continuous / 5 kW burst</li>
+              <li>Expanded telemetry with API access</li>
+              <li>Onsite calibration program</li>
+            </ul>
+          </article>
+        </div>
+        <div class="divider"></div>
+        <div class="grid grid-2">
+          <article class="card-item">
+            <h3>Add-ons</h3>
+            <p class="muted">Vacuum dome service kit <strong>$59</strong>, rack-mount rails (Pro/Edge) <strong>$89</strong>, telemetry API license <strong>$49/yr</strong>, and Power Coin bundles starting at <strong>$179</strong>.</p>
+          </article>
+          <article class="card-item">
+            <h3>Warranty & service</h3>
+            <p class="muted">Standard 2-year coverage with optional extended care, annual calibration, and priority logistics for retail partners.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="specs">
+      <div class="section-inner container">
+        <div class="section-header">
+          <h2 class="section-title">Technical specifications</h2>
+          <p class="section-subtitle">Precision mechanical, electrical, and software systems engineered for continuous rotational integrity.</p>
+        </div>
+        <div class="grid grid-2">
+          <div>
+            <h3>Mechanical & thermal</h3>
+            <table class="spec-table">
+              <tr><th>Rotor</th><td>Carbon-fiber rim with tungsten hub; precision balanced within a sealed vacuum chamber.</td></tr>
+              <tr><th>Bearings</th><td>Active magnetic levitation with axial/radial position sensing and auto recalibration.</td></tr>
+              <tr><th>Housing</th><td>CNC aluminum shell with ceramic hard-coat and shock-isolated inner frame.</td></tr>
+              <tr><th>Cooling</th><td>Graphene spreaders plus micro vapor chamber; optional micro-fan assist (Pro/Edge).</td></tr>
+            </table>
+          </div>
+          <div>
+            <h3>Power & control</h3>
+            <table class="spec-table">
+              <tr><th>Drive</th><td>High-efficiency BLDC stator and bidirectional inverter with regenerative braking.</td></tr>
+              <tr><th>Buffer</th><td>Graphene supercapacitors deliver transient support and 20–60 s hot-swap hold.</td></tr>
+              <tr><th>Wireless</th><td>Qi 2.0 magnetic pads with NFC alignment and authentication handshake.</td></tr>
+              <tr><th>Ports</th><td>USB‑C PD 3.1 (up to 240 W on Edge), service UART, optional PoE aux.</td></tr>
+              <tr><th>Control</th><td>ARM MCU with RPM, thermal, vibration, and vacuum sensors; BLE + Wi‑Fi telemetry.</td></tr>
+              <tr><th>Safety</th><td>Overspeed, overtemp, vacuum loss, and imbalance trip with automated spin-down.</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="grid grid-3">
+          <article class="card-item">
+            <h3>FSCU‑Mini</h3>
+            <p class="muted">Dimensions: 180 × 120 × 60 mm • 1.2 kg<br>Battery bridge: 400 Wh equivalent.</p>
+          </article>
+          <article class="card-item">
+            <h3>FSCU‑Pro</h3>
+            <p class="muted">Dimensions: 260 × 180 × 80 mm • 2.6 kg<br>Battery bridge: 720 Wh equivalent.</p>
+          </article>
+          <article class="card-item">
+            <h3>FSCU‑Edge</h3>
+            <p class="muted">Dimensions: 320 × 220 × 95 mm • 4.1 kg<br>Battery bridge: 1.2 kWh equivalent.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="cta-panel">
+          <h2>Bring kinetic power to your next activation</h2>
+          <p>Collaborate with Ioncore engineers to tailor the Flywheel Self-Charging Unit for your retail footprint, studio, or mission-critical deployment.</p>
+          <div class="hero-actions" style="justify-content:center;">
+            <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule an engineering consult</a>
+            <a class="btn btn-outline" href="tel:+18667865767">Call +1 (866) 786-5767</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    <div class="wrap">
-      <p>© 2025 Flywheel Energy Systems. All rights reserved. Specs & pricing subject to change. Illustrations are conceptual.</p>
+  <footer class="site-footer">
+    <div class="footer-inner container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+          <p class="muted">Precision kinetic storage, magnetic inertia platforms, and hybrid energy solutions engineered for visionary partners.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#technology">Technology</a></li>
+            <li><a href="index.html">Brochure library</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Flywheel Self-Charging Unit — part of the Ioncore kinetic ecosystem.</span>
+      </div>
     </div>
   </footer>
 </body>

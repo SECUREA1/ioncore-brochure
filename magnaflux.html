@@ -1,80 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MagnaLuxe™ Self-Reliant Luxury Lamp</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
   <style>
-    body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 0; }
-    header { background: #111; color: #fff; padding: 20px; text-align: center; }
-    header h1 { margin: 0; font-size: 2em; }
-    main { padding: 20px; max-width: 900px; margin: auto; }
-    section { margin-bottom: 40px; }
-    h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
-    ul { list-style-type: disc; margin-left: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    table, th, td { border: 1px solid #ccc; }
-    th, td { padding: 8px; text-align: left; }
-    img { display: block; max-width: 100%; height: auto; margin: 20px auto; }
-    footer { text-align: center; padding: 20px; font-size: 0.9em; background: #f9f9f9; }
+    .product-hero .hero {
+      padding-top: clamp(48px, 8vw, 92px);
+    }
+
+    .spec-table-wrapper {
+      margin-top: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .spec-table thead {
+      background: rgba(94, 249, 180, 0.08);
+    }
+
+    .spec-table th,
+    .spec-table td {
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      font-size: 0.94rem;
+      color: var(--text-med);
+    }
+
+    .spec-table th {
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    .spec-table tbody tr:hover {
+      background: rgba(94, 249, 180, 0.08);
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: clamp(28px, 6vw, 52px);
+      align-items: center;
+    }
+
+    .showcase-copy {
+      display: grid;
+      gap: 18px;
+    }
+
+    .showcase-copy p {
+      font-size: 1rem;
+      color: var(--text-med);
+      max-width: 520px;
+    }
+
+    .showcase-visual {
+      position: relative;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: linear-gradient(140deg, rgba(94, 249, 180, 0.1), rgba(8, 18, 32, 0.82));
+      box-shadow: var(--shadow-card);
+      padding: clamp(18px, 3vw, 28px);
+    }
+
+    .showcase-visual img {
+      width: 100%;
+      border-radius: 18px;
+      object-fit: cover;
+      box-shadow: 0 24px 48px rgba(8, 16, 30, 0.38);
+    }
+
+    .lamp-cta {
+      background: radial-gradient(120% 120% at 10% 20%, rgba(94, 249, 180, 0.14), transparent 60%),
+        linear-gradient(140deg, rgba(8, 20, 36, 0.92), rgba(5, 12, 22, 0.9));
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      box-shadow: var(--shadow-soft);
+      padding: clamp(42px, 6vw, 64px);
+    }
+
+    .lamp-cta h3 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      margin-bottom: 18px;
+    }
+
+    .lamp-cta p {
+      font-size: 1.02rem;
+      color: var(--text-med);
+      max-width: 560px;
+    }
+
+    .contact-grid {
+      margin-top: 42px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .contact-card h4 {
+      margin: 0;
+      font-size: 1.04rem;
+    }
+
+    .contact-card p,
+    .contact-card a {
+      font-size: 0.94rem;
+      color: var(--text-med);
+    }
+
+    .contact-card a {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 720px) {
+      .hero__stats {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>MagnaLuxe™ Self-Reliant Luxury Lamp</h1>
-    <p>Elegant. Sustainable. Boundlessly Independent.</p>
-  </header>
-  <main>
-    <section id="vision">
-      <h2>Vision &amp; Innovation</h2>
-      <p>MagnaLuxe™ marries artisanal craftsmanship with breakthrough magnetic inertia technology. Encased behind tempered glass, its sleek cabinet houses a precision rotor, rare-earth magnets, and advanced power management—all working in harmony to power your lamp, PC, TV, and fridge without a single grid connection.</p>
-    </section>
-    <section id="features">
-      <h2>Key Features</h2>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+    <nav class="site-nav" aria-label="Primary">
       <ul>
-        <li><strong>Frictionless Rotation:</strong> 20 mm stainless steel shaft with hybrid ceramic &amp; active magnetic bearings for whisper-quiet operation up to 3,000 RPM.</li>
-        <li><strong>Superior Electromagnetics:</strong> Four N52 neodymium magnets (10×5 mm, 1.4 T) paired with a 500-turn copper coil on a silicon-steel core.</li>
-        <li><strong>Intelligent Power Conditioning:</strong> Integrated Schottky bridge rectifier &amp; LM2596 buck converter for stable 5 V DC output.</li>
-        <li><strong>Smart Battery Management:</strong> 3.7 V/2000 mAh Li-ion cell with overcharge/discharge protection, delivering ~2.5 h of continuous 3 W illumination.</li>
-        <li><strong>Active Cooling &amp; Monitoring:</strong> Liquid cooling blocks, radiators, fans, and sensor suite (voltage, current, temperature) for peak performance.</li>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
       </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
+
+  <main>
+    <section class="container page-section product-hero">
+      <div class="hero">
+        <div class="hero__content">
+          <span class="eyebrow">Product spotlight</span>
+          <h1 class="section-title">MagnaLuxe™ Self-Reliant Luxury Lamp</h1>
+          <p>MagnaLuxe™ transforms artisanal lighting into a self-sustaining experience. Behind tempered glass, a magnetic inertia
+            core silently generates power for luxury illumination, personal electronics, and concierge amenities without a
+            single cord to the grid.</p>
+          <div class="hero__actions">
+            <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com?subject=MagnaLuxe%20Private%20Viewing">Request private viewing</a>
+            <a class="btn btn-outline" href="fullexperience.html">Explore Ioncore portfolio</a>
+          </div>
+          <div class="hero__stats">
+            <div class="stat-card">
+              <h3>3 W</h3>
+              <p>Continuous luxury illumination output from precision-balanced generation.</p>
+            </div>
+            <div class="stat-card">
+              <h3>2.5 hrs</h3>
+              <p>Autonomous glow delivered by a protected 2000&nbsp;mAh Li-ion reserve.</p>
+            </div>
+            <div class="stat-card">
+              <h3>50 Units</h3>
+              <p>First-edition release, serialized for discerning collectors worldwide.</p>
+            </div>
+          </div>
+        </div>
+        <aside class="hero__visual" aria-label="MagnaLuxe signature innovations">
+          <h3>Signature innovations</h3>
+          <ul>
+            <li><i class="fa-solid fa-atom"></i><span>Frictionless 20&nbsp;mm rotor suspended by hybrid ceramic and active magnetic bearings.</span></li>
+            <li><i class="fa-solid fa-wave-square"></i><span>Four N52 neodymium arrays and 500-turn copper coils deliver whisper-quiet power.</span></li>
+            <li><i class="fa-solid fa-gauge-high"></i><span>Smart power conditioning and LM2596 regulation stabilize 5&nbsp;V delivery for lighting and lifestyle accessories.</span></li>
+          </ul>
+        </aside>
+      </div>
     </section>
-    <section id="specs">
-      <h2>Technical Specifications</h2>
-      <table>
-        <tr><th>Component</th><th>Specification</th></tr>
-        <tr><td>Rotor Shaft</td><td>20 mm Ø × 300 mm stainless steel</td></tr>
-        <tr><td>Bearings</td><td>Hybrid ceramic + active magnetic</td></tr>
-        <tr><td>Magnets</td><td>N52 NdFeB, 10 mm × 5 mm, 1.4 T</td></tr>
-        <tr><td>Coil</td><td>500 turns, 18 AWG copper, silicon-steel core</td></tr>
-        <tr><td>Output</td><td>5 V DC @ 0.6 A (3 W)</td></tr>
-        <tr><td>Battery</td><td>3.7 V, 2000 mAh Li-ion</td></tr>
-        <tr><td>Cooling</td><td>3 blocks, 2 radiators, 4 fans</td></tr>
-        <tr><td>Control</td><td>ARM microcontroller (optional PLC)</td></tr>
-        <tr><td>Enclosure</td><td>Tempered glass &amp; brushed aluminum</td></tr>
-        <tr><td>Footprint</td><td>400 × 300 × 200 mm</td></tr>
-        <tr><td>Weight</td><td>12 kg</td></tr>
-      </table>
+
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Engineering mastery</span>
+      <h2 class="section-title">Precision architecture crafted for independence.</h2>
+      <p class="section-subtitle">Every MagnaLuxe™ console merges kinetic art with resilient energy hardware—ensuring the spectacle of
+        motion is matched by dependable, concierge-grade performance.</p>
+      <div class="detail-grid">
+        <article class="detail-card">
+          <h3>Magnetic drive assembly</h3>
+          <ul>
+            <li><i class="fa-solid fa-circle-notch"></i><span>20&nbsp;mm stainless-steel shaft balanced for up to 3,000&nbsp;RPM.</span></li>
+            <li><i class="fa-solid fa-magnet"></i><span>Active magnetic and hybrid ceramic bearings maintain frictionless rotation.</span></li>
+            <li><i class="fa-solid fa-droplet"></i><span>Liquid cooling blocks protect the rotor under continuous showcase operation.</span></li>
+          </ul>
+        </article>
+        <article class="detail-card">
+          <h3>Electromagnetic core</h3>
+          <ul>
+            <li><i class="fa-solid fa-bolt"></i><span>Four N52 rare-earth magnets (10&nbsp;×&nbsp;5&nbsp;mm, 1.4&nbsp;T) paired to a silicon-steel stator.</span></li>
+            <li><i class="fa-solid fa-gear"></i><span>500-turn copper coil optimised for responsive, low-noise generation.</span></li>
+            <li><i class="fa-solid fa-shield-halved"></i><span>Armoured enclosure isolates the core for safety and elevated aesthetics.</span></li>
+          </ul>
+        </article>
+        <article class="detail-card">
+          <h3>Power intelligence</h3>
+          <ul>
+            <li><i class="fa-solid fa-microchip"></i><span>ARM microcontroller orchestrates rectification, regulation, and monitoring.</span></li>
+            <li><i class="fa-solid fa-temperature-three-quarters"></i><span>Sensor suite tracks voltage, current, and thermal load in real time.</span></li>
+            <li><i class="fa-solid fa-solar-panel"></i><span>LM2596 buck converter conditions a stable 5&nbsp;V DC output for lighting and USB accessories.</span></li>
+          </ul>
+        </article>
+        <article class="detail-card">
+          <h3>Energy reserve</h3>
+          <ul>
+            <li><i class="fa-solid fa-battery-full"></i><span>3.7&nbsp;V / 2000&nbsp;mAh Li-ion cell with full overcharge and discharge protection.</span></li>
+            <li><i class="fa-solid fa-lightbulb"></i><span>Delivers 2.5&nbsp;hours of uninterrupted 3&nbsp;W illumination.</span></li>
+            <li><i class="fa-solid fa-plug-circle-bolt"></i><span>Ready to power companion devices such as personal electronics or concierge displays.</span></li>
+          </ul>
+        </article>
+      </div>
     </section>
-    <section id="craftsmanship">
-      <h2>Luxury Craftsmanship</h2>
-      <p>Each MagnaLuxe™ console is hand-assembled and finished in polished aluminum or artisan wood veneer. The glass front reveals the mesmerizing motion of the rotor and glowing LED indicator, turning power generation into kinetic art.</p>
-      <img src="LAMP.png" alt="MagnaLuxe Console Lamp">
+
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Technical DNA</span>
+      <h2 class="section-title">Specifications</h2>
+      <p class="section-subtitle">Curated componentry ensures that MagnaLuxe™ performs effortlessly in penthouse suites, private lounges,
+        and experiential galleries.</p>
+      <div class="spec-table-wrapper">
+        <table class="spec-table">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Specification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Rotor Shaft</td><td>20&nbsp;mm diameter × 300&nbsp;mm stainless steel with mirror polish</td></tr>
+            <tr><td>Bearings</td><td>Hybrid ceramic with active magnetic suspension</td></tr>
+            <tr><td>Magnets</td><td>N52 NdFeB arrays, 10&nbsp;mm × 5&nbsp;mm, 1.4&nbsp;T surface field</td></tr>
+            <tr><td>Generator Coil</td><td>500 turns, 18&nbsp;AWG copper on silicon-steel core</td></tr>
+            <tr><td>Output</td><td>5&nbsp;V DC @ 0.6&nbsp;A (3&nbsp;W) with Schottky bridge rectification</td></tr>
+            <tr><td>Battery</td><td>3.7&nbsp;V, 2000&nbsp;mAh Li-ion pack with BMS protections</td></tr>
+            <tr><td>Cooling</td><td>Liquid-cooled blocks, twin radiators, quad whisper fans</td></tr>
+            <tr><td>Control</td><td>ARM microcontroller with optional PLC interface</td></tr>
+            <tr><td>Enclosure</td><td>Tempered glass façade with brushed aluminum or artisan wood</td></tr>
+            <tr><td>Footprint</td><td>400&nbsp;×&nbsp;300&nbsp;×&nbsp;200&nbsp;mm console form factor</td></tr>
+            <tr><td>Weight</td><td>12&nbsp;kg complete assembly</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
-    <section id="limited">
-      <h2>Limited First Edition</h2>
-      <p>Be among the select few—only 50 pieces worldwide. Each unit is serialized and includes a certificate of authenticity. Reserve your exclusive MagnaLuxe™ today.</p>
+
+    <section class="container page-section page-section--tight">
+      <div class="showcase-grid">
+        <div class="showcase-copy">
+          <span class="eyebrow">Immersive craftsmanship</span>
+          <h2 class="section-title">Kinetic art for illuminated spaces.</h2>
+          <p>The MagnaLuxe™ console is hand-finished in either polished aluminum or bespoke wood veneer. Through the
+            crystal-clear façade, guests witness the hypnotic rotor and its ambient LED indicators—a living sculpture that
+            signifies energy independence.</p>
+          <p>Each console arrives with concierge installation support, curated lighting presets, and ongoing performance
+            monitoring through Ioncore’s remote service desk.</p>
+        </div>
+        <div class="showcase-visual">
+          <img src="LAMP.png" alt="MagnaLuxe console with illuminated rotor" />
+        </div>
+      </div>
     </section>
-    <section id="ordering">
-      <h2>Ordering &amp; Contact</h2>
-      <p><strong>Price:</strong> CAD $8,500 (including custom finish &amp; 2-year warranty)<br>
-         <strong>Lead Time:</strong> 10 weeks from order<br>
-         <strong>Contact:</strong> ioncoreenergy@gmail.com | +1 (416) 555-0199<br>
-         <strong>Showroom:</strong> 123 Innovation Drive, Toronto, ON</p>
+
+    <section class="container page-section page-section--tight">
+      <div class="lamp-cta">
+        <span class="eyebrow">Limited first edition</span>
+        <h3>Reserve one of 50 MagnaLuxe™ consoles for your signature space.</h3>
+        <p>Secure your serialized unit with a CAD&nbsp;$8,500 reservation. Each commission includes your choice of finish,
+          10-week bespoke build, and a two-year concierge warranty covering hardware, software, and experiential tuning.</p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com?subject=Reserve%20MagnaLuxe">Reserve MagnaLuxe™</a>
+          <a class="btn btn-outline" href="tel:+14165550199">Call the concierge team</a>
+        </div>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <h4>Direct liaison</h4>
+            <p>Email the MagnaLuxe™ concierge desk for private demonstrations and technical consultations.</p>
+            <a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a>
+          </div>
+          <div class="contact-card">
+            <h4>Boutique showroom</h4>
+            <p>Experience MagnaLuxe™ in person at 123 Innovation Drive, Toronto, ON.</p>
+            <a href="https://maps.google.com/?q=123+Innovation+Drive,+Toronto,+ON" target="_blank" rel="noopener">Arrange a visit</a>
+          </div>
+          <div class="contact-card">
+            <h4>Concierge hotline</h4>
+            <p>Discuss customization, integration, and delivery timelines with our specialists.</p>
+            <a href="tel:+18667865767">+1 (866) 786-5767</a>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
-  <footer>
-    <p>&copy; 2025 Ioncore Energy. All rights reserved.</p>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+          <p>Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic innovations.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Curated brochure experience for visionary partners.</span>
+      </div>
+    </div>
   </footer>
 </body>
 </html>

@@ -107,6 +107,16 @@ function createOverlay() {
   title.style.fontFamily = "'Montserrat', Arial, sans-serif";
   title.style.marginBottom = '16px';
 
+  const image = document.createElement('img');
+  image.src = '/IMG_2629.jpeg';
+  image.alt = `${ACCESS_CONFIG.membershipName} wallet verification`;
+  image.style.maxWidth = '320px';
+  image.style.width = '100%';
+  image.style.height = 'auto';
+  image.style.marginBottom = '20px';
+  image.style.borderRadius = '16px';
+  image.style.boxShadow = '0 20px 45px rgba(15, 23, 42, 0.35)';
+
   const message = document.createElement('p');
   message.innerHTML = `Verify your ${ACCESS_CONFIG.membershipName} membership with MetaMask to continue.`;
   message.style.maxWidth = '420px';
@@ -150,7 +160,7 @@ function createOverlay() {
   download.target = '_blank';
   download.rel = 'noopener noreferrer';
 
-  overlay.append(title, message, supplierNotice, button, feedback, download);
+  overlay.append(title, image, message, supplierNotice, button, feedback, download);
   document.body.appendChild(overlay);
   document.body.classList.add(BODY_LOCK_CLASS);
   document.body.style.overflow = 'hidden';

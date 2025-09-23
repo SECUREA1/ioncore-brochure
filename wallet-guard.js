@@ -34,6 +34,37 @@ const ACCESS_CONFIG = (() => {
 
 let isVerifying = false;
 let accessGranted = false;
+let provider = null;
+let listenersAttached = false;
+
+function detectMetaMaskProvider() {
+  const { ethereum } = window;
+  if (!ethereum) return null;
+  if (ethereum.isMetaMask) return ethereum;
+
+  if (Array.isArray(ethereum.providers)) {
+    return ethereum.providers.find((p) => p && p.isMetaMask) || null;
+  }
+
+  if (ethereum.providerMap && typeof ethereum.providerMap.get === 'function') {
+    return ethereum.providerMap.get('MetaMask') || null;
+  }
+
+  return null;
+}
+
+function getProvider() {
+  const detected = detectMetaMaskProvider();
+  if (detected && detected !== provider) {
+    if (provider && typeof provider.removeListener === 'function') {
+      provider.removeListener('accountsChanged', handleAccountsChanged);
+      provider.removeListener('chainChanged', handleChainChanged);
+    }
+    provider = detected;
+    listenersAttached = false;
+  }
+  return provider;
+}
 
 function parseMinBalance(value) {
   try {
@@ -49,7 +80,7 @@ function parseMinBalance(value) {
 }
 
 function hasMetaMask() {
-  return typeof window.ethereum !== 'undefined' && Boolean(window.ethereum.isMetaMask);
+  return Boolean(getProvider());
 }
 
 function createOverlay() {
@@ -165,16 +196,20 @@ function normalizeHex(value) {
 
 async function ensureCorrectChain() {
   if (!ACCESS_CONFIG.requiredChainId) return;
-  const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
+  const metamask = getProvider();
+  if (!metamask) {
+    throw new Error('NO_PROVIDER');
+  }
+  const currentChain = await metamask.request({ method: 'eth_chainId' });
   if (currentChain === ACCESS_CONFIG.requiredChainId) return;
   try {
-    await window.ethereum.request({
+    await metamask.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: ACCESS_CONFIG.requiredChainId }]
     });
   } catch (err) {
     if (err && err.code === 4902 && ACCESS_CONFIG.addChainParameters) {
-      await window.ethereum.request({
+      await metamask.request({
         method: 'wallet_addEthereumChain',
         params: [ACCESS_CONFIG.addChainParameters]
       });
@@ -201,8 +236,12 @@ async function callContract(data) {
   if (!contract) {
     throw new Error('MISSING_CONTRACT');
   }
+  const metamask = getProvider();
+  if (!metamask) {
+    throw new Error('NO_PROVIDER');
+  }
   try {
-    const result = await window.ethereum.request({
+    const result = await metamask.request({
       method: 'eth_call',
       params: [
         {
@@ -342,6 +381,9 @@ function friendlyError(err) {
   if (code === 'NO_ACCOUNTS') {
     return 'Connect your MetaMask wallet to continue.';
   }
+  if (code === 'NO_PROVIDER') {
+    return 'MetaMask is required to verify Ioncore Apes access. Install it to continue.';
+  }
   if (code === 'WRONG_CHAIN') {
     return 'Switch to the required network in MetaMask and try again.';
   }
@@ -363,6 +405,33 @@ function friendlyError(err) {
   return err.message || 'Verification failed. Please try again.';
 }
 
+function attachProviderListeners() {
+  const metamask = getProvider();
+  if (!metamask || typeof metamask.on !== 'function' || listenersAttached) {
+    return;
+  }
+  metamask.on('accountsChanged', handleAccountsChanged);
+  metamask.on('chainChanged', handleChainChanged);
+  listenersAttached = true;
+}
+
+async function handleAccountsChanged(accounts) {
+  accessGranted = false;
+  if (!accounts || accounts.length === 0) {
+    clearRememberedAccess();
+    createOverlay();
+    setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
+    setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
+    return;
+  }
+  await verifyAccess(false);
+}
+
+async function handleChainChanged() {
+  accessGranted = false;
+  await verifyAccess(false);
+}
+
 async function verifyAccess(interactive = false) {
   createOverlay();
   setFeedback('');
@@ -372,13 +441,21 @@ async function verifyAccess(interactive = false) {
     return false;
   }
 
+  const metamask = getProvider();
+  if (!metamask) {
+    setFeedback('MetaMask is required to verify Ioncore Apes access. Install it to continue.');
+    return false;
+  }
+
+  attachProviderListeners();
+
   if (isVerifying) return false;
   isVerifying = true;
 
   try {
     setButtonState({ disabled: true, label: 'Verifying…' });
     const method = interactive ? 'eth_requestAccounts' : 'eth_accounts';
-    const accounts = await window.ethereum.request({ method });
+    const accounts = await metamask.request({ method });
     if (!accounts || accounts.length === 0) {
       setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
       setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
@@ -431,8 +508,11 @@ async function enforceAccess() {
 
   if (accessGranted || !stored || !hasMetaMask()) return;
 
+  const metamask = getProvider();
+  if (!metamask) return;
+
   try {
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    const accounts = await metamask.request({ method: 'eth_accounts' });
     if (accounts && accounts.some((addr) => addr.toLowerCase() === stored)) {
       accessGranted = true;
       removeOverlay();
@@ -448,26 +528,19 @@ if (document.readyState === 'loading') {
   enforceAccess();
 }
 
-if (window.ethereum && window.ethereum.on) {
-  window.ethereum.on('accountsChanged', async (accounts) => {
-    accessGranted = false;
-    if (!accounts || accounts.length === 0) {
-      clearRememberedAccess();
-      createOverlay();
-      setFeedback(friendlyError('NO_ACCOUNTS'), 'info');
-      setButtonState({ disabled: false, label: `Verify ${ACCESS_CONFIG.membershipName} Access` });
-      return;
-    }
-    await verifyAccess(false);
-  });
+attachProviderListeners();
 
-  window.ethereum.on('chainChanged', async () => {
-    accessGranted = false;
-    await verifyAccess(false);
-  });
-}
+window.addEventListener('ethereum#initialized', () => {
+  provider = null;
+  listenersAttached = false;
+  attachProviderListeners();
+  if (!accessGranted) {
+    verifyAccess(false);
+  }
+});
 
 window.addEventListener('focus', () => {
+  attachProviderListeners();
   if (!accessGranted) {
     verifyAccess(false);
   }

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ioncore Energy | High-End Energy Ecosystems</title>
-  <meta name="description" content="Ioncore Energy designs premium magnetic inertia and hybrid storage systems for luxury estates, smart cities, and mission-critical infrastructure.">
+  <title>Ioncore Energy | Live Activity Hub</title>
+  <meta name="description" content="Live Ioncore Energy homepage showing active visitors and total views.">
   <link rel="icon" type="image/svg+xml" href="battery.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,221 +14,35 @@
 </head>
 <body>
   <header class="site-header container">
-    <a class="logo" href="webpage.html"><span>Ioncore</span> Energy</a>
+    <a class="logo" href="/"><span>Ioncore</span> Energy</a>
     <nav class="site-nav" aria-label="Primary">
       <ul>
-        <li><a href="#solutions">Solutions</a></li>
-        <li><a href="#technology">Technology</a></li>
-        <li><a href="#deployment">Deployment</a></li>
-        <li><a href="#insights">Insights</a></li>
-        <li><a href="fullexperience.html">Full experience</a></li>
-        <li><a href="index.html">Brochures</a></li>
+        <li><a href="index.html">Brochure library</a></li>
+        <li><a href="fullexperience.html">Legacy showcase</a></li>
       </ul>
     </nav>
     <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
   </header>
 
   <main>
-    <section class="hero container" id="home">
-      <div class="hero__content">
-        <span class="eyebrow">Next-Gen Power Platforms</span>
-        <h1>Designing the world's most sophisticated magnetic inertia ecosystems.</h1>
-        <p>Ioncore Energy engineers magnetic inertia generators, hybrid flywheel systems, and cryogenic cooling platforms that redefine resilience for luxury estates, smart cities, maritime fleets, and aerospace assets.</p>
-        <div class="hero__actions">
-          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a private consultation</a>
-          <a class="btn btn-outline" href="index.html">Browse the full brochure library</a>
-          <a class="btn btn-outline" href="fullexperience.html">Explore the original showcase</a>
-        </div>
-        <div class="hero__stats">
-          <div class="stat-card">
-            <h3>24/7</h3>
-            <p>Autonomous uptime through inertia-based generation.</p>
-          </div>
-          <div class="stat-card">
-            <h3>92%</h3>
-            <p>Average efficiency achieved through cryogenic stabilization.</p>
-          </div>
-          <div class="stat-card">
-            <h3>&lt;5yr</h3>
-            <p>Projected ROI on premium energy estates and microgrids.</p>
-          </div>
-        </div>
+    <section class="container landing">
+      <div class="landing__content">
+        <span class="eyebrow">Live access dashboard</span>
+        <h1 class="section-title">Ioncore Energy activity overview</h1>
+        <p class="section-subtitle">Monitor real-time engagement on the Ioncore Energy homepage. The metrics below are updated continuously using a live connection to the server.</p>
+        <p class="metrics-status" id="metricsStatus" role="status">Connecting to live metrics…</p>
       </div>
-      <aside class="hero__visual" aria-label="Ioncore value highlights">
-        <h3>Why energy visionaries choose Ioncore</h3>
-        <ul>
-          <li><i class="fa-solid fa-gem"></i> Architectural-grade hardware with gallery-worthy finishes.</li>
-          <li><i class="fa-solid fa-shield-halved"></i> Triple-layered redundancy across magnetic, kinetic, and battery reserves.</li>
-          <li><i class="fa-solid fa-temperature-low"></i> Cryogenic thermal loops enabling unprecedented output density.</li>
-          <li><i class="fa-solid fa-globe"></i> Global deployment expertise from island nations to arctic research hubs.</li>
-        </ul>
-      </aside>
-    </section>
-
-    <section class="container page-section page-section--tight">
-      <div class="trusted-logos">
-        <span>Trusted by innovators advancing</span>
-        <div class="logos">
-          <span>Ultra-Luxury Estates</span>
-          <span>Smart City Planners</span>
-          <span>Aviation &amp; Maritime</span>
-          <span>Defense Contractors</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="container page-section" id="solutions">
-      <span class="eyebrow">Signature Systems</span>
-      <h2 class="section-title">Energy architectures curated for elite environments.</h2>
-      <p class="section-subtitle">Explore a portfolio of inertia generators, cryogenic cooling frameworks, and hybrid storage arrays engineered to power the most demanding projects on the planet.</p>
-      <div class="product-grid">
-        <article class="product-card">
-          <span class="badge"><i class="fa-solid fa-circle-notch"></i> Flagship</span>
-          <h3>Magnetic Inertia Generator</h3>
-          <p>Our definitive energy unit delivering continuous autonomous power with near-silent operation and architectural finishes.</p>
-          <div class="card-actions">
-            <a class="btn btn-outline" href="Magnetic%20Inertia%20Power%20System.html">View overview</a>
-          </div>
+      <div class="metrics-grid" aria-live="polite">
+        <article class="metric-card">
+          <span class="metric-label">Active visitors</span>
+          <span class="metric-value" id="liveUsers">0</span>
+          <p>Number of people currently viewing this page.</p>
         </article>
-        <article class="product-card">
-          <span class="badge"><i class="fa-solid fa-snowflake"></i> Thermal Mastery</span>
-          <h3>Cryogenic Cooling Ecosystem</h3>
-          <p>Precision-cooled induction loops that stabilize energy output and amplify generator lifespan even in desert or equatorial climates.</p>
-          <div class="card-actions">
-            <a class="btn btn-outline" href="cryogenic_cooling_brochure.html">Explore technology</a>
-          </div>
+        <article class="metric-card">
+          <span class="metric-label">Total visits</span>
+          <span class="metric-value" id="totalVisits">0</span>
+          <p>Times this page has been loaded since the server started.</p>
         </article>
-        <article class="product-card">
-          <span class="badge"><i class="fa-solid fa-bolt"></i> Hybrid Storage</span>
-          <h3>Hybrid Flywheel + Battery Suite</h3>
-          <p>Synchronize kinetic storage with solid-state reserves for instant peak-load response across residential, commercial, and marine estates.</p>
-          <div class="card-actions">
-            <a class="btn btn-outline" href="Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html">Discover the suite</a>
-          </div>
-        </article>
-        <article class="product-card">
-          <span class="badge"><i class="fa-solid fa-building-columns"></i> Urban Scale</span>
-          <h3>OmniCore X15 District Generator</h3>
-          <p>Large-format energy infrastructure built to anchor smart city districts, secure campuses, and mission-critical installations.</p>
-          <div class="card-actions">
-            <a class="btn btn-outline" href="OmniCore%20X15.html">Review specifications</a>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="container page-section" id="technology">
-      <span class="eyebrow">Technology Stack</span>
-      <h2 class="section-title">The Ioncore advantage is engineered in layers.</h2>
-      <p class="section-subtitle">Each platform is orchestrated through modular subsystems that deliver uncompromising stability, elegant aesthetics, and lifetime performance gains.</p>
-      <div class="feature-grid">
-        <div class="feature-tile">
-          <strong>Magnetic Inertia Drive</strong>
-          <p>High-torque magnetic arrays deliver smooth, continuous rotation that minimizes wear and enables whisper-quiet operation.</p>
-        </div>
-        <div class="feature-tile">
-          <strong>Precision Cryogenics</strong>
-          <p>Helium-cooled conduits maintain optimal superconductive states, unlocking extraordinary efficiency and longevity.</p>
-        </div>
-        <div class="feature-tile">
-          <strong>Luxury Industrial Design</strong>
-          <p>Brushed alloys, architectural glass, and customizable finishes ensure equipment integrates seamlessly within prestige spaces.</p>
-        </div>
-        <div class="feature-tile">
-          <strong>Smart Orchestration</strong>
-          <p>AI-enabled controls balance grid interaction, load forecasting, and environmental performance in real time.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="container page-section" id="deployment">
-      <span class="eyebrow">Deployment Journey</span>
-      <h2 class="section-title">From concept to commissioned power in six decisive phases.</h2>
-      <div class="timeline">
-        <div class="timeline-item">
-          <strong>01</strong>
-          <div>
-            <h3>Vision Workshop</h3>
-            <p>Private strategy alignment defining desired capacity, aesthetic direction, resilience goals, and integration scope.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <strong>02</strong>
-          <div>
-            <h3>Site Intelligence</h3>
-            <p>Advanced geospatial scans and energy modelling confirm siting, load profiles, and microgrid interfacing.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <strong>03</strong>
-          <div>
-            <h3>Design Engineering</h3>
-            <p>Multidisciplinary teams craft bespoke enclosures, cryogenic loops, and redundancy matrices tailored to your estate.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <strong>04</strong>
-          <div>
-            <h3>Fabrication &amp; Finishing</h3>
-            <p>Precision manufacturing across magnetic arrays, kinetic modules, and architectural cladding with immaculate QC.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <strong>05</strong>
-          <div>
-            <h3>Commissioning</h3>
-            <p>On-site integration, cryogenic calibration, and live redundancy testing to ensure silent, immediate readiness.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <strong>06</strong>
-          <div>
-            <h3>Performance Stewardship</h3>
-            <p>White-glove maintenance, predictive analytics, and 24/7 concierge monitoring for elite clientele.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="container page-section" id="insights">
-      <span class="eyebrow">Global Impact</span>
-      <h2 class="section-title">Designed to empower visionaries around the world.</h2>
-      <div class="testimonial-grid">
-        <article class="testimonial-card">
-          <p>“Ioncore transformed our island retreat into a carbon-negative sanctuary. The system is silent, visually stunning, and endlessly reliable.”</p>
-          <div class="author">
-            <strong>Private Estate Director</strong>
-            <span>Turks &amp; Caicos</span>
-          </div>
-        </article>
-        <article class="testimonial-card">
-          <p>“Their hybrid flywheel solution stabilized an entire smart district. Response times are instantaneous and the dashboard is art in motion.”</p>
-          <div class="author">
-            <strong>Chief Infrastructure Officer</strong>
-            <span>Singapore Smart City Lab</span>
-          </div>
-        </article>
-        <article class="testimonial-card">
-          <p>“Ioncore’s cryogenic platform let us push magnetic propulsion to new thresholds. The engineering rigor is exceptional.”</p>
-          <div class="author">
-            <strong>Director of Advanced Propulsion</strong>
-            <span>Aerospace Consortium</span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="container page-section page-section--tight">
-      <div class="cta-panel">
-        <div>
-          <span class="eyebrow">Collaborate with Ioncore</span>
-          <h2>Let’s craft your next-generation power estate.</h2>
-          <p>Request a tailored roadmap for your property, infrastructure project, or investment portfolio. Our team will deliver a curated energy vision within 72 hours.</p>
-        </div>
-        <div class="hero__actions">
-          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Request proposal</a>
-          <a class="btn btn-outline" href="index.html">Download brochures</a>
-        </div>
       </div>
     </section>
   </main>
@@ -237,32 +51,84 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-col">
-          <a class="logo" href="webpage.html"><span>Ioncore</span> Energy</a>
-          <p>High-end magnetic inertia and hybrid storage ecosystems engineered to electrify the world’s most ambitious environments.</p>
+          <a class="logo" href="/"><span>Ioncore</span> Energy</a>
+          <p>Access, compare, and deploy Ioncore’s library of magnetic inertia, hybrid storage, and cryogenic innovations.</p>
         </div>
         <div class="footer-col">
-          <h4>Explore</h4>
+          <h4>Resources</h4>
           <ul>
-            <li><a href="#solutions">Solutions</a></li>
-            <li><a href="#technology">Technology</a></li>
-            <li><a href="#deployment">Deployment</a></li>
-            <li><a href="index.html">Brochure Library</a></li>
+            <li><a href="index.html">Brochure library</a></li>
+            <li><a href="fullexperience.html">Legacy showcase</a></li>
+            <li><a href="mailto:ioncoreenergy@gmail.com">Partnership inquiries</a></li>
           </ul>
         </div>
         <div class="footer-col">
-          <h4>Connect</h4>
+          <h4>Contact</h4>
           <ul>
             <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
             <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Chat with us on Telegram</a></li>
-            <li><a href="https://www.linkedin.com" rel="noopener" target="_blank">LinkedIn</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
         <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
-        <span>Designed for visionaries investing in the future of power.</span>
+        <span>Live engagement overview.</span>
       </div>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      const liveUsersEl = document.getElementById('liveUsers');
+      const totalVisitsEl = document.getElementById('totalVisits');
+      const statusEl = document.getElementById('metricsStatus');
+      let eventSource;
+
+      function updateStatus(message, isError = false) {
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        statusEl.classList.toggle('metrics-status--error', isError);
+      }
+
+      function applyMetrics(payload) {
+        if (typeof payload?.activeUsers === 'number') {
+          liveUsersEl.textContent = payload.activeUsers.toString();
+        }
+        if (typeof payload?.totalVisits === 'number') {
+          totalVisitsEl.textContent = payload.totalVisits.toString();
+        }
+        updateStatus('Live metrics are up to date.');
+      }
+
+      function connect() {
+        if (eventSource) {
+          eventSource.close();
+        }
+        updateStatus('Connecting to live metrics…');
+        eventSource = new EventSource('/metrics-stream');
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            applyMetrics(data);
+          } catch (err) {
+            console.error('Failed to parse metrics payload', err);
+          }
+        };
+        eventSource.onerror = () => {
+          updateStatus('Connection lost. Reconnecting…', true);
+          if (eventSource) {
+            eventSource.close();
+          }
+          setTimeout(connect, 2000);
+        };
+      }
+
+      if ('EventSource' in window) {
+        connect();
+      } else {
+        updateStatus('Live metrics are unavailable in this browser.', true);
+      }
+    })();
+  </script>
 </body>
 </html>

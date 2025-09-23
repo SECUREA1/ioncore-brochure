@@ -12,6 +12,27 @@ const PORT = process.env.PORT || 3000;
 const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip';
 const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
 
+const sseClients = new Set();
+let totalVisits = 0;
+
+function getMetricsPayload() {
+  return {
+    activeUsers: sseClients.size,
+    totalVisits
+  };
+}
+
+function broadcastMetrics() {
+  const data = `data: ${JSON.stringify(getMetricsPayload())}\n\n`;
+  for (const res of sseClients) {
+    if (res.writableEnded) {
+      sseClients.delete(res);
+      continue;
+    }
+    res.write(data);
+  }
+}
+
 const ACCESS_GUARD_CONFIG = {
   membershipName: 'Ioncore Apes',
   requiredChainId: '0x1',
@@ -95,9 +116,32 @@ async function getTitle(filePath) {
   return match ? match[1].trim() : path.basename(filePath);
 }
 
-// Public homepage
+// Public homepage with visit counter
 app.get('/', async (req, res) => {
+  totalVisits += 1;
+  broadcastMetrics();
   await sendHtml(res, path.join(__dirname, 'webpage.html'));
+});
+
+// Server-sent events stream for live metrics
+app.get('/metrics-stream', (req, res) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive'
+  });
+
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+
+  sseClients.add(res);
+  broadcastMetrics();
+
+  req.on('close', () => {
+    sseClients.delete(res);
+    broadcastMetrics();
+  });
 });
 
 app.get('/timepieces', async (req, res) => {

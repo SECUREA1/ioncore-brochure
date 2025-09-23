@@ -3,6 +3,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import unzipper from 'unzipper';
+import { randomUUID } from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,37 +13,36 @@ const PORT = process.env.PORT || 3000;
 const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip';
 const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
 
-const ACCESS_GUARD_CONFIG = {
-  membershipName: 'Ioncore Apes',
-  requiredChainId: '0x1',
-  membershipContract: '0xaef8b6346ca4dadaa71783dddf4a3d00633b679d',
-  tokenType: 'erc721',
-  tokenId: null,
-  minBalance: '1'
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+const metrics = {
+  live: 0,
+  viewed: 0
 };
 
-const ACCESS_GUARD_SNIPPET = (() => {
-  const serialized = JSON.stringify(ACCESS_GUARD_CONFIG);
-  return (
-    `<script>window.__IONCORE_ACCESS__ = ${serialized};</script>` +
-    '<script src="/wallet-guard.js" defer></script>'
-  );
-})();
+const activeSessions = new Map();
 
-function injectAccessGuard(html) {
-  if (typeof html !== 'string' || !html) return html;
-  if (html.includes('/wallet-guard.js')) return html;
-  const closingBody = html.match(/<\/body>/i);
-  if (closingBody) {
-    return html.replace(/<\/body>/i, `${ACCESS_GUARD_SNIPPET}\n</body>`);
+function registerSession() {
+  const sessionId = randomUUID();
+  activeSessions.set(sessionId, Date.now());
+  metrics.live = activeSessions.size;
+  metrics.viewed += 1;
+  return sessionId;
+}
+
+function endSession(sessionId) {
+  if (typeof sessionId !== 'string' || !sessionId) {
+    return;
   }
-  return `${html}\n${ACCESS_GUARD_SNIPPET}`;
+  if (activeSessions.delete(sessionId)) {
+    metrics.live = activeSessions.size;
+  }
 }
 
 async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
-    html = injectAccessGuard(html);
     res.type('html').send(html);
   } catch {
     res.status(404).send('Not found');
@@ -109,7 +109,7 @@ app.get('/timepieces', async (req, res) => {
       return res.status(404).send('Timepieces brochure not found');
     }
     const buffer = await file.buffer();
-    const html = injectAccessGuard(buffer.toString('utf8'));
+    const html = buffer.toString('utf8');
     res.type('html').send(html);
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);
@@ -144,7 +144,7 @@ app.get('/admin', auth, async (req, res) => {
       .map((i) => `<div class="card"><h2>${i.title}</h2><a class="btn" href="/view?f=${encodeURIComponent(i.rel)}">View</a></div>`)
       .join('');
     const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Brochures</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
-    res.send(injectAccessGuard(html));
+    res.send(html);
   } catch (err) {
     res.status(500).send('Failed to load index');
   }
@@ -159,10 +159,28 @@ app.get('/view', auth, async (req, res) => {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
     const wrapped = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${title}</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
-    res.send(injectAccessGuard(wrapped));
+    res.send(wrapped);
   } catch {
     res.status(404).send('Not found');
   }
+});
+
+app.post('/metrics/view', (req, res) => {
+  const sessionId = registerSession();
+  res.json({ sessionId, live: metrics.live, viewed: metrics.viewed });
+});
+
+app.post('/metrics/leave', (req, res) => {
+  const sessionId =
+    (req.body && typeof req.body.sessionId === 'string' && req.body.sessionId) ||
+    (req.query && typeof req.query.sessionId === 'string' && req.query.sessionId) ||
+    '';
+  endSession(sessionId);
+  res.json({ live: metrics.live, viewed: metrics.viewed });
+});
+
+app.get('/metrics', (req, res) => {
+  res.json({ live: metrics.live, viewed: metrics.viewed });
 });
 
 app.listen(PORT, () => {

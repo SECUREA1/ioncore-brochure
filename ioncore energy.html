@@ -1,175 +1,432 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ioncore Energy Brochure</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ioncore Energy | Portable Magnetic-Bearing Flywheel Generators</title>
+  <meta name="description" content="Discover Ioncore Energy's magnetic-bearing flywheel generators engineered for reliable, grid-quality power anywhere.">
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      color: #333;
-      line-height: 1.6;
+    main {
+      padding-bottom: 120px;
     }
-    header {
-      background: linear-gradient(135deg, #004e92, #000428);
-      color: white;
-      text-align: center;
-      padding: 3rem 1rem;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2.5rem;
-    }
-    header p {
-      font-size: 1.2rem;
-      margin-top: 0.5rem;
-    }
-    section {
-      padding: 2rem 1rem;
-      max-width: 1200px;
-      margin: auto;
-    }
-    .features, .products {
+
+    .hero {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
+      align-items: center;
+      gap: clamp(36px, 6vw, 72px);
+      padding-top: clamp(48px, 8vw, 92px);
     }
-    .feature-card, .product-card {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 1rem;
-      background: #f9f9f9;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+    .hero__title {
+      font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+      margin-bottom: 16px;
+    }
+
+    .hero__subtitle {
+      margin-bottom: 32px;
+      color: var(--text-med);
+    }
+
+    .hero__tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: rgba(9, 16, 29, 0.7);
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .hero__visual {
+      position: relative;
+      border-radius: 28px;
+      padding: clamp(24px, 4vw, 38px);
+      background: radial-gradient(circle at 20% 20%, rgba(94, 249, 180, 0.18), transparent 70%),
+        rgba(9, 16, 29, 0.82);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .hero__visual img {
+      width: 100%;
+      height: auto;
+      border-radius: 20px;
+    }
+
+    .hero__visual::after {
+      content: "Grid-quality power anywhere";
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(5, 12, 22, 0.82);
+      border: 1px solid rgba(94, 249, 180, 0.35);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      color: var(--text-muted);
+    }
+
+    .stat-band {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 24px;
+      margin-top: 36px;
+    }
+
+    .stat {
+      padding: 18px 22px;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      background: rgba(9, 16, 29, 0.72);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-high);
+    }
+
+    .section-header {
+      margin-bottom: 48px;
+      text-align: center;
+    }
+
+    .feature-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .feature-card {
+      padding: 28px 24px;
+      border-radius: 22px;
+      border: 1px solid var(--border-strong);
+      background: rgba(9, 16, 29, 0.78);
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 16px;
     }
-    .feature-card h3, .product-card h3 {
-      margin-top: 0;
+
+    .feature-card i {
+      font-size: 1.6rem;
+      color: var(--accent);
     }
-    .product-image-container {
+
+    .feature-card h3 {
+      margin: 0;
+      font-size: 1.12rem;
+    }
+
+    .feature-card p {
+      margin: 0;
+    }
+
+    .product-grid {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .product-card {
+      border-radius: 24px;
+      border: 1px solid var(--border-strong);
+      background: linear-gradient(180deg, rgba(12, 22, 36, 0.92), rgba(6, 12, 22, 0.86));
+      box-shadow: var(--shadow-card);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .product-card figure {
+      margin: 0;
+      border-radius: 18px;
+      background: rgba(94, 249, 180, 0.06);
+      border: 1px solid rgba(94, 249, 180, 0.12);
+      overflow: hidden;
+      padding: 18px;
+      display: grid;
+      place-items: center;
+    }
+
+    .product-card img {
       width: 100%;
-      height: 300px;
-      margin-bottom: 1rem;
-    }
-    .product-image {
-      width: 100%;
-      height: 100%;
+      max-height: 220px;
       object-fit: contain;
-      background-color: #ececec;
-      border-radius: 4px;
     }
-    .gen-lineup {
-      width: 100%;
-      max-width: 600px;
-      display: block;
-      margin: 0 auto 2rem;
-      border-radius: 8px;
+
+    .product-card h3 {
+      margin: 0;
+      font-size: 1.2rem;
     }
-    footer {
+
+    .product-specs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-weight: 600;
+      color: var(--text-high);
+    }
+
+    .product-specs span {
+      font-weight: 500;
+      color: var(--text-med);
+    }
+
+    .cta-section {
+      margin-top: 96px;
+      border-radius: 32px;
+      padding: clamp(38px, 6vw, 54px);
+      background: radial-gradient(circle at 18% 24%, rgba(94, 249, 180, 0.22), transparent 68%),
+        rgba(6, 14, 24, 0.9);
+      border: 1px solid rgba(94, 249, 180, 0.32);
       text-align: center;
-      padding: 1rem;
-      background: #fff;
-      border-top: 1px solid #ddd;
+      box-shadow: var(--shadow-card);
     }
-    a.button {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.75rem 1.5rem;
-      background: #004e92;
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
+
+    .cta-section h2 {
+      margin-bottom: 18px;
+      font-size: clamp(1.9rem, 2.8vw, 2.6rem);
     }
-    @media (prefers-color-scheme: dark) {
-      body { background: #121212; color: #ddd; }
-      section { background: #121212; }
-      .feature-card, .product-card { background: #1e1e1e; border-color: #333; }
-      footer { background: #1e1e1e; border-top-color: #333; }
-      a.button { background: #0062cc; }
+
+    .cta-section p {
+      max-width: 640px;
+      margin: 0 auto 32px;
+      color: var(--text-med);
+    }
+
+    @media (max-width: 640px) {
+      .hero__visual::after {
+        position: static;
+        display: inline-flex;
+        margin-top: 18px;
+      }
     }
   </style>
 </head>
 <body>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
 
-<header>
-  <h1>Ioncore Energy</h1>
-  <p>Portable Magnetic-Bearing Flywheel Generators<br>“Grid-Quality Power, Anywhere”</p>
-</header>
-
-<section>
-  <h2>How It Works</h2>
-  <p>Our Gen-1 unit fits in a 150 × 100 × 50 mm, sub-1 kg enclosure. A stainless-steel flywheel spins on magnetic bearings, storing kinetic energy. Dual-mode stator windings drive the flywheel as a motor and harvest energy as a generator. Onboard Li-ion cells buffer energy, while a boost-inverter chain provides 5 – 150 W of pure-sine AC or USB-PD output. A micro-cooling loop keeps coils below 60 °C under load.</p>
-  
-  <div class="features">
-    <div class="feature-card">
-      <h3>Magnetic Bearings</h3>
-      <p>Friction-free ceramic bearings with N52 preload magnets for zero mechanical wear.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Dual-Mode Stator</h3>
-      <p>M19 laminated cores and 1 000-turn windings switch seamlessly between motor/generator modes.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Liquid Micro-Cooling</h3>
-      <p>Compact pump, tubing & radiator keep stator temperatures under 60 °C at full load.</p>
-    </div>
-    <div class="feature-card">
-      <h3>Integrated Inverter</h3>
-      <p>Built-in DC-DC boost and 100 W pure-sine inverter or USB-PD provides versatile output.</p>
-    </div>
-  </div>
-</section>
-
-<section>
-  <h2>Product Line-Up</h2>
-  <img src="GEN4.png" alt="Gen-4 lineup" class="gen-lineup">
-  <div class="products">
-    <div class="product-card">
-      <div class="product-image-container">
-        <img src="501.png" alt="Gen-1 Micro" class="product-image">
+  <main>
+    <section class="container hero">
+      <div>
+        <div class="hero__tagline"><i class="fa-solid fa-bolt"></i> Portable Magnetic-Bearing Flywheel</div>
+        <h1 class="hero__title">Grid-quality power that travels with you.</h1>
+        <p class="hero__subtitle">Ioncore Energy reimagines portable generation with magnetic bearings, hybrid flywheel storage, and intelligent power electronics engineered for mission-ready performance.</p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Request a demo</a>
+          <a class="btn btn-outline" href="#product-line">Explore product line</a>
+        </div>
+        <div class="stat-band">
+          <div class="stat">
+            <strong>150 × 100 × 50 mm</strong>
+            <span>Gen-1 enclosure footprint with sub-1 kg mass.</span>
+          </div>
+          <div class="stat">
+            <strong>2 kW</strong>
+            <span>Continuous output capacity in Gen-4 hybrid flywheel.</span>
+          </div>
+          <div class="stat">
+            <strong>&lt;60 °C</strong>
+            <span>Coil temps maintained by liquid micro-cooling.</span>
+          </div>
+        </div>
       </div>
-      <h3>Gen-1 Micro</h3>
-      <p><strong>50 W</strong> continuous | <strong>0.2 kWh</strong></p>
-      <p>Ideal for emergency comms, camping & UAV battery swaps.</p>
-    </div>
-    <div class="product-card">
-      <div class="product-image-container">
-          <img src="gen2.png" alt="Gen-2 Compact" class="product-image">
+      <div class="hero__visual" aria-hidden="true">
+        <img src="ioncore.png" alt="Ioncore flywheel generator render">
       </div>
-      <h3>Gen-2 Compact</h3>
-      <p><strong>150 W</strong> continuous | <strong>0.6 kWh</strong>/4 h</p>
-      <p>Perfect for mobile clinics, outdoor film crews, remote offices.</p>
-    </div>
-    <div class="product-card">
-      <div class="product-image-container">
-          <img src="GEN3.png" alt="Gen-3 Modular" class="product-image">
+    </section>
+
+    <section class="container page-section" id="technology">
+      <div class="section-header">
+        <span class="eyebrow">Technology</span>
+        <h2 class="section-title">Inside the Ioncore magnetic inertia platform</h2>
+        <p class="section-subtitle">Each portable generator is engineered as a dual-mode energy system—storing kinetic energy and returning it as precise, clean electricity on demand.</p>
       </div>
-      <h3>Gen-3 Modular</h3>
-      <p><strong>600 W</strong> continuous | <strong>2.4 kWh</strong>/4 h</p>
-      <p>Stackable modules for construction drones & remote IoT hubs.</p>
-    </div>
-    <div class="product-card">
-      <div class="product-image-container">
-        <img src="ioncore.png" alt="Gen-4 IonCore" class="product-image">
+      <div class="feature-grid">
+        <article class="feature-card">
+          <i class="fa-solid fa-circle-notch" aria-hidden="true"></i>
+          <h3>Magnetic bearing stack</h3>
+          <p>Frictionless ceramic bearings with N52 preload magnets eliminate mechanical wear while maintaining micron-level rotor stability.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+          <h3>Dual-mode stator</h3>
+          <p>M19 laminated cores and 1,000-turn windings transition instantly between motor and generator modes for seamless charge/discharge cycles.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-temperature-low" aria-hidden="true"></i>
+          <h3>Liquid micro-cooling</h3>
+          <p>Closed-loop micro pump, microchannels, and radiator assembly keep stator temperatures below 60 °C under peak load.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-plug" aria-hidden="true"></i>
+          <h3>Integrated inverter</h3>
+          <p>Onboard DC-DC boost with 100 W pure-sine inverter and USB-PD delivers flexible AC and high-speed DC outputs.</p>
+        </article>
       </div>
-      <h3>Gen-4 Hybrid Flywheel</h3>
-      <p><strong>2 kW</strong> continuous | <strong>8 kWh</strong>/4 h</p>
-      <p>Micro-grid buffering & forward operating base power supply.</p>
+    </section>
+
+    <section class="container page-section page-section--tight" id="product-line">
+      <div class="section-header">
+        <span class="eyebrow">Product Line-Up</span>
+        <h2 class="section-title">Scalable performance for every mission</h2>
+        <p class="section-subtitle">From rapid-response kits to modular micro-grids, Ioncore scales kinetic storage to match your operational profile.</p>
+      </div>
+      <div class="product-grid">
+        <article class="product-card">
+          <figure>
+            <img src="501.png" alt="Ioncore Gen-1 Micro flywheel generator">
+          </figure>
+          <div class="product-info">
+            <h3>Gen-1 Micro</h3>
+            <div class="product-specs">
+              <strong>50 W continuous</strong>
+              <span>0.2 kWh reserve • <abbr title="unmanned aerial vehicle">UAV</abbr> battery swaps & emergency kits</span>
+            </div>
+            <p>Ultra-compact magnetic flywheel for tactical comms, satellite phones, and alpine expeditions.</p>
+          </div>
+        </article>
+        <article class="product-card">
+          <figure>
+            <img src="gen2.png" alt="Ioncore Gen-2 Compact flywheel generator">
+          </figure>
+          <div class="product-info">
+            <h3>Gen-2 Compact</h3>
+            <div class="product-specs">
+              <strong>150 W continuous</strong>
+              <span>0.6 kWh / 4 h • Mobile clinics & field offices</span>
+            </div>
+            <p>Ruggedized enclosure with hot-swappable buffer cells and adaptive output for sensitive equipment.</p>
+          </div>
+        </article>
+        <article class="product-card">
+          <figure>
+            <img src="GEN3.png" alt="Ioncore Gen-3 Modular flywheel generator">
+          </figure>
+          <div class="product-info">
+            <h3>Gen-3 Modular</h3>
+            <div class="product-specs">
+              <strong>600 W continuous</strong>
+              <span>2.4 kWh / 4 h • Stackable for autonomous operations</span>
+            </div>
+            <p>Modular rack-ready units orchestrated via load-balancing firmware for drones, sensors, and remote hubs.</p>
+          </div>
+        </article>
+        <article class="product-card">
+          <figure>
+            <img src="GEN4.png" alt="Ioncore Gen-4 Hybrid flywheel generator">
+          </figure>
+          <div class="product-info">
+            <h3>Gen-4 Hybrid Flywheel</h3>
+            <div class="product-specs">
+              <strong>2 kW continuous</strong>
+              <span>8 kWh / 4 h • Micro-grid buffering & forward bases</span>
+            </div>
+            <p>Hybrid flywheel + lithium buffer architecture with predictive diagnostics for uninterrupted mission power.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight" id="deployment">
+      <div class="section-header">
+        <span class="eyebrow">Deployment</span>
+        <h2 class="section-title">Delivering resilient power in real time</h2>
+        <p class="section-subtitle">Ioncore’s integrated control stack automates flywheel orchestration, thermal conditioning, and multi-port power delivery for any environment.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <i class="fa-solid fa-satellite-dish" aria-hidden="true"></i>
+          <h3>Remote monitoring</h3>
+          <p>Edge analytics stream vibration, thermal, and load data to mission control dashboards for predictive support.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+          <h3>Rapid serviceability</h3>
+          <p>Modular cassette design enables &lt; 5 min rotor swaps and front-access electronics for field repair.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-water" aria-hidden="true"></i>
+          <h3>Climate-ready sealing</h3>
+          <p>IP65 enclosure with condensation mitigation ensures reliable operation from desert to maritime climates.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          <h3>Silent security</h3>
+          <p>Zero-combustion architecture delivers silent, emission-free power without thermal signature spikes.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="container cta-section" id="contact">
+      <span class="eyebrow">Partner with Ioncore</span>
+      <h2>Design a kinetic energy fleet tailored to your mission.</h2>
+      <p>Whether you are equipping rapid-response teams, reinforcing telecom resiliency, or energizing remote research bases, Ioncore Energy delivers silent, self-charging power systems ready for immediate deployment.</p>
+      <div class="hero__actions">
+        <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Contact engineering</a>
+        <a class="btn btn-outline" href="tel:+18667865767">Call +1 (866) 786-5767</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+          <p>Portable magnetic inertia systems engineered for clean, resilient, and mission-ready power delivery.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#technology">Technology</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Portable magnetic inertia power, engineered for the field.</span>
+      </div>
     </div>
-  </div>
-</section>
-
-<section>
-  <h2>Join the Future of Portable Power</h2>
-  <p>Whether for emergency preparedness, off-grid adventures, or enterprise deployments, Ioncore Energy’s scalable flywheel platform delivers silent, emission-free, self-recharging power—anywhere you need it.</p>
-  <a href="mailto:ioncoreenergy@gmail.com" class="button">Contact Us</a>
-</section>
-
-<footer>
-  <p>&copy; 2025 Ioncore Energy Inc. All rights reserved.</p>
-</footer>
-
+  </footer>
 </body>
 </html>

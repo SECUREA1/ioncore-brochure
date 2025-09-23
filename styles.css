@@ -832,3 +832,133 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
+
+/* Condo deployment page */
+.condo-hero {
+  align-items: stretch;
+}
+
+.condo-hero__metrics {
+  margin-top: 36px;
+}
+
+.condo-visual {
+  display: grid;
+  gap: 22px;
+}
+
+.condo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.condo-gallery img {
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.condo-visual__caption {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 22px 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.condo-visual__caption h3 {
+  margin: 0;
+  font-size: 1.14rem;
+}
+
+.icon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.icon-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--text-med);
+  font-size: 0.92rem;
+}
+
+.icon-list i {
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.condo-overview .detail-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.condo-overview .detail-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(94, 249, 180, 0.12), transparent 70%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.condo-overview .detail-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.insight-banner {
+  margin-top: 36px;
+  background: linear-gradient(135deg, rgba(94, 249, 180, 0.14), rgba(11, 23, 42, 0.92));
+  border: 1px solid var(--border-strong);
+  border-radius: 26px;
+  padding: clamp(24px, 5vw, 36px);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 14px;
+}
+
+.insight-banner p {
+  margin: 0;
+  color: var(--text-med);
+}
+
+.cta-banner {
+  background: linear-gradient(140deg, rgba(94, 249, 180, 0.2), rgba(6, 16, 30, 0.92));
+  border: 1px solid var(--border-strong);
+  border-radius: 28px;
+  padding: clamp(32px, 6vw, 48px);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 24px;
+  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.cta-banner__content .section-title {
+  margin-top: 12px;
+}
+
+.cta-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .condo-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-banner {
+    text-align: left;
+  }
+}

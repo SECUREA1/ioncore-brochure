@@ -200,23 +200,46 @@ async function callContract(data) {
   if (!contract) {
     throw new Error('MISSING_CONTRACT');
   }
-  const result = await window.ethereum.request({
-    method: 'eth_call',
-    params: [
-      {
-        to: normalizeHex(contract),
-        data
-      },
-      'latest'
-    ]
-  });
-  if (!result || result === '0x') return '0x0';
-  return result;
+  try {
+    const result = await window.ethereum.request({
+      method: 'eth_call',
+      params: [
+        {
+          to: normalizeHex(contract),
+          data
+        },
+        'latest'
+      ]
+    });
+    if (!result || result === '0x') return '0x0';
+    return result;
+  } catch (err) {
+    const message = `${err?.message || err}`.toLowerCase();
+    if (
+      message.includes('execution reverted') ||
+      err?.code === 3 ||
+      err?.code === -32000 ||
+      err?.code === -32603
+    ) {
+      const error = new Error('EXECUTION_REVERTED');
+      error.originalError = err;
+      throw error;
+    }
+    throw err;
+  }
 }
 
 async function checkErc721Balance(address) {
   const payload = `0x70a08231${encodeAddress(address)}`;
-  const balanceHex = await callContract(payload);
+  let balanceHex;
+  try {
+    balanceHex = await callContract(payload);
+  } catch (err) {
+    if (err?.message === 'EXECUTION_REVERTED') {
+      return false;
+    }
+    throw err;
+  }
   try {
     const balance = BigInt(balanceHex);
     return balance >= ACCESS_CONFIG.minBalance;
@@ -230,13 +253,20 @@ async function checkErc721Token(address) {
     return checkErc721Balance(address);
   }
   const payload = `0x6352211e${encodeUint(ACCESS_CONFIG.tokenId)}`;
+  let ownerHex;
   try {
-    const ownerHex = await callContract(payload);
-    const owner = `0x${ownerHex.slice(-40)}`.toLowerCase();
-    return owner === address.toLowerCase();
-  } catch {
+    ownerHex = await callContract(payload);
+  } catch (err) {
+    if (err?.message === 'EXECUTION_REVERTED') {
+      throw err;
+    }
+    throw err;
+  }
+  if (!ownerHex || ownerHex.length < 66) {
     return false;
   }
+  const owner = `0x${ownerHex.slice(-40)}`.toLowerCase();
+  return owner === address.toLowerCase();
 }
 
 async function checkErc1155Balance(address) {
@@ -244,7 +274,15 @@ async function checkErc1155Balance(address) {
     throw new Error('MISSING_TOKEN_ID');
   }
   const payload = `0x00fdd58e${encodeAddress(address)}${encodeUint(ACCESS_CONFIG.tokenId)}`;
-  const balanceHex = await callContract(payload);
+  let balanceHex;
+  try {
+    balanceHex = await callContract(payload);
+  } catch (err) {
+    if (err?.message === 'EXECUTION_REVERTED') {
+      return false;
+    }
+    throw err;
+  }
   try {
     const balance = BigInt(balanceHex);
     return balance >= ACCESS_CONFIG.minBalance;
@@ -254,10 +292,31 @@ async function checkErc1155Balance(address) {
 }
 
 async function verifyMembership(address) {
-  if (ACCESS_CONFIG.tokenType === 'erc1155') {
-    return checkErc1155Balance(address);
+  try {
+    if (ACCESS_CONFIG.tokenType === 'erc1155') {
+      return await checkErc1155Balance(address);
+    }
+    return await checkErc721Token(address);
+  } catch (err) {
+    if (err?.message === 'EXECUTION_REVERTED') {
+      if (
+        ACCESS_CONFIG.tokenType === 'erc721' &&
+        ACCESS_CONFIG.tokenId !== null &&
+        ACCESS_CONFIG.tokenId !== undefined
+      ) {
+        try {
+          return await checkErc1155Balance(address);
+        } catch (innerErr) {
+          if (innerErr?.message === 'EXECUTION_REVERTED') {
+            return false;
+          }
+          throw innerErr;
+        }
+      }
+      return false;
+    }
+    throw err;
   }
-  return checkErc721Token(address);
 }
 
 function rememberAccess(address) {
@@ -290,6 +349,9 @@ function friendlyError(err) {
   }
   if (code === 'MISSING_TOKEN_ID') {
     return 'Ioncore Apes token ID is required for ERC-1155 verification.';
+  }
+  if (code === 'EXECUTION_REVERTED') {
+    return 'Unable to verify membership token ownership on-chain. Please try again or contact support.';
   }
   if (err.code === 4001) {
     return 'MetaMask request was rejected. Please authorize to continue.';

@@ -1,144 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cryogenic Cooling System Brochure</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cryogenic Cooling System Brochure | Ioncore Energy</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    .cryogenic-hero {
+      background: linear-gradient(150deg, rgba(94, 249, 180, 0.14), rgba(8, 20, 34, 0.88));
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: clamp(40px, 7vw, 72px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .cryogenic-hero .hero__visual {
+      background: linear-gradient(160deg, rgba(94, 249, 180, 0.24), rgba(6, 20, 36, 0.84));
+    }
+
+    .system-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    .system-overview article {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      display: grid;
+      gap: 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .system-overview h3 {
       margin: 0;
-      background: #eef3f7;
-      color: #333;
-      line-height: 1.6;
+      font-size: 1.18rem;
     }
-    .brochure {
-      max-width: 1100px;
-      margin: auto;
-      padding: 40px;
-      background: white;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+
+    .system-overview ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+      color: var(--text-med);
+      font-size: 0.92rem;
     }
-    h1, h2, h3 {
-      color: #005983;
-    }
-    .section {
-      margin-bottom: 40px;
-    }
-    ul {
-      padding-left: 20px;
-    }
-    .highlight {
-      background: #e0f7fa;
-      padding: 15px;
-      border-left: 5px solid #00acc1;
-      margin-bottom: 20px;
-    }
-    .two-col {
+
+    .system-overview li {
       display: flex;
-      gap: 30px;
-      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
     }
-    .col {
-      flex: 1;
-      min-width: 250px;
+
+    .system-overview li i {
+      color: var(--accent);
+      margin-top: 2px;
     }
-    footer {
+
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(94, 249, 180, 0.22), rgba(12, 30, 48, 0.9));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: clamp(36px, 6vw, 60px);
+      display: grid;
+      gap: 22px;
+      box-shadow: var(--shadow-soft);
       text-align: center;
-      margin-top: 60px;
-      font-size: 0.9em;
-      color: #666;
+    }
+
+    .cta-banner p {
+      margin: 0 auto;
+      max-width: 560px;
+    }
+
+    @media (max-width: 720px) {
+      .cryogenic-hero {
+        padding: 36px 24px;
+      }
+
+      .system-overview {
+        gap: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="brochure">
-    <h1>Cryogenic Cooling System for Magnetic Inertia</h1>
-    <div class="section highlight">
-      <p><strong>Freezing the cooling system is generally not recommended</strong> due to risks such as cracking, reduced efficiency, and component damage. However, with a properly designed cryogenic cooling system, you can achieve ultra-low operating temperatures while preserving system integrity and enhancing performance.</p>
-    </div>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
 
-    <div class="section">
-      <h2>Components of a Cryogenic Cooling System</h2>
-      <div class="two-col">
-        <div class="col">
-          <h3>Cryocooler</h3>
-          <ul>
-            <li>Cooling range: -150°C to -273°C</li>
-            <li>Types: Stirling, Pulse-tube</li>
-          </ul>
-
-          <h3>Heat Exchangers</h3>
-          <ul>
-            <li>Material: Copper or Aluminum</li>
-            <li>High thermal conductivity</li>
-          </ul>
-
-          <h3>Insulation</h3>
-          <ul>
-            <li>Types: Vacuum insulation, MLI</li>
-            <li>Purpose: Prevent heat ingress</li>
-          </ul>
+  <main>
+    <section class="container page-section product-hero">
+      <div class="cryogenic-hero hero">
+        <div class="hero__content">
+          <span class="eyebrow">Cryogenic Cooling System</span>
+          <h1>Preserve magnetic inertia performance at near-absolute-zero stability.</h1>
+          <p>Ioncore’s cryogenic architecture combines active cryocoolers, layered insulation, and precision control to unlock ultra-low operating temperatures without compromising system integrity. Sustain electromagnet efficiency, minimize thermal drift, and extend component life with an engineered cold chain built for continuous duty.</p>
+          <div class="hero__actions">
+            <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a technical briefing</a>
+            <a class="btn btn-outline" href="fullexperience.html">Explore the full portfolio</a>
+          </div>
+          <div class="hero__stats">
+            <div class="stat-card">
+              <h3>-273°C</h3>
+              <p>Target temperature threshold with staged helium cooling.</p>
+            </div>
+            <div class="stat-card">
+              <h3>&lt;0.5K/hr</h3>
+              <p>Thermal drift held via adaptive shielding and feedback loops.</p>
+            </div>
+            <div class="stat-card">
+              <h3>99.5%</h3>
+              <p>Uptime achieved with redundant coolant delivery paths.</p>
+            </div>
+          </div>
         </div>
-        <div class="col">
-          <h3>Thermal Shields</h3>
+        <div class="hero__visual">
+          <h3>Integrated Cold Chain</h3>
           <ul>
-            <li>Material: Polished aluminum/copper</li>
-            <li>Purpose: Absorb & radiate heat</li>
-          </ul>
-
-          <h3>Coolant</h3>
-          <ul>
-            <li>Liquid Nitrogen (LN2)</li>
-            <li>Liquid Helium (LHe)</li>
+            <li><i class="fa-solid fa-temperature-low"></i>Pulse-tube or Stirling cryocooler arrays sized to thermal load.</li>
+            <li><i class="fa-solid fa-fan"></i>High-conductivity heat exchangers bonded to magnet assemblies.</li>
+            <li><i class="fa-solid fa-shield-halved"></i>Vacuum, MLI, and thermal shields block conductive ingress.</li>
+            <li><i class="fa-solid fa-gauge-high"></i>IoT telemetry regulates coolant flow and phase transitions.</li>
           </ul>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="section">
-      <h2>Design and Implementation</h2>
-      <ul>
-        <li><strong>Cryocooler Selection:</strong> Choose based on target temperature & heat load.</li>
-        <li><strong>Heat Exchanger Design:</strong> Install near electromagnets, bearings, etc. Ensure thermal contact.</li>
-        <li><strong>Insulation:</strong> Use vacuum and MLI layers to minimize thermal leaks.</li>
-        <li><strong>Thermal Shields:</strong> Place strategically to deflect heat from cryogenic parts.</li>
-        <li><strong>Coolant Management:</strong> Design reservoir and flow paths. Regulate using pumps.</li>
-        <li><strong>Monitoring:</strong> Integrate sensors, controllers, and feedback loops.</li>
-      </ul>
-    </div>
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">System Architecture</span>
+      <h2 class="section-title">Layered hardware engineered for cryogenic resilience.</h2>
+      <p class="section-subtitle">Every component works in concert to remove heat rapidly, protect structural materials, and maintain vacuum purity. The result is a controllable environment ready for high-flux electromagnets and kinetic storage elements.</p>
+      <div class="system-overview">
+        <article>
+          <h3>Cryocooler Platforms</h3>
+          <ul>
+            <li><i class="fa-solid fa-snowflake"></i>Temperature range spanning -150°C to -273°C for staged cooling.</li>
+            <li><i class="fa-solid fa-circle-nodes"></i>Modular Stirling and pulse-tube options sized to the heat budget.</li>
+            <li><i class="fa-solid fa-diagram-project"></i>Isolated vibration mounts protect precision bearings.</li>
+          </ul>
+        </article>
+        <article>
+          <h3>Thermal Interfaces</h3>
+          <ul>
+            <li><i class="fa-solid fa-heat"></i>Oxygen-free copper or aluminum exchangers maximize transfer.</li>
+            <li><i class="fa-solid fa-link"></i>Custom cold fingers lock onto electromagnets and rotor housings.</li>
+            <li><i class="fa-solid fa-screwdriver-wrench"></i>Redundant channels and quick-swap manifolds simplify service.</li>
+          </ul>
+        </article>
+        <article>
+          <h3>Insulation & Shields</h3>
+          <ul>
+            <li><i class="fa-solid fa-layer-group"></i>Vacuum dewars coupled with multilayer insulation wrap critical zones.</li>
+            <li><i class="fa-solid fa-shield"></i>Polished aluminum shields intercept and radiate residual heat.</li>
+            <li><i class="fa-solid fa-tower-broadcast"></i>Sensors embedded in shields feed the control stack with live data.</li>
+          </ul>
+        </article>
+        <article>
+          <h3>Cryogenic Coolants</h3>
+          <ul>
+            <li><i class="fa-solid fa-droplet"></i>Liquid nitrogen for primary quenching and staged cooldown cycles.</li>
+            <li><i class="fa-solid fa-atom"></i>Liquid helium circulation for near absolute zero stabilization.</li>
+            <li><i class="fa-solid fa-gauge"></i>Precision pumps and regulators maintain laminar flow and pressure.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-    <div class="section">
-      <h2>Steps to Freeze the Cooling System</h2>
-      <ol>
-        <li><strong>Setup:</strong> Install all core components as per schematics.</li>
-        <li><strong>Fill Coolant:</strong> Add LN2 or LHe to the reservoir.</li>
-        <li><strong>Start Cryocooler:</strong> Begin gradual cooling.</li>
-        <li><strong>Monitor:</strong> Continuously track system temperatures.</li>
-        <li><strong>Maintain:</strong> Inspect insulation, refill coolant, ensure stability.</li>
-      </ol>
-    </div>
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Performance Metrics</span>
+      <h2 class="section-title">Quantifying the cold-chain advantage.</h2>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <span class="metric-label">Heat Load Capacity</span>
+          <h3>12 kW</h3>
+          <p>Continuous extraction per rack with surge handling for pulse events.</p>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Thermal Conductivity</span>
+          <h3>420 W/m·K</h3>
+          <p>Ultra-high purity copper interfaces sustain rapid heat removal.</p>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Vacuum Integrity</span>
+          <h3>10⁻⁶ Torr</h3>
+          <p>Active pumping keeps insulation voids free from moisture intrusion.</p>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Control Response</span>
+          <h3>&lt;120 ms</h3>
+          <p>Adaptive PID loops stabilize coolant valves against load spikes.</p>
+        </div>
+      </div>
+    </section>
 
-    <div class="section">
-      <h2>Considerations and Precautions</h2>
-      <ul>
-        <li><strong>Material Selection:</strong> Use cryo-compatible materials.</li>
-        <li><strong>Thermal Expansion:</strong> Design to accommodate varying expansion rates.</li>
-        <li><strong>Safety:</strong> Use protective gear, ensure ventilation when handling cryogens.</li>
-        <li><strong>Redundancy:</strong> Implement backup cooling paths to ensure continuous operation.</li>
-      </ul>
-    </div>
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Operational Workflow</span>
+      <h2 class="section-title">From installation to steady-state cryogenic operation.</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <strong>01</strong>
+          <div>
+            <h3>System Integration</h3>
+            <p>Fit cryocoolers, heat exchangers, and vacuum envelopes according to magnetic inertia schematics. Verify alignment and thermal contact surfaces.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>02</strong>
+          <div>
+            <h3>Coolant Commissioning</h3>
+            <p>Charge reservoirs with LN₂ and perform staged cooldown. Transition to LHe circulation once temperatures reach sub-70K.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>03</strong>
+          <div>
+            <h3>Adaptive Monitoring</h3>
+            <p>Activate sensor suite to watch for thermal expansion, vacuum pressure, and vibration anomalies. Feedback loops correct deviations in real time.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>04</strong>
+          <div>
+            <h3>Predictive Maintenance</h3>
+            <p>Automated alerts schedule coolant refills, insulation inspections, and seal replacements before performance degrades.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div class="section">
-      <h2>Summary</h2>
-      <p>
-        A cryogenic cooling system enables safe, efficient low-temperature operation for the magnetic inertia system. With proper component selection, layered insulation, thermal shielding, and automated control systems, it is possible to achieve exceptional cooling performance while maintaining safety and structural integrity.
-      </p>
-    </div>
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Safety & Continuity</span>
+      <h2 class="section-title">Proactive safeguards keep the cold chain stable.</h2>
+      <div class="feature-grid">
+        <div class="feature-tile">
+          <strong>Material Assurance</strong>
+          <p>Cryo-rated alloys and composites mitigate stress from thermal contraction and ensure long-term reliability.</p>
+        </div>
+        <div class="feature-tile">
+          <strong>Environmental Safety</strong>
+          <p>Ventilation controls and oxygen depletion sensors protect operators when handling cryogens.</p>
+        </div>
+        <div class="feature-tile">
+          <strong>Redundant Pathways</strong>
+          <p>Parallel coolant loops and auxiliary chillers deliver uninterrupted flow for mission-critical loads.</p>
+        </div>
+        <div class="feature-tile">
+          <strong>Remote Oversight</strong>
+          <p>Secure telemetry dashboards provide global access to trends, alarms, and maintenance insights.</p>
+        </div>
+      </div>
+    </section>
 
-    <footer>
-      &copy; 2025 Advanced Thermal Systems. All rights reserved.
-    </footer>
-  </div>
+    <section class="container page-section page-section--tight">
+      <div class="cta-banner">
+        <h2 class="section-title">Engineer your next-generation magnetic inertia deployment.</h2>
+        <p>Partner with Ioncore’s cryogenic specialists to tailor a cooling architecture that meets your torque, efficiency, and uptime goals. From design validation to on-site commissioning, our team ensures every watt of waste heat is captured and neutralized.</p>
+        <div class="hero__actions" style="justify-content: center;">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Start a collaboration</a>
+          <a class="btn btn-outline" href="tel:+18667865767">Call +1 (866) 786-5767</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+          <p>Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic innovations.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#technology">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Curated brochure experience for visionary partners.</span>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

@@ -38,7 +38,8 @@ function auth(req, res, next) {
 
 // Require authentication for direct HTML requests
 app.use((req, res, next) => {
-  if (req.path.toLowerCase().endsWith('.html') && req.path !== '/webpage.html') {
+  const lowerPath = req.path.toLowerCase();
+  if (lowerPath.endsWith('.html') && !['/webpage.html', '/index.html'].includes(lowerPath)) {
     return auth(req, res, next);
   }
   next();
@@ -130,7 +131,7 @@ app.get('/view', auth, async (req, res) => {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
     res.send(
-      `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${title}</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/view?f=index.html">Index List</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`
+      `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${title}</title><link rel="icon" type="image/svg+xml" href="/battery.svg"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css"></head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`
     );
   } catch {
     res.status(404).send('Not found');

@@ -110,9 +110,16 @@ function createOverlay() {
   const message = document.createElement('p');
   message.innerHTML = `Verify your ${ACCESS_CONFIG.membershipName} membership with MetaMask to continue.`;
   message.style.maxWidth = '420px';
-  message.style.marginBottom = '20px';
+  message.style.marginBottom = '12px';
   message.style.lineHeight = '1.6';
   message.dataset.message = 'true';
+
+  const supplierNotice = document.createElement('p');
+  supplierNotice.textContent =
+    'Ioncore IONC Supplier Apes token build coming soon — your access key will ship with the supply.';
+  supplierNotice.style.maxWidth = '420px';
+  supplierNotice.style.marginBottom = '20px';
+  supplierNotice.style.lineHeight = '1.5';
 
   const button = document.createElement('button');
   button.textContent = `Verify ${ACCESS_CONFIG.membershipName} Access`;
@@ -143,7 +150,7 @@ function createOverlay() {
   download.target = '_blank';
   download.rel = 'noopener noreferrer';
 
-  overlay.append(title, message, button, feedback, download);
+  overlay.append(title, message, supplierNotice, button, feedback, download);
   document.body.appendChild(overlay);
   document.body.classList.add(BODY_LOCK_CLASS);
   document.body.style.overflow = 'hidden';

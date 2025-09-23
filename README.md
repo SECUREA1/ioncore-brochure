@@ -15,25 +15,9 @@ npm start
 
 Visit <http://localhost:3000> for the homepage. Click **All HTML Files** and sign in with the admin credentials to browse the full index of brochures.
 
-## Ioncore Apes token gate
+## Live engagement counters
 
-Every brochure is wrapped with a MetaMask-based access gate. Visitors must connect a wallet that holds the Ioncore Apes token before the overlay will clear. Configure the gate through environment variables when starting the Express server:
-
-| Variable | Description |
-| --- | --- |
-| `IONCORE_APES_CONTRACT` | Optional. ERC-721 or ERC-1155 contract address that represents Ioncore Apes membership (defaults to `0xaef8B6346CA4DaDaA71783dDdF4a3D00633B679d`). |
-| `IONCORE_APES_CHAIN_ID` | Optional. Chain ID in hex (defaults to `0x1` for Ethereum mainnet). |
-| `IONCORE_APES_TOKEN_TYPE` | Optional. Either `erc721` (default) or `erc1155`. |
-| `IONCORE_APES_TOKEN_ID` | Optional. Required for ERC-1155 gating; for ERC-721 it restricts access to a specific token ID. |
-| `IONCORE_APES_MIN_BALANCE` | Optional. Minimum token balance required (defaults to `1`). |
-
-Example:
-
-```bash
-IONCORE_APES_CONTRACT=0x1234567890abcdef1234567890abcdef12345678 npm start
-```
-
-With the variables set, the injected gate requests MetaMask access, checks the configured network, and verifies the holder’s token balance before revealing the brochure content.
+The homepage now displays real-time counters showing how many visitors are viewing the experience and the total number of visits during the current server session. The Express server provides `/metrics`, `/metrics/view`, and `/metrics/leave` endpoints that keep these numbers in sync. When the homepage loads it registers a new view, periodically refreshes the counts, and signals when the visitor departs so the live total stays accurate.
 
 ## Images
 

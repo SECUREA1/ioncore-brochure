@@ -39,6 +39,16 @@
           <a class="btn btn-outline" href="index.html">Browse the full brochure library</a>
           <a class="btn btn-outline" href="fullexperience.html">Explore the original showcase</a>
         </div>
+        <div class="engagement-counters" aria-live="polite">
+          <div class="counter-card" aria-label="Number of visitors currently viewing this experience">
+            <span class="counter-value" id="live-counter">0</span>
+            <span class="counter-label">Live viewers</span>
+          </div>
+          <div class="counter-card" aria-label="Total views across the brochure experience">
+            <span class="counter-value" id="viewed-counter">0</span>
+            <span class="counter-label">Total views</span>
+          </div>
+        </div>
         <div class="hero__stats">
           <div class="stat-card">
             <h3>24/7</h3>
@@ -264,5 +274,92 @@
       </div>
     </div>
   </footer>
+  <script>
+    (() => {
+      const liveEl = document.getElementById('live-counter');
+      const viewedEl = document.getElementById('viewed-counter');
+      if (!liveEl || !viewedEl || typeof fetch !== 'function') {
+        return;
+      }
+
+      let sessionId = null;
+      let refreshTimer = null;
+
+      const updateCounters = (data) => {
+        if (!data || typeof data !== 'object') return;
+        if (typeof data.live === 'number' && !Number.isNaN(data.live)) {
+          liveEl.textContent = Math.max(0, data.live).toLocaleString();
+        }
+        if (typeof data.viewed === 'number' && !Number.isNaN(data.viewed)) {
+          viewedEl.textContent = Math.max(0, data.viewed).toLocaleString();
+        }
+      };
+
+      const refresh = async () => {
+        try {
+          const res = await fetch('/metrics', { credentials: 'same-origin' });
+          if (!res.ok) return;
+          const payload = await res.json();
+          updateCounters(payload);
+        } catch (err) {
+          console.warn('Unable to refresh metrics', err);
+        }
+      };
+
+      const register = async () => {
+        try {
+          const res = await fetch('/metrics/view', {
+            method: 'POST',
+            credentials: 'same-origin'
+          });
+          if (!res.ok) return;
+          const payload = await res.json();
+          sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : null;
+          updateCounters(payload);
+        } catch (err) {
+          console.warn('Unable to register metrics view', err);
+        }
+      };
+
+      const startRefresh = () => {
+        refreshTimer = window.setInterval(refresh, 15000);
+      };
+
+      const stopRefresh = () => {
+        if (refreshTimer) {
+          window.clearInterval(refreshTimer);
+          refreshTimer = null;
+        }
+      };
+
+      window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          refresh();
+          if (!refreshTimer) startRefresh();
+        } else {
+          stopRefresh();
+        }
+      });
+
+      window.addEventListener('beforeunload', () => {
+        stopRefresh();
+        if (!sessionId) return;
+        if (typeof navigator.sendBeacon === 'function') {
+          const payload = new URLSearchParams();
+          payload.set('sessionId', sessionId);
+          navigator.sendBeacon('/metrics/leave', payload);
+        } else {
+          fetch('/metrics/leave', {
+            method: 'POST',
+            body: new URLSearchParams({ sessionId }),
+            keepalive: true,
+            credentials: 'same-origin'
+          }).catch(() => {});
+        }
+      });
+
+      register().then(startRefresh);
+    })();
+  </script>
 </body>
 </html>

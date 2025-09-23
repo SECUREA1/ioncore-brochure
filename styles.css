@@ -549,6 +549,18 @@ main {
   font-size: 0.9rem;
 }
 
+.feature-icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(94, 249, 180, 0.12);
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
 .timeline {
   display: grid;
   gap: 24px;
@@ -763,6 +775,10 @@ main {
   border-bottom: none;
 }
 
+.data-table-wrapper--tight {
+  margin-top: 0;
+}
+
 .callout-card {
   margin-top: 42px;
   background: linear-gradient(140deg, rgba(94, 249, 180, 0.16), rgba(8, 20, 34, 0.92));
@@ -782,6 +798,198 @@ main {
 .callout-card p {
   margin: 0;
   font-size: 0.96rem;
+}
+
+.section-heading {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0 0 20px;
+}
+
+.hybrid-hero .hero__visual {
+  background: linear-gradient(140deg, rgba(94, 249, 180, 0.2), rgba(8, 20, 34, 0.92));
+}
+
+.price-card h3 {
+  color: var(--accent);
+}
+
+.alert-banner {
+  margin-bottom: 36px;
+  border-radius: 24px;
+  padding: clamp(22px, 4vw, 28px);
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  background: linear-gradient(140deg, rgba(250, 204, 21, 0.12), rgba(8, 20, 34, 0.92));
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 12px;
+}
+
+.alert-banner strong {
+  font-size: 1.02rem;
+}
+
+.alert-banner--warning p {
+  margin: 0;
+  color: var(--text-med);
+  font-size: 0.96rem;
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(24px, 5vw, 36px);
+  align-items: start;
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: clamp(24px, 4vw, 36px);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 16px;
+}
+
+.surface-card p {
+  font-size: 0.96rem;
+}
+
+.surface-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  color: var(--text-med);
+  font-size: 0.94rem;
+}
+
+.surface-card li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.surface-card li i {
+  color: var(--accent);
+  margin-top: 3px;
+}
+
+.media-panel {
+  margin-top: clamp(28px, 5vw, 40px);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: clamp(20px, 4vw, 32px);
+  box-shadow: var(--shadow-soft);
+}
+
+.media-panel img {
+  border-radius: 20px;
+  box-shadow: 0 22px 48px rgba(6, 15, 28, 0.45);
+  margin-bottom: 16px;
+}
+
+.media-caption {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.upgrade-card {
+  margin-top: clamp(28px, 5vw, 40px);
+  background: linear-gradient(140deg, rgba(94, 249, 180, 0.18), rgba(8, 20, 34, 0.9));
+  border: 1px solid rgba(94, 249, 180, 0.28);
+  border-radius: 24px;
+  padding: clamp(22px, 4vw, 32px);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 14px;
+}
+
+.upgrade-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-med);
+}
+
+.upgrade-card .btn {
+  align-self: flex-start;
+}
+
+.wholesale-card {
+  gap: 18px;
+}
+
+.faq-card {
+  padding: clamp(26px, 5vw, 40px);
+}
+
+.faq-list {
+  display: grid;
+  gap: 20px;
+}
+
+.faq-list strong {
+  font-size: 1.05rem;
+  color: var(--text-high);
+}
+
+.faq-list ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--text-med);
+  display: grid;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+
+.faq-list li::marker {
+  color: var(--accent);
+}
+
+.contact-panel {
+  background: linear-gradient(140deg, rgba(94, 249, 180, 0.14), rgba(8, 20, 34, 0.92));
+  border: 1px solid rgba(94, 249, 180, 0.28);
+  border-radius: 28px;
+  padding: clamp(28px, 6vw, 44px);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 16px;
+  text-align: center;
+}
+
+.contact-panel p {
+  margin: 0;
+  font-size: 0.96rem;
+  color: var(--text-med);
+}
+
+.contact-panel strong {
+  color: var(--text-high);
+}
+
+.contact-panel .hero__actions {
+  justify-content: center;
+}
+
+.contact-panel a {
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .media-panel {
+    margin-top: 24px;
+  }
+
+  .contact-panel {
+    text-align: left;
+  }
+
+  .contact-panel .hero__actions {
+    justify-content: flex-start;
+  }
 }
 
 .visually-hidden {

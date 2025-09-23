@@ -2,11 +2,15 @@ import express from 'express';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
+import unzipper from 'unzipper';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip';
+const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
 
 async function sendHtml(res, filePath) {
   try {
@@ -65,6 +69,22 @@ async function getTitle(filePath) {
 // Public homepage
 app.get('/', async (req, res) => {
   await sendHtml(res, path.join(__dirname, 'webpage.html'));
+});
+
+app.get('/timepieces', async (req, res) => {
+  try {
+    const zipPath = path.join(__dirname, TIMEPIECES_ZIP);
+    const directory = await unzipper.Open.file(zipPath);
+    const file = directory.files.find((f) => f.path === TIMEPIECES_HTML);
+    if (!file) {
+      return res.status(404).send('Timepieces brochure not found');
+    }
+    const buffer = await file.buffer();
+    res.type('html').send(buffer.toString('utf8'));
+  } catch (err) {
+    console.error('Failed to load timepieces brochure', err);
+    res.status(500).send('Failed to load timepieces brochure');
+  }
 });
 
 app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {

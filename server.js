@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const DEFAULT_MEMBERSHIP_CONTRACT = '0x495f947276749ce646f68ac8c248420045cb7b5e';
+const DEFAULT_MEMBERSHIP_CONTRACT = '0xaef8B6346CA4DaDaA71783dDdF4a3D00633B679d';
 
 const baseAccessConfig = {
   membershipName: sanitizeEnv(process.env.IONCORE_APES_NAME) || 'Ioncore Apes',

@@ -327,6 +327,135 @@ main {
   color: var(--accent);
 }
 
+.product-hero .hero__content > p {
+  max-width: 620px;
+}
+
+.product-hero .hero__visual {
+  min-height: 100%;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+}
+
+.detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px;
+  display: grid;
+  gap: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.detail-card h3 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.detail-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.detail-card li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-med);
+  font-size: 0.92rem;
+}
+
+.detail-card li i {
+  color: var(--accent);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 26px;
+  display: grid;
+  gap: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.metric-card h3 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.metric-card p {
+  font-size: 0.9rem;
+}
+
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.use-case-card {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 26px;
+  display: grid;
+  gap: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.use-case-card h3 {
+  margin: 0;
+  font-size: 1.18rem;
+}
+
+.use-case-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.use-case-card li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.use-case-card li i {
+  color: var(--accent);
+}
+
+.cta-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .trusted-logos {
   display: flex;
   flex-wrap: wrap;
@@ -645,6 +774,10 @@ main {
 
   .site-footer .footer-top {
     flex-direction: column;
+  }
+
+  .cta-actions {
+    width: 100%;
   }
 }
 

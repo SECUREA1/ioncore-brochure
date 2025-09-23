@@ -4,88 +4,186 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ioncore Condo Energy System</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    body { font-family: 'Montserrat', sans-serif; margin: 0; background: #f3f4f6; color: #1a1a1a; }
-    header, footer { background-color: #102C19; color: white; text-align: center; padding: 2rem 1rem; }
-    h1 span { color: #90ee90; }
-    .container { max-width: 960px; margin: auto; padding: 2rem; background: white; }
-    h2, h3 { color: #0f3057; }
-    ul.stats-list { list-style: none; padding-left: 0; }
-    .stats-list li { margin: 0.5rem 0; }
-    .highlight { background: #e7f7ea; padding: 1rem; border-left: 5px solid #2e7d32; margin-top: 1rem; }
-    .btn { background: #0f3057; color: white; padding: 0.6rem 1rem; text-decoration: none; display: inline-block; margin-top: 1rem; }
-    .gallery { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-bottom: 1rem; }
-    .gallery img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    @media (min-width: 600px) { .gallery img { max-width: 45%; } }
-  </style>
 </head>
 <body>
-  <header>
-    <h1><span>Ioncore</span> Condo Energy System</h1>
-    <p>Empowering smart buildings through self-sustaining inertia energy systems.</p>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
   </header>
 
   <main>
-    <div class="container">
-      <div class="gallery">
-        <img src="condo1.png" alt="Exterior rendering of the Ioncore condo energy system" />
-        <img src="condo2.png" alt="Interior layout of the Ioncore condo energy system" />
+    <section class="container hero product-hero condo-hero">
+      <div class="hero__content">
+        <span class="eyebrow">Vertical energy autonomy</span>
+        <h1 class="section-title">Condo-scale magnetic inertia deployment</h1>
+        <p>The Ioncore Condo Energy System is engineered for mid-rise and high-rise residential towers that demand reliable, low-profile power independence. Our magnetic inertia core integrates seamlessly with building infrastructure to deliver resilient, low-noise energy autonomy for residents and facilities teams.</p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Request whitepaper</a>
+          <a class="btn btn-outline" href="fullexperience.html">Explore main experience</a>
+        </div>
+        <div class="metric-grid condo-hero__metrics">
+          <article class="metric-card">
+            <span class="metric-label">Deployment site</span>
+            <h3>15-story</h3>
+            <p>100-unit urban residence in Toronto</p>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Daily output</span>
+            <h3>≈470 kWh</h3>
+            <p>Sustained generation with adaptive load tuning</p>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Self-sufficiency</span>
+            <h3>85–95%</h3>
+            <p>Average coverage based on current consumption profiles</p>
+          </article>
+        </div>
       </div>
-      <h2>🏙️ Urban Energy Revolution</h2>
-      <p>Designed for mid-rise and high-rise residential structures, the Ioncore Condo System offers energy autonomy using a next-generation magnetic inertia engine, reducing reliance on external grids.</p>
-
-      <h3>🔧 Technical Summary</h3>
-      <ul class="stats-list">
-        <li><strong>Deployment Site:</strong> 15-story, 100-unit condo (Toronto)</li>
-        <li><strong>Peak Daily Output:</strong> ~470 kWh</li>
-        <li><strong>Battery Capacity:</strong> 300 kWh lithium-ion bank</li>
-        <li><strong>Energy Surplus:</strong> 220 kWh/day (avg)</li>
-        <li><strong>Projected Self-Sufficiency:</strong> 85–95%</li>
-      </ul>
-
-      <h3>🧾 Updated Bill of Materials (BoM)</h3>
-      <ul class="stats-list">
-        <li><strong>10x Magnetic Bearings:</strong> $15,000</li>
-        <li><strong>5x Electromagnets:</strong> $10,000</li>
-        <li><strong>667 Lithium-Ion Cells:</strong> $13,340</li>
-        <li><strong>Cooling + Pumps:</strong> $23,510</li>
-        <li><strong>Flywheel System (4x15kg):</strong> $35,000</li>
-        <li><strong>Inverters + Controllers:</strong> $18,000</li>
-        <li><strong>Noise-Dampening Frame:</strong> $50,000</li>
-        <li><strong><em>Total Estimated Build Cost:</em></strong> ~$164,850</li>
-      </ul>
-
-      <h3>📈 Business Model & ROI</h3>
-      <div class="highlight">
-        <strong>MSRP Per Unit (Installed):</strong> $229,000<br />
-        <strong>Gross Profit Per Unit:</strong> ~$64,150 (~28%)<br />
-        <strong>Payback Period:</strong> 6.2 years (based on condo energy displacement @ current rates)<br />
-        <strong>Warranty:</strong> 15 years projected hardware lifespan
+      <div class="hero__visual condo-visual">
+        <div class="condo-gallery" role="group" aria-label="Condo energy system renders">
+          <img src="condo1.png" alt="Exterior rendering of the Ioncore condo energy system" />
+          <img src="condo2.png" alt="Interior layout of the Ioncore condo energy system" />
+        </div>
+        <div class="condo-visual__caption">
+          <h3>Integrated building delivery</h3>
+          <ul class="icon-list">
+            <li><i class="fa-solid fa-building"></i><span>Modular plant rooms align with existing service levels for minimal disruption.</span></li>
+            <li><i class="fa-solid fa-volume-xmark"></i><span>Noise-isolated chassis maintains resident comfort during full output.</span></li>
+            <li><i class="fa-solid fa-screwdriver-wrench"></i><span>Predictive maintenance suite supports remote diagnostics and scheduling.</span></li>
+          </ul>
+        </div>
       </div>
+    </section>
 
-      <h3>📊 Key Benefits</h3>
-      <ul class="stats-list">
-        <li>Reduces operational energy costs by 70–90%</li>
-        <li>Noise-isolated, building-integrated design</li>
-        <li>Average efficiency: 92% round-trip</li>
-        <li>Zero emissions, zero combustion</li>
-        <li>Fully modular with predictive load tuning</li>
-        <li>Eligible for energy credits and municipal incentives (based on region)</li>
-      </ul>
+    <section class="container page-section--tight condo-overview">
+      <div class="detail-grid">
+        <article class="detail-card">
+          <span class="eyebrow">Technical summary</span>
+          <h3>Core system specifications</h3>
+          <ul>
+            <li><i class="fa-solid fa-location-dot"></i><span><strong>Deployment:</strong> 15-story, 100-unit condo tower</span></li>
+            <li><i class="fa-solid fa-bolt"></i><span><strong>Peak daily output:</strong> ≈470 kWh with magnetic inertia engine</span></li>
+            <li><i class="fa-solid fa-battery-full"></i><span><strong>Storage:</strong> 300 kWh lithium-ion reserve bank</span></li>
+            <li><i class="fa-solid fa-chart-line"></i><span><strong>Surplus:</strong> 220 kWh/day average exported capacity</span></li>
+            <li><i class="fa-solid fa-infinity"></i><span><strong>Efficiency:</strong> 92% round-trip with regenerative braking capture</span></li>
+          </ul>
+        </article>
+        <article class="detail-card">
+          <span class="eyebrow">System bill of materials</span>
+          <h3>Deployment-grade components</h3>
+          <ul>
+            <li><i class="fa-solid fa-atom"></i><span><strong>10× Magnetic bearings:</strong> $15,000</span></li>
+            <li><i class="fa-solid fa-magnet"></i><span><strong>5× Electromagnets:</strong> $10,000</span></li>
+            <li><i class="fa-solid fa-battery-half"></i><span><strong>667 Lithium-ion cells:</strong> $13,340</span></li>
+            <li><i class="fa-solid fa-temperature-three-quarters"></i><span><strong>Cooling + pumps:</strong> $23,510</span></li>
+            <li><i class="fa-solid fa-circle-notch"></i><span><strong>Flywheel system (4×15 kg):</strong> $35,000</span></li>
+            <li><i class="fa-solid fa-microchip"></i><span><strong>Inverters + controllers:</strong> $18,000</span></li>
+            <li><i class="fa-solid fa-house"></i><span><strong>Noise-dampening frame:</strong> $50,000</span></li>
+            <li><i class="fa-solid fa-sack-dollar"></i><span><strong>Total estimated build cost:</strong> ≈$164,850</span></li>
+          </ul>
+        </article>
+        <article class="detail-card">
+          <span class="eyebrow">Operational advantages</span>
+          <h3>Resident &amp; developer value</h3>
+          <ul>
+            <li><i class="fa-solid fa-arrow-trend-down"></i><span>Reduces operational energy costs by 70–90%.</span></li>
+            <li><i class="fa-solid fa-shield-halved"></i><span>Zero combustion, emissions-free, and grid-resilient.</span></li>
+            <li><i class="fa-solid fa-network-wired"></i><span>Fully modular with adaptive load tuning per tower zone.</span></li>
+            <li><i class="fa-solid fa-award"></i><span>Eligible for municipal energy incentives and credits.</span></li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-      <p class="highlight">This deployment model serves as a benchmark for integrating sustainable energy hardware into vertical housing strategies, enhancing resilience while maintaining financial feasibility.</p>
+    <section class="container page-section--tight">
+      <span class="eyebrow">Financial outlook</span>
+      <h2 class="section-title">Compelling ROI for property stakeholders</h2>
+      <p class="section-subtitle">Ioncore packages the condo deployment with turnkey integration, commissioning, and lifecycle support, enabling developers to deliver measurable energy savings alongside premium resident amenities.</p>
+      <div class="metric-grid">
+        <article class="metric-card">
+          <span class="metric-label">MSRP per installed unit</span>
+          <h3>$229K</h3>
+          <p>Inclusive of site fit-out, testing, and commissioning.</p>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Gross profit per unit</span>
+          <h3>≈$64K</h3>
+          <p>~28% margin based on current component pricing.</p>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Payback period</span>
+          <h3>6.2 years</h3>
+          <p>Calculated using condo energy displacement at present tariffs.</p>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Warranty coverage</span>
+          <h3>15 years</h3>
+          <p>Projected hardware lifespan with preventative maintenance plan.</p>
+        </article>
+      </div>
+      <div class="insight-banner">
+        <span class="metric-label">Strategic insight</span>
+        <p>This deployment model establishes a blueprint for integrating sustainable energy infrastructure into vertical housing portfolios. High-efficiency inertia generation and predictive maintenance stack provide a resilient backbone for developers targeting smart-building certifications and long-term operating stability.</p>
+      </div>
+    </section>
 
-      <a href="mailto:ioncoreenergy@gmail.com" class="btn">Request Full Whitepaper</a>
-    </div>
+    <section class="container page-section--tight">
+      <div class="cta-banner">
+        <div class="cta-banner__content">
+          <span class="eyebrow">Partner with Ioncore</span>
+          <h2 class="section-title">Bring magnetic inertia energy to your next development</h2>
+          <p class="section-subtitle">Schedule a consultation with our deployment architects to map the Ioncore Condo System to your property roadmap, customize financing models, and accelerate approvals.</p>
+        </div>
+        <div class="cta-banner__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a briefing</a>
+          <a class="btn btn-outline" href="tel:+18667865767">Call +1 (866) 786-5767</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    <h3>Explore the Future of Energy</h3>
-    <p>Want to license or scale this solution in your development project?</p>
-    <a href="mailto:ioncoreenergy@gmail.com" class="btn">Partner with Ioncore</a>
-    <p style="margin-top: 2rem;">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</p>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+          <p>Access Ioncore’s library of magnetic inertia and hybrid storage solutions to empower your next development with autonomous energy.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Condo-scale magnetic inertia energy for visionary partners.</span>
+      </div>
+    </div>
   </footer>
 </body>
 </html>
-

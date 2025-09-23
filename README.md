@@ -21,7 +21,7 @@ Every brochure is wrapped with a MetaMask-based access gate. Visitors must conne
 
 | Variable | Description |
 | --- | --- |
-| `IONCORE_APES_CONTRACT` | Optional. ERC-721 or ERC-1155 contract address that represents Ioncore Apes membership (defaults to `0x495f947276749ce646f68ac8c248420045cb7b5e`). |
+| `IONCORE_APES_CONTRACT` | Optional. ERC-721 or ERC-1155 contract address that represents Ioncore Apes membership (defaults to `0xaef8B6346CA4DaDaA71783dDdF4a3D00633B679d`). |
 | `IONCORE_APES_CHAIN_ID` | Optional. Chain ID in hex (defaults to `0x1` for Ethereum mainnet). |
 | `IONCORE_APES_TOKEN_TYPE` | Optional. Either `erc721` (default) or `erc1155`. |
 | `IONCORE_APES_TOKEN_ID` | Optional. Required for ERC-1155 gating; for ERC-721 it restricts access to a specific token ID. |

@@ -2,561 +2,265 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ioncore Energy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Ioncore Energy – High-end clean energy systems engineered to electrify the future of cities, estates, and industry.">
+  <title>Ioncore Energy | High-End Energy Ecosystems</title>
+  <meta name="description" content="Ioncore Energy designs premium magnetic inertia and hybrid storage systems for luxury estates, smart cities, and mission-critical infrastructure.">
   <link rel="icon" type="image/svg+xml" href="battery.svg">
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    :root {
-      --bg: #040912;
-      --bg-alt: #0c1726;
-      --accent: #5bf8b3;
-      --accent-strong: #28dea0;
-      --text: #f4f8ff;
-      --muted: #b2c3db;
-      --card: rgba(9, 22, 34, 0.78);
-      --border: rgba(255, 255, 255, 0.06);
-      --shadow: 0 34px 120px rgba(2, 10, 24, 0.68);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Montserrat', Arial, sans-serif;
-      color: var(--text);
-      background: radial-gradient(120% 140% at 10% 0%, rgba(91, 248, 179, 0.16), transparent 60%),
-        radial-gradient(100% 100% at 90% 20%, rgba(40, 222, 160, 0.08), transparent 70%),
-        linear-gradient(140deg, #02070d, #071425 55%, #050912 100%);
-      min-height: 100vh;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(91, 248, 179, 0.06), transparent 35%),
-        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.04), transparent 55%);
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    a {
-      color: inherit;
-    }
-
-    header {
-      position: relative;
-      padding: 48px clamp(18px, 4vw, 54px) 40px;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 22px;
-      max-width: 1160px;
-      margin: 0 auto;
-    }
-
-    .brand {
-      font-weight: 700;
-      letter-spacing: 0.32em;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 22px;
-      font-size: 0.95rem;
-    }
-
-    .nav-links a {
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      transition: border 0.2s ease, color 0.2s ease, background 0.2s ease;
-      color: var(--muted);
-    }
-
-    .nav-links a:hover {
-      color: var(--text);
-      border-color: rgba(91, 248, 179, 0.35);
-      background: rgba(91, 248, 179, 0.08);
-    }
-
-    .hero {
-      max-width: 1160px;
-      margin: 78px auto 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: clamp(32px, 4vw, 60px);
-      align-items: center;
-    }
-
-    .hero-copy h1 {
-      font-size: clamp(2.6rem, 5vw, 3.6rem);
-      font-weight: 700;
-      line-height: 1.1;
-      margin-bottom: 24px;
-    }
-
-    .hero-copy h1 span {
-      color: var(--accent);
-    }
-
-    .hero-copy p {
-      color: var(--muted);
-      font-size: clamp(1.05rem, 2vw, 1.22rem);
-      margin-bottom: 30px;
-    }
-
-    .hero-pills {
-      list-style: none;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-
-    .hero-pills li {
-      background: rgba(91, 248, 179, 0.12);
-      color: var(--accent);
-      border: 1px solid rgba(91, 248, 179, 0.24);
-      padding: 9px 18px;
-      border-radius: 999px;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .primary-btn,
-    .ghost-btn {
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 14px 28px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
-    }
-
-    .primary-btn {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-      color: #04110a;
-      box-shadow: 0 18px 40px rgba(40, 222, 160, 0.25);
-    }
-
-    .primary-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 28px 60px rgba(40, 222, 160, 0.35);
-    }
-
-    .ghost-btn {
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      color: var(--text);
-      background: transparent;
-    }
-
-    .ghost-btn:hover {
-      background: rgba(255, 255, 255, 0.06);
-      transform: translateY(-2px);
-    }
-
-    .hero-showcase {
-      position: relative;
-      border-radius: 26px;
-      padding: clamp(28px, 3vw, 42px);
-      background: var(--card);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .hero-showcase::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(120% 120% at 80% 0%, rgba(91, 248, 179, 0.18), transparent 65%);
-      pointer-events: none;
-    }
-
-    .hero-showcase h2 {
-      font-size: 1.05rem;
-      text-transform: uppercase;
-      letter-spacing: 0.28em;
-      color: rgba(255, 255, 255, 0.56);
-      margin-bottom: 26px;
-    }
-
-    .hero-showcase ul {
-      list-style: none;
-      display: grid;
-      gap: 18px;
-    }
-
-    .hero-showcase li {
-      display: grid;
-      gap: 6px;
-    }
-
-    .hero-showcase strong {
-      font-size: 1.05rem;
-      letter-spacing: 0.04em;
-    }
-
-    .hero-showcase span {
-      color: var(--muted);
-      font-size: 0.94rem;
-    }
-
-    .stats {
-      margin: 78px auto 0;
-      max-width: 1160px;
-      display: grid;
-      gap: 18px;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    }
-
-    .stat-card {
-      background: var(--card);
-      border-radius: 22px;
-      padding: 28px 26px 24px;
-      border: 1px solid var(--border);
-      text-align: left;
-      box-shadow: 0 18px 46px rgba(4, 11, 18, 0.5);
-    }
-
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--accent);
-    }
-
-    .stat-label {
-      font-size: 0.92rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-    }
-
-    .signature {
-      max-width: 1160px;
-      margin: 90px auto 0;
-      padding: 0 clamp(18px, 4vw, 54px);
-    }
-
-    .section-heading {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 38px;
-    }
-
-    .section-heading span {
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.32em;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .section-heading h2 {
-      font-size: clamp(1.8rem, 3vw, 2.4rem);
-      font-weight: 700;
-    }
-
-    .signature-grid {
-      display: grid;
-      gap: 22px;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    }
-
-    .link-card {
-      position: relative;
-      display: block;
-      padding: 26px 24px 30px;
-      border-radius: 20px;
-      text-decoration: none;
-      background: linear-gradient(160deg, rgba(91, 248, 179, 0.09), rgba(4, 9, 18, 0.9));
-      border: 1px solid rgba(91, 248, 179, 0.18);
-      transition: transform 0.22s ease, border 0.22s ease, box-shadow 0.22s ease;
-      min-height: 220px;
-    }
-
-    .link-card:hover {
-      transform: translateY(-8px);
-      border-color: rgba(91, 248, 179, 0.5);
-      box-shadow: 0 30px 60px rgba(6, 20, 26, 0.55);
-    }
-
-    .link-card[aria-disabled="true"] {
-      opacity: 0.55;
-      cursor: not-allowed;
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .link-card[aria-disabled="true"]:hover {
-      transform: none;
-      box-shadow: none;
-    }
-
-    .link-card .icon {
-      font-size: 1.8rem;
-      margin-bottom: 16px;
-    }
-
-    .link-card h3 {
-      font-size: 1.18rem;
-      margin-bottom: 12px;
-    }
-
-    .link-card p {
-      color: var(--muted);
-      font-size: 0.96rem;
-      margin-bottom: 22px;
-    }
-
-    .link-card .more {
-      font-size: 0.88rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.64);
-    }
-
-    .promise {
-      max-width: 900px;
-      margin: 120px auto 0;
-      text-align: center;
-      padding: 0 clamp(18px, 6vw, 68px);
-    }
-
-    .promise h2 {
-      font-size: clamp(1.7rem, 3.5vw, 2.4rem);
-      margin-bottom: 22px;
-    }
-
-    .promise p {
-      color: var(--muted);
-      font-size: 1.08rem;
-    }
-
-    .cta {
-      margin: 110px auto 0;
-      max-width: 1160px;
-      padding: clamp(32px, 6vw, 72px);
-      border-radius: 28px;
-      background: linear-gradient(135deg, rgba(91, 248, 179, 0.12), rgba(4, 9, 18, 0.95));
-      border: 1px solid rgba(91, 248, 179, 0.32);
-      text-align: center;
-      box-shadow: var(--shadow);
-    }
-
-    .cta h3 {
-      font-size: clamp(1.6rem, 3vw, 2.2rem);
-      margin-bottom: 16px;
-    }
-
-    .cta p {
-      color: var(--muted);
-      margin-bottom: 32px;
-      font-size: 1.02rem;
-    }
-
-    footer {
-      margin: 120px auto 40px;
-      max-width: 1160px;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.48);
-      font-size: 0.88rem;
-    }
-
-    @media (max-width: 900px) {
-      .nav {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .nav-links {
-        flex-wrap: wrap;
-      }
-
-      .hero {
-        margin-top: 56px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      header {
-        padding-top: 28px;
-      }
-
-      .hero {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-actions {
-        width: 100%;
-      }
-
-      .primary-btn,
-      .ghost-btn {
-        flex: 1 1 auto;
-        justify-content: center;
-      }
-
-      .signature-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 <body>
-  <header>
-    <div class="nav">
-      <div class="brand">IONCORE ENERGY</div>
-      <div class="nav-links">
-        <a href="#solutions">Solutions</a>
-        <a href="#portfolio">Portfolio</a>
-        <a href="index.html">All Brochures</a>
-        <a href="#contact">Contact</a>
-      </div>
-    </div>
-
-    <div class="hero">
-      <div class="hero-copy">
-        <h1>Powering <span>Luxury Living</span> &amp; Landmark Developments</h1>
-        <p>
-          Bespoke magnetic inertia systems, grid-scale storage, and visionary electrification services for clients who expect the highest standard of performance, elegance, and reliability.
-        </p>
-        <ul class="hero-pills">
-          <li>Turnkey Clean Energy</li>
-          <li>Future-Proof Design</li>
-          <li>Premium Service</li>
-        </ul>
-        <div class="hero-actions">
-          <a class="primary-btn" href="ioncore%20energy.html">Explore Flagship Brochure</a>
-          <a class="ghost-btn" href="/timepieces">View Timepieces Collection</a>
-        </div>
-      </div>
-      <div class="hero-showcase">
-        <h2>Signature Advantages</h2>
-        <ul>
-          <li>
-            <strong>Mag-Inertia One™</strong>
-            <span>Precision-tuned energy orchestration for estates, resorts, and high-impact campuses.</span>
-          </li>
-          <li>
-            <strong>Hybrid Flywheel Suites</strong>
-            <span>Seamless battery integration engineered for uninterrupted premium experiences.</span>
-          </li>
-          <li>
-            <strong>Immersive Dashboards</strong>
-            <span>Live intelligence with executive-level controls, KPI tracking, and predictive maintenance.</span>
-          </li>
-        </ul>
-      </div>
-    </div>
+  <header class="site-header container">
+    <a class="logo" href="webpage.html"><span>Ioncore</span> Energy</a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="#solutions">Solutions</a></li>
+        <li><a href="#technology">Technology</a></li>
+        <li><a href="#deployment">Deployment</a></li>
+        <li><a href="#insights">Insights</a></li>
+        <li><a href="index.html">Brochures</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
   </header>
 
-  <section class="stats" id="solutions">
-    <div class="stat-card">
-      <div class="stat-value">99.98%</div>
-      <div class="stat-label">uptime delivered</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">3.5x</div>
-      <div class="stat-label">efficiency gain</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">27%</div>
-      <div class="stat-label">avg. energy savings</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">40+</div>
-      <div class="stat-label">global deployments</div>
-    </div>
-  </section>
+  <main>
+    <section class="hero container" id="home">
+      <div class="hero__content">
+        <span class="eyebrow">Next-Gen Power Platforms</span>
+        <h1>Designing the world's most sophisticated magnetic inertia ecosystems.</h1>
+        <p>Ioncore Energy engineers magnetic inertia generators, hybrid flywheel systems, and cryogenic cooling platforms that redefine resilience for luxury estates, smart cities, maritime fleets, and aerospace assets.</p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a private consultation</a>
+          <a class="btn btn-outline" href="index.html">Browse the full brochure library</a>
+        </div>
+        <div class="hero__stats">
+          <div class="stat-card">
+            <h3>24/7</h3>
+            <p>Autonomous uptime through inertia-based generation.</p>
+          </div>
+          <div class="stat-card">
+            <h3>92%</h3>
+            <p>Average efficiency achieved through cryogenic stabilization.</p>
+          </div>
+          <div class="stat-card">
+            <h3>&lt;5yr</h3>
+            <p>Projected ROI on premium energy estates and microgrids.</p>
+          </div>
+        </div>
+      </div>
+      <aside class="hero__visual" aria-label="Ioncore value highlights">
+        <h3>Why energy visionaries choose Ioncore</h3>
+        <ul>
+          <li><i class="fa-solid fa-gem"></i> Architectural-grade hardware with gallery-worthy finishes.</li>
+          <li><i class="fa-solid fa-shield-halved"></i> Triple-layered redundancy across magnetic, kinetic, and battery reserves.</li>
+          <li><i class="fa-solid fa-temperature-low"></i> Cryogenic thermal loops enabling unprecedented output density.</li>
+          <li><i class="fa-solid fa-globe"></i> Global deployment expertise from island nations to arctic research hubs.</li>
+        </ul>
+      </aside>
+    </section>
 
-  <section class="signature" id="portfolio">
-    <div class="section-heading">
-      <span>Signature Portfolio</span>
-      <h2>Experience the systems defining the next era of clean power.</h2>
+    <section class="container page-section page-section--tight">
+      <div class="trusted-logos">
+        <span>Trusted by innovators advancing</span>
+        <div class="logos">
+          <span>Ultra-Luxury Estates</span>
+          <span>Smart City Planners</span>
+          <span>Aviation &amp; Maritime</span>
+          <span>Defense Contractors</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section" id="solutions">
+      <span class="eyebrow">Signature Systems</span>
+      <h2 class="section-title">Energy architectures curated for elite environments.</h2>
+      <p class="section-subtitle">Explore a portfolio of inertia generators, cryogenic cooling frameworks, and hybrid storage arrays engineered to power the most demanding projects on the planet.</p>
+      <div class="product-grid">
+        <article class="product-card">
+          <span class="badge"><i class="fa-solid fa-circle-notch"></i> Flagship</span>
+          <h3>Magnetic Inertia Generator</h3>
+          <p>Our definitive energy unit delivering continuous autonomous power with near-silent operation and architectural finishes.</p>
+          <div class="card-actions">
+            <a class="btn btn-outline" href="Magnetic%20Inertia%20Power%20System.html">View overview</a>
+          </div>
+        </article>
+        <article class="product-card">
+          <span class="badge"><i class="fa-solid fa-snowflake"></i> Thermal Mastery</span>
+          <h3>Cryogenic Cooling Ecosystem</h3>
+          <p>Precision-cooled induction loops that stabilize energy output and amplify generator lifespan even in desert or equatorial climates.</p>
+          <div class="card-actions">
+            <a class="btn btn-outline" href="cryogenic_cooling_brochure.html">Explore technology</a>
+          </div>
+        </article>
+        <article class="product-card">
+          <span class="badge"><i class="fa-solid fa-bolt"></i> Hybrid Storage</span>
+          <h3>Hybrid Flywheel + Battery Suite</h3>
+          <p>Synchronize kinetic storage with solid-state reserves for instant peak-load response across residential, commercial, and marine estates.</p>
+          <div class="card-actions">
+            <a class="btn btn-outline" href="Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html">Discover the suite</a>
+          </div>
+        </article>
+        <article class="product-card">
+          <span class="badge"><i class="fa-solid fa-building-columns"></i> Urban Scale</span>
+          <h3>OmniCore X15 District Generator</h3>
+          <p>Large-format energy infrastructure built to anchor smart city districts, secure campuses, and mission-critical installations.</p>
+          <div class="card-actions">
+            <a class="btn btn-outline" href="OmniCore%20X15.html">Review specifications</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section" id="technology">
+      <span class="eyebrow">Technology Stack</span>
+      <h2 class="section-title">The Ioncore advantage is engineered in layers.</h2>
+      <p class="section-subtitle">Each platform is orchestrated through modular subsystems that deliver uncompromising stability, elegant aesthetics, and lifetime performance gains.</p>
+      <div class="feature-grid">
+        <div class="feature-tile">
+          <strong>Magnetic Inertia Drive</strong>
+          <p>High-torque magnetic arrays deliver smooth, continuous rotation that minimizes wear and enables whisper-quiet operation.</p>
+        </div>
+        <div class="feature-tile">
+          <strong>Precision Cryogenics</strong>
+          <p>Helium-cooled conduits maintain optimal superconductive states, unlocking extraordinary efficiency and longevity.</p>
+        </div>
+        <div class="feature-tile">
+          <strong>Luxury Industrial Design</strong>
+          <p>Brushed alloys, architectural glass, and customizable finishes ensure equipment integrates seamlessly within prestige spaces.</p>
+        </div>
+        <div class="feature-tile">
+          <strong>Smart Orchestration</strong>
+          <p>AI-enabled controls balance grid interaction, load forecasting, and environmental performance in real time.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section" id="deployment">
+      <span class="eyebrow">Deployment Journey</span>
+      <h2 class="section-title">From concept to commissioned power in six decisive phases.</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <strong>01</strong>
+          <div>
+            <h3>Vision Workshop</h3>
+            <p>Private strategy alignment defining desired capacity, aesthetic direction, resilience goals, and integration scope.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>02</strong>
+          <div>
+            <h3>Site Intelligence</h3>
+            <p>Advanced geospatial scans and energy modelling confirm siting, load profiles, and microgrid interfacing.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>03</strong>
+          <div>
+            <h3>Design Engineering</h3>
+            <p>Multidisciplinary teams craft bespoke enclosures, cryogenic loops, and redundancy matrices tailored to your estate.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>04</strong>
+          <div>
+            <h3>Fabrication &amp; Finishing</h3>
+            <p>Precision manufacturing across magnetic arrays, kinetic modules, and architectural cladding with immaculate QC.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>05</strong>
+          <div>
+            <h3>Commissioning</h3>
+            <p>On-site integration, cryogenic calibration, and live redundancy testing to ensure silent, immediate readiness.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <strong>06</strong>
+          <div>
+            <h3>Performance Stewardship</h3>
+            <p>White-glove maintenance, predictive analytics, and 24/7 concierge monitoring for elite clientele.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section" id="insights">
+      <span class="eyebrow">Global Impact</span>
+      <h2 class="section-title">Designed to empower visionaries around the world.</h2>
+      <div class="testimonial-grid">
+        <article class="testimonial-card">
+          <p>“Ioncore transformed our island retreat into a carbon-negative sanctuary. The system is silent, visually stunning, and endlessly reliable.”</p>
+          <div class="author">
+            <strong>Private Estate Director</strong>
+            <span>Turks &amp; Caicos</span>
+          </div>
+        </article>
+        <article class="testimonial-card">
+          <p>“Their hybrid flywheel solution stabilized an entire smart district. Response times are instantaneous and the dashboard is art in motion.”</p>
+          <div class="author">
+            <strong>Chief Infrastructure Officer</strong>
+            <span>Singapore Smart City Lab</span>
+          </div>
+        </article>
+        <article class="testimonial-card">
+          <p>“Ioncore’s cryogenic platform let us push magnetic propulsion to new thresholds. The engineering rigor is exceptional.”</p>
+          <div class="author">
+            <strong>Director of Advanced Propulsion</strong>
+            <span>Aerospace Consortium</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
+      <div class="cta-panel">
+        <div>
+          <span class="eyebrow">Collaborate with Ioncore</span>
+          <h2>Let’s craft your next-generation power estate.</h2>
+          <p>Request a tailored roadmap for your property, infrastructure project, or investment portfolio. Our team will deliver a curated energy vision within 72 hours.</p>
+        </div>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Request proposal</a>
+          <a class="btn btn-outline" href="index.html">Download brochures</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="webpage.html"><span>Ioncore</span> Energy</a>
+          <p>High-end magnetic inertia and hybrid storage ecosystems engineered to electrify the world’s most ambitious environments.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="#solutions">Solutions</a></li>
+            <li><a href="#technology">Technology</a></li>
+            <li><a href="#deployment">Deployment</a></li>
+            <li><a href="index.html">Brochure Library</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="tel:+18667865767">+1 (866) 786-5767</a></li>
+            <li><a href="https://www.linkedin.com" rel="noopener" target="_blank">LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Designed for visionaries investing in the future of power.</span>
+      </div>
     </div>
-    <div class="signature-grid">
-      <a href="ioncore%20energy.html" class="link-card">
-        <div class="icon">📘</div>
-        <h3>Ioncore Energy Overview</h3>
-        <p>Discover the full breadth of our engineering, partnerships, and integration capabilities.</p>
-        <div class="more">Open Brochure →</div>
-      </a>
-      <a href="/timepieces" class="link-card">
-        <div class="icon">⌚</div>
-        <h3>Ioncore Timepieces</h3>
-        <p>Limited-edition kinetic artistry blending horology with magnetic inertia craftsmanship.</p>
-        <div class="more">View Collection →</div>
-      </a>
-      <a href="Mag-Inertia%20One%E2%84%A2%20v1%20System%20Dashboard.html" class="link-card">
-        <div class="icon">📊</div>
-        <h3>Mag-Inertia One™ Dashboard</h3>
-        <p>Executive dashboards presenting live performance, predictive analytics, and asset health.</p>
-        <div class="more">Launch Experience →</div>
-      </a>
-      <a href="holophone.html" class="link-card">
-        <div class="icon">📱</div>
-        <h3>HoloPhone Interface</h3>
-        <p>A vision for immersive communications built to complement energy-centric smart estates.</p>
-        <div class="more">Discover Vision →</div>
-      </a>
-      <a href="#" class="link-card" aria-disabled="true" onclick="return false;">
-        <div class="icon">🏭</div>
-        <h3>Industrial Power Plants</h3>
-        <p>Bespoke, heavy-industry solutions. Register interest to receive the forthcoming dossier.</p>
-        <div class="more">Coming Soon</div>
-      </a>
-      <a href="index.html" class="link-card">
-        <div class="icon">📚</div>
-        <h3>Brochure Library</h3>
-        <p>Browse every Ioncore Energy asset, meticulously curated for partners and investors.</p>
-        <div class="more">Access Index →</div>
-      </a>
-    </div>
-  </section>
-
-  <section class="promise">
-    <h2>We engineer serenity, resilience, and prestige into every watt.</h2>
-    <p>
-      From autonomous villas and superyacht marinas to transformative municipal grids, Ioncore Energy designs experiences that are as effortless as they are powerful. Our multidisciplinary teams partner with architects, developers, and visionary founders to deliver iconic energy moments that inspire confidence and demand attention.
-    </p>
-  </section>
-
-  <section class="cta" id="contact">
-    <h3>Ready to stage the next benchmark in clean energy?</h3>
-    <p>Partner with Ioncore Energy to architect a custom solution that elevates sustainability, resilience, and brand prestige all at once.</p>
-    <a class="primary-btn" href="mailto:ioncoreenergy@gmail.com">Schedule a Discovery Call</a>
-  </section>
-
-  <footer>
-    &copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.
   </footer>
 </body>
 </html>

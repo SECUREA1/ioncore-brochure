@@ -23,6 +23,9 @@ const metrics = {
 
 const activeSessions = new Map();
 
+const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
+const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'ioncore';
+
 function registerSession() {
   const sessionId = randomUUID();
   activeSessions.set(sessionId, Date.now());
@@ -57,21 +60,15 @@ function auth(req, res, next) {
     return res.status(401).send('Authentication required');
   }
   const [user, pass] = Buffer.from(encoded, 'base64').toString().split(':');
-  if (user === 'admin' && pass === '1234') {
+  if (user === AUTH_USER && pass === AUTH_PASS) {
     return next();
   }
   res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
   res.status(401).send('Authentication required');
 }
 
-// Require authentication for direct HTML requests
-app.use((req, res, next) => {
-  const lowerPath = req.path.toLowerCase();
-  if (lowerPath.endsWith('.html') && !['/webpage.html', '/index.html'].includes(lowerPath)) {
-    return auth(req, res, next);
-  }
-  next();
-});
+// Require authentication for all requests
+app.use(auth);
 
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -130,7 +127,7 @@ app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
 app.use(express.static(__dirname, { index: false }));
 
 // Password-protected HTML file listing
-app.get('/admin', auth, async (req, res) => {
+app.get('/admin', async (req, res) => {
   try {
     const files = await getHtmlFiles(__dirname);
     const items = await Promise.all(
@@ -150,7 +147,7 @@ app.get('/admin', auth, async (req, res) => {
   }
 });
 
-app.get('/view', auth, async (req, res) => {
+app.get('/view', async (req, res) => {
   const rel = req.query.f;
   if (!rel) return res.status(400).send('Missing file');
   const filePath = path.join(__dirname, rel);

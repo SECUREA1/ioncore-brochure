@@ -26,6 +26,11 @@ const activeSessions = new Map();
 const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
 const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'ioncore';
 
+const COOKIE_NAME = 'ioncore_session';
+const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
+
+const authSessions = new Map();
+
 function registerSession() {
   const sessionId = randomUUID();
   activeSessions.set(sessionId, Date.now());
@@ -52,23 +57,135 @@ async function sendHtml(res, filePath) {
   }
 }
 
-function auth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const [scheme, encoded] = header.split(' ');
-  if (scheme !== 'Basic' || !encoded) {
-    res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
-    return res.status(401).send('Authentication required');
-  }
-  const [user, pass] = Buffer.from(encoded, 'base64').toString().split(':');
-  if (user === AUTH_USER && pass === AUTH_PASS) {
-    return next();
-  }
-  res.set('WWW-Authenticate', 'Basic realm="Ioncore"');
-  res.status(401).send('Authentication required');
+function createAuthSession() {
+  const sessionId = randomUUID();
+  authSessions.set(sessionId, Date.now());
+  return sessionId;
 }
 
-// Require authentication for all requests
-app.use(auth);
+function validateAuthSession(sessionId) {
+  if (typeof sessionId !== 'string' || !sessionId) {
+    return false;
+  }
+  const lastSeen = authSessions.get(sessionId);
+  if (!lastSeen) {
+    return false;
+  }
+  if (Date.now() - lastSeen > COOKIE_MAX_AGE_MS) {
+    authSessions.delete(sessionId);
+    return false;
+  }
+  authSessions.set(sessionId, Date.now());
+  return true;
+}
+
+function destroyAuthSession(sessionId) {
+  if (typeof sessionId !== 'string' || !sessionId) {
+    return;
+  }
+  authSessions.delete(sessionId);
+}
+
+function getSessionIdFromCookies(req) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return '';
+  }
+  const cookies = cookieHeader.split(';');
+  for (const cookie of cookies) {
+    const [rawName, ...rest] = cookie.trim().split('=');
+    if (rawName === COOKIE_NAME) {
+      return rest.join('=');
+    }
+  }
+  return '';
+}
+
+function setSessionCookie(res, sessionId) {
+  const maxAgeSeconds = Math.floor(COOKIE_MAX_AGE_MS / 1000);
+  res.setHeader(
+    'Set-Cookie',
+    `${COOKIE_NAME}=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAgeSeconds}`
+  );
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
+}
+
+app.get('/login', async (req, res) => {
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
+    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
+    return res.redirect(safeNext);
+  }
+  await sendHtml(res, path.join(__dirname, 'login.html'));
+});
+
+app.post('/login', (req, res) => {
+  const username = (req.body && typeof req.body.username === 'string' && req.body.username) || '';
+  const password = (req.body && typeof req.body.password === 'string' && req.body.password) || '';
+  let nextPath = (req.body && typeof req.body.next === 'string' && req.body.next) || '/';
+
+  if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
+    nextPath = '/';
+  }
+
+  if (username === AUTH_USER && password === AUTH_PASS) {
+    const sessionId = createAuthSession();
+    setSessionCookie(res, sessionId);
+    return res.json({ redirect: nextPath });
+  }
+
+  clearSessionCookie(res);
+  res.status(401).json({ message: 'Access denied. Invalid clearance credentials.' });
+});
+
+app.post('/logout', (req, res) => {
+  const sessionId = getSessionIdFromCookies(req);
+  destroyAuthSession(sessionId);
+  clearSessionCookie(res);
+  res.json({ message: 'Logged out' });
+});
+
+function isPublicRoute(req) {
+  if (req.method === 'GET' && (req.path === '/login' || req.path === '/login.html')) {
+    return true;
+  }
+  if (req.method === 'GET' && req.path === '/battery.svg') {
+    return true;
+  }
+  if (req.method === 'POST' && req.path === '/login') {
+    return true;
+  }
+  if (req.method === 'POST' && req.path === '/logout') {
+    return true;
+  }
+  return false;
+}
+
+function requireAuth(req, res, next) {
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    return next();
+  }
+
+  clearSessionCookie(res);
+
+  const expectsHtml = req.method === 'GET' && req.accepts('html');
+  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
+  if (expectsHtml) {
+    return res.redirect(`/login?next=${nextPath}`);
+  }
+  res.status(401).json({ message: 'Authentication required' });
+}
 
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -91,6 +208,8 @@ async function getTitle(filePath) {
   const match = content.match(/<title>([^<]*)<\/title>/i);
   return match ? match[1].trim() : path.basename(filePath);
 }
+
+app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {

@@ -62,6 +62,12 @@
     .hero-cards{display:grid;gap:1rem;margin-top:1.25rem;grid-template-columns:repeat(3,minmax(0,1fr))}
     .hero-card{background:linear-gradient(180deg,#111b2b,#0e1623);border:1px solid var(--edge);border-radius:14px;padding:1rem}
     .hero-card h3{margin:.25rem 0 .5rem;font-size:1.05rem}
+    img{width:100%;height:auto;display:block;border-radius:12px}
+    figure{margin:0}
+    .media-card{background:var(--card);border:1px solid var(--edge);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%}
+    .media-card img{border-radius:0;object-fit:cover}
+    .media-card figcaption{padding:.85rem 1rem;color:var(--muted);font-size:.85rem;line-height:1.5}
+    .gallery-grid{margin-top:1.5rem}
     footer{border-top:1px solid var(--edge);background:#0a131f;padding:1.75rem 1.5rem;margin-top:auto}
     .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;max-width:1150px;margin:0 auto;color:var(--muted);font-size:.9rem}
     .footer-links{display:flex;gap:1rem;flex-wrap:wrap}
@@ -124,6 +130,39 @@
       </div>
     </div>
   </header>
+
+  <!-- IMAGE GALLERY -->
+  <section id="gallery">
+    <div class="wrap">
+      <h2>Deployment Visual Gallery</h2>
+      <div class="grid cols-3 gallery-grid">
+        <figure class="media-card">
+          <img src="condo11.jpeg" alt="Ioncore Model C concept for condo deployments" />
+          <figcaption>Model C concept illustrating multifamily condo integration.</figcaption>
+        </figure>
+        <figure class="media-card">
+          <img src="commercial.jpeg" alt="Ioncore commercial campus rendering" />
+          <figcaption>Commercial-scale campus deployment showcasing centralized cores.</figcaption>
+        </figure>
+        <figure class="media-card">
+          <img src="commercial2.jpeg" alt="Ioncore commercial facility interior" />
+          <figcaption>Interior commercial installation with dual magnetic inertia housings.</figcaption>
+        </figure>
+        <figure class="media-card">
+          <img src="industrial.png" alt="Ioncore industrial generation hall rendering" />
+          <figcaption>Factory-grade power hall concept emphasizing modular expansion bays.</figcaption>
+        </figure>
+        <figure class="media-card">
+          <img src="industrial1.png" alt="Ioncore industrial facility exterior" />
+          <figcaption>Exterior view of industrial housing with dedicated service access.</figcaption>
+        </figure>
+        <figure class="media-card">
+          <img src="industrial3.png" alt="Ioncore industrial floor layout" />
+          <figcaption>Operations floor layout with integrated cooling and monitoring.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
 
   <!-- PRODUCT PORTFOLIO -->
   <section id="portfolio">

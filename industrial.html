@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>IONCORE | Magnetic Inertia Energy Systems – Executive Brochure</title>
+  <title>IONCORE | Industrial Power Plants – Magnetic Inertia Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <style>
@@ -15,14 +15,28 @@
     *{box-sizing:border-box}
     html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
     a{color:var(--brand2);text-decoration:none}
-    header{padding:4rem 1.5rem;background:radial-gradient(1200px 500px at 10% 0%,#122035 0%,var(--bg) 60%);}
+    .top-nav{background:rgba(8,16,30,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--edge);position:sticky;top:0;z-index:20}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem 1.5rem}
+    .logo{font-weight:800;text-transform:uppercase;letter-spacing:.18em;color:var(--muted);font-size:.85rem}
+    .logo span{color:var(--brand);letter-spacing:.1em}
+    .nav-links{display:flex;gap:1rem;font-size:.9rem;flex-wrap:wrap}
+    .nav-links a{color:var(--muted);font-weight:600;padding:.35rem .6rem;border-radius:999px;transition:color .2s ease,background .2s ease}
+    .nav-links a:hover{color:var(--ink);background:rgba(68,219,164,.12)}
+    .nav-actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+    .btn{background:var(--brand);color:#082017;border:0;padding:.85rem 1.1rem;border-radius:.6rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;transition:transform .2s ease,box-shadow .2s ease}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(36,160,237,.18)}
+    .btn.ghost{background:transparent;border:1px solid var(--edge);color:var(--ink);box-shadow:none}
+    .btn.sm{padding:.6rem .95rem;font-size:.82rem;font-weight:700}
+    header{padding:4rem 1.5rem;background:radial-gradient(1200px 500px at 10% 0%,#122035 0%,var(--bg) 60%);margin-top:-1px}
+    @media (max-width:768px){
+      .nav-inner{flex-direction:column;align-items:flex-start}
+      .nav-actions{width:100%}
+    }
     .wrap{max-width:1150px;margin:0 auto}
     .kicker{letter-spacing:.2em;text-transform:uppercase;color:var(--brand);font-weight:800;font-size:.85rem}
     h1{margin:.5rem 0 0;font-size:clamp(2rem,5vw,3.25rem);line-height:1.15}
     header p.lead{margin:1rem 0 0;color:var(--muted);max-width:760px}
     .cta{display:flex;gap:.8rem;margin-top:1.5rem;flex-wrap:wrap}
-    .btn{background:var(--brand);color:#082017;border:0;padding:.85rem 1.1rem;border-radius:.6rem;font-weight:800}
-    .btn.ghost{background:transparent;border:1px solid var(--edge);color:var(--ink)}
     section{padding:2.5rem 1.5rem;border-top:1px solid var(--edge)}
     h2{margin:0 0 1rem;font-size:clamp(1.6rem,3vw,2.1rem)}
     .grid{display:grid;gap:1.25rem}
@@ -50,10 +64,26 @@
 </head>
 <body>
 
+  <!-- NAVIGATION -->
+  <div class="top-nav">
+    <div class="wrap nav-inner">
+      <a class="logo" href="fullexperience.html"><span>Ioncore</span> Energy</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#portfolio">Portfolio</a>
+        <a href="#specs">Engineering</a>
+        <a href="index.html">Library</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn sm ghost" href="mailto:info@ioncoreenergy.com">Connect</a>
+        <a class="btn sm" href="fullexperience.html">Main Experience</a>
+      </div>
+    </div>
+  </div>
+
   <!-- HERO -->
   <header>
     <div class="wrap">
-      <div class="kicker">IONCORE | Magnetic Inertia Energy Systems</div>
+      <div class="kicker">IONCORE INDUSTRIAL PLATFORM</div>
       <h1>Decentralized Power at Building, Campus & Factory Scale</h1>
       <p class="lead">Patent-pending magnetic inertia units engineered for sustained output, ultra-low noise, and adaptive controls. The platform spans condo, commercial, and factory-grade deployments with integrated cooling, storage, and redundancy. All figures represent internal test statistics; field pilots are pending.</p>
       <div class="cta">

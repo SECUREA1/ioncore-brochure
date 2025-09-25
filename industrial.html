@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IONCORE | Magnetic Inertia Energy Systems – Executive Brochure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#0b1118; --ink:#e8eef6; --muted:#94a3b8;
+      --brand:#44dba4; --brand2:#24a0ed; --card:#0f1622; --edge:#1c2533;
+      --ok:#30cc88; --warn:#ffb020; --accent:#7aa2ff;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+    a{color:var(--brand2);text-decoration:none}
+    header{padding:4rem 1.5rem;background:radial-gradient(1200px 500px at 10% 0%,#122035 0%,var(--bg) 60%);}
+    .wrap{max-width:1150px;margin:0 auto}
+    .kicker{letter-spacing:.2em;text-transform:uppercase;color:var(--brand);font-weight:800;font-size:.85rem}
+    h1{margin:.5rem 0 0;font-size:clamp(2rem,5vw,3.25rem);line-height:1.15}
+    header p.lead{margin:1rem 0 0;color:var(--muted);max-width:760px}
+    .cta{display:flex;gap:.8rem;margin-top:1.5rem;flex-wrap:wrap}
+    .btn{background:var(--brand);color:#082017;border:0;padding:.85rem 1.1rem;border-radius:.6rem;font-weight:800}
+    .btn.ghost{background:transparent;border:1px solid var(--edge);color:var(--ink)}
+    section{padding:2.5rem 1.5rem;border-top:1px solid var(--edge)}
+    h2{margin:0 0 1rem;font-size:clamp(1.6rem,3vw,2.1rem)}
+    .grid{display:grid;gap:1.25rem}
+    .cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:1.25rem}
+    .tag{display:inline-block;padding:.25rem .6rem;border:1px solid var(--edge);border-radius:999px;color:var(--muted);font-size:.8rem;margin:.25rem .35rem .35rem 0}
+    .stat{display:flex;align-items:baseline;gap:.5rem}
+    .stat b{font-size:1.35rem}
+    .muted{color:var(--muted)}
+    .list{margin:.3rem 0 0;padding-left:1.1rem}
+    .list li{margin:.25rem 0}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:.6rem;border-bottom:1px solid var(--edge);text-align:left}
+    th{color:#cfe1ff;font-weight:600;background:#101a29}
+    .pill{padding:.2rem .55rem;border-radius:6px;background:#0b1a2a;border:1px solid var(--edge);font-size:.8rem}
+    .ok{color:var(--ok)} .warn{color:var(--warn)}
+    .footnote{font-size:.9rem;color:var(--muted)}
+    .divider{height:1px;background:var(--edge);margin:1.5rem 0}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .hero-cards{display:grid;gap:1rem;margin-top:1.25rem;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .hero-card{background:linear-gradient(180deg,#111b2b,#0e1623);border:1px solid var(--edge);border-radius:14px;padding:1rem}
+    .hero-card h3{margin:.25rem 0 .5rem;font-size:1.05rem}
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <header>
+    <div class="wrap">
+      <div class="kicker">IONCORE | Magnetic Inertia Energy Systems</div>
+      <h1>Decentralized Power at Building, Campus & Factory Scale</h1>
+      <p class="lead">Patent-pending magnetic inertia units engineered for sustained output, ultra-low noise, and adaptive controls. The platform spans condo, commercial, and factory-grade deployments with integrated cooling, storage, and redundancy. All figures represent internal test statistics; field pilots are pending.</p>
+      <div class="cta">
+        <a class="btn" href="#portfolio">Explore Models</a>
+        <a class="btn ghost" href="#economics">Pricing & Economics</a>
+        <a class="btn ghost" href="#specs">Engineering Specs</a>
+      </div>
+
+      <div class="hero-cards">
+        <div class="hero-card">
+          <h3>Fast Load Response</h3>
+          <div class="stat"><b>&lt;120&nbsp;ms</b><span class="muted">surge response</span></div>
+          <div class="muted">Stabilizes critical loads during transients.</div>
+        </div>
+        <div class="hero-card">
+          <h3>Operational Efficiency</h3>
+          <div class="stat"><b>~92%</b><span class="muted">round-trip equivalent</span></div>
+          <div class="muted">Observed in controlled hardware tests.</div>
+        </div>
+        <div class="hero-card">
+          <h3>Acoustic Profile</h3>
+          <div class="stat"><b>&lt;55&nbsp;dB</b><span class="muted">at 10 m</span></div>
+          <div class="muted">Quiet, building-integrated operation.</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PRODUCT PORTFOLIO -->
+  <section id="portfolio">
+    <div class="wrap">
+      <h2>Product Portfolio & Scale</h2>
+      <div class="grid cols-3">
+        <!-- Condo -->
+        <div class="card">
+          <div class="tag">Model C — Condo</div>
+          <h3>Ioncore C (Condo / Mid-rise)</h3>
+          <ul class="list">
+            <li><b>Daily Output:</b> ~470 kWh</li>
+            <li><b>Storage:</b> 300 kWh Li-ion</li>
+            <li><b>Self-Sufficiency:</b> 85–95% (usage dependent)</li>
+            <li><b>Noise:</b> &lt;40–50 dB typical</li>
+          </ul>
+          <div class="divider"></div>
+          <div class="stat"><b>Use Cases:</b> Condo cores, lobby/EV, essential services</div>
+        </div>
+        <!-- Commercial -->
+        <div class="card">
+          <div class="tag">Model X — Commercial</div>
+          <h3>Ioncore X (Commercial / Campus)</h3>
+          <ul class="list">
+            <li><b>Daily Output:</b> ~1,900 kWh</li>
+            <li><b>Storage:</b> 1,000 kWh bank</li>
+            <li><b>Redundancy:</b> Dual-core failover</li>
+            <li><b>Grid Mode:</b> Island / Tie-in / Black Start</li>
+          </ul>
+          <div class="divider"></div>
+          <div class="stat"><b>Use Cases:</b> Towers, hospitals, data edges, retail hubs</div>
+        </div>
+        <!-- Factory -->
+        <div class="card">
+          <div class="tag">Model F — Factory</div>
+          <h3>Ioncore F (Factory / Industrial)</h3>
+          <ul class="list">
+            <li><b>Peak Output:</b> ~5 MW per housing</li>
+            <li><b>Daily Output:</b> ~85–95 MWh</li>
+            <li><b>Storage:</b> 20 MWh (Li-ion + solid-state)</li>
+            <li><b>Redundancy:</b> Dual inertia chambers + N+1 subsystems</li>
+          </ul>
+          <div class="divider"></div>
+          <div class="stat"><b>Use Cases:</b> Automotive, metals, logistics, microgrids</div>
+        </div>
+      </div>
+      <p class="footnote">Note: Operational figures are based on internal hardware testing and simulation. Real-world performance may vary during pilot deployments.</p>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE -->
+  <section id="performance">
+    <div class="wrap">
+      <h2>Observed Performance (Internal Tests)</h2>
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Continuity & Stability</h3>
+          <ul class="list">
+            <li>72+ hours non-stop runtime observed</li>
+            <li>Energy recovery factor &gt;88%</li>
+            <li>Autonomous recalibration ~every 4 hours</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Thermal & Acoustic</h3>
+          <ul class="list">
+            <li>Integrated liquid cooling + cryogenic options</li>
+            <li>Thermal stability under heavy load</li>
+            <li>&lt;55 dB exterior at 10 m (factory housing)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Intelligence</h3>
+          <ul class="list">
+            <li>Predictive load tuning (ML models)</li>
+            <li>Adaptive surge response &lt;120 ms</li>
+            <li>SCADA & remote supervisory control</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGINEERING SPECS -->
+  <section id="specs">
+    <div class="wrap">
+      <h2>Key Engineering Systems</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Magnetic Bearings & Flywheels</h3>
+          <ul class="list">
+            <li>Hybrid ceramic / magnetic bearings for ultra-low drag</li>
+            <li>Carbon-composite rotors in vacuum chambers</li>
+            <li>Tuned mass damping & vibration isolation</li>
+            <li>Ballistic-rated liners for rotor containment</li>
+          </ul>
+          <span class="pill">Factory model est. subsystem cost: $4.2M</span>
+        </div>
+        <div class="card">
+          <h3>Electromagnetic Drive & Harvest</h3>
+          <ul class="list">
+            <li>High-density copper coils; superconducting option</li>
+            <li>3,000–5,000 RPM operating window</li>
+            <li>Dual-core redundancy with live failover</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cryogenic Cooling Expansion</h3>
+          <ul class="list">
+            <li><b>Primary Cryo Loop:</b> LN₂ / LHe for superconducting coils</li>
+            <li><b>Secondary Loop:</b> Glycol / fluorocarbon for inverters, bus bars, chambers</li>
+            <li><b>Phase-Change Buffers:</b> Surge absorption tanks</li>
+            <li><b>Safety:</b> O₂ monitoring, vent stacks, auto nitrogen refill</li>
+          </ul>
+          <span class="pill">Factory model est. cryo subsystem: $2.5–4.5M</span>
+        </div>
+        <div class="card">
+          <h3>Energy Storage & Power Electronics</h3>
+          <ul class="list">
+            <li>Li-ion (long duration) + solid-state (surge) hybrids</li>
+            <li>Smart BMS (cell-level predictive balancing)</li>
+            <li>MV switchgear (10–15 kV), N+1 inverters/rectifiers</li>
+            <li>Island, grid-tie, and black-start modes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOM HIGHLIGHTS -->
+  <section id="bom">
+    <div class="wrap">
+      <h2>Bill of Materials – Highlights (by Model)</h2>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Subsystem</th>
+              <th>Condo (C)</th>
+              <th>Commercial (X)</th>
+              <th>Factory (F)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Magnetic bearings / flywheels</td>
+              <td>10 bearings, 4 rotors (15 kg)</td>
+              <td>20 bearings, 6 rotors (50 kg)</td>
+              <td>40 bearings, 8 rotors (500 kg)</td>
+            </tr>
+            <tr>
+              <td>Electromagnets (drive/harvest)</td>
+              <td>5 modules</td>
+              <td>8 modules</td>
+              <td>24 modules</td>
+            </tr>
+            <tr>
+              <td>Cooling</td>
+              <td>Liquid loop + radiators</td>
+              <td>Dual loops + radiators</td>
+              <td>Cryo primary + secondary loop + radiators</td>
+            </tr>
+            <tr>
+              <td>Storage</td>
+              <td>300 kWh Li-ion</td>
+              <td>1,000 kWh Li-ion</td>
+              <td>20 MWh (Li-ion + solid-state)</td>
+            </tr>
+            <tr>
+              <td>Power electronics</td>
+              <td>3-phase inverter, PLC</td>
+              <td>N+1 inverter bank, PLC/SCADA</td>
+              <td>MV switchgear, N+1 inverter/rectifier stacks</td>
+            </tr>
+            <tr>
+              <td>Housing & acoustics</td>
+              <td>Acoustic enclosure</td>
+              <td>Noise-damped frame</td>
+              <td>Industrial housing with mezzanine & crane access</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footnote">Detailed line-item BOM available upon NDA for partners and pilot customers.</p>
+    </div>
+  </section>
+
+  <!-- ECONOMICS -->
+  <section id="economics">
+    <div class="wrap">
+      <h2>Pricing & Economics (Indicative)</h2>
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Ioncore C — Condo</h3>
+          <ul class="list">
+            <li><b>Estimated Build Cost:</b> ~$165k</li>
+            <li><b>Indicative MSRP (installed):</b> ~$229k</li>
+            <li><b>Gross Margin:</b> ~28%</li>
+            <li><b>ROI:</b> ~6–7 years (usage & tariff dependent)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Ioncore X — Commercial</h3>
+          <ul class="list">
+            <li><b>Estimated Build Cost:</b> ~$328k</li>
+            <li><b>Indicative MSRP:</b> ~$455k</li>
+            <li><b>Gross Margin:</b> ~28%</li>
+            <li><b>ROI:</b> ~4.5–6 years</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Ioncore F — Factory</h3>
+          <ul class="list">
+            <li><b>Estimated Build Cost:</b> ~$21.2M</li>
+            <li><b>Indicative MSRP:</b> ~$29.0M</li>
+            <li><b>Gross Margin:</b> ~27%</li>
+            <li><b>Payback:</b> ~4–5 years (industrial OPEX deltas)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="footnote">All pricing is indicative and subject to scope, incentives, and supply conditions. Field performance to be verified during pilots.</p>
+    </div>
+  </section>
+
+  <!-- DEPLOYMENT -->
+  <section id="deployment">
+    <div class="wrap">
+      <h2>Deployment Roadmaps</h2>
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Condo (C)</h3>
+          <ul class="list">
+            <li>Design & interconnect: 4–6 weeks</li>
+            <li>Procurement & build: 8–10 weeks</li>
+            <li>Install & commission: 3–4 weeks</li>
+          </ul>
+          <span class="pill">Typical total: 16–20 weeks</span>
+        </div>
+        <div class="card">
+          <h3>Commercial (X)</h3>
+          <ul class="list">
+            <li>Site modeling & permits: 6–8 weeks</li>
+            <li>Build & FAT: 12–16 weeks</li>
+            <li>Site install & SAT: 4–6 weeks</li>
+          </ul>
+          <span class="pill">Typical total: 22–30 weeks</span>
+        </div>
+        <div class="card">
+          <h3>Factory (F)</h3>
+          <ul class="list">
+            <li>Engineering & grid studies: 10–12 weeks</li>
+            <li>Subsystem fab & integration: 24–32 weeks</li>
+            <li>Install, commission, ramp: 10–14 weeks</li>
+          </ul>
+          <span class="pill">Typical total: 44–58 weeks</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUE -->
+  <section id="value">
+    <div class="wrap">
+      <h2>Why Ioncore</h2>
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Resilience First</h3>
+          <p>Island operation, black-start capability, and dual-core redundancy (X/F) make outages survivable with minimal operational disruption.</p>
+        </div>
+        <div class="card">
+          <h3>Predictive Intelligence</h3>
+          <p>ML-trained models forecast demand and auto-tune RPM, storage dispatch, and cooling to minimize loss and extend system life.</p>
+        </div>
+        <div class="card">
+          <h3>Quiet, Compact, Local</h3>
+          <p>Acoustic dampening and compact housings enable placement in buildings, campuses, and factory bays without external structures.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISCLAIMERS -->
+  <section id="disclaimer">
+    <div class="wrap">
+      <h2>Important Notes</h2>
+      <div class="card">
+        <ul class="list">
+          <li>Technology is <b>patent-pending</b> and currently <b>untested in live field deployments</b>. Data herein reflects internal lab hardware tests and simulations.</li>
+          <li>All performance, cost, and ROI figures are <b>estimates</b> and will vary by site, tariff, regulation, and usage profile.</li>
+          <li>Detailed engineering packages, protection studies, and conformance documentation are available under NDA for pilot partners.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="wrap">
+      <h2>Partner, Pilot, or Procure</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Next Steps</h3>
+          <ul class="list">
+            <li>Request the technical whitepaper & product SOO</li>
+            <li>Share site load profiles for custom modeling</li>
+            <li>Scope a pilot with measurement & verification</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Contact</h3>
+          <p>Email: <a href="mailto:info@ioncoreenergy.com">info@ioncoreenergy.com</a><br/>
+             Subject: <span class="mono">Ioncore – Pilot Inquiry</span></p>
+          <p class="muted">We prioritize healthcare, data, industrial, and multifamily pilot sites.</p>
+        </div>
+      </div>
+      <p class="footnote" style="margin-top:1rem;">© <script>document.write(new Date().getFullYear())</script> Ioncore Energy · All rights reserved.</p>
+    </div>
+  </section>
+
+</body>
+</html>

@@ -318,6 +318,20 @@ main {
   gap: 24px;
 }
 
+.hero__visual-media {
+  margin: 0;
+}
+
+.hero__visual-image {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
 .hero__visual::before,
 .hero__visual::after {
   content: "";

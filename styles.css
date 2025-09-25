@@ -438,6 +438,36 @@ main {
   color: var(--accent);
 }
 
+.mission-imagery .media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+  margin-top: 32px;
+}
+
+.media-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.media-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.media-card figcaption {
+  padding: 18px 22px 20px;
+  font-size: 0.92rem;
+  color: var(--text-med);
+  line-height: 1.5;
+}
+
 .section-heading {
   display: grid;
   gap: 12px;

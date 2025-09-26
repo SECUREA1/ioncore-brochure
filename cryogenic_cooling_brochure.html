@@ -41,6 +41,12 @@
       padding: 22px;
     }
 
+    .cold-chain-visual__media-group {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
     .cold-chain-visual__media {
       position: relative;
       border-radius: 14px;
@@ -232,8 +238,13 @@
           <h3>Integrated Cold Chain</h3>
           <p class="cold-chain-description">Integrated cryogenic cold chain with cooling loops and shielding.</p>
           <div class="cold-chain-visual">
-            <div class="cold-chain-visual__media">
-              <img src="cool.png" alt="Integrated cryogenic cold chain with cooling loops and shielding" class="cold-chain-visual__image" loading="lazy">
+            <div class="cold-chain-visual__media-group">
+              <div class="cold-chain-visual__media">
+                <img src="cool.png" alt="Integrated cryogenic cold chain with cooling loops and shielding" class="cold-chain-visual__image" loading="lazy">
+              </div>
+              <div class="cold-chain-visual__media">
+                <img src="cryo.png" alt="Cryogenic cooling system visualization" class="cold-chain-visual__image" loading="lazy">
+              </div>
             </div>
             <ul class="cold-chain-tiles">
               <li><i class="fa-solid fa-temperature-low"></i><span>Pulse-tube or Stirling cryocooler arrays sized precisely to the thermal load.</span></li>

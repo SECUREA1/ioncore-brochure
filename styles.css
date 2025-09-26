@@ -854,6 +854,27 @@ main {
   border-radius: 28px;
   padding: clamp(36px, 6vw, 64px);
   box-shadow: var(--shadow-soft);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: center;
+}
+
+.index-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 4vw, 36px);
+}
+
+.index-hero__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.index-hero__media img {
+  width: min(100%, 420px);
+  border-radius: 20px;
+  box-shadow: 0 24px 48px rgba(5, 18, 28, 0.55);
 }
 
 .index-table-wrapper {

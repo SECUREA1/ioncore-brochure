@@ -48,6 +48,13 @@
       z-index: -1;
     }
 
+    .cryo-media-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: flex-end;
+    }
+
     .cryo-media-card {
       border-radius: 24px;
       overflow: hidden;
@@ -60,6 +67,13 @@
       width: 100%;
       height: auto;
       display: block;
+    }
+
+    .cryo-media-card--secondary {
+      max-width: 220px;
+      border-radius: 18px;
+      border-color: var(--border);
+      box-shadow: var(--shadow-soft);
     }
 
     .feature-grid {
@@ -215,6 +229,10 @@
       .feature-card {
         padding: 24px;
       }
+
+      .cryo-media-stack {
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -249,8 +267,13 @@
         </div>
       </div>
       <div class="cryo-hero__media" aria-hidden="true">
-        <div class="cryo-media-card">
-          <img src="crycooler.png" alt="Cryogenic cooler supporting the Magnetic Inertia Energy System">
+        <div class="cryo-media-stack">
+          <div class="cryo-media-card">
+            <img src="crycooler.png" alt="Cryogenic cooler supporting the Magnetic Inertia Energy System">
+          </div>
+          <div class="cryo-media-card cryo-media-card--secondary">
+            <img src="cryo.png" alt="Cryogenic cooling loop detail">
+          </div>
         </div>
       </div>
     </section>

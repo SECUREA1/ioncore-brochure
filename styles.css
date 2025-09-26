@@ -249,6 +249,36 @@ main {
   padding: 96px 0 60px;
 }
 
+.product-hero {
+  position: relative;
+}
+
+.product-hero .hero__decor {
+  position: absolute;
+  top: 40px;
+  right: -80px;
+  width: clamp(200px, 24vw, 320px);
+  max-width: 320px;
+  pointer-events: none;
+  filter: drop-shadow(0 28px 48px rgba(3, 7, 18, 0.45));
+  transform: rotate(-6deg);
+  opacity: 0.95;
+}
+
+@media (max-width: 1200px) {
+  .product-hero .hero__decor {
+    right: -36px;
+    top: 56px;
+    width: clamp(180px, 30vw, 260px);
+  }
+}
+
+@media (max-width: 900px) {
+  .product-hero .hero__decor {
+    display: none;
+  }
+}
+
 .hero__content h1 {
   font-size: clamp(2.8rem, 5vw, 3.8rem);
   font-weight: 700;

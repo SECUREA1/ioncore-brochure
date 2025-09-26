@@ -848,12 +848,42 @@ main {
 
 .index-hero {
   display: grid;
-  gap: 24px;
+  gap: 32px;
   background: linear-gradient(140deg, rgba(106, 255, 59, 0.12), rgba(8, 20, 34, 0.86));
   border: 1px solid var(--border);
   border-radius: 28px;
   padding: clamp(36px, 6vw, 64px);
   box-shadow: var(--shadow-soft);
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.index-hero__content {
+  display: grid;
+  gap: 24px;
+}
+
+.index-hero__media {
+  justify-self: center;
+  max-width: clamp(220px, 32vw, 360px);
+  width: 100%;
+  filter: drop-shadow(0 24px 40px rgba(6, 18, 36, 0.65));
+}
+
+.index-hero__media img {
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+}
+
+@media (min-width: 768px) {
+  .index-hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .index-hero__content {
+    gap: 32px;
+  }
 }
 
 .index-table-wrapper {

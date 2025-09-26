@@ -1,167 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magnetic Inertia Energy System – Full Brochure</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0; padding: 0;
-            background: #f0f4f7; color: #333;
-        }
-        header, footer {
-            background: #005792; color: #fff;
-            padding: 20px; text-align: center;
-        }
-        h1, h2 {
-            color: #005792;
-        }
-        section {
-            padding: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse; margin: 20px 0;
-        }
-        th, td {
-            padding: 10px; border: 1px solid #ccc;
-            text-align: left;
-        }
-        th {
-            background: #e0eaf3;
-        }
-        ul {
-            list-style-type: square; padding-left: 20px;
-        }
-        .highlight {
-            background: #d9f2d9; padding: 10px; border-left: 5px solid #2d862d;
-        }
-        .image-container {
-            text-align: center;
-            padding: 20px;
-        }
-        .image-container img {
-            max-width: 90%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="application-name" content="Ioncore Energy">
+  <meta name="theme-color" content="#6aff3b">
+  <meta property="og:site_name" content="Ioncore Energy">
+  <meta property="og:title" content="Ioncore Energy | Cryogenic Cooling Overview">
+  <meta property="og:image" content="battery.svg">
+  <title>Ioncore Energy | Cryogenic Cooling Overview</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="apple-touch-icon" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .cryo-hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 56px;
+      align-items: center;
+    }
+
+    .cryo-hero__content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .cryo-hero__content .section-subtitle {
+      margin: 0;
+      max-width: 520px;
+    }
+
+    .cryo-hero__media {
+      position: relative;
+    }
+
+    .cryo-hero__media::before {
+      content: "";
+      position: absolute;
+      inset: -32px;
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.18), rgba(10, 22, 38, 0.4));
+      filter: blur(42px);
+      z-index: -1;
+    }
+
+    .cryo-media-card {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+    }
+
+    .cryo-media-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      padding: 28px;
+      border-radius: 20px;
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-card i {
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+
+    .feature-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+    }
+
+    .data-table thead {
+      background: rgba(106, 255, 59, 0.08);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 18px 22px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-med);
+    }
+
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(106, 255, 59, 0.04);
+    }
+
+    .stat-callout {
+      background: var(--surface-strong);
+      border-radius: 20px;
+      padding: 32px;
+      border: 1px solid var(--border-strong);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat span:first-child {
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      font-size: 1.8rem;
+      color: var(--accent);
+    }
+
+    .small {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .list-card {
+      padding: 24px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .list-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-med);
+      display: grid;
+      gap: 10px;
+    }
+
+    .contact-card {
+      margin-top: 40px;
+      padding: 28px;
+      border-radius: 20px;
+      border: 1px solid var(--border-strong);
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.12), rgba(3, 7, 18, 0.7));
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .contact-card ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .contact-card a {
+      color: var(--text-high);
+      font-weight: 600;
+    }
+
+    @media (max-width: 720px) {
+      .stat strong {
+        font-size: 1.5rem;
+      }
+
+      .feature-card {
+        padding: 24px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html" aria-label="Ioncore Energy main experience">
+      <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+      <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
 
-<header>
-    <h1>Magnetic Inertia Energy System</h1>
-    <p>Revolutionizing Clean Power with Cryogenic Cooling</p>
-</header>
+  <main>
+    <section class="container page-section page-section--tight cryo-hero">
+      <div class="cryo-hero__content">
+        <div>
+          <span class="eyebrow">Cryogenic Cooling</span>
+          <h1 class="section-title">Superconductive thermal control for magnetic inertia performance.</h1>
+          <p class="section-subtitle">Ioncore’s cryogenic cooler stabilizes electromagnetic motion at near-zero resistance, enabling ultra-quiet, high-efficiency output for mission-critical energy deployments.</p>
+        </div>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Talk to an engineer</a>
+          <a class="btn btn-outline" href="cryogenic_cooling_brochure.html">Download detailed brief</a>
+        </div>
+      </div>
+      <div class="cryo-hero__media" aria-hidden="true">
+        <div class="cryo-media-card">
+          <img src="crycooler.png" alt="Cryogenic cooler supporting the Magnetic Inertia Energy System">
+        </div>
+      </div>
+    </section>
 
-<section class="image-container">
-    <img src="crycooler.png" alt="Cryogenic cooler supporting the Magnetic Inertia Energy System">
-</section>
+    <section class="container page-section--tight">
+      <div class="feature-grid">
+        <article class="feature-card">
+          <i class="fa-solid fa-temperature-arrow-down" aria-hidden="true"></i>
+          <h3>Superconductive thermal loop</h3>
+          <p>Liquid helium-cooled channels keep windings at 4K, eliminating resistive loss and unlocking 95%+ drive efficiency.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+          <h3>Precision electromagnetic control</h3>
+          <p>Dual-axis Hall arrays and DSP tuning continuously align magnetic flux, maintaining smooth inertia even under dynamic loads.</p>
+        </article>
+        <article class="feature-card">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          <h3>Industrial-grade resilience</h3>
+          <p>Redundant cryocoolers, hybrid bearings, and vibration-damped chassis support 24/7 uptime in hospital and industrial settings.</p>
+        </article>
+      </div>
+    </section>
 
-<section>
-    <h2>Overview</h2>
-    <p>The Magnetic Inertia System with Cryogenic Cooling is a breakthrough in clean energy generation—offering ultra-high efficiency, low noise, and exceptional reliability through electromagnetic motion and superconductive cooling. Designed to outperform traditional systems like diesel generators, this closed-loop system powers homes, hospitals, and industrial applications with near-zero emissions and unmatched operational stability.</p>
-</section>
-
-<section>
-    <h2>System Comparison</h2>
-    <table>
+    <section class="container page-section--tight">
+      <div>
+        <span class="eyebrow">Performance contrast</span>
+        <h2 class="section-title">Benchmarking against diesel generation.</h2>
+        <p class="section-subtitle">Cryogenic stabilization reduces heat, boosts energy density, and slashes noise—delivering a cleaner cost-per-kilowatt profile over the complete lifecycle.</p>
+      </div>
+      <table class="data-table">
         <thead>
-            <tr>
-                <th>Metric</th>
-                <th>Magnetic Inertia System</th>
-                <th>Traditional Diesel System</th>
-            </tr>
+          <tr>
+            <th>Metric</th>
+            <th>Ioncore Magnetic Inertia</th>
+            <th>Traditional Diesel</th>
+          </tr>
         </thead>
         <tbody>
-            <tr><td>Total Initial Cost</td><td>$63,350</td><td>$10,000</td></tr>
-            <tr><td>Annual Maintenance</td><td>$5,000</td><td>$2,000</td></tr>
-            <tr><td>Efficiency</td><td>95%</td><td>30%</td></tr>
-            <tr><td>Daily Energy Output</td><td>188.4 kWh</td><td>50 kWh</td></tr>
-            <tr><td>Annual Energy Output</td><td>68,766 kWh</td><td>18,250 kWh</td></tr>
-            <tr><td>Noise Level</td><td>25–30 dB</td><td>70–85 dB</td></tr>
-            <tr><td>Required Space</td><td>144 sq ft</td><td>64 sq ft</td></tr>
-            <tr><td>Surplus Energy</td><td>100 kWh/day</td><td>Minimal</td></tr>
-            <tr><td>Maintenance Frequency</td><td>Biannual</td><td>Quarterly</td></tr>
-            <tr><td>Key Maintenance Tasks</td><td>Fluid & cryocooler checks, bearings, electromagnets</td><td>Oil & filter changes, exhaust checks</td></tr>
-            <tr><td>Management Complexity</td><td>Medium</td><td>Low to Medium</td></tr>
-            <tr><td>Downtime</td><td>Minimal</td><td>Moderate</td></tr>
+          <tr><td>Total initial cost</td><td>$63,350</td><td>$10,000</td></tr>
+          <tr><td>Annual maintenance</td><td>$5,000</td><td>$2,000</td></tr>
+          <tr><td>Efficiency</td><td>95%</td><td>30%</td></tr>
+          <tr><td>Daily energy output</td><td>188.4 kWh</td><td>50 kWh</td></tr>
+          <tr><td>Annual energy output</td><td>68,766 kWh</td><td>18,250 kWh</td></tr>
+          <tr><td>Noise level</td><td>25–30 dB</td><td>70–85 dB</td></tr>
+          <tr><td>Required space</td><td>144 sq ft</td><td>64 sq ft</td></tr>
+          <tr><td>Surplus energy</td><td>100 kWh/day</td><td>Minimal</td></tr>
+          <tr><td>Maintenance frequency</td><td>Biannual</td><td>Quarterly</td></tr>
+          <tr><td>Downtime</td><td>Minimal</td><td>Moderate</td></tr>
         </tbody>
-    </table>
-</section>
+      </table>
+      <div class="stat-callout">
+        <div class="stat">
+          <span>5-year total cost</span>
+          <strong>$88,350</strong>
+          <p class="small">Complete ownership with cryogenic upkeep.</p>
+        </div>
+        <div class="stat">
+          <span>Total energy produced</span>
+          <strong>343,830 kWh</strong>
+          <p class="small">6.3× more clean output vs diesel benchmarks.</p>
+        </div>
+        <div class="stat">
+          <span>Cost per kWh</span>
+          <strong>$0.26</strong>
+          <p class="small">32% lower lifetime energy cost.</p>
+        </div>
+      </div>
+    </section>
 
-<section>
-    <h2>Detailed Parts & Sources</h2>
-    <table>
-        <thead>
-            <tr><th>Component</th><th>Specs/Material</th><th>Source</th><th>Cost</th></tr>
-        </thead>
-        <tbody>
-            <tr><td>Shaft</td><td>4140 Alloy Steel, Ø50mm x 1000mm</td><td>McMaster-Carr</td><td>$150</td></tr>
-            <tr><td>Bearings</td><td>Hybrid Ceramic, Ø50mm ID</td><td>SKF</td><td>$600</td></tr>
-            <tr><td>Gears</td><td>Spur Gear, 20 teeth, Steel</td><td>Boston Gear</td><td>$100</td></tr>
-            <tr><td>Electromagnets</td><td>1000 turns, AWG18, Soft iron core</td><td>TEMCo</td><td>$1,200</td></tr>
-            <tr><td>Control Unit</td><td>Arduino Mega, Hall sensors</td><td>Digi-Key / Siemens</td><td>$200</td></tr>
-            <tr><td>Cooling System</td><td>Laing D5 pump, Noctua fans</td><td>EKWB, Thermaltake</td><td>$1,800</td></tr>
-            <tr><td>Energy Storage</td><td>200 kWh Li-Ion, 400V, BMS</td><td>LG Chem / Tesla</td><td>$45,000</td></tr>
-            <tr><td>Cryogenic Cooling</td><td>Sumitomo RDK-408D2, Dewar, Insulated lines</td><td>Cryomech, Taylor-Wharton</td><td>$13,550</td></tr>
-        </tbody>
-    </table>
-</section>
+    <section class="container page-section--tight">
+      <div class="list-grid">
+        <article class="list-card">
+          <h3>Core assembly</h3>
+          <ul>
+            <li>4140 alloy steel shaft – Ø50mm × 1000mm (McMaster-Carr)</li>
+            <li>Hybrid ceramic bearings – Ø50mm ID (SKF)</li>
+            <li>Spur gear train – 20 tooth steel (Boston Gear)</li>
+            <li>Electromagnets – 1000 turns, AWG18 (TEMCo)</li>
+          </ul>
+        </article>
+        <article class="list-card">
+          <h3>Control & storage</h3>
+          <ul>
+            <li>Redundant control unit – Arduino Mega + Siemens PLC</li>
+            <li>Hall-effect sensing arrays for flux alignment</li>
+            <li>200 kWh Li-ion pack, 400V BMS (LG Chem / Tesla)</li>
+            <li>Predictive analytics dashboard with remote alerts</li>
+          </ul>
+        </article>
+        <article class="list-card">
+          <h3>Cryogenic loop</h3>
+          <ul>
+            <li>Sumitomo RDK-408D2 cryocooler with integrated Dewar</li>
+            <li>Laing D5 circulation pump + Noctua thermal fans</li>
+            <li>Vacuum-insulated transfer lines & manifold</li>
+            <li>Thermal shielding with aerogel composite panels</li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-<section>
-    <h2>Performance & Efficiency Metrics</h2>
-    <ul>
-        <li><strong>Electrical Resistance:</strong> Reduced from 10Ω to 1Ω</li>
-        <li><strong>Power Consumption:</strong> Reduced from 57.6W to 5.76W</li>
-        <li><strong>Heat Dissipation:</strong> >90% reduction</li>
-        <li><strong>Temperature Change:</strong> Only +0.145K in cryogenic system</li>
-    </ul>
-</section>
+    <section class="container page-section--tight">
+      <div>
+        <span class="eyebrow">Operational intelligence</span>
+        <h2 class="section-title">Thermal and electrical stability at scale.</h2>
+        <p class="section-subtitle">Cryogenic conduction slashes resistive heat from 5.76W to 0.056W, preserving coil integrity while unlocking instant load response for microgrid and facility integration.</p>
+      </div>
+      <div class="list-grid">
+        <article class="list-card">
+          <h3>Performance metrics</h3>
+          <ul>
+            <li>Electrical resistance drop: 10Ω ➝ 1Ω</li>
+            <li>Effective cryo power draw: 5.76W after loss mitigation</li>
+            <li>Net heat output reduction: &gt;90%</li>
+            <li>Temperature delta in cryogenic loop: +0.145K</li>
+          </ul>
+        </article>
+        <article class="list-card">
+          <h3>Installation essentials</h3>
+          <ul>
+            <li>Footprint: 12 × 12 ft (144 sq ft)</li>
+            <li>Minimum ceiling height: 6 ft</li>
+            <li>Indoor enclosure with directional airflow</li>
+            <li>Vibration-damped plinth with thermal isolation</li>
+          </ul>
+        </article>
+        <article class="list-card">
+          <h3>Support cadence</h3>
+          <ul>
+            <li>Biannual cryocooler inspection & fluid refresh</li>
+            <li>Quarterly electromagnet calibration</li>
+            <li>Remote diagnostics with predictive alerts</li>
+            <li>24/6 expert engineering support</li>
+          </ul>
+        </article>
+      </div>
+      <div class="contact-card">
+        <div>
+          <h2 class="section-title" style="font-size: 1.6rem; margin: 0;">Ready for a deeper technical alignment?</h2>
+          <p>Connect with Ioncore’s cryogenic engineering team to map deployment timelines, integration costs, and resilience objectives.</p>
+        </div>
+        <ul>
+          <li><a href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-envelope"></i> ioncoreenergy@gmail.com</a></li>
+          <li><a href="https://ioncoreenergy.com" target="_blank" rel="noopener"><i class="fa-solid fa-globe"></i> ioncoreenergy.com</a></li>
+          <li><a href="https://t.me/+2GW6Ksve5z8xYTVh" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i> Telegram engineering desk</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
 
-<section>
-    <h2>Thermal & Electrical Calculations</h2>
-    <ul>
-        <li><strong>Original Power:</strong> 24V, 2.4A = 57.6W</li>
-        <li><strong>Cryogenic Current:</strong> 24V, 24A = 576W</li>
-        <li><strong>Effective Cryo Power:</strong> 5.76W after superconductive loss reduction</li>
-        <li><strong>Net Heat:</strong> Original: 5.76W | Cryo: 0.056W</li>
-        <li><strong>Temperature Rise:</strong> Original: +14.96K | Cryo: +0.145K</li>
-    </ul>
-</section>
-
-<section>
-    <h2>Cost Efficiency Summary</h2>
-    <div class="highlight">
-        <strong>5-Year Total Cost:</strong> $88,350 vs $35,000<br>
-        <strong>Total Energy Produced:</strong> 343,830 kWh vs 91,250 kWh<br>
-        <strong>Cost per kWh:</strong> $0.26 vs $0.38<br>
-        <strong>Savings:</strong> Up to 32% cheaper per kWh with Magnetic Inertia
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html">
+            <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+            <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+          </a>
+          <p>Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic innovations.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Chat with us on Telegram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Curated brochure experience for visionary partners.</span>
+      </div>
     </div>
-</section>
-
-<section>
-    <h2>Installation Requirements</h2>
-    <ul>
-        <li>Footprint: 12x12 ft (144 sq ft)</li>
-        <li>Height: 6 ft</li>
-        <li>Environment: Indoor garage/shed with ventilation</li>
-        <li>Base: Stable platform with vibration damping</li>
-    </ul>
-</section>
-
-<section>
-    <h2>Contact & Procurement</h2>
-    <p>Email: <a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a><br>
-       Website: <a href="http://ioncoreenergy.com">ioncoreenergy.com</a><br>
-       Support: 8AM–8PM PST (Mon–Sat)</p>
-</section>
-
-<footer>
-    <p>&copy; 2025 Ioncore Energy Systems. Pioneering Sustainable Power.</p>
-</footer>
-
+  </footer>
 </body>
 </html>

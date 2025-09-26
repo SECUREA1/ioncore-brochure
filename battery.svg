@@ -15,8 +15,5 @@
     <use href="#spike" transform="rotate(315 60 60)" />
   </g>
   <circle cx="60" cy="60" r="36" fill="none" stroke="#6aff3b" stroke-width="12" />
-  <path
-    fill="#6aff3b"
-    d="M72 32 46 68h16l-6 20 32-48H66Z"
-  />
+  <path fill="#6aff3b" d="M72 10 36 74h20l-8 36 44-70H68Z" />
 </svg>

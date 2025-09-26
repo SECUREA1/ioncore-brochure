@@ -17,6 +17,7 @@
       --ioncore-aqua: #48ffe2;
       --ioncore-crimson: #ff4976;
       --ioncore-ink: rgba(6, 12, 24, 0.82);
+      --ioncore-neon: #6aff3b;
     }
 
     * {
@@ -35,6 +36,63 @@
       padding: 3rem 1.25rem;
       position: relative;
       overflow: hidden;
+    }
+
+    .intro-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(6, 14, 36, 0.94) 0%, rgba(5, 8, 18, 0.96) 40%, rgba(1, 2, 6, 0.98) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: opacity 0.85s ease, transform 0.85s ease;
+    }
+
+    .intro-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 45% 30%, rgba(106, 255, 59, 0.24), transparent 58%),
+        radial-gradient(circle at 60% 70%, rgba(72, 255, 226, 0.18), transparent 60%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+
+    .intro-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.35rem;
+      text-align: center;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+
+    .intro-logo {
+      width: clamp(96px, 24vw, 168px);
+      height: clamp(96px, 24vw, 168px);
+      animation: logo-spin 2.6s cubic-bezier(0.22, 0.68, 0, 1) forwards;
+      filter: drop-shadow(0 0 28px rgba(106, 255, 59, 0.45));
+    }
+
+    .intro-text {
+      font-size: clamp(1.75rem, 6vw, 3.4rem);
+      font-weight: 700;
+      color: var(--ioncore-neon);
+      text-shadow: 0 0 24px rgba(106, 255, 59, 0.35);
+      animation: text-expand 2.1s ease forwards;
+    }
+
+    .intro-text span {
+      color: #f8fafc;
+      display: block;
+      letter-spacing: 0.32em;
+      font-size: 0.78em;
+      margin-bottom: 0.4rem;
     }
 
     body::before {
@@ -88,6 +146,40 @@
       }
     }
 
+    @keyframes logo-spin {
+      0% {
+        transform: scale(0.75) rotate(-90deg);
+        opacity: 0;
+      }
+      35% {
+        opacity: 1;
+      }
+      65% {
+        transform: scale(1.15) rotate(390deg);
+      }
+      100% {
+        transform: scale(1) rotate(360deg);
+      }
+    }
+
+    @keyframes text-expand {
+      0% {
+        letter-spacing: 1em;
+        transform: scale(0.85);
+        opacity: 0;
+      }
+      45% {
+        opacity: 1;
+      }
+      70% {
+        transform: scale(1.12);
+      }
+      100% {
+        transform: scale(1);
+        letter-spacing: 0.18em;
+      }
+    }
+
     .vault-card {
       position: relative;
       z-index: 2;
@@ -99,6 +191,9 @@
       box-shadow: 0 22px 60px rgba(6, 12, 24, 0.55);
       backdrop-filter: blur(18px);
       overflow: hidden;
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.85s ease, transform 0.85s ease;
     }
 
     .vault-card::before {
@@ -122,6 +217,18 @@
       color: rgba(255, 73, 118, 0.2);
       transform: rotate(-90deg);
       pointer-events: none;
+    }
+
+    body.intro-complete .intro-screen {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+
+    body.intro-complete .vault-card {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0.12s;
     }
 
     .logo-lockup {
@@ -290,33 +397,68 @@
     }
   </style>
 </head>
-<body>
-  <div class="scanlines" aria-hidden="true"></div>
-  <main class="vault-card" role="main">
-    <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
-      <span>Ioncore</span> Energy // Clearance Gate
-    </div>
-    <div class="intel-banner" role="status">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
-      Confidential schematics. Quantum vault monitored 24/7.
-    </div>
-    <h1>Vault Access Protocol</h1>
-    <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
-    <form class="access-form" id="login-form" autocomplete="off">
-      <div class="field">
-        <label for="username">Access Key</label>
-        <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" required autofocus>
+  <body>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="intro-screen" role="presentation" aria-hidden="true">
+      <div class="intro-content">
+        <img class="intro-logo" src="battery.svg" alt="">
+        <div class="intro-text" aria-hidden="true"><span>Ioncore</span>Energy</div>
       </div>
-      <div class="field">
-        <label for="password">Clearance Code</label>
-        <input id="password" name="password" type="password" placeholder="••••••••" required>
+    </div>
+    <main class="vault-card" role="main">
+      <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
+        <span>Ioncore</span> Energy // Clearance Gate
       </div>
-      <button type="submit">Enter the Vault</button>
-      <p id="status" class="status-message" role="status" aria-live="polite"></p>
-    </form>
-    <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion.</p>
-  </main>
+      <div class="intel-banner" role="status">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
+        Confidential schematics. Quantum vault monitored 24/7.
+      </div>
+      <h1>Vault Access Protocol</h1>
+      <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <form class="access-form" id="login-form" autocomplete="off">
+        <div class="field">
+          <label for="username">Access Key</label>
+          <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Clearance Code</label>
+          <input id="password" name="password" type="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit">Enter the Vault</button>
+        <p id="status" class="status-message" role="status" aria-live="polite"></p>
+      </form>
+      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion.</p>
+    </main>
   <script>
+    const bodyElement = document.body;
+    const introScreen = document.querySelector('.intro-screen');
+
+    if (introScreen) {
+      window.addEventListener('load', () => {
+        const markIntroComplete = () => {
+          bodyElement.classList.add('intro-complete');
+        };
+
+        setTimeout(markIntroComplete, 2400);
+
+        const handleTransitionEnd = (event) => {
+          if (event.propertyName === 'opacity' && bodyElement.classList.contains('intro-complete')) {
+            introScreen.removeEventListener('transitionend', handleTransitionEnd);
+            introScreen.remove();
+          }
+        };
+
+        introScreen.addEventListener('transitionend', handleTransitionEnd);
+        setTimeout(() => {
+          markIntroComplete();
+          introScreen.removeEventListener('transitionend', handleTransitionEnd);
+          if (introScreen.parentNode) {
+            introScreen.remove();
+          }
+        }, 4000);
+      });
+    }
+
     const form = document.getElementById('login-form');
     const status = document.getElementById('status');
     const query = new URLSearchParams(window.location.search);

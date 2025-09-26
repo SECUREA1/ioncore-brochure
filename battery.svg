@@ -4,7 +4,7 @@
   <defs>
     <path id="spike" d="M60 6 72 24H48Z" />
   </defs>
-  <g fill="#0b7515">
+  <g fill="#6aff3b">
     <use href="#spike" />
     <use href="#spike" transform="rotate(45 60 60)" />
     <use href="#spike" transform="rotate(90 60 60)" />
@@ -14,6 +14,6 @@
     <use href="#spike" transform="rotate(270 60 60)" />
     <use href="#spike" transform="rotate(315 60 60)" />
   </g>
-  <circle cx="60" cy="60" r="36" fill="none" stroke="#0b7515" stroke-width="12" />
-  <path fill="#0b7515" d="M72 10 36 74h20l-8 36 44-70H68Z" />
+  <circle cx="60" cy="60" r="36" fill="none" stroke="#6aff3b" stroke-width="12" />
+  <path fill="#6aff3b" d="M72 10 36 74h20l-8 36 44-70H68Z" />
 </svg>

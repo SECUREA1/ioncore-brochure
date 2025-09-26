@@ -23,6 +23,99 @@
       background: linear-gradient(160deg, rgba(94, 249, 180, 0.24), rgba(6, 20, 36, 0.84));
     }
 
+    .cold-chain-visual {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 224, 255, 0.25);
+      box-shadow: inset 0 0 0 1px rgba(6, 28, 45, 0.2);
+      min-height: 320px;
+    }
+
+    .cold-chain-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(2, 10, 20, 0.32) 0%, rgba(2, 10, 20, 0.7) 100%);
+      pointer-events: none;
+    }
+
+    .cold-chain-visual__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(1.1);
+    }
+
+    .cold-chain-tiles {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      position: absolute;
+      inset: 22px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      z-index: 1;
+    }
+
+    .cold-chain-tiles li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: rgba(3, 16, 30, 0.78);
+      border: 1px solid rgba(94, 249, 180, 0.25);
+      border-radius: 14px;
+      padding: 16px;
+      color: #d9f7ff;
+      font-size: 0.9rem;
+      box-shadow: 0 12px 28px rgba(2, 8, 16, 0.4);
+      backdrop-filter: blur(6px);
+    }
+
+    .cold-chain-tiles li i {
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .cold-chain-tiles li span {
+      color: rgba(217, 247, 255, 0.92);
+    }
+
+    @media (max-width: 880px) {
+      .cold-chain-tiles {
+        inset: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .cold-chain-visual {
+        min-height: 420px;
+      }
+
+      .cold-chain-visual__image {
+        object-position: center top;
+      }
+
+      .cold-chain-tiles {
+        position: static;
+        padding: 0;
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .cold-chain-visual::after {
+        background: linear-gradient(180deg, rgba(2, 10, 20, 0.1) 0%, rgba(2, 10, 20, 0.85) 100%);
+      }
+
+      .cold-chain-tiles li {
+        background: rgba(3, 16, 30, 0.88);
+      }
+    }
+
     .system-overview {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -134,12 +227,15 @@
         </div>
         <div class="hero__visual">
           <h3>Integrated Cold Chain</h3>
-          <ul>
-            <li><i class="fa-solid fa-temperature-low"></i>Pulse-tube or Stirling cryocooler arrays sized to thermal load.</li>
-            <li><i class="fa-solid fa-fan"></i>High-conductivity heat exchangers bonded to magnet assemblies.</li>
-            <li><i class="fa-solid fa-shield-halved"></i>Vacuum, MLI, and thermal shields block conductive ingress.</li>
-            <li><i class="fa-solid fa-gauge-high"></i>IoT telemetry regulates coolant flow and phase transitions.</li>
-          </ul>
+          <div class="cold-chain-visual">
+            <img src="cool.png" alt="Integrated cryogenic cold chain with cooling loops and shielding" class="cold-chain-visual__image" loading="lazy">
+            <ul class="cold-chain-tiles">
+              <li><i class="fa-solid fa-temperature-low"></i><span>Pulse-tube or Stirling cryocooler arrays sized precisely to the thermal load.</span></li>
+              <li><i class="fa-solid fa-fan"></i><span>High-conductivity heat exchangers bonded directly to magnet assemblies.</span></li>
+              <li><i class="fa-solid fa-shield-halved"></i><span>Vacuum, multilayer insulation, and thermal shields block conductive ingress.</span></li>
+              <li><i class="fa-solid fa-gauge-high"></i><span>IoT telemetry regulates coolant flow, phase transitions, and redundancy.</span></li>
+            </ul>
+          </div>
         </div>
       </div>
     </section>

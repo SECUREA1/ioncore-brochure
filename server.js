@@ -29,8 +29,8 @@ const metrics = {
 
 const activeSessions = new Map();
 
-const AUTH_USER = process.env.BASIC_AUTH_USER || 'Chad01';
-const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'happy';
+const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
+const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'ioncore';
 
 const COOKIE_NAME = 'ioncore_session';
 const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours

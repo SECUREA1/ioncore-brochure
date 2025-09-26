@@ -848,12 +848,56 @@ main {
 
 .index-hero {
   display: grid;
-  gap: 24px;
+  gap: 32px;
+  align-items: center;
   background: linear-gradient(140deg, rgba(106, 255, 59, 0.12), rgba(8, 20, 34, 0.86));
   border: 1px solid var(--border);
   border-radius: 28px;
   padding: clamp(36px, 6vw, 64px);
   box-shadow: var(--shadow-soft);
+}
+
+.index-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.index-hero__visual {
+  position: relative;
+  margin: 0;
+  justify-self: center;
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(106, 255, 59, 0.18), rgba(10, 18, 34, 0.65));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.index-hero__visual::before {
+  content: "";
+  position: absolute;
+  inset: 12% 18% auto 18%;
+  height: 48%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 68%);
+  opacity: 0.35;
+  filter: blur(6px);
+}
+
+.index-hero__visual img {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 70vw);
+  height: auto;
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.55));
+}
+
+@media (min-width: 960px) {
+  .index-hero {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  }
 }
 
 .index-table-wrapper {

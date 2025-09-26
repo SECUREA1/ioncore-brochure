@@ -1,5 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <rect x="1" y="7" width="20" height="10" rx="2" ry="2" fill="none" stroke="#4caf50" stroke-width="2"/>
-  <rect x="3" y="9" width="16" height="6" rx="1" fill="#4caf50"/>
-  <rect x="21" y="10" width="2" height="4" fill="#4caf50"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">Ioncore Energy emblem</title>
+  <desc id="desc">Ioncore crest featuring a neon-green lightning bolt encircled by an eight-point energy ring.</desc>
+  <defs>
+    <path id="spike" d="M60 6 72 24H48Z" />
+  </defs>
+  <g fill="#6aff3b">
+    <use href="#spike" />
+    <use href="#spike" transform="rotate(45 60 60)" />
+    <use href="#spike" transform="rotate(90 60 60)" />
+    <use href="#spike" transform="rotate(135 60 60)" />
+    <use href="#spike" transform="rotate(180 60 60)" />
+    <use href="#spike" transform="rotate(225 60 60)" />
+    <use href="#spike" transform="rotate(270 60 60)" />
+    <use href="#spike" transform="rotate(315 60 60)" />
+  </g>
+  <circle cx="60" cy="60" r="36" fill="none" stroke="#6aff3b" stroke-width="12" />
+  <path fill="#6aff3b" d="M72 10 36 74h20l-8 36 44-70H68Z" />
 </svg>

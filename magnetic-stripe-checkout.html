@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Process magnetic stripe card payments for Ioncore Energy deployments.">
+  <title>Ioncore Energy | Magnetic Stripe Checkout</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header container">
+    <a class="logo" href="index.html" aria-label="Ioncore Energy brochure library">
+      <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+      <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
+
+  <main>
+    <section class="container page-section page-section--tight checkout-hero">
+      <div class="checkout-hero__content">
+        <div>
+          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Magnetic Stripe Checkout</span>
+          <h1 class="section-title">Capture point-of-sale transactions for Ioncore deployments.</h1>
+          <p class="section-subtitle">Use our secure magnetic stripe checkout to book deposits, finalize project invoices, and reconcile sales instantly with the Ioncore operations team.</p>
+        </div>
+        <div class="checkout-hero__card" aria-hidden="true">
+          <div class="checkout-card">
+            <div class="checkout-card__chip"></div>
+            <span class="checkout-card__brand">Ioncore Commerce</span>
+            <span class="checkout-card__number">5012 8834 2910 4527</span>
+            <div class="checkout-card__footer">
+              <span class="checkout-card__label">Valid Thru</span>
+              <span class="checkout-card__expiry">06/29</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section--tight checkout-grid">
+      <div class="checkout-panel">
+        <h2>Sales Checkout</h2>
+        <p class="checkout-panel__subtitle">Swipe the customer&apos;s card and capture the transaction details for immediate processing.</p>
+        <form class="checkout-form">
+          <div class="form-row">
+            <label for="cardholder">Cardholder Name</label>
+            <input type="text" id="cardholder" name="cardholder" placeholder="Alex Johnson" required>
+          </div>
+          <div class="form-row">
+            <label for="card-number">Magstripe Account Number</label>
+            <input type="text" id="card-number" name="card-number" inputmode="numeric" autocomplete="cc-number" placeholder="#### #### #### ####" required>
+          </div>
+          <div class="form-row form-row--split">
+            <div>
+              <label for="expiry">Expiration</label>
+              <input type="text" id="expiry" name="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" required>
+            </div>
+            <div>
+              <label for="cvv">Security Code</label>
+              <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="amount">Charge Amount (USD)</label>
+            <input type="number" id="amount" name="amount" placeholder="25000" min="1" step="0.01" required>
+          </div>
+          <div class="form-row">
+            <label for="notes">Project Reference</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Hybrid flywheel deployment – Phase 1 deposit"></textarea>
+          </div>
+          <button class="btn btn-primary checkout-form__submit" type="submit">Process Magnetic Stripe Sale</button>
+          <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete.</p>
+        </form>
+      </div>
+      <aside class="checkout-sidebar">
+        <h3>Checkout guidance</h3>
+        <ul>
+          <li><span>Verify the swiped data before submitting to ensure the cardholder name and amount match the signed work order.</span></li>
+          <li><span>Use the notes field to identify the project stage—deposit, milestone, or final commissioning payment.</span></li>
+          <li><span>Send the confirmation email from the Ioncore CRM within 15 minutes of approval.</span></li>
+        </ul>
+        <div class="checkout-sidebar__cta">
+          <h4>Need help?</h4>
+          <p>Email <a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a> or message the deployment success team on Telegram for rapid support.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html">
+            <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+            <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+          </a>
+          <p>Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic innovations.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Chat with us on Telegram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Curated brochure experience for visionary partners.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sentinel Multi‑Cam AI — Product Brochure</title>
+  <meta name="description" content="Edge-first, real-time multi‑camera AI for person, face, object, and vehicle recognition with auditable events, alerts, and a local vehicle registry." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    :root{
+      --bg:#0e0f13;
+      --panel:#14161d;
+      --panel-2:#181b24;
+      --text:#e7ecf3;
+      --muted:#a8b3c7;
+      --brand:#6ea8fe;
+      --brand-2:#7bd389;
+      --accent:#f7b267;
+      --danger:#ff6b6b;
+      --ok:#66d9a3;
+      --border:#262a35;
+      --shadow: 0 6px 24px rgba(0,0,0,.3);
+      --radius:14px;
+      --radius-sm:10px;
+      --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0d0f14, #0b0d11 60%, #0b0d11);color:var(--text);font-family:var(--font);line-height:1.55}
+    a{color:var(--brand);text-decoration:none}
+    a:hover{opacity:.9}
+    header{position:sticky;top:0;z-index:40;backdrop-filter:saturate(140%) blur(8px);background:linear-gradient(180deg, rgba(20,23,31,.9), rgba(20,23,31,.5));border-bottom:1px solid var(--border)}
+    .wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+    .nav{display:flex;align-items:center;gap:24px;padding:14px 0}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.3px}
+    .logo{width:36px;height:36px;border-radius:10px;background: radial-gradient(120% 120% at 30% 20%, #6ea8fe, #7bd389 40%, #3e4761);box-shadow: inset 0 0 20px rgba(255,255,255,.15)}
+    .navlinks{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;color:var(--muted);background:var(--panel)}
+    .hero{padding:64px 0 28px;position:relative;overflow:hidden}
+    .hero h1{margin:10px 0 8px;font-size:clamp(28px, 3.8vw, 46px);line-height:1.12;letter-spacing:.2px}
+    .hero p{color:var(--muted);font-size:clamp(16px, 1.3vw, 18px)}
+    .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .btn{appearance:none;border:none;cursor:pointer;padding:12px 16px;border-radius:12px;font-weight:700;background:var(--brand);color:#0b0d11;box-shadow:var(--shadow)}
+    .btn.alt{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+    .grid{display:grid;gap:18px;grid-template-columns:repeat(12, minmax(0,1fr))}
+    .card{background:linear-gradient(180deg, var(--panel), var(--panel-2));border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+    .card h3{margin:4px 0 8px;font-size:18px}
+    .muted{color:var(--muted)}
+    .kpi{display:flex;align-items:baseline;gap:10px}
+    .kpi .num{font-size:clamp(28px, 3.4vw, 36px);font-weight:900}
+    section{padding:28px 0}
+    h2{font-size:clamp(22px, 2.6vw, 30px);margin:0 0 10px}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;background:#11161f;border:1px solid var(--border);border-radius:999px;color:var(--muted)}
+    ul.clean{list-style:none;padding-left:0;margin:0}
+    ul.clean li{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #1e2330}
+    .tag{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+    .two{display:grid;gap:18px;grid-template-columns:repeat(12, minmax(0,1fr))}
+    .two>.left{grid-column:span 7}
+    .two>.right{grid-column:span 5}
+    @media (max-width:980px){.two>.left,.two>.right{grid-column:1 / -1}}
+    .price-grid{display:grid;gap:18px;grid-template-columns:repeat(12, minmax(0,1fr))}
+    .price{grid-column:span 4}
+    @media (max-width:980px){.price{grid-column:1 / -1}}
+    .price .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .price .cost{font-size:28px;font-weight:900}
+    .price ul{margin:12px 0 0;padding-left:18px}
+    .disclaimer{font-size:12px;color:var(--muted)}
+    .calc-grid{display:grid;gap:12px;grid-template-columns:repeat(12, minmax(0,1fr))}
+    .calc-grid .col{grid-column:span 6}
+    .calc-grid .col.full{grid-column:1 / -1}
+    @media (max-width:820px){.calc-grid .col{grid-column:1 / -1}}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type="number"],input[type="text"]{width:100%;padding:10px 12px;border-radius:10px;background:#0f121a;color:var(--text);border:1px solid var(--border);font-family:var(--mono)}
+    .total{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px;border-radius:var(--radius-sm);background:#0f141c;border:1px solid var(--border)}
+    .foot{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;color:var(--muted)}
+    .check{color:var(--brand-2);font-weight:800}
+    .x{color:var(--danger);font-weight:800}
+    .mono{font-family:var(--mono)}
+    footer{padding:26px 0 48px;color:var(--muted);border-top:1px solid var(--border);margin-top:32px}
+    .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;background:#0e1420;border:1px solid var(--border);border-radius:999px}
+    .small{font-size:12px}
+    .sep{height:1px;background:linear-gradient(90deg, transparent, #1c2330, transparent);margin:22px 0}
+    .list-tight{padding-left:18px;margin:8px 0}
+    /* accessibility helpers */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Skip to content</a>
+  <header role="banner">
+    <div class="wrap nav">
+      <div class="brand" aria-label="Sentinel brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span>Sentinel Multi‑Cam AI</span>
+      </div>
+      <nav class="navlinks" aria-label="Primary">
+        <a href="#overview" class="chip">Overview</a>
+        <a href="#features" class="chip">Features</a>
+        <a href="#pricing" class="chip">Pricing</a>
+        <a href="#dbcalc" class="chip">DB Cost Estimator</a>
+        <a href="#faq" class="chip">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap grid">
+        <div class="card" style="grid-column: span 8;">
+          <div class="pill" aria-label="Capabilities">Real‑time recognition • Up to 8 cameras • Local or CUDA</div>
+          <h1 id="hero-title">Edge AI for people, faces, objects & vehicles — in real time.</h1>
+          <p>
+            Detect people, faces, shirt colors and objects. Track actions like <em>picked up</em>, <em>held</em>, and <em>placed</em> with durations. Log vehicles with color and snapshots. Notify your team via Pushover, Telegram, Twilio, or Webhooks.
+            Built for accuracy and explainability with tunable thresholds, spot‑locks, and complete history.
+          </p>
+          <div class="cta" role="group" aria-label="Primary actions">
+            <a href="#pricing" class="btn" aria-label="See plans and pricing">See Plans & Pricing</a>
+            <a href="#features" class="btn alt" aria-label="Explore features">Explore Features</a>
+          </div>
+        </div>
+        <aside class="card" style="grid-column: span 4;" aria-label="Key performance">
+          <div class="kpi">
+            <div class="num" aria-live="polite">≤33&nbsp;ms</div>
+            <div class="muted">UI loop latency cap<br/><span class="small">smooth feeds • configurable</span></div>
+          </div>
+          <div class="sep" aria-hidden="true"></div>
+          <ul class="clean" aria-label="Highlights">
+            <li><span class="tag">Detections</span><span class="muted">YOLO‑based objects + face re‑ID</span></li>
+            <li><span class="tag">Events</span><span class="muted">Picked‑Up / Held / Placed (with durations)</span></li>
+            <li><span class="tag">People</span><span class="muted">Known & unknown, with shirt color</span></li>
+            <li><span class="tag">Vehicles</span><span class="muted">Local DB with snapshots</span></li>
+            <li><span class="tag">Alerts</span><span class="muted">Pushover • Telegram • Twilio • Webhook</span></li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="overview" aria-labelledby="overview-title">
+      <div class="wrap two">
+        <div class="left card">
+          <h2 id="overview-title">What is Sentinel Multi‑Cam AI?</h2>
+          <p class="muted">
+            A desktop/edge application that ingests up to 8 camera feeds and performs real‑time recognition — people, faces (with unknown bucketing), objects (with color pooling), and vehicles. It logs human‑readable events (who picked up what, where it was placed, for how long), supports instant last‑location recall, and provides review queues for faces, people, and vehicles.
+          </p>
+          <ul class="list-tight" aria-label="Core capabilities list">
+            <li>Face recognition with unknown re‑ID buckets</li>
+            <li>Shirt color sampling near detected heads</li>
+            <li>Object color pooling and custom labels (per object or color)</li>
+            <li>Vehicle DB with perceptual hash, snapshots, and attributes</li>
+            <li>Spot‑locks to suppress repeat re‑tagging in the same location</li>
+            <li>Auto‑place timeout for held items</li>
+            <li>Tuning overlay for thresholds, idle %, NMS, and more</li>
+          </ul>
+        </div>
+        <aside class="right card">
+          <h3>Architecture at a glance</h3>
+          <ul class="clean">
+            <li><span class="tag">Core</span><span class="muted">OpenCV + YOLOv3 (objects), <span class="mono">face_recognition</span> (dlib) for faces</span></li>
+            <li><span class="tag">UI</span><span class="muted">Tkinter desktop app; multi‑cam worker threads</span></li>
+            <li><span class="tag">Storage</span><span class="muted">Local JSON/NPY + snapshots; optional external DB</span></li>
+            <li><span class="tag">Perf</span><span class="muted">CUDA when available; otherwise optimized CPU</span></li>
+            <li><span class="tag">Extensibility</span><span class="muted">Webhooks; custom labels; color pooling per label</span></li>
+          </ul>
+          <div class="sep"></div>
+          <div class="foot">
+            <span class="badge" aria-label="Local first">Local‑first</span>
+            <span class="badge" aria-label="Privacy aware">Privacy‑aware</span>
+            <span class="badge" aria-label="Auditable logs">Auditable logs</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <h2 id="features-title">Key features</h2>
+        <div class="grid">
+          <div class="card" style="grid-column: span 6;">
+            <h3>People & Faces</h3>
+            <p class="muted">Identify known faces, consistently bucket unknowns, and capture shirt color near the head for rapid description and re‑ID.</p>
+            <ul class="list-tight">
+              <li>Known/Unknown persons with last‑seen recall</li>
+              <li>Shirt color hex + basic color name</li>
+              <li>Cooldowns to avoid event spam</li>
+            </ul>
+          </div>
+          <div class="card" style="grid-column: span 6;">
+            <h3>Objects & Actions</h3>
+            <p class="muted">Per‑object state machine (Placed → Picked Up → Held → Placed) with durations and color‑pooled naming.</p>
+            <ul class="list-tight">
+              <li>Custom labels for object or (object+color)</li>
+              <li>Auto‑place after idle timeout</li>
+              <li>Spot‑locks to suppress duplicate re‑tags</li>
+            </ul>
+          </div>
+          <div class="card" style="grid-column: span 6;">
+            <h3>Vehicle Registry</h3>
+            <p class="muted">Local vehicle registry keyed by perceptual hash; store make/model/plate/nicknames and snapshots.</p>
+            <ul class="list-tight">
+              <li>Color detection & hex</li>
+              <li>Recent sighting timeline</li>
+              <li>Snapshot viewer</li>
+            </ul>
+          </div>
+          <div class="card" style="grid-column: span 6;">
+            <h3>Notifications</h3>
+            <p class="muted">Subscribe to specific people, objects, or vehicle labels. Route through your preferred channel.</p>
+            <ul class="list-tight">
+              <li>Pushover, Telegram, Twilio SMS/MMS, Webhooks</li>
+              <li>Optional built‑in media host for MMS</li>
+              <li>Global cooldown to prevent floods</li>
+            </ul>
+          </div>
+          <div class="card" style="grid-column: span 12;">
+            <h3>Roadmap (Future)</h3>
+            <ul class="clean">
+              <li><span class="tag">Q4</span><span class="muted">ONVIF discovery & RTSP presets for easy camera onboarding</span></li>
+              <li><span class="tag">Q1</span><span class="muted">Optional cloud sync (events only) with role‑based access</span></li>
+              <li><span class="tag">Q1</span><span class="muted">Model upgrade path (YOLOv5/8/RT‑DETR) with auto‑bench</span></li>
+              <li><span class="tag">Q2</span><span class="muted">Fine‑grained privacy policies per camera & redaction</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" aria-labelledby="pricing-title">
+      <div class="wrap">
+        <h2 id="pricing-title">Plans & pricing</h2>
+        <p class="muted">Licenses are per host (up to 8 cameras per host). Bring your own database for cloud retention if desired; local storage is included.</p>
+        <div class="price-grid">
+          <div class="card price" aria-label="Starter plan">
+            <div class="hdr">
+              <div><strong>Starter</strong></div>
+              <div class="cost">$29<span class="small">/mo</span></div>
+            </div>
+            <ul>
+              <li>Up to 3 cameras</li>
+              <li>Local storage only</li>
+              <li>Email support</li>
+            </ul>
+            <div class="sep"></div>
+            <div class="disclaimer">Ideal for small offices & pilots.</div>
+          </div>
+          <div class="card price" style="border:1px solid #35507a" aria-label="Pro plan">
+            <div class="hdr">
+              <div><strong>Pro</strong> <span class="tag">Most popular</span></div>
+              <div class="cost">$79<span class="small">/mo</span></div>
+            </div>
+            <ul>
+              <li>Up to 8 cameras</li>
+              <li>All notifications + media host</li>
+              <li>Priority email support</li>
+            </ul>
+            <div class="sep"></div>
+            <div class="disclaimer">Add optional cloud DB below.</div>
+          </div>
+          <div class="card price" aria-label="Enterprise plan">
+            <div class="hdr">
+              <div><strong>Enterprise</strong></div>
+              <div class="cost">Custom</div>
+            </div>
+            <ul>
+              <li>Multi‑host orchestration</li>
+              <li>SAML/SSO, audit exports</li>
+              <li>SLA + dedicated support</li>
+            </ul>
+            <div class="sep"></div>
+            <div class="disclaimer">Let’s tailor deployment & terms.</div>
+          </div>
+        </div>
+        <p class="small disclaimer" style="margin-top:10px">
+          Prices exclude any cloud database or object storage fees. Use the estimator below to forecast data costs. Figures are illustrative.
+        </p>
+      </div>
+    </section>
+
+    <section id="dbcalc" aria-labelledby="dbcalc-title">
+      <div class="wrap">
+        <h2 id="dbcalc-title">Database & storage cost estimator</h2>
+        <p class="muted">Adjust your expected usage. This estimates storage costs for event logs and snapshots plus a base DB fee and optional egress. Replace with your provider’s rates.</p>
+
+        <div class="card" role="region" aria-label="Estimator form">
+          <div class="calc-grid">
+            <div class="col">
+              <h3>Event logs</h3>
+              <label for="eventsPerDay">Events per day (object/person actions)</label>
+              <input id="eventsPerDay" type="number" inputmode="numeric" value="15000" min="0" step="100" aria-describedby="eventsHelp">
+              <span id="eventsHelp" class="sr-only">Number of events per day</span>
+              <label for="rowSizeKB">Avg. row size (KB) — JSON + indexes</label>
+              <input id="rowSizeKB" type="number" inputmode="decimal" value="0.8" min="0" step="0.1">
+              <label for="retentionDays">Retention (days)</label>
+              <input id="retentionDays" type="number" inputmode="numeric" value="30" min="1" step="1">
+            </div>
+
+            <div class="col">
+              <h3>Snapshots</h3>
+              <label for="snapsPerDay">Snapshots per day (faces/unknowns/vehicles)</label>
+              <input id="snapsPerDay" type="number" inputmode="numeric" value="1200" min="0" step="10">
+              <label for="snapSizeMB">Avg. snapshot size (MB)</label>
+              <input id="snapSizeMB" type="number" inputmode="decimal" value="0.18" min="0" step="0.01">
+              <label for="snapRetentionDays">Snapshot retention (days)</label>
+              <input id="snapRetentionDays" type="number" inputmode="numeric" value="14" min="1" step="1">
+            </div>
+
+            <div class="col">
+              <h3>Rates</h3>
+              <label for="storagePerGB">Storage price ($ / GB / mo)</label>
+              <input id="storagePerGB" type="number" inputmode="decimal" value="0.12" min="0" step="0.01">
+              <label for="egressPerGB">Egress price ($ / GB) — optional</label>
+              <input id="egressPerGB" type="number" inputmode="decimal" value="0.09" min="0" step="0.01">
+              <label for="egressGB">Estimated egress (GB / mo)</label>
+              <input id="egressGB" type="number" inputmode="numeric" value="15" min="0" step="1">
+            </div>
+
+            <div class="col">
+              <h3>Base fees</h3>
+              <label for="dbBaseFee">DB base fee ($ / mo) — managed Postgres example</label>
+              <input id="dbBaseFee" type="number" inputmode="decimal" value="25" min="0" step="1">
+              <label for="objectBaseFee">Object storage base ($ / mo)</label>
+              <input id="objectBaseFee" type="number" inputmode="decimal" value="0" min="0" step="1">
+              <label for="redundancyFactor">Redundancy factor (e.g., 1.0 = single, 3.0 = triple)</label>
+              <input id="redundancyFactor" type="number" inputmode="decimal" value="1.0" min="1" step="0.5">
+            </div>
+
+            <div class="col full">
+              <div class="total" aria-live="polite">
+                <div>
+                  <div class="small muted">Estimated monthly storage</div>
+                  <div class="kpi">
+                    <div class="num"><span id="outGB">—</span> GB</div>
+                    <div class="muted"> logs + snapshots (after retention & redundancy)</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="small muted">Estimated monthly cost</div>
+                  <div class="kpi">
+                    <div class="num">$<span id="outCost">—</span></div>
+                    <div class="muted"> storage + egress + base fees</div>
+                  </div>
+                </div>
+              </div>
+              <div class="small muted" style="margin-top:8px">This tool is illustrative. Replace rates with your provider’s official pricing.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <span class="badge">Local SQLite/JSON — $0</span>
+          <span class="badge">Bring‑your‑own Postgres/MySQL</span>
+          <span class="badge">S3‑compatible snapshots</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="wrap">
+        <h2 id="faq-title">FAQ</h2>
+        <div class="grid">
+          <div class="card" style="grid-column: span 6;">
+            <h3>Do I need a cloud DB?</h3>
+            <p class="muted">No. Everything works locally out of the box. A cloud DB is optional for centralizing logs, analytics, or multi‑site access.</p>
+          </div>
+          <div class="card" style="grid-column: span 6;">
+            <h3>How are notifications handled?</h3>
+            <p class="muted">Choose your channel (Pushover, Telegram, Twilio, or Webhook) and subscribe to specific people, objects, or vehicle labels. Optional built‑in media host helps with MMS images.</p>
+          </div>
+          <div class="card" style="grid-column: span 6;">
+            <h3>What about privacy?</h3>
+            <p class="muted">It’s local‑first. You decide what to store, for how long, and whether to sync anything to the cloud. Tuning options and logs are auditable.</p>
+          </div>
+          <div class="card" style="grid-column: span 6;">
+            <h3>Can I change the detection models?</h3>
+            <p class="muted">Yes. The roadmap includes pluggable model backends. Today’s default is YOLOv3 for objects and <span class="mono">face_recognition</span> for faces.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer role="contentinfo">
+    <div class="wrap">
+      <div class="foot">
+        <span>© <span id="y"></span> Sentinel Multi‑Cam AI</span>
+        <span class="small">All names/logos used for illustration only.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      const $ = id => document.getElementById(id);
+      const inputs = [
+        "eventsPerDay","rowSizeKB","retentionDays",
+        "snapsPerDay","snapSizeMB","snapRetentionDays",
+        "storagePerGB","egressPerGB","egressGB",
+        "dbBaseFee","objectBaseFee","redundancyFactor"
+      ].map($);
+
+      function toNumber(el, fallback=0){
+        const v = parseFloat(el.value);
+        return isFinite(v) ? v : fallback;
+      }
+
+      function calc(){
+        const eventsPerDay = toNumber($("eventsPerDay"));
+        const rowSizeKB = toNumber($("rowSizeKB"));
+        const retentionDays = toNumber($("retentionDays"), 30);
+
+        const snapsPerDay = toNumber($("snapsPerDay"));
+        const snapSizeMB = toNumber($("snapSizeMB"));
+        const snapRetentionDays = toNumber($("snapRetentionDays"), 14);
+
+        const storagePerGB = toNumber($("storagePerGB"));
+        const egressPerGB = toNumber($("egressPerGB"));
+        const egressGB = toNumber($("egressGB"));
+        const dbBaseFee = toNumber($("dbBaseFee"));
+        const objectBaseFee = toNumber($("objectBaseFee"));
+        const redundancyFactor = Math.max(1, toNumber($("redundancyFactor"), 1));
+
+        // Logs GB = events/day * rowSizeKB * retentionDays / (1024*1024)
+        const logsGB = (eventsPerDay * rowSizeKB * retentionDays) / (1024*1024);
+
+        // Snapshots GB = snaps/day * snapSizeMB * retentionDays / 1024
+        const snapsGB = (snapsPerDay * snapSizeMB * snapRetentionDays) / 1024;
+
+        // Apply redundancy (e.g., triple‑redundant object storage)
+        const totalGB = (logsGB + snapsGB) * redundancyFactor;
+
+        const storageCost = totalGB * storagePerGB;
+        const egressCost = egressGB * egressPerGB;
+        const monthly = storageCost + egressCost + dbBaseFee + objectBaseFee;
+
+        $("outGB").textContent = Math.max(0,totalGB).toFixed(2);
+        $("outCost").textContent = Math.max(0,monthly).toFixed(2);
+      }
+
+      inputs.forEach(el => el.addEventListener("input", calc));
+      calc();
+
+      document.getElementById("y").textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>

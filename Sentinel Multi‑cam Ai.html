@@ -215,6 +215,20 @@
       gap: 14px;
     }
 
+    .hero__device {
+      margin: 28px 0 0;
+      max-width: 420px;
+    }
+
+    .hero__device img {
+      display: block;
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(106, 255, 59, 0.22);
+      box-shadow: var(--shadow-soft);
+      background: rgba(6, 12, 22, 0.7);
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -736,11 +750,18 @@
             <a class="btn btn-outline" href="#capabilities"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>See feature map</span></a>
             <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span>Book a demo</span></a>
           </div>
+          <figure class="hero__device">
+            <img src="sentinal.png" alt="Sentinel Multi-Cam AI appliance hardware">
+          </figure>
         </div>
         <aside class="hero__card" aria-label="Key performance highlights">
           <div class="hero__media" role="group" aria-label="Sentinel interface previews">
             <img src="seintinalai.png" alt="Sentinel Multi-Cam AI live operations console" class="hero__image">
             <div class="hero__media-strip">
+              <figure class="hero__thumb">
+                <img src="sentinal.png" alt="Sentinel Multi-Cam AI appliance hardware">
+                <figcaption>Hardware overview</figcaption>
+              </figure>
               <figure class="hero__thumb">
                 <img src="setinalex.png" alt="Explainable alert timeline from Sentinel Multi-Cam AI">
                 <figcaption>Explainable detections</figcaption>

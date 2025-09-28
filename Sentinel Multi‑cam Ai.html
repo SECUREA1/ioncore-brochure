@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sentinel Multi‑Cam AI | Ioncore Energy</title>
-  <meta name="description" content="Sentinel Multi‑Cam AI by Ioncore Energy. Real-time, edge-first surveillance intelligence with explainable events, alerts, and a vehicle registry." />
+  <meta name="description" content="Sentinel Multi‑Cam AI fuses edge-first computer vision with Ioncore resilience. Run multi-camera inference, orchestrate explainable alerts, and keep surveillance telemetry local." />
   <meta property="og:title" content="Sentinel Multi‑Cam AI | Ioncore Energy">
   <meta property="og:description" content="Edge-first, multi-camera AI for people, face, object, and vehicle recognition with auditable history and instant alerts.">
   <meta property="og:image" content="battery.svg">
   <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="apple-touch-icon" href="battery.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,64 +17,31 @@
   <style>
     :root {
       --bg: #030712;
-      --gradient-a: radial-gradient(circle at 12% 18%, rgba(106, 255, 59, 0.18), transparent 58%);
-      --gradient-b: radial-gradient(circle at 88% 12%, rgba(55, 120, 255, 0.18), transparent 68%);
-      --surface: rgba(10, 17, 30, 0.78);
-      --surface-strong: rgba(13, 24, 46, 0.88);
-      --surface-soft: rgba(7, 14, 26, 0.68);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.16);
+      --bg-soft: #060d1a;
+      --surface: rgba(12, 21, 36, 0.82);
+      --surface-strong: rgba(16, 26, 42, 0.92);
+      --surface-soft: rgba(7, 15, 28, 0.65);
+      --border: rgba(110, 140, 190, 0.18);
+      --border-strong: rgba(106, 255, 59, 0.25);
       --accent: #6aff3b;
-      --accent-strong: #3cbf2a;
-      --accent-soft: rgba(106, 255, 59, 0.14);
+      --accent-strong: #3cbc24;
+      --accent-soft: rgba(106, 255, 59, 0.15);
       --text-high: #f5f8ff;
-      --text-med: #b5c4e1;
-      --text-muted: #7f8ba4;
-      --danger: #ff7575;
-      --ok: #62e19a;
-      --shadow-card: 0 28px 60px rgba(5, 12, 24, 0.54);
-      --shadow-soft: 0 18px 34px rgba(5, 12, 24, 0.4);
-      --radius-lg: 24px;
+      --text-med: #aebcdf;
+      --text-muted: #7b88a6;
+      --shadow: 0 32px 60px rgba(3, 6, 14, 0.55);
+      --shadow-soft: 0 18px 40px rgba(4, 8, 18, 0.42);
+      --radius-lg: 26px;
       --radius-md: 18px;
       --radius-sm: 12px;
-    }
-
-    *, *::before, *::after {
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sentinel Multi‑Cam AI | Ioncore Energy</title>
-  <meta name="description" content="Sentinel Multi-Cam AI blends Ioncore energy resilience with computer vision intelligence. Always-on security with on-prem analytics, explainability, and rapid deployment." />
-  <link rel="icon" type="image/svg+xml" href="battery.svg">
-  <link rel="apple-touch-icon" href="battery.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #05080f;
-      --bg-soft: #0b111b;
-      --panel: #101726;
-      --panel-alt: #0c1421;
-      --panel-soft: rgba(16, 23, 38, 0.75);
-      --brand: #6aff3b;
-      --brand-soft: rgba(106, 255, 59, 0.12);
-      --brand-dark: #38b61d;
-      --text: #f5f7fb;
-      --muted: #a7b3c9;
-      --border: rgba(87, 107, 139, 0.35);
-      --radius: 18px;
-      --radius-sm: 12px;
-      --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
       --font: 'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    * {
-
+    *, *::before, *::after {
       box-sizing: border-box;
     }
 
     html, body {
-
       margin: 0;
       padding: 0;
       min-height: 100%;
@@ -82,44 +49,12 @@
     }
 
     body {
-      font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text-high);
-      line-height: 1.6;
-      position: relative;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      background: linear-gradient(140deg, rgba(5, 14, 27, 0.96), rgba(4, 12, 22, 0.94)), var(--gradient-a), var(--gradient-b);
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at 20% 70%, rgba(106, 255, 59, 0.16), transparent 62%);
-      z-index: -3;
-      pointer-events: none;
-
-      height: 100%;
-    }
-
-    body {
-      margin: 0;
       font-family: var(--font);
-      background: radial-gradient(circle at 20% -10%, rgba(106, 255, 59, 0.12), transparent 45%),
-        radial-gradient(circle at 80% 110%, rgba(106, 255, 59, 0.08), transparent 50%),
-        linear-gradient(180deg, #02050b 0%, #05070d 60%, #080d16 100%);
-      color: var(--text);
-      line-height: 1.6;
-
+      background: radial-gradient(circle at 16% 12%, rgba(106, 255, 59, 0.18), transparent 55%),
+        radial-gradient(circle at 82% 8%, rgba(76, 132, 255, 0.12), transparent 58%),
+        linear-gradient(180deg, #02050b 0%, #040a15 52%, #060b17 100%);
+      color: var(--text-high);
+      line-height: 1.65;
     }
 
     a {
@@ -127,21 +62,17 @@
       text-decoration: none;
     }
 
+    a:hover,
     a:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 4px;
-    }
-
-    .container {
-      width: min(1200px, 92vw);
-      margin: 0 auto;
+      color: var(--accent);
     }
 
     .skip-link {
       position: absolute;
+      top: 0;
       left: 50%;
-      transform: translate(-50%, -100%);
-      background: #0a1628;
+      transform: translate(-50%, -120%);
+      background: var(--surface-strong);
       color: var(--text-high);
       padding: 10px 18px;
       border-radius: 999px;
@@ -150,14 +81,19 @@
     }
 
     .skip-link:focus {
-      transform: translate(-50%, 14px);
+      transform: translate(-50%, 16px);
+    }
+
+    .container {
+      width: min(1200px, 92vw);
+      margin: 0 auto;
     }
 
     .site-header {
       position: sticky;
       top: 0;
       z-index: 90;
-      background: rgba(5, 11, 20, 0.82);
+      background: rgba(3, 6, 14, 0.82);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
@@ -165,42 +101,30 @@
     .site-header__inner {
       display: flex;
       align-items: center;
-      gap: 32px;
-      padding: 20px 0;
+      gap: 28px;
+      padding: 18px 0;
     }
 
     .logo {
       display: inline-flex;
       align-items: center;
       gap: 12px;
+      font-size: 1.05rem;
       font-weight: 800;
-      font-size: 1.12rem;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--text-high);
     }
 
     .logo img {
-      width: 40px;
-      height: 40px;
-      filter: drop-shadow(0 12px 24px rgba(106, 255, 59, 0.42));
-    }
-
-    .logo span {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.1;
-    }
-
-    .logo span strong {
-      color: var(--accent);
-      font-size: 1.1rem;
+      width: 42px;
+      height: 42px;
+      filter: drop-shadow(0 14px 32px rgba(106, 255, 59, 0.4));
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
       margin-left: auto;
       flex-wrap: wrap;
     }
@@ -212,31 +136,43 @@
       padding: 8px 16px;
       border-radius: 999px;
       border: 1px solid transparent;
-      transition: border 0.2s ease, color 0.2s ease, background 0.2s ease;
+      transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
     }
 
     .nav-links a:hover,
     .nav-links a:focus-visible {
-      color: var(--accent);
       border-color: var(--accent-soft);
-      background: rgba(106, 255, 59, 0.08);
+      background: rgba(106, 255, 59, 0.1);
+      color: var(--accent);
+    }
+
+    .header-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+      color: #04100e;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 20px 40px rgba(106, 255, 59, 0.32);
     }
 
     main {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 88px;
-      padding: 32px 0 120px;
+      gap: clamp(70px, 10vw, 110px);
+      padding: clamp(40px, 6vw, 70px) 0 clamp(90px, 10vw, 140px);
     }
 
     .hero {
-      padding-top: 32px;
+      padding-top: clamp(20px, 6vw, 60px);
     }
 
     .hero__grid {
       display: grid;
-      gap: clamp(28px, 5vw, 48px);
+      gap: clamp(28px, 6vw, 48px);
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       align-items: stretch;
     }
@@ -245,23 +181,21 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
+      font-weight: 700;
       color: var(--accent);
-      margin-bottom: 20px;
-    }
-
-    .hero__eyebrow i {
-      color: var(--accent);
+      background: rgba(106, 255, 59, 0.12);
+      border-radius: 999px;
+      padding: 8px 14px;
     }
 
     .hero__title {
-      font-size: clamp(2.4rem, 6vw, 3.6rem);
-      font-weight: 700;
+      margin: 22px 0 18px;
+      font-size: clamp(2.5rem, 6vw, 3.6rem);
       line-height: 1.08;
-      margin: 0 0 18px;
+      letter-spacing: -0.01em;
     }
 
     .hero__title span {
@@ -270,9 +204,9 @@
 
     .hero__copy {
       color: var(--text-med);
-      font-size: clamp(1.02rem, 2.2vw, 1.18rem);
+      font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+      max-width: 560px;
       margin-bottom: 28px;
-      max-width: 540px;
     }
 
     .btn-group {
@@ -289,7 +223,7 @@
       padding: 14px 28px;
       border-radius: 999px;
       font-weight: 700;
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       border: 1px solid transparent;
       cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border 0.18s ease;
@@ -301,13 +235,13 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.18);
       opacity: 0;
       transition: opacity 0.18s ease;
     }
 
     .btn:hover::after {
-      opacity: 0.2;
+      opacity: 0.18;
     }
 
     .btn:hover {
@@ -316,29 +250,25 @@
 
     .btn-primary {
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-      color: #041017;
-      box-shadow: 0 18px 48px rgba(106, 255, 59, 0.42);
+      color: #051209;
+      box-shadow: 0 18px 42px rgba(106, 255, 59, 0.32);
     }
 
     .btn-outline {
-      border: 1px solid var(--border-strong);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       color: var(--text-high);
       background: rgba(6, 12, 22, 0.6);
     }
 
-    .btn-outline:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
     .hero__card {
-      background: linear-gradient(160deg, rgba(10, 18, 30, 0.92), rgba(11, 22, 39, 0.62));
-      border: 1px solid var(--border);
+      background: linear-gradient(165deg, rgba(10, 18, 32, 0.95), rgba(7, 14, 26, 0.72));
+      border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: var(--radius-lg);
-      padding: clamp(22px, 5vw, 36px);
-      box-shadow: var(--shadow-card);
+      padding: clamp(24px, 5vw, 36px);
+      box-shadow: var(--shadow);
       display: grid;
       gap: 18px;
+      align-content: start;
     }
 
     .hero__stat {
@@ -348,9 +278,8 @@
     }
 
     .hero__stat-number {
-      font-size: clamp(2.2rem, 5vw, 3rem);
+      font-size: clamp(2.3rem, 5vw, 3.2rem);
       font-weight: 800;
-      letter-spacing: -0.02em;
       color: var(--accent);
     }
 
@@ -361,288 +290,44 @@
 
     .divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-=======
-    a:hover {
-      color: var(--brand);
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      backdrop-filter: blur(18px) saturate(160%);
-      background: linear-gradient(180deg, rgba(11, 17, 27, 0.92), rgba(11, 17, 27, 0.6));
-      border-bottom: 1px solid var(--border);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      padding: 18px 0;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-    }
-
-    .logo img {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      padding: 8px;
-      background: linear-gradient(135deg, rgba(106, 255, 59, 0.1), rgba(106, 255, 59, 0.35));
-      box-shadow: inset 0 0 18px rgba(106, 255, 59, 0.16);
-    }
-
-    nav ul {
-      display: flex;
-      gap: 18px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-
-    nav a {
-      padding: 10px 12px;
-      border-radius: 999px;
-      transition: color 0.2s ease, background 0.2s ease;
-    }
-
-    nav a:hover,
-    nav a:focus {
-      background: var(--brand-soft);
-      color: var(--brand);
-      outline: none;
-    }
-
-    .cta-bar {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 18px;
-      border-radius: 999px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      border: 1px solid transparent;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
-      cursor: pointer;
-      background: none;
-      color: inherit;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--brand), #91ff69);
-      color: #041004;
-      box-shadow: 0 20px 40px rgba(106, 255, 59, 0.25);
-    }
-
-    .btn-outline {
-      border-color: rgba(106, 255, 59, 0.4);
-      color: var(--brand);
-      background: var(--brand-soft);
-    }
-
-    .btn:hover,
-    .btn:focus {
-      transform: translateY(-1px);
-      box-shadow: 0 26px 60px rgba(106, 255, 59, 0.28);
-      outline: none;
-    }
-
-    main {
-      padding-bottom: 80px;
-    }
-
-    .hero {
-      position: relative;
-      padding: 86px 0 70px;
-      overflow: hidden;
-    }
-
-    .hero::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 75% 20%, rgba(106, 255, 59, 0.16), transparent 55%);
-      opacity: 0.75;
-      pointer-events: none;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 28px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-content {
-      grid-column: span 7;
-      background: var(--panel);
-      border-radius: var(--radius);
-      padding: 40px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(122, 255, 108, 0.16);
-    }
-
-    .hero-content .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--brand-soft);
-      color: var(--brand);
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.18rem;
-    }
-
-    h1 {
-      margin: 16px 0 18px;
-      font-size: clamp(2.4rem, 4vw, 3.4rem);
-      line-height: 1.14;
-      letter-spacing: -0.01em;
-    }
-
-    .hero-content p {
-      color: var(--muted);
-      max-width: 540px;
-      margin-bottom: 24px;
-      font-size: 1rem;
-    }
-
-    .hero-aside {
-      grid-column: span 5;
-      background: var(--panel-alt);
-      border-radius: var(--radius);
-      padding: 32px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(122, 255, 108, 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .hero-aside h2 {
-      margin: 0;
-      font-size: 1.25rem;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .stat-card {
-      padding: 20px;
-      border-radius: var(--radius-sm);
-      background: var(--panel);
-      border: 1px solid rgba(106, 255, 59, 0.16);
-    }
-
-    .stat-card span {
-      display: block;
-    }
-
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.18rem;
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-size: 1.6rem;
-      font-weight: 800;
-    }
-
-    section {
-      padding: 70px 0;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 32px;
-    }
-
-    .section-header h2 {
-      margin: 0;
-      font-size: clamp(1.8rem, 3vw, 2.4rem);
-      letter-spacing: -0.01em;
-    }
-
-    .section-header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 560px;
-
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     }
 
     .pill-group {
       display: flex;
       flex-wrap: wrap;
-
       gap: 10px;
-
-      gap: 12px;
-
     }
 
     .pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       padding: 8px 14px;
       border-radius: 999px;
       background: rgba(106, 255, 59, 0.12);
-      border: 1px solid rgba(106, 255, 59, 0.22);
+      border: 1px solid rgba(106, 255, 59, 0.24);
       color: var(--accent);
-      font-size: 0.82rem;
-      text-transform: uppercase;
+      font-size: 0.78rem;
       letter-spacing: 0.12em;
+      text-transform: uppercase;
       font-weight: 600;
+    }
+
+    .hero-list {
+      list-style: none;
+      margin: 0;
+      padding: 18px 20px;
+      display: grid;
+      gap: 10px;
+      border-radius: var(--radius-md);
+      background: rgba(8, 14, 26, 0.72);
+      border: 1px solid rgba(106, 255, 59, 0.16);
+      color: var(--text-med);
+    }
+
+    .hero-list li {
+      margin: 0;
     }
 
     section {
@@ -650,25 +335,25 @@
     }
 
     .section-header {
-      margin-bottom: clamp(28px, 4vw, 40px);
-      max-width: 720px;
+      margin-bottom: clamp(26px, 4vw, 40px);
+      max-width: 760px;
     }
 
     .section-title {
-      font-size: clamp(1.9rem, 4vw, 2.6rem);
-      font-weight: 700;
       margin: 0 0 16px;
+      font-size: clamp(1.9rem, 4vw, 2.7rem);
+      letter-spacing: -0.01em;
     }
 
     .section-subtitle {
-      color: var(--text-med);
       margin: 0;
+      color: var(--text-med);
     }
 
     .card {
-      background: linear-gradient(170deg, var(--surface), rgba(7, 14, 25, 0.92));
-      border: 1px solid var(--border);
+      background: var(--surface);
       border-radius: var(--radius-md);
+      border: 1px solid var(--border);
       padding: clamp(22px, 3vw, 28px);
       box-shadow: var(--shadow-soft);
     }
@@ -676,12 +361,12 @@
     .card h3 {
       margin-top: 0;
       margin-bottom: 12px;
-      font-size: 1.12rem;
+      font-size: 1.15rem;
     }
 
     .card p {
+      margin: 0 0 16px;
       color: var(--text-med);
-      margin-bottom: 14px;
     }
 
     .card ul {
@@ -690,43 +375,19 @@
       color: var(--text-med);
     }
 
-    .feature-grid,
-    .pricing-grid,
-    .faq-grid {
-      display: grid;
-      gap: clamp(18px, 3vw, 24px);
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
-
-    .architecture {
-      display: grid;
-      gap: clamp(22px, 4vw, 32px);
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .list-tight {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--text-med);
-    }
-
-    .list-tight li {
+    .card ul li {
       margin-bottom: 6px;
+    }
+
+    .feature-grid,
+    .insight-grid,
+    .pricing-grid,
+    .faq-grid,
+    .two-col,
+    .plan-grid {
+      display: grid;
+      gap: clamp(18px, 3vw, 26px);
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
     .roadmap-list {
@@ -744,120 +405,53 @@
       padding: 12px 16px;
       border-radius: var(--radius-sm);
       background: rgba(8, 16, 28, 0.74);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-med);
     }
 
-    .price-card {
-      gap: 10px;
-      padding: 8px 14px;
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
       border-radius: 999px;
-      background: rgba(15, 25, 38, 0.8);
-      border: 1px solid rgba(106, 255, 59, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
       font-weight: 600;
-      color: var(--muted);
+      color: var(--text-muted);
     }
 
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 24px;
+    .insight-grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
 
-    .feature-card {
-      grid-column: span 4;
-      padding: 26px;
-      border-radius: var(--radius);
-      background: var(--panel);
-      border: 1px solid rgba(106, 255, 59, 0.12);
-      box-shadow: var(--shadow);
-    }
-
-    .feature-card h3 {
-      margin: 0 0 12px;
-      font-size: 1.15rem;
-    }
-
-    .feature-card p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .feature-card ul {
-      margin: 16px 0 0;
-      padding-left: 20px;
-      color: var(--muted);
-    }
-
-    .architecture {
-      background: linear-gradient(180deg, rgba(7, 12, 20, 0.6), rgba(4, 8, 14, 0.9));
-      border-radius: var(--radius);
-      padding: 32px;
-      border: 1px solid rgba(106, 255, 59, 0.12);
-      box-shadow: var(--shadow);
-      grid-column: span 6;
-    }
-
-    .architecture h3 {
-      margin-top: 0;
-      font-size: 1.1rem;
-    }
-
-    .architecture ul {
-      margin: 16px 0 0;
-      padding-left: 18px;
-      color: var(--muted);
+    .insight-grid .card {
+      background: var(--surface-strong);
     }
 
     .two-col {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      align-items: start;
     }
 
-    .two-col > .primary {
-      grid-column: span 7;
-    }
-
-    .two-col > .secondary {
-      grid-column: span 5;
-    }
-
-    .card {
-      background: var(--panel-alt);
-      border-radius: var(--radius);
-      padding: 28px;
-      border: 1px solid rgba(106, 255, 59, 0.12);
-      box-shadow: var(--shadow);
-    }
-
-    .card h3 {
-      margin-top: 0;
-    }
-
-    .card ul {
-      margin: 16px 0 0;
-      padding-left: 20px;
-      color: var(--muted);
-    }
-
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 24px;
+    .plan-grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
 
     .price-card {
-      grid-column: span 4;
-      background: rgba(16, 23, 38, 0.85);
-      border-radius: var(--radius);
-      padding: 28px;
-      border: 1px solid rgba(106, 255, 59, 0.18);
-      box-shadow: var(--shadow);
-
+      background: rgba(15, 25, 40, 0.85);
+      border: 1px solid rgba(106, 255, 59, 0.2);
+      border-radius: var(--radius-md);
+      padding: clamp(24px, 4vw, 32px);
+      box-shadow: var(--shadow-soft);
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
+
     .price-card__header {
       display: flex;
       justify-content: space-between;
@@ -877,25 +471,16 @@
       font-weight: 600;
     }
 
-    .price-card ul {
-      padding-left: 18px;
-      margin: 0;
-    }
-
-    .price-card ul li {
-      margin-bottom: 6px;
-    }
-
     .note {
-      font-size: 0.85rem;
       color: var(--text-muted);
-      margin-top: 12px;
+      font-size: 0.85rem;
     }
 
     .estimator-card {
-      padding: clamp(24px, 4vw, 32px);
+      padding: clamp(26px, 4vw, 34px);
       display: grid;
       gap: 24px;
+      background: var(--surface-strong);
     }
 
     .estimator-grid {
@@ -907,9 +492,9 @@
     .input-group {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       background: rgba(6, 12, 22, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: var(--radius-sm);
       padding: 18px;
     }
@@ -921,75 +506,21 @@
 
     label {
       font-size: 0.75rem;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
       color: var(--text-muted);
       font-weight: 600;
-
-    .price-tier {
-      font-size: 0.8rem;
-      letter-spacing: 0.2rem;
-      text-transform: uppercase;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .price-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--brand);
-    }
-
-    .price-card ul {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--muted);
-    }
-
-    .price-card .disclaimer {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: auto;
-      opacity: 0.75;
-    }
-
-    .calc-grid {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .calc-col {
-      grid-column: span 6;
-      background: var(--panel);
-      border-radius: var(--radius);
-      padding: 24px;
-      border: 1px solid rgba(106, 255, 59, 0.12);
-      box-shadow: var(--shadow);
-    }
-
-    .calc-col.full {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      display: block;
-      font-size: 0.8rem;
-      letter-spacing: 0.18rem;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-
     }
 
     input[type="number"],
     input[type="text"] {
-      width: 100%;      padding: 10px 12px;
+      width: 100%;
+      padding: 10px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(3, 8, 14, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(3, 8, 15, 0.9);
       color: var(--text-high);
-      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-family: var(--font);
       font-size: 0.95rem;
     }
 
@@ -998,7 +529,7 @@
       gap: 16px;
       padding: 22px;
       border-radius: var(--radius-sm);
-      background: rgba(6, 12, 22, 0.8);
+      background: rgba(6, 12, 22, 0.82);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
@@ -1010,10 +541,11 @@
     }
 
     .estimator-output__label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
+      font-size: 0.8rem;
       letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
     .estimator-output__value {
@@ -1025,11 +557,10 @@
       color: var(--accent);
     }
 
-    .badges-row {
+    .badge-row {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 18px;
     }
 
     .badge {
@@ -1039,17 +570,46 @@
       padding: 8px 14px;
       border-radius: 999px;
       background: rgba(106, 255, 59, 0.1);
-      border: 1px solid rgba(106, 255, 59, 0.18);
+      border: 1px solid rgba(106, 255, 59, 0.2);
       color: var(--accent);
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .calc-col {
+      background: rgba(15, 24, 38, 0.85);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(106, 255, 59, 0.18);
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .calc-col.full {
+      grid-column: 1 / -1;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .faq-grid .card {
+      background: rgba(10, 18, 30, 0.85);
     }
 
     footer {
       border-top: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 34px 0 64px;
+      padding: 38px 0 64px;
       color: var(--text-muted);
     }
 
@@ -1071,194 +631,56 @@
         width: 100%;
         justify-content: flex-start;
       }
+    }
 
+    @media (max-width: 640px) {
       .hero__title {
-        font-size: clamp(2rem, 7vw, 3rem);
-      }
-    }
-
-    @media (max-width: 600px) {
-      main {
-        gap: 72px;
+        font-size: clamp(2.1rem, 8vw, 3rem);
       }
 
-      .site-header {
-        position: static;
-
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(106, 255, 59, 0.2);
-      background: rgba(4, 10, 18, 0.7);
-      color: var(--text);
-      font-family: 'Montserrat', monospace;
-      font-size: 0.95rem;
-    }
-
-    .summary-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      border-radius: var(--radius-sm);
-      background: rgba(10, 16, 26, 0.85);
-      border: 1px solid rgba(106, 255, 59, 0.16);
-      margin-top: 16px;
-      font-weight: 600;
-    }
-
-    .faq-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 18px;
-    }
-
-    .faq-item {
-      background: var(--panel-alt);
-      border-radius: var(--radius);
-      padding: 22px 26px;
-      border: 1px solid rgba(106, 255, 59, 0.12);
-    }
-
-    .faq-item h4 {
-      margin: 0 0 12px;
-      font-size: 1.05rem;
-    }
-
-    footer {
-      padding: 40px 0 60px;
-      border-top: 1px solid var(--border);
-      color: var(--muted);
-      background: rgba(4, 8, 14, 0.85);
-    }
-
-    footer .footer-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-    }
-
-    footer .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(106, 255, 59, 0.18);
-      background: rgba(10, 18, 28, 0.85);
-      color: var(--brand);
-      font-weight: 600;
-    }
-
-    @media (max-width: 1100px) {
-      .hero-content {
-        grid-column: 1 / -1;
+      .price-card__header {
+        flex-direction: column;
+        align-items: flex-start;
       }
 
-      .hero-aside {
-        grid-column: 1 / -1;
-      }
-
-      .feature-card,
-      .price-card {
-        grid-column: span 6;
-      }
-
-      .architecture {
-        grid-column: span 12;
-      }
-
-      .two-col > .primary,
-      .two-col > .secondary {
-        grid-column: span 12;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .topbar {
-        flex-wrap: wrap;
-        gap: 18px;
-      }
-
-      .cta-bar {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-      }
-
-      nav ul {
-        flex-wrap: wrap;
-      }
-
-      .hero {
-        padding: 70px 0 60px;
-      }
-
-      .feature-card,
-      .price-card,
-      .calc-col {
-        grid-column: span 12;
-
+      .summary-row {
+        flex-direction: column;
+        gap: 6px;
       }
     }
   </style>
 </head>
 <body>
-
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header" role="banner">
     <div class="container site-header__inner">
       <a class="logo" href="index.html" aria-label="Return to Ioncore Energy brochure library">
         <img src="battery.svg" alt="Ioncore Energy logo">
-        <span><strong>Ioncore</strong><span>Sentinel Multi‑Cam AI</span></span>
+        <span>Ioncore Sentinel</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
         <a href="#overview">Overview</a>
-        <a href="#features">Features</a>
+        <a href="#capabilities">Capabilities</a>
         <a href="#architecture">Architecture</a>
         <a href="#pricing">Pricing</a>
         <a href="#estimator">Estimator</a>
         <a href="#faq">FAQ</a>
-
-  <a class="sr-only" href="#main">Skip to content</a>
-  <header>
-    <div class="container topbar">
-      <a class="logo" href="fullexperience.html" aria-label="Return to Ioncore main experience">
-        <img src="battery.svg" alt="Ioncore Energy logo">
-        <span>Ioncore Energy</span>
-      </a>
-      <nav aria-label="Sentinel sections">
-        <ul>
-          <li><a href="#overview">Overview</a></li>
-          <li><a href="#features">Capabilities</a></li>
-          <li><a href="#architecture">Architecture</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#faq">FAQ</a></li>
-        </ul>
-
       </nav>
-      <div class="cta-bar">
-        <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Talk to engineering</a>
-        <a class="btn btn-primary" href="#pricing">Download brochure</a>
-      </div>
+      <a class="header-cta" href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>Talk to engineering</span></a>
     </div>
   </header>
 
   <main id="main">
-
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero" id="overview" aria-labelledby="hero-title">
       <div class="container hero__grid">
         <div>
-          <div class="hero__eyebrow"><i class="fa-solid fa-video"></i>Ioncore Intelligence</div>
+          <div class="hero__eyebrow"><i class="fa-solid fa-video" aria-hidden="true"></i>Ioncore Intelligence</div>
           <h1 class="hero__title" id="hero-title">Sentinel Multi‑Cam AI for <span>edge-first security teams</span>.</h1>
-          <p class="hero__copy">Ingest up to eight live camera feeds, recognise people, faces, objects and vehicles in real time, and orchestrate explainable alerts with auditable history. Sentinel keeps sensitive telemetry at the edge while empowering your operators with actionable intelligence.</p>
+          <p class="hero__copy">Ingest up to eight live camera feeds, recognise people, faces, objects, and vehicles in real time, and orchestrate explainable alerts with auditable history. Sentinel keeps sensitive telemetry on-site while empowering operators with actionable intelligence.</p>
           <div class="btn-group" role="group" aria-label="Primary actions">
             <a class="btn btn-primary" href="#pricing"><i class="fa-solid fa-tags" aria-hidden="true"></i><span>Explore plans</span></a>
-            <a class="btn btn-outline" href="#features"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>See feature map</span></a>
-            <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>Book a demo</span></a>
+            <a class="btn btn-outline" href="#capabilities"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>See feature map</span></a>
+            <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span>Book a demo</span></a>
           </div>
         </div>
         <aside class="hero__card" aria-label="Key performance highlights">
@@ -1274,89 +696,43 @@
             <span class="pill">Alerts</span>
           </div>
           <div class="divider" aria-hidden="true"></div>
-          <ul class="list-tight" aria-label="Highlights">
+          <ul class="hero-list">
             <li>YOLO-based object detection with shirt colour sampling</li>
             <li>Face recognition with unknown re-ID buckets & spot-locks</li>
             <li>Vehicle registry with perceptual hashes & snapshots</li>
             <li>Notifications via Pushover, Telegram, Twilio, Webhooks</li>
-
-    <section class="hero" id="overview">
-      <div class="container hero-grid">
-        <div class="hero-content">
-          <span class="eyebrow">Sentinel multi-cam ai</span>
-          <h1>Precision surveillance for every Ioncore-powered perimeter.</h1>
-          <p>
-            Sentinel fuses Ioncore energy resilience with multi-camera computer vision. Run eight 4K streams locally, classify
-            people, faces, objects, and vehicles in real time, and trigger automated workflows without compromising on data
-            sovereignty.
-          </p>
-          <div class="pill-group" aria-label="Key metrics">
-            <span class="pill">≤33&nbsp;ms UI loop latency</span>
-            <span class="pill">8 concurrent video feeds</span>
-            <span class="pill">CUDA &amp; OpenVINO optimized</span>
-          </div>
-          <div style="margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap;">
-            <a class="btn btn-primary" href="#features">Explore capabilities</a>
-            <a class="btn btn-outline" href="#architecture">See the stack</a>
-          </div>
-        </div>
-        <aside class="hero-aside" aria-label="Key performance stats">
-          <h2>Why operators choose Sentinel</h2>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-label">Event recall</span>
-              <span class="stat-value">Instant</span>
-              <span class="stat-detail">Review queues consolidate people, faces, and vehicles with snapshots &amp; filters.</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Alerting</span>
-              <span class="stat-value">4+ channels</span>
-              <span class="stat-detail">Pushover, Telegram, Twilio SMS, and webhook automations.</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Retention</span>
-              <span class="stat-value">Full audit</span>
-              <span class="stat-detail">Events are logged with timestamps, durations, and explainable metadata.</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Deployment</span>
-              <span class="stat-value">Under 1 hr</span>
-              <span class="stat-detail">Ships as a desktop/edge application, hardened for air-gapped networks.</span>
-            </div>
-          </div>
-
+          </ul>
         </aside>
       </div>
     </section>
 
-
-    <section id="overview" aria-labelledby="overview-title">
+    <section id="clarity" aria-labelledby="clarity-title">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" id="overview-title">Operational clarity at the edge.</h2>
+          <h2 class="section-title" id="clarity-title">Operational clarity at the edge.</h2>
           <p class="section-subtitle">Sentinel Multi‑Cam AI is a desktop and edge appliance experience that prioritises privacy, resilience, and operator trust. Every detection is paired with context, confidence, and the ability to interrogate the full event timeline.</p>
         </div>
-        <div class="architecture">
+        <div class="feature-grid">
           <div class="card">
             <h3>Core capabilities</h3>
-            <ul class="list-tight">
+            <ul>
               <li>Face recognition with instant grouping of unknown visitors</li>
               <li>Shirt and object colour sampling to accelerate re-identification</li>
               <li>Per-object state machine: placed → picked up → held → returned</li>
-              <li>Vehicle registry with perceptual hashing, metadata and snapshots</li>
-              <li>Review queues for people, faces, vehicles and sensitive events</li>
+              <li>Vehicle registry with perceptual hashing, metadata, and snapshots</li>
+              <li>Review queues for people, faces, vehicles, and sensitive events</li>
             </ul>
           </div>
-          <div class="card" id="architecture" aria-label="Architecture at a glance">
+          <div class="card">
             <h3>Architecture at a glance</h3>
-            <ul class="list-tight">
+            <ul>
               <li><strong>Inference</strong>: OpenCV + YOLOv3 objects, <span class="accent">face_recognition</span> (dlib) for faces</li>
               <li><strong>Runtime</strong>: Tkinter desktop UI with multi-threaded workers per camera</li>
               <li><strong>Acceleration</strong>: CUDA when available, optimised CPU fallbacks when not</li>
               <li><strong>Storage</strong>: Local JSON/NPY & snapshots; optional managed DB connectors</li>
               <li><strong>Extensibility</strong>: Webhooks, custom labels, colour pooling per label</li>
             </ul>
-            <div class="badges-row">
+            <div class="badge-row" aria-label="Architecture attributes">
               <span class="badge">Local-first</span>
               <span class="badge">Privacy aware</span>
               <span class="badge">Auditable logs</span>
@@ -1366,17 +742,17 @@
       </div>
     </section>
 
-    <section id="features" aria-labelledby="features-title">
+    <section id="capabilities" aria-labelledby="capabilities-title">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" id="features-title">Feature map</h2>
+          <h2 class="section-title" id="capabilities-title">Feature map</h2>
           <p class="section-subtitle">Every module is engineered to provide visual context, configurable sensitivity, and explainable actions so your security teams can focus on response rather than guesswork.</p>
         </div>
         <div class="feature-grid">
           <div class="card">
             <h3>People & Faces</h3>
             <p>Identify known faces, consistently bucket unknowns, and pair each detection with a descriptive shirt colour for rapid escalation.</p>
-            <ul class="list-tight">
+            <ul>
               <li>Known/unknown persons with last-seen recall</li>
               <li>Hex + named colour sampling near detected heads</li>
               <li>Cooldowns & spot-locks prevent alert fatigue</li>
@@ -1385,7 +761,7 @@
           <div class="card">
             <h3>Objects & Actions</h3>
             <p>Each object maintains its own state machine, logging precise pick-up, hold, and return events with durations and custom labels.</p>
-            <ul class="list-tight">
+            <ul>
               <li>Custom labels for objects or object+colour pairs</li>
               <li>Auto-place timeout when items leave frame</li>
               <li>Spot-locks to suppress duplicate re-tags</li>
@@ -1394,7 +770,7 @@
           <div class="card">
             <h3>Vehicle Registry</h3>
             <p>Maintain a local, privacy-respecting log of vehicles with snapshots, perceptual hashes, and operator annotations.</p>
-            <ul class="list-tight">
+            <ul>
               <li>Colour detection & hex values</li>
               <li>Recent sighting timeline with export</li>
               <li>Snapshot viewer for verification</li>
@@ -1403,48 +779,42 @@
           <div class="card">
             <h3>Alerting & Notifications</h3>
             <p>Deliver the right notification to the right channel with configurable cooldowns and optional built-in media hosting.</p>
-            <ul class="list-tight">
+            <ul>
               <li>Pushover, Telegram, Twilio SMS/MMS & Webhooks</li>
-              <li>Subscribe by person, object, vehicle or label</li>
+              <li>Subscribe by person, object, vehicle, or label</li>
               <li>Global cooldowns to prevent alert storms</li>
             </ul>
           </div>
-          <div class="card" style="grid-column: 1 / -1;">
-            <h3>Forward roadmap</h3>
-            <ul class="roadmap-list">
-              <li><span class="tag">Q4</span><span>ONVIF discovery & RTSP presets for rapid camera onboarding</span></li>
-              <li><span class="tag">Q1</span><span>Optional cloud sync (events only) with granular role-based access</span></li>
-              <li><span class="tag">Q1</span><span>Pluggable model upgrades (YOLOv5/8, RT-DETR) with auto-benchmarks</span></li>
-              <li><span class="tag">Q2</span><span>Fine-grained privacy policies per camera and selective redaction</span></li>
-    <section id="features">
+        </div>
+      </div>
+    </section>
+
+    <section id="experience" aria-labelledby="experience-title">
       <div class="container">
         <div class="section-header">
-          <h2>Human-centric AI with explainability at the core.</h2>
-          <p>
-            Every detection can be traced, tuned, and justified. Sentinel tracks actions, context, and historical fingerprints so
-            operators can trust automated interventions.
-          </p>
+          <h2 class="section-title" id="experience-title">Human-centric AI with explainability at the core.</h2>
+          <p class="section-subtitle">Every detection can be traced, tuned, and justified. Sentinel tracks actions, context, and historical fingerprints so operators can trust automated interventions.</p>
         </div>
-        <div class="feature-grid">
-          <article class="feature-card">
+        <div class="insight-grid">
+          <div class="card">
             <h3>Multi-modal recognition</h3>
             <p>Fused computer vision for every asset in motion.</p>
             <ul>
               <li>Face recognition with unknown re-identification buckets</li>
-              <li>People tracking with shirt color sampling near heads</li>
+              <li>People tracking with shirt colour sampling near heads</li>
               <li>YOLO-based object and package recognition with custom labels</li>
             </ul>
-          </article>
-          <article class="feature-card">
+          </div>
+          <div class="card">
             <h3>Events that read like plain English</h3>
-            <p>Log what actually happened &mdash; not just raw frames.</p>
+            <p>Log what actually happened — not just raw frames.</p>
             <ul>
               <li>Picked-up, held, and placed events with precise durations</li>
               <li>Spot-locks to suppress repetitive tagging in stable scenes</li>
               <li>Auto-place timeouts to resolve lingering items</li>
             </ul>
-          </article>
-          <article class="feature-card">
+          </div>
+          <div class="card">
             <h3>Alerting that reaches your team</h3>
             <p>Turn detections into responses instantly.</p>
             <ul>
@@ -1452,18 +822,57 @@
               <li>Push notifications via Pushover, Telegram, and Twilio SMS</li>
               <li>Local queues for faces, people, and vehicles with quick actions</li>
             </ul>
-          </article>
+          </div>
+        </div>
+        <div class="card" style="margin-top: clamp(24px, 5vw, 36px);">
+          <h3>Forward roadmap</h3>
+          <ul class="roadmap-list">
+            <li><span class="tag">Q4</span><span>ONVIF discovery & RTSP presets for rapid camera onboarding</span></li>
+            <li><span class="tag">Q1</span><span>Optional cloud sync (events only) with granular role-based access</span></li>
+            <li><span class="tag">Q1</span><span>Pluggable model upgrades (YOLOv5/8, RT-DETR) with auto-benchmarks</span></li>
+            <li><span class="tag">Q2</span><span>Fine-grained privacy policies per camera and selective redaction</span></li>
+          </ul>
         </div>
       </div>
     </section>
-            <section id="pricing" aria-labelledby="pricing-title">
+
+    <section id="architecture" aria-labelledby="architecture-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" id="architecture-title">Built for on-prem assurance.</h2>
+          <p class="section-subtitle">Sentinel runs at the edge with hardware-aware optimisations. Whether you deploy on CUDA GPUs or Intel CPUs with OpenVINO, the stack is tuned for sub-40&nbsp;ms responsiveness.</p>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Edge stack</h3>
+            <ul>
+              <li><strong>Core:</strong> OpenCV pipelines with YOLOv3 for object detection and <code>face_recognition</code> (dlib) for faces</li>
+              <li><strong>App:</strong> Multi-threaded desktop client with Tkinter UI and GPU-aware workers</li>
+              <li><strong>Database:</strong> Local SQLite event store with perceptual hashing for vehicle snapshots</li>
+              <li><strong>Explainability:</strong> Threshold tuning overlay, heat maps, idle percentage controls, and NMS tuning</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Deployment blueprint</h3>
+            <ul>
+              <li>Runs on Windows or Linux workstations with NVIDIA CUDA or Intel iGPU acceleration</li>
+              <li>Supports RTSP, USB, and file-based camera ingest with adaptive frame rates</li>
+              <li>Edge compute hardened for air-gapped networks — no outbound traffic required</li>
+              <li>Optional integration with Ioncore energy storage for redundant runtime</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" aria-labelledby="pricing-title">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title" id="pricing-title">Plans built for every deployment stage.</h2>
           <p class="section-subtitle">Licences are per host with up to eight cameras per node. Keep all telemetry on-site, or connect your own cloud datastore for retention analytics.</p>
         </div>
         <div class="pricing-grid">
-          <div class="card price-card" aria-label="Starter plan">
+          <div class="price-card" aria-label="Starter plan">
             <div class="price-card__header">
               <div>
                 <h3>Starter</h3>
@@ -1477,7 +886,7 @@
               <li>Email support</li>
             </ul>
           </div>
-          <div class="card price-card" aria-label="Pro plan" style="border: 1px solid rgba(106, 255, 59, 0.3); box-shadow: 0 22px 48px rgba(106, 255, 59, 0.22);">
+          <div class="price-card" aria-label="Pro plan" style="border: 1px solid rgba(106, 255, 59, 0.3); box-shadow: 0 22px 48px rgba(106, 255, 59, 0.22);">
             <div class="price-card__header">
               <div>
                 <h3>Pro <span class="tag">Most Popular</span></h3>
@@ -1491,7 +900,7 @@
               <li>Priority email support</li>
             </ul>
           </div>
-          <div class="card price-card" aria-label="Enterprise plan">
+          <div class="price-card" aria-label="Enterprise plan">
             <div class="price-card__header">
               <div>
                 <h3>Enterprise</h3>
@@ -1510,13 +919,60 @@
       </div>
     </section>
 
+    <section id="licensing" aria-labelledby="licensing-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" id="licensing-title">Deployment licences aligned with rollout velocity.</h2>
+          <p class="section-subtitle">Scale from single-site pilots to enterprise-wide coverage with support, training, and governance baked in.</p>
+        </div>
+        <div class="plan-grid">
+          <div class="price-card">
+            <span class="tag">Pilot</span>
+            <div class="price">$4,800</div>
+            <p>Ideal for a single facility or proof-of-concept.</p>
+            <ul>
+              <li>Up to 4 camera streams</li>
+              <li>Standard alerting channels</li>
+              <li>Quarterly model refresh</li>
+              <li>Email support</li>
+            </ul>
+            <span class="note">Hardware not included. Deployment services available on request.</span>
+          </div>
+          <div class="price-card">
+            <span class="tag">Operations</span>
+            <div class="price">$9,600</div>
+            <p>Designed for multi-site teams that need resilience.</p>
+            <ul>
+              <li>Up to 8 camera streams</li>
+              <li>Custom object libraries</li>
+              <li>24/7 alerting with failover</li>
+              <li>Phone &amp; chat support</li>
+            </ul>
+            <span class="note">Includes remote onboarding and configuration review.</span>
+          </div>
+          <div class="price-card">
+            <span class="tag">Enterprise</span>
+            <div class="price">Custom</div>
+            <p>Tailored to high-security installations with compliance needs.</p>
+            <ul>
+              <li>Unlimited camera clusters</li>
+              <li>Dedicated success engineer</li>
+              <li>Private model training</li>
+              <li>On-site commissioning</li>
+            </ul>
+            <span class="note">Contact Ioncore for a custom quote and deployment plan.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="estimator" aria-labelledby="estimator-title">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title" id="estimator-title">Database & storage cost estimator.</h2>
           <p class="section-subtitle">Forecast retention costs for event logs and snapshots. Replace the assumptions with your provider&apos;s official pricing.</p>
         </div>
-        <div class="card estimator-card" role="region" aria-label="Storage cost estimator">
+        <div class="estimator-card" role="region" aria-label="Storage cost estimator">
           <div class="estimator-grid">
             <div class="input-group">
               <h3>Event logs</h3>
@@ -1567,10 +1023,40 @@
             <p class="note">Illustrative only. Adjust for your provider and compliance needs.</p>
           </div>
         </div>
-        <div class="badges-row">
+        <div class="badge-row" style="margin-top: 20px;">
           <span class="badge">Local JSON / SQLite</span>
           <span class="badge">Bring-your-own Postgres / MySQL</span>
           <span class="badge">S3-compatible snapshots</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="footprint" aria-labelledby="footprint-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" id="footprint-title">Estimate your event storage footprint.</h2>
+          <p class="section-subtitle">Model how Sentinel compresses data across locations while maintaining a complete audit trail.</p>
+        </div>
+        <div class="calc-grid">
+          <div class="calc-col">
+            <label for="cameraCount">Camera feeds</label>
+            <input id="cameraCount" type="number" value="8" min="1" max="64">
+            <label for="eventRate">Events per camera per day</label>
+            <input id="eventRate" type="number" value="120" min="1" max="10000">
+          </div>
+          <div class="calc-col">
+            <label for="retention">Retention (days)</label>
+            <input id="retention" type="number" value="30" min="7" max="365">
+            <label for="attachment">Snapshot size per event (KB)</label>
+            <input id="attachment" type="number" value="140" min="40" max="2048">
+          </div>
+          <div class="calc-col full">
+            <div class="summary-row">
+              <span>Projected SQLite footprint</span>
+              <span id="calc-total">~ 3.9 GB</span>
+            </div>
+            <p class="note">Ioncore field teams benchmarked the Operations tier at roughly 3.9&nbsp;GB for 30 days of retention across 8 cameras with snapshot attachments. Your actual footprint adjusts linearly with event density and resolution.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -1598,161 +1084,35 @@
             <h3>Can I change detection models?</h3>
             <p>Yes. Today’s default stack is YOLOv3 for objects and <span class="accent">face_recognition</span> for faces. The roadmap introduces pluggable backends with automatic benchmarking.</p>
           </div>
-    <section id="architecture">
-      <div class="container two-col">
-        <div class="primary architecture">
-          <h3>Built for on-prem assurance</h3>
-          <p>
-            Sentinel runs at the edge with hardware-aware optimizations. Whether you deploy on CUDA GPUs or Intel CPUs with
-            OpenVINO, the stack is tuned for sub-40ms responsiveness.
-          </p>
-          <ul>
-            <li><strong>Core:</strong> OpenCV pipelines with YOLOv3 for object detection and <code>face_recognition</code> (dlib) for faces</li>
-            <li><strong>App:</strong> Multi-threaded desktop client with Tkinter UI and GPU-aware workers</li>
-            <li><strong>Database:</strong> Local SQLite event store with perceptual hashing for vehicle snapshots</li>
-            <li><strong>Explainability:</strong> Threshold tuning overlay, heat maps, idle percentage controls, and NMS tuning</li>
-          </ul>
-        </div>
-        <aside class="secondary card">
-          <h3>Deployment blueprint</h3>
-          <ul>
-            <li>Runs on Windows or Linux workstations with NVIDIA CUDA or Intel iGPU acceleration</li>
-            <li>Supports RTSP, USB, and file-based camera ingest with adaptive frame rates</li>
-            <li>Edge compute hardened for air-gapped networks &mdash; no outbound traffic required</li>
-            <li>Optional integration with Ioncore energy storage for redundant runtime</li>
-          </ul>
-        </aside>
-      </div>
-    </section>
-
-    <section id="pricing">
-      <div class="container">
-        <div class="section-header">
-          <h2>Flexible licensing aligned with your rollout plan.</h2>
-          <p>Scale from pilot to enterprise-wide coverage with licenses that include updates, model refreshes, and support.</p>
-        </div>
-        <div class="pricing-grid">
-          <div class="price-card">
-            <span class="price-tier">Pilot</span>
-            <span class="price-value">$4,800</span>
-            <p>Ideal for a single facility or proof-of-concept.</p>
-            <ul>
-              <li>Up to 4 camera streams</li>
-              <li>Standard alerting channels</li>
-              <li>Quarterly model refresh</li>
-              <li>Email support</li>
-            </ul>
-            <span class="disclaimer">Hardware not included. Deployment services available on request.</span>
+          <div class="card">
+            <h3>Can Sentinel run completely offline?</h3>
+            <p>Yes. Sentinel is engineered for air-gapped deployments. All inference, storage, and review workflows run locally. Optional alerting channels can be routed through on-prem messaging servers.</p>
           </div>
-          <div class="price-card">
-            <span class="price-tier">Operations</span>
-            <span class="price-value">$9,600</span>
-            <p>Designed for multi-site teams that need resilience.</p>
-            <ul>
-              <li>Up to 8 camera streams</li>
-              <li>Custom object libraries</li>
-              <li>24/7 alerting with failover</li>
-              <li>Phone &amp; chat support</li>
-            </ul>
-            <span class="disclaimer">Includes remote onboarding and configuration review.</span>
+          <div class="card">
+            <h3>How does it handle unknown individuals?</h3>
+            <p>Unknown faces are bucketed with re-identification embeddings, letting analysts group recurring visitors and promote them to known profiles when appropriate.</p>
           </div>
-          <div class="price-card">
-            <span class="price-tier">Enterprise</span>
-            <span class="price-value">Custom</span>
-            <p>Tailored to high-security installations with compliance needs.</p>
-            <ul>
-              <li>Unlimited camera clusters</li>
-              <li>Dedicated success engineer</li>
-              <li>Private model training</li>
-              <li>On-site commissioning</li>
-            </ul>
-            <span class="disclaimer">Contact Ioncore for a custom quote and deployment plan.</span>
+          <div class="card">
+            <h3>What about cybersecurity?</h3>
+            <p>Sentinel is delivered as a hardened desktop package with signed binaries. Audit logs capture administrative actions, model updates, and integration changes for compliance teams.</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section id="dbcalc">
-      <div class="container">
-        <div class="section-header">
-          <h2>Estimate your event storage footprint.</h2>
-          <p>Model how Sentinel compresses data across locations while maintaining a complete audit trail.</p>
-        </div>
-        <div class="calc-grid">
-          <div class="calc-col">
-            <label for="camera-count">Camera feeds</label>
-            <input id="camera-count" type="number" value="8" min="1" max="64">
-            <label for="event-rate">Average events per hour</label>
-            <input id="event-rate" type="number" value="120" min="10" max="5000">
-          </div>
-          <div class="calc-col">
-            <label for="retention">Retention (days)</label>
-            <input id="retention" type="number" value="30" min="7" max="365">
-            <label for="attachment">Snapshot size per event (KB)</label>
-            <input id="attachment" type="number" value="140" min="40" max="1024">
-          </div>
-          <div class="calc-col full">
-            <div class="summary-row">
-              <span>Projected SQLite footprint</span>
-              <span id="calc-total">~ 3.9 GB</span>
-            </div>
-            <p style="color: var(--muted); margin: 16px 0 0;">
-              Ioncore field teams benchmarked the Operations tier at roughly 3.9 GB for 30 days of retention across 8 cameras with
-              snapshot attachments. Your actual footprint adjusts linearly with event density and resolution.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="faq">
-      <div class="container">
-        <div class="section-header">
-          <h2>Questions operators often ask.</h2>
-          <p>Still evaluating Sentinel? Reach the engineering desk at <a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a>.</p>
-
-        </div>
-        <ul class="faq-list">
-          <li class="faq-item">
-            <h4>Can Sentinel run completely offline?</h4>
-            <p>Yes. Sentinel is engineered for air-gapped deployments. All inference, storage, and review workflows run locally. Optional
-              alerting channels can be routed through on-prem messaging servers.</p>
-          </li>
-          <li class="faq-item">
-            <h4>How does it handle unknown individuals?</h4>
-            <p>Unknown faces are bucketed with re-identification embeddings, letting analysts group recurring visitors and promote them to
-              known profiles when appropriate.</p>
-          </li>
-          <li class="faq-item">
-            <h4>What about cybersecurity?</h4>
-            <p>Sentinel is delivered as a hardened desktop package with signed binaries. Audit logs capture administrative actions, model
-              updates, and integration changes for compliance teams.</p>
-          </li>
-        </ul>
       </div>
     </section>
   </main>
 
-
   <footer role="contentinfo">
     <div class="container footer-inner">
-      <span>© <span id="currentYear"></span> Ioncore Energy — Sentinel Multi‑Cam AI.</span>
+      <span>© <span id="footerYear"></span> Ioncore Energy — Sentinel Multi‑Cam AI.</span>
       <span class="note">Names, brands, and visuals are illustrative for product storytelling.</span>
-=======
-  <footer>
-    <div class="container footer-meta">
-      <span>&copy; <span id="year"></span> Ioncore Energy. All rights reserved.</span>
-      <span class="badge">Edge-first AI • Resilient power</span>
       <a href="fullexperience.html">Return to main experience</a>
-
     </div>
   </footer>
 
   <script>
-
     (function () {
       const $ = (id) => document.getElementById(id);
-      const inputs = [
+      const estimatorIds = [
         "eventsPerDay",
         "rowSizeKB",
         "retentionDays",
@@ -1765,22 +1125,20 @@
         "dbBaseFee",
         "objectBaseFee",
         "redundancyFactor"
-      ].map($);
+      ];
 
       function toNumber(el, fallback = 0) {
         const value = parseFloat(el.value);
         return Number.isFinite(value) ? value : fallback;
       }
 
-      function calculate() {
+      function calculateStorage() {
         const eventsPerDay = toNumber($("eventsPerDay"));
         const rowSizeKB = toNumber($("rowSizeKB"));
         const retentionDays = toNumber($("retentionDays"), 30);
-
         const snapsPerDay = toNumber($("snapsPerDay"));
         const snapSizeMB = toNumber($("snapSizeMB"));
         const snapRetentionDays = toNumber($("snapRetentionDays"), 14);
-
         const storagePerGB = toNumber($("storagePerGB"));
         const egressPerGB = toNumber($("egressPerGB"));
         const egressGB = toNumber($("egressGB"));
@@ -1800,13 +1158,30 @@
         $("outCost").textContent = Math.max(0, monthlyCost).toFixed(2);
       }
 
-      inputs.forEach((input) => input.addEventListener("input", calculate));
-      calculate();
+      estimatorIds.map($).forEach((input) => input.addEventListener("input", calculateStorage));
+      calculateStorage();
 
-      $("currentYear").textContent = new Date().getFullYear();
+      const footprintIds = ["cameraCount", "eventRate", "retention", "attachment"]; 
+
+      function calculateFootprint() {
+        const cameraCount = Math.max(1, toNumber($("cameraCount"), 1));
+        const eventsPerCameraPerDay = Math.max(0, toNumber($("eventRate"), 0));
+        const retentionDays = Math.max(1, toNumber($("retention"), 1));
+        const attachmentKB = Math.max(0, toNumber($("attachment"), 0));
+
+        const totalEvents = cameraCount * eventsPerCameraPerDay * retentionDays;
+        const totalGB = (totalEvents * attachmentKB) / (1024 * 1024);
+        $("calc-total").textContent = `~ ${totalGB.toFixed(1)} GB`;
+      }
+
+      footprintIds.map($).forEach((input) => input.addEventListener("input", calculateFootprint));
+      calculateFootprint();
+
+      const yearEl = $("footerYear");
+      if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+      }
     })();
-    document.getElementById('year').textContent = new Date().getFullYear();
-main
   </script>
 </body>
 </html>

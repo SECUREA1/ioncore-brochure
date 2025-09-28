@@ -66,6 +66,36 @@ img {
   border-radius: 18px;
   box-shadow: var(--highlight-glow);
   background: rgba(106, 255, 59, 0.04);
+  transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease;
+}
+
+img:hover,
+img:focus-visible,
+img:active {
+  transform: translateY(-4px);
+  box-shadow: var(--highlight-glow-strong);
+  filter: brightness(1.08);
+}
+
+img:active {
+  transform: translateY(-2px);
+}
+
+img:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img {
+    transition: box-shadow 0.28s ease, filter 0.28s ease;
+  }
+
+  img:hover,
+  img:focus-visible,
+  img:active {
+    transform: none;
+  }
 }
 
 img.logo__mark {
@@ -831,7 +861,13 @@ main {
     .upgrade-card,
     .use-case-card,
     .vault-card,
-    .wholesale-card
+    .wholesale-card,
+    :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
 ) {
   position: relative;
   isolation: isolate;
@@ -877,7 +913,13 @@ main {
     .upgrade-card,
     .use-case-card,
     .vault-card,
-    .wholesale-card
+    .wholesale-card,
+    :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
   ):hover,
 :where(
     .card,
@@ -915,7 +957,13 @@ main {
     .upgrade-card,
     .use-case-card,
     .vault-card,
-    .wholesale-card
+    .wholesale-card,
+    :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
   ):focus-within,
 :where(
     .card,
@@ -953,7 +1001,13 @@ main {
     .upgrade-card,
     .use-case-card,
     .vault-card,
-    .wholesale-card
+    .wholesale-card,
+    :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+    :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
   ):focus-visible {
   transform: translateY(-6px);
   border-color: var(--accent);
@@ -1041,7 +1095,13 @@ main {
       .upgrade-card,
       .use-case-card,
       .vault-card,
-      .wholesale-card
+      .wholesale-card,
+      :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
     ) {
     transition: border-color 0.28s ease, box-shadow 0.28s ease, outline-color 0.28s ease;
   }
@@ -1082,7 +1142,13 @@ main {
       .upgrade-card,
       .use-case-card,
       .vault-card,
-      .wholesale-card
+      .wholesale-card,
+      :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
     ):hover,
   :where(
       .card,
@@ -1120,7 +1186,13 @@ main {
       .upgrade-card,
       .use-case-card,
       .vault-card,
-      .wholesale-card
+      .wholesale-card,
+      :is(div, section, article, a, li, figure)[class*="tile" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="box" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="panel" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
+      :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
     ):focus-within {
     transform: none;
   }

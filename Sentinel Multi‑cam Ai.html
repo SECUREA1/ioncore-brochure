@@ -551,7 +551,15 @@
     }
 
     .plan-grid {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .pricing-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+      justify-content: center;
+      align-items: stretch;
     }
 
     .price-card {
@@ -562,6 +570,7 @@
       box-shadow: var(--shadow-soft), var(--highlight-glow);
       display: flex;
       flex-direction: column;
+      height: 100%;
       gap: 16px;
       transition: transform 0.24s ease, box-shadow 0.24s ease, border 0.24s ease, background 0.24s ease;
     }

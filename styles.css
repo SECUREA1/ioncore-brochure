@@ -725,6 +725,58 @@ main {
   font-size: 0.9rem;
 }
 
+.tile-highlight {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.tile-highlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(106, 255, 59, 0.2), rgba(106, 255, 59, 0.04));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tile-highlight > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tile-highlight:hover,
+.tile-highlight:focus-within {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 28px 68px rgba(6, 15, 28, 0.55), 0 0 0 1px rgba(106, 255, 59, 0.28) inset;
+}
+
+.tile-highlight:hover::after,
+.tile-highlight:focus-within::after {
+  opacity: 1;
+}
+
+.tile-highlight:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-highlight {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .tile-highlight:hover,
+  .tile-highlight:focus-within {
+    transform: none;
+  }
+}
+
 .feature-icon {
   display: inline-flex;
   width: 44px;

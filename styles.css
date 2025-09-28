@@ -771,19 +771,29 @@ main {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.32s cubic-bezier(0.18, 0.88, 0.35, 1), box-shadow 0.32s ease, border-color 0.32s ease, background 0.32s ease;
 }
 
+.tile-highlight::before,
 .tile-highlight::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(145deg, rgba(106, 255, 59, 0.2), rgba(106, 255, 59, 0.04));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 0;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.38s ease;
+}
+
+.tile-highlight::before {
+  background: radial-gradient(circle at 50% 0%, rgba(106, 255, 59, 0.28), rgba(106, 255, 59, 0));
+  filter: blur(0.5px);
+  z-index: 0;
+}
+
+.tile-highlight::after {
+  background: linear-gradient(150deg, rgba(106, 255, 59, 0.22), rgba(106, 255, 59, 0.05));
+  z-index: 0;
 }
 
 .tile-highlight > * {
@@ -793,12 +803,14 @@ main {
 
 .tile-highlight:hover,
 .tile-highlight:focus-within {
-  transform: translateY(-6px);
-  border-color: var(--accent);
-  box-shadow: 0 28px 68px rgba(6, 15, 28, 0.55), 0 0 0 1px rgba(106, 255, 59, 0.28) inset;
+  transform: translateY(-4px);
+  border-color: rgba(106, 255, 59, 0.6);
+  box-shadow: 0 24px 60px rgba(8, 18, 32, 0.58), 0 0 34px rgba(106, 255, 59, 0.4);
 }
 
+.tile-highlight:hover::before,
 .tile-highlight:hover::after,
+.tile-highlight:focus-within::before,
 .tile-highlight:focus-within::after {
   opacity: 1;
 }
@@ -806,11 +818,12 @@ main {
 .tile-highlight:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 4px;
+  box-shadow: 0 0 0 4px rgba(106, 255, 59, 0.22), 0 24px 60px rgba(8, 18, 32, 0.58);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tile-highlight {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: border-color 0.32s ease, box-shadow 0.32s ease, background 0.32s ease;
   }
 
   .tile-highlight:hover,

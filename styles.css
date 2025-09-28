@@ -15,8 +15,9 @@
   --warning: #facc15;
   --shadow-soft: 0 24px 60px rgba(8, 16, 33, 0.45);
   --shadow-card: 0 28px 50px rgba(8, 14, 31, 0.42);
-  --highlight-glow: 0 0 0 1px rgba(106, 255, 59, 0.32), 0 28px 58px rgba(106, 255, 59, 0.18);
-  --highlight-glow-strong: 0 0 0 1px rgba(106, 255, 59, 0.45), 0 32px 70px rgba(106, 255, 59, 0.24);
+  --highlight-glow: 0 0 0 1px rgba(106, 255, 59, 0.32), 0 24px 52px rgba(106, 255, 59, 0.18);
+  --highlight-glow-strong: 0 0 0 1px rgba(106, 255, 59, 0.46), 0 28px 64px rgba(106, 255, 59, 0.26);
+  --tile-ease: cubic-bezier(0.16, 1, 0.3, 1);
   font-size: 16px;
 }
 
@@ -771,19 +772,30 @@ main {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.32s var(--tile-ease), box-shadow 0.32s var(--tile-ease),
+    border-color 0.32s ease, background 0.32s ease;
 }
 
+.tile-highlight::before,
 .tile-highlight::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(145deg, rgba(106, 255, 59, 0.2), rgba(106, 255, 59, 0.04));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 0;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.36s ease, transform 0.36s var(--tile-ease);
+  z-index: 0;
+}
+
+.tile-highlight::before {
+  background: radial-gradient(circle at top, rgba(106, 255, 59, 0.22), transparent 65%);
+  transform: scale(0.92);
+}
+
+.tile-highlight::after {
+  background: linear-gradient(140deg, rgba(106, 255, 59, 0.26), rgba(106, 255, 59, 0.05));
+  transform: scale(0.96);
 }
 
 .tile-highlight > * {
@@ -793,28 +805,39 @@ main {
 
 .tile-highlight:hover,
 .tile-highlight:focus-within {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   border-color: var(--accent);
-  box-shadow: 0 28px 68px rgba(6, 15, 28, 0.55), 0 0 0 1px rgba(106, 255, 59, 0.28) inset;
+  box-shadow: 0 22px 48px rgba(6, 15, 28, 0.52), var(--highlight-glow-strong);
 }
 
+.tile-highlight:hover::before,
+.tile-highlight:focus-within::before,
 .tile-highlight:hover::after,
 .tile-highlight:focus-within::after {
   opacity: 1;
+  transform: scale(1.04);
 }
 
 .tile-highlight:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid rgba(106, 255, 59, 0.65);
   outline-offset: 4px;
+  box-shadow: 0 24px 56px rgba(6, 15, 28, 0.5), var(--highlight-glow-strong);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tile-highlight {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: border-color 0.32s ease, box-shadow 0.32s ease;
   }
 
   .tile-highlight:hover,
   .tile-highlight:focus-within {
+    transform: none;
+  }
+
+  .tile-highlight:hover::before,
+  .tile-highlight:focus-within::before,
+  .tile-highlight:hover::after,
+  .tile-highlight:focus-within::after {
     transform: none;
   }
 }
@@ -873,8 +896,8 @@ main {
   isolation: isolate;
   outline: 1px solid transparent;
   outline-offset: 0;
-  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease,
-    outline-color 0.28s ease, background 0.28s ease;
+  transition: transform 0.32s var(--tile-ease), box-shadow 0.32s var(--tile-ease),
+    border-color 0.32s ease, outline-color 0.32s ease, background 0.32s ease;
 }
 
 :where(
@@ -964,7 +987,12 @@ main {
     :is(div, section, article, a, li, figure)[class*="module" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
     :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
     :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
-  ):focus-within,
+  ):focus-within {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 22px 48px rgba(6, 15, 28, 0.5), var(--highlight-glow-strong);
+}
+
 :where(
     .card,
     .callout-card,
@@ -1009,51 +1037,10 @@ main {
     :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
     :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
   ):focus-visible {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   border-color: var(--accent);
-  box-shadow: 0 30px 70px rgba(6, 15, 28, 0.55), 0 0 0 1px rgba(106, 255, 59, 0.3) inset,
-    0 0 38px rgba(106, 255, 59, 0.22);
-  outline-color: rgba(106, 255, 59, 0.45);
-}
-
-:where(
-    .card,
-    .callout-card,
-    .camp-summary-card,
-    .card-item,
-    .checkout-card,
-    .checkout-hero__card,
-    .contact-card,
-    .counter-card,
-    .cryo-media-card,
-    .cryo-media-card--secondary,
-    .cta-card,
-    .detail-card,
-    .estimator-card,
-    .faq-card,
-    .feature-card,
-    .gallery-card,
-    .hero-card,
-    .hero-visual-card,
-    .hero__card,
-    .link-card,
-    .list-card,
-    .media-card,
-    .metric-card,
-    .price-card,
-    .pricing-card,
-    .process-card,
-    .product-card,
-    .spec-card,
-    .stat-card,
-    .surface-card,
-    .technology-card,
-    .testimonial-card,
-    .upgrade-card,
-    .use-case-card,
-    .vault-card,
-    .wholesale-card
-  ):focus-visible {
+  box-shadow: 0 24px 56px rgba(6, 15, 28, 0.52), var(--highlight-glow-strong), 0 0 42px rgba(106, 255, 59, 0.22);
+  outline-color: rgba(106, 255, 59, 0.55);
   outline-width: 3px;
   outline-offset: 4px;
 }
@@ -1103,7 +1090,7 @@ main {
       :is(div, section, article, a, li, figure)[class*="bundle" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i]),
       :is(div, section, article, a, li, figure)[class*="product" i]:not([class*="grid" i]):not([class*="list" i]):not([class*="action" i]):not([class*="nav" i])
     ) {
-    transition: border-color 0.28s ease, box-shadow 0.28s ease, outline-color 0.28s ease;
+    transition: border-color 0.32s ease, box-shadow 0.32s ease, outline-color 0.32s ease;
   }
 
   :where(

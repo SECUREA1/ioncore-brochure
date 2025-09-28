@@ -106,14 +106,26 @@
       border-top: 1px solid rgba(106, 255, 59, 0.12);
     }
 
+    .table-wrap {
+      margin: 28px 0 12px;
+      border-radius: var(--radius);
+      background: var(--panel-alt);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .table-wrap table {
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 28px 0 12px;
       background: var(--panel-alt);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: var(--shadow);
     }
 
     th, td {
@@ -202,6 +214,97 @@
     a {
       color: var(--accent);
     }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 40px 16px 80px;
+      }
+
+      header {
+        text-align: left;
+      }
+
+      .hero-subtitle {
+        margin: 12px 0 24px;
+      }
+
+      .hero-gallery {
+        grid-template-columns: 1fr;
+      }
+
+      .table-wrap {
+        margin: 32px 0;
+        background: none;
+        box-shadow: none;
+      }
+
+      table,
+      tbody,
+      tr,
+      td,
+      th {
+        display: block;
+        width: 100%;
+      }
+
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      tbody tr {
+        margin-bottom: 18px;
+        padding: 18px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: rgba(10, 16, 26, 0.85);
+        box-shadow: var(--shadow);
+      }
+
+      tbody tr:last-child {
+        margin-bottom: 0;
+      }
+
+      tbody tr:nth-child(odd) {
+        background: rgba(10, 16, 26, 0.85);
+      }
+
+      th,
+      td {
+        border: none;
+        padding: 0;
+      }
+
+      td + td {
+        margin-top: 14px;
+      }
+
+      td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .price {
+        font-size: 1.4rem;
+      }
+
+      footer {
+        margin-top: 56px;
+      }
+    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -230,7 +333,8 @@
 
   <section>
     <h2>Core platform bundles</h2>
-    <table>
+    <div class="table-wrap" role="region" aria-label="Core platform bundles">
+      <table>
       <thead>
         <tr>
           <th scope="col">Package</th>
@@ -241,70 +345,71 @@
       </thead>
       <tbody>
         <tr>
-          <td>
+          <td data-label="Package">
             <div class="pill">Edge Essential</div>
             <p>Starter kit for rapid pilot activation.</p>
           </td>
-          <td>
+          <td data-label="What&#39;s inside">
             <ul>
               <li>4x 4K HDR Sentinel vision units with PoE power</li>
               <li>Edge inference hub (8 TOPS) with 2TB NVMe archive</li>
               <li>Unified command UI with alert explainability tools</li>
             </ul>
           </td>
-          <td>
+          <td data-label="Coverage &amp; Support">
             <ul>
               <li>Supports up to 12 concurrent camera feeds</li>
               <li>On-site commissioning (remote optional)</li>
               <li>24/5 remote diagnostics &amp; firmware orchestration</li>
             </ul>
           </td>
-          <td class="price">$18,900</td>
+          <td class="price" data-label="Launch Price (USD)">$18,900</td>
         </tr>
         <tr>
-          <td>
+          <td data-label="Package">
             <div class="pill">Command Campus</div>
             <p>Distributed coverage across multi-building sites.</p>
           </td>
-          <td>
+          <td data-label="What&#39;s inside">
             <ul>
               <li>12x adaptive low-light vision units w/ thermal assist</li>
               <li>Dual GPU inference fabric (40 TOPS) with 8TB storage mesh</li>
               <li>Federated alerting dashboard + identity stitching module</li>
             </ul>
           </td>
-          <td>
+          <td data-label="Coverage &amp; Support">
             <ul>
               <li>Scales to 48 simultaneous camera streams</li>
               <li>High-availability failover &amp; encrypted data lake</li>
               <li>Dedicated deployment engineer + quarterly model tuning</li>
             </ul>
           </td>
-          <td class="price">$54,500</td>
+          <td class="price" data-label="Launch Price (USD)">$54,500</td>
         </tr>
         <tr>
-          <td>
+          <td data-label="Package">
             <div class="pill">Sentinel Sovereign</div>
             <p>Full-spectrum command for critical infrastructure.</p>
           </td>
-          <td>
+          <td data-label="What&#39;s inside">
             <ul>
               <li>30x multi-spectrum cameras with autonomous patrol drones</li>
               <li>Triple-redundant inference grid (120 TOPS) with 24TB retention</li>
               <li>Air-gapped analytics wall &amp; cross-domain data bridge</li>
             </ul>
           </td>
-          <td>
+          <td data-label="Coverage &amp; Support">
             <ul>
               <li>360° situational awareness across 5 facilities</li>
               <li>On-prem SOC build-out &amp; 4-hour incident response SLA</li>
               <li>Custom AI policy governance + compliance templates</li>
             </ul>
           </td>
-          <td class="price">$189,000</td>
+          <td class="price" data-label="Launch Price (USD)">$189,000</td>
         </tr>
       </tbody>
-    </table>
+      </table>
+    </div>
   </section>
 
   <section>
@@ -330,45 +435,47 @@
 
   <section>
     <h2>Managed assurance tiers</h2>
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Tier</th>
-          <th scope="col">Highlights</th>
-          <th scope="col">Monthly (USD)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <div class="pill">Guardian Care</div>
-            <p>Baseline system stewardship.</p>
-          </td>
-          <td>
-            <ul>
-              <li>24/7 proactive monitoring + automated health checks</li>
-              <li>Firmware, CVE patching, and quarterly threat briefings</li>
-              <li>Annual resilience audit with actionable roadmap</li>
-            </ul>
-          </td>
-          <td class="price">$1,950</td>
-        </tr>
-        <tr>
-          <td>
-            <div class="pill">Vanguard Response</div>
-            <p>Mission-critical oversight.</p>
-          </td>
-          <td>
-            <ul>
-              <li>Hybrid SOC support with 60-minute incident bridge</li>
-              <li>Model drift forensics and regulatory reporting pack</li>
-              <li>Quarterly red-team simulations + executive brief</li>
-            </ul>
-          </td>
-          <td class="price">$4,800</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrap" role="region" aria-label="Managed assurance tiers">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Tier</th>
+            <th scope="col">Highlights</th>
+            <th scope="col">Monthly (USD)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Tier">
+              <div class="pill">Guardian Care</div>
+              <p>Baseline system stewardship.</p>
+            </td>
+            <td data-label="Highlights">
+              <ul>
+                <li>24/7 proactive monitoring + automated health checks</li>
+                <li>Firmware, CVE patching, and quarterly threat briefings</li>
+                <li>Annual resilience audit with actionable roadmap</li>
+              </ul>
+            </td>
+            <td class="price" data-label="Monthly (USD)">$1,950</td>
+          </tr>
+          <tr>
+            <td data-label="Tier">
+              <div class="pill">Vanguard Response</div>
+              <p>Mission-critical oversight.</p>
+            </td>
+            <td data-label="Highlights">
+              <ul>
+                <li>Hybrid SOC support with 60-minute incident bridge</li>
+                <li>Model drift forensics and regulatory reporting pack</li>
+                <li>Quarterly red-team simulations + executive brief</li>
+              </ul>
+            </td>
+            <td class="price" data-label="Monthly (USD)">$4,800</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <p><strong>Note:</strong> Managed tiers require an active platform bundle. Custom export compliance, multi-language interfaces, and sovereign data residency are quoted on request.</p>
   </section>
 

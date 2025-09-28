@@ -635,6 +635,76 @@
       .calc-col {
         grid-column: span 12;
       }
+
+      .container {
+        padding: 0 18px;
+      }
+
+      .hero-content,
+      .hero-aside {
+        padding: 28px;
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+
+      .section-header p {
+        max-width: none;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-grid,
+      .pricing-grid,
+      .two-col,
+      .calc-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      footer .footer-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        font-size: 0.98rem;
+      }
+
+      .hero {
+        padding: 60px 0 54px;
+      }
+
+      .hero-content,
+      .hero-aside,
+      .card,
+      .architecture,
+      .price-card,
+      .calc-col,
+      .faq-item {
+        padding: 22px;
+      }
+
+      .pill-group {
+        gap: 10px;
+      }
+
+      .summary-row {
+        gap: 6px;
+      }
     }
   </style>
 </head>

@@ -314,19 +314,19 @@
       border: 1px solid rgba(106, 255, 59, 0.22);
       box-shadow: var(--shadow-soft);
       background: rgba(6, 12, 22, 0.7);
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
     }
 
     .hero__media-strip {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 12px;
-      justify-content: flex-end;
     }
 
     .hero__thumb {
-      flex: 1 1 160px;
-      min-width: 140px;
-      max-width: 220px;
+      display: flex;
+      flex-direction: column;
       border-radius: calc(var(--radius-md) - 8px);
       overflow: hidden;
       border: 1px solid rgba(106, 255, 59, 0.18);
@@ -338,7 +338,8 @@
     .hero__thumb img {
       display: block;
       width: 100%;
-      height: auto;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
     }
 
     .hero__thumb figcaption {

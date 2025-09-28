@@ -249,6 +249,33 @@
       gap: 18px;
     }
 
+    .hero-illustrations {
+      position: relative;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-illustration {
+      width: 100%;
+      display: block;
+      border-radius: calc(var(--radius) - 6px);
+      border: 1px solid rgba(106, 255, 59, 0.2);
+      box-shadow: 0 18px 42px rgba(2, 8, 16, 0.45);
+    }
+
+    .hero-illustration--primary {
+      grid-column: 1 / -1;
+    }
+
+    .hero-illustration--secondary {
+      max-width: 68%;
+      justify-self: end;
+      margin-top: -28px;
+      border-radius: calc(var(--radius) - 10px);
+      border-color: rgba(106, 255, 59, 0.28);
+      box-shadow: 0 22px 36px rgba(2, 8, 16, 0.55);
+    }
+
     .hero-aside h2 {
       margin: 0;
       font-size: 1.25rem;
@@ -597,6 +624,12 @@
         padding: 70px 0 60px;
       }
 
+      .hero-illustration--secondary {
+        max-width: 100%;
+        margin-top: 0;
+        justify-self: stretch;
+      }
+
       .feature-card,
       .price-card,
       .calc-col {
@@ -651,6 +684,10 @@
           </div>
         </div>
         <aside class="hero-aside" aria-label="Key performance stats">
+          <div class="hero-illustrations">
+            <img src="setinalex1.png" alt="Sentinel Multi-Cam AI alert console" class="hero-illustration hero-illustration--primary">
+            <img src="setinaldrone.png" alt="Sentinel drone-assisted patrol overview" class="hero-illustration hero-illustration--secondary">
+          </div>
           <h2>Why operators choose Sentinel</h2>
           <div class="stats-grid">
             <div class="stat-card">

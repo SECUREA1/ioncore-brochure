@@ -73,6 +73,39 @@
       letter-spacing: 0.3px;
     }
 
+    .hero-gallery {
+      margin: 40px auto 0;
+      max-width: 940px;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .hero-figure {
+      background: rgba(8, 14, 24, 0.8);
+      border-radius: 22px;
+      border: 1px solid rgba(106, 255, 59, 0.18);
+      box-shadow: 0 24px 48px rgba(2, 6, 14, 0.45);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .hero-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .hero-figure figcaption {
+      padding: 16px 20px 20px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      background: rgba(6, 10, 18, 0.9);
+      border-top: 1px solid rgba(106, 255, 59, 0.12);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -179,6 +212,20 @@
     <span class="tagline">Sentinel Multi‑Cam AI &bull; Pricing Intelligence</span>
     <h1>Package architecture for edge-first surveillance deployments.</h1>
     <p class="hero-subtitle">Curate the Sentinel Multi‑Cam AI stack to match your mission tempo. Each bundle fuses ioncore energy resilience with on-prem computer vision, hardened networking, and lifecycle support so you can activate autonomous monitoring in hours, not months.</p>
+    <div class="hero-gallery" role="group" aria-label="Sentinel deployment visuals">
+      <figure class="hero-figure">
+        <img src="seintinalai.png" alt="Sentinel Multi-Cam AI surveillance control center">
+        <figcaption>Operator workspace unifying live feeds, alerts, and explainable context.</figcaption>
+      </figure>
+      <figure class="hero-figure">
+        <img src="setinaldrone.png" alt="Sentinel drone perimeter coverage overview">
+        <figcaption>Autonomous drone sweeps augment fixed cameras with mobile patrol loops.</figcaption>
+      </figure>
+      <figure class="hero-figure">
+        <img src="sentinalex.png" alt="Sentinel AI analytics dashboard">
+        <figcaption>Analytics dashboard highlighting detections, escalation queues, and insights.</figcaption>
+      </figure>
+    </div>
   </header>
 
   <section>

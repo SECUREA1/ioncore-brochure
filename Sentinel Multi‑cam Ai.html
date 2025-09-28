@@ -215,6 +215,22 @@
       gap: 14px;
     }
 
+    .hero__cta-visual {
+      margin-top: 32px;
+      display: inline-flex;
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero__cta-visual img {
+      width: min(460px, 100%);
+      border-radius: calc(var(--radius-lg) - 6px);
+      object-fit: cover;
+    }
+
     .hero__device {
       margin: 28px 0 0;
       max-width: 420px;
@@ -750,6 +766,9 @@
             <a class="btn btn-outline" href="#capabilities"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>See feature map</span></a>
             <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span>Book a demo</span></a>
           </div>
+          <figure class="hero__cta-visual">
+            <img src="setinal1.jpeg" alt="Operators monitoring multi-camera feeds from Sentinel Multi-Cam AI">
+          </figure>
           <figure class="hero__device">
             <img src="sentinal.png" alt="Sentinel Multi-Cam AI appliance hardware">
           </figure>

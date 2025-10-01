@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Confidential Ioncore Energy product portfolio overview highlighting pricing, capabilities, and imagery.">
+  <title>Ioncore Energy | Confidential Product Portfolio</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .portfolio-hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: clamp(32px, 5vw, 64px);
+      align-items: center;
+    }
+
+    .portfolio-hero__copy > * + * {
+      margin-top: 16px;
+    }
+
+    .portfolio-hero__media {
+      position: relative;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      background: rgba(9, 16, 29, 0.8);
+      box-shadow: var(--shadow-card), var(--highlight-glow);
+    }
+
+    .portfolio-hero__media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0;
+    }
+
+    .portfolio-hero__note {
+      position: absolute;
+      inset: auto 18px 18px auto;
+      background: rgba(3, 7, 18, 0.86);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .product-grid {
+      display: grid;
+      gap: clamp(18px, 3vw, 28px);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      margin-top: 42px;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(18px, 3vw, 28px);
+      box-shadow: var(--shadow-card);
+      display: grid;
+      gap: 16px;
+    }
+
+    .product-card__media {
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .product-card__price {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .product-card__price span {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .product-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-med);
+      display: grid;
+      gap: 8px;
+    }
+
+    .product-card ul li::marker {
+      color: var(--accent);
+    }
+
+    .confidential-banner {
+      border-radius: 22px;
+      border: 1px solid rgba(250, 204, 21, 0.45);
+      background: rgba(250, 204, 21, 0.12);
+      padding: clamp(18px, 3vw, 28px);
+      margin-top: 36px;
+      color: var(--text-high);
+    }
+
+    .contact-panel {
+      background: var(--surface);
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      padding: clamp(24px, 4vw, 42px);
+      display: grid;
+      gap: 18px;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html" aria-label="Ioncore Energy main experience">
+      <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+      <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
+
+  <main>
+    <section class="container page-section page-section--tight">
+      <div class="portfolio-hero">
+        <div class="portfolio-hero__copy">
+          <span class="eyebrow">Confidential showcase</span>
+          <h1 class="section-title">Non-disclosure product roster for vetted partners.</h1>
+          <p class="section-subtitle">A curated view of Ioncore Energy solutions ready for briefing, including indicative pricing, deployment strengths, and visual references. Shareable with approved partners only.</p>
+          <div class="confidential-banner" role="status">
+            <strong>Restricted distribution.</strong> Performance capabilities, pricing, and imagery are provided for scoping conversations. Engineering schematics and build procedures remain confidential until an NDA is executed.
+          </div>
+        </div>
+        <figure class="portfolio-hero__media">
+          <img src="IMG_2826.jpeg" alt="Ioncore Energy product collage">
+          <figcaption class="visually-hidden">Ioncore Energy flagship systems arranged across hospitality, aerospace, and surveillance environments.</figcaption>
+          <span class="portfolio-hero__note">Internal briefing</span>
+        </figure>
+      </div>
+    </section>
+
+    <section class="container page-section--tight">
+      <div class="section-heading">
+        <span class="eyebrow">Portfolio summary</span>
+        <h2 class="section-title">High-impact systems, pricing signals, and operational value.</h2>
+        <p class="section-subtitle">Use these cards to steer scope, budget, and performance expectations with prospective buyers while preserving proprietary implementation detail.</p>
+      </div>
+      <div class="product-grid" role="list">
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="hotel21.jpeg" alt="Hybrid hospitality, residential, and camper energy systems">
+          </div>
+          <h3>Hybrid Hospitality &amp; Adventure Systems</h3>
+          <div class="product-card__price">$2,999 – $65,000<span>Configured</span></div>
+          <p>Flywheel + LFP packages engineered for hotels, estates, RV fleets, and trail deployments.</p>
+          <ul>
+            <li>Delivers 2–20&nbsp;kW continuous output with up to 40&nbsp;kW surge support for peak loads.</li>
+            <li>Modular energy storage from 3.8&nbsp;kWh portable kits to 60&nbsp;kWh+ commercial clusters.</li>
+            <li>Pricing covers Lite Camper through Round Hotel builds, including RV-specific configurations.</li>
+          </ul>
+          <a class="btn btn-outline" href="camp.html">View hospitality brief</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="50mm.png" alt="50mm magnetic inertia system render">
+          </div>
+          <h3>50&nbsp;mm Magnetic Inertia System</h3>
+          <div class="product-card__price">$31,100<span>Turn-key</span></div>
+          <p>Compact magnetic inertia array that unlocks multi-sector energy independence.</p>
+          <ul>
+            <li>Annual production of ~68,766&nbsp;kWh with ROI under 2.3&nbsp;years at $0.20/kWh tariffs.</li>
+            <li>Backs up residential, commercial, healthcare, and institutional loads with remote monitoring.</li>
+            <li>Includes magnetic bearings, energy storage, cooling, controls, and professional installation.</li>
+          </ul>
+          <a class="btn btn-outline" href="50mm%20Magnetic%20Inertia%20System.html">Review cost study</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="bundle.png" alt="Hybrid flywheel + battery storage system">
+          </div>
+          <h3>Hybrid Flywheel + Battery Home Storage</h3>
+          <div class="product-card__price">$34,900<span>Hardware</span></div>
+          <p>Whole-home resilience pairing instant flywheel response with deep LFP reserves.</p>
+          <ul>
+            <li>Base hardware includes flywheel module, 16&nbsp;kWh LFP pack, inverter/controller, and enclosure.</li>
+            <li>Turn-key installs range from $42k–$49k with commissioning, permitting, and site prep.</li>
+            <li>Engineered to handle 24&nbsp;kWh/day demand plus heavy-start HVAC and EV charging surges.</li>
+          </ul>
+          <a class="btn btn-outline" href="Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html">Open residential dossier</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="GEN3.png" alt="Ioncore portable flywheel generators">
+          </div>
+          <h3>Ioncore Portable Magnetic Generators</h3>
+          <div class="product-card__price">$999 – $3,899<span>MSRP</span></div>
+          <p>Field-ready kinetic generators spanning emergency kits to mission-grade hybrid stacks.</p>
+          <ul>
+            <li>Portfolio covers Gen‑1 to Gen‑4 units delivering 0.2&nbsp;kWh to 8&nbsp;kWh of deployable energy.</li>
+            <li>Silent magnetic bearings with remote monitoring keep communications and sensors online.</li>
+            <li>Retail tiers scale from low-grade emergency packs to high-grade graphene-enhanced systems.</li>
+          </ul>
+          <a class="btn btn-outline" href="ioncore%20energy.html">Tour product lineup</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="IMG_2714.jpeg" alt="Magnetic inertia jet engine concept">
+          </div>
+          <h3>Magnetic Inertia Jet Engine Platform</h3>
+          <div class="product-card__price">$1.8M – $5.2M<span>Program</span></div>
+          <p>Superconducting propulsion stack delivering supersonic thrust with regenerative energy recovery.</p>
+          <ul>
+            <li>Targets Mach&nbsp;3.2+ envelopes with magnetically suspended rotors producing up to 12,000&nbsp;lbf.</li>
+            <li>Regenerative conversion feeds onboard systems while cryogenic loops stabilise superconductors.</li>
+            <li>Total program outlook ranges from $1.4M–$4.0M with suggested market price at $1.8M–$5.2M.</li>
+          </ul>
+          <a class="btn btn-outline" href="Magnetic%20Inertia%20Jet%20Engine.html">Open propulsion brief</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="peak50.png" alt="Peak Series portable module">
+          </div>
+          <h3>Peak Series Portable Modules</h3>
+          <div class="product-card__price">$1,299<span>Prototype MSRP</span></div>
+          <p>Lightweight kinetic-lithium hybrids tuned for research, broadcast, and tactical teams.</p>
+          <ul>
+            <li>Peak&nbsp;50 prototype delivers 50&nbsp;W continuous with 120&nbsp;W surge via pure-sine 120&nbsp;VAC.</li>
+            <li>Hybrid flywheel and lithium storage provide ≈80&nbsp;Wh of clean, noise-free power.</li>
+            <li>Accessory-ready chassis with rugged casing and modular mounting points.</li>
+          </ul>
+          <a class="btn btn-outline" href="peak_series_brochure.html">See prototype deck</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="flywheel.png" alt="Flywheel self-charging unit render">
+          </div>
+          <h3>Rotational Gyrating Flywheel Power Unit</h3>
+          <div class="product-card__price">$699 – $2,499<span>Models</span></div>
+          <p>Precision FSCU lineup providing silent, wireless, and USB‑C power delivery for premium spaces.</p>
+          <ul>
+            <li>Rapid charge to 80% in ≤15&nbsp;minutes with 24/7 remote diagnostics and 99.2% inverter efficiency.</li>
+            <li>FSCU‑Mini, Pro, and Edge models span 120&nbsp;W to 600&nbsp;W continuous output with kW-class bursts.</li>
+            <li>Add-on ecosystem includes service kits, rack rails, telemetry APIs, and Power Coin modules.</li>
+          </ul>
+          <a class="btn btn-outline" href="flywheeldisk.html">Explore FSCU roadmap</a>
+        </article>
+
+        <article class="product-card" role="listitem">
+          <div class="product-card__media">
+            <img src="sentinal.png" alt="Sentinel Multi-Cam AI interface on workstation">
+          </div>
+          <h3>Sentinel Multi‑Cam AI Surveillance Platform</h3>
+          <div class="product-card__price">$29/mo – $9,600<span>Licences</span></div>
+          <p>Edge-first computer vision stack with explainable alerts and air-gapped deployment options.</p>
+          <ul>
+            <li>Ingests up to eight live feeds with ≤33&nbsp;ms UI latency and YOLO-based object and face recognition.</li>
+            <li>Starter to Pro subscriptions span $29–$79 per host, with deployment licences from $4,800.</li>
+            <li>Supports privacy-aware operations with local storage, auditable logs, and configurable alerting.</li>
+          </ul>
+          <a class="btn btn-outline" href="Sentinel%20Multi%E2%80%91cam%20Ai.html">View Sentinel briefing</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
+      <div class="contact-panel">
+        <div>
+          <span class="eyebrow">Next steps</span>
+          <h2 class="section-title">Schedule a secured strategy session.</h2>
+          <p class="section-subtitle">Coordinate NDA execution, roadmap access, and bespoke pricing packages with the Ioncore partnerships team.</p>
+        </div>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com?subject=Confidential%20Portfolio%20Inquiry">Initiate NDA process</a>
+          <a class="btn btn-outline" href="https://t.me/+2GW6Ksve5z8xYTVh">Chat on Telegram</a>
+        </div>
+        <p class="section-subtitle">© 2025 Ioncore Energy. Information presented remains confidential and must not be distributed without written consent.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html">
+            <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+            <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+          </a>
+          <p>Access, compare, and deploy Ioncore’s magnetic inertia, hybrid storage, and AI security innovations.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#technology">Technology insights</a></li>
+            <li><a href="index.html">Brochure library</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Chat with us on Telegram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 Ioncore Energy. All rights reserved.</span>
+        <span>Confidential portfolio shared under mutual trust.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

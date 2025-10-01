@@ -167,18 +167,23 @@ app.post('/logout', (req, res) => {
 });
 
 function isPublicRoute(req) {
-  if (req.method === 'GET' && (req.path === '/login' || req.path === '/login.html')) {
+  if (req.method === 'POST' && (req.path === '/login' || req.path === '/logout')) {
     return true;
   }
-  if (req.method === 'GET' && req.path === '/battery.svg') {
-    return true;
+
+  if (req.method === 'GET') {
+    const publicHtml = new Set(['/login', '/login.html', '/', '/webpage.html']);
+    if (publicHtml.has(req.path)) {
+      return true;
+    }
+
+    const publicAssets = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.json', '.txt']);
+    const extension = path.extname(req.path).toLowerCase();
+    if (publicAssets.has(extension)) {
+      return true;
+    }
   }
-  if (req.method === 'POST' && req.path === '/login') {
-    return true;
-  }
-  if (req.method === 'POST' && req.path === '/logout') {
-    return true;
-  }
+
   return false;
 }
 

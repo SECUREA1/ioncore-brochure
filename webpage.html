@@ -14,7 +14,7 @@
 </head>
 <body>
   <header class="site-header container">
-    <a class="logo" href="webpage.html">
+    <a class="logo" href="/">
       <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
       <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
     </a>
@@ -292,17 +292,17 @@
 
         <article class="product-card" role="listitem">
           <div class="product-card__media">
-            <img src="bundle.png" alt="Hybrid flywheel + battery storage system">
+            <img src="hologold.png" alt="Holophone immersive communications suite">
           </div>
-          <h3>Hybrid Flywheel + Battery Home Storage</h3>
-          <div class="product-card__price">$34,900<span>Hardware</span></div>
-          <p>Whole-home resilience pairing instant flywheel response with deep LFP reserves.</p>
+          <h3>Holophone Immersive Communications</h3>
+          <div class="product-card__price">$1,499 – $8,799<span>Configurations</span></div>
+          <p>Holographic communication terminals that merge volumetric capture with kinetic-energy-ready power.</p>
           <ul>
-            <li>Base hardware includes flywheel module, 16&nbsp;kWh LFP pack, inverter/controller, and enclosure.</li>
-            <li>Turn-key installs range from $42k–$49k with commissioning, permitting, and site prep.</li>
-            <li>Engineered to handle 24&nbsp;kWh/day demand plus heavy-start HVAC and EV charging surges.</li>
+            <li>Full-stack array with 3D spatial capture, 4K volumetric projection, and adaptive acoustic shells.</li>
+            <li>Edge AI processors enable gesture control, multi-user presence, and live translation modes.</li>
+            <li>Ships with Ioncore-ready power backplane for seamless integration into inertia or hybrid systems.</li>
           </ul>
-          <a class="btn btn-outline" href="Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html">Open residential dossier</a>
+          <a class="btn btn-outline" href="holophone.html">Review Holophone lineup</a>
         </article>
 
         <article class="product-card" role="listitem">
@@ -416,7 +416,7 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-col">
-          <a class="logo" href="webpage.html">
+          <a class="logo" href="/">
             <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
             <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
           </a>
@@ -531,6 +531,42 @@
       });
 
       register().then(startRefresh);
+    })();
+
+    (() => {
+      const localOrigin = window.location.origin;
+      const anchors = Array.from(document.querySelectorAll('a[href]'));
+      anchors.forEach((link) => {
+        const rawHref = link.getAttribute('href');
+        if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) {
+          return;
+        }
+
+        if (link.dataset.publicLink === 'true') {
+          return;
+        }
+
+        try {
+          const targetUrl = new URL(rawHref, localOrigin);
+          if (targetUrl.origin !== localOrigin) {
+            return;
+          }
+
+          if (targetUrl.pathname === '/login' || targetUrl.pathname === '/login.html') {
+            return;
+          }
+
+          if (!targetUrl.pathname.toLowerCase().endsWith('.html')) {
+            return;
+          }
+
+          const destination = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+          link.dataset.destination = destination;
+          link.setAttribute('href', `/login?next=${encodeURIComponent(destination)}`);
+        } catch (err) {
+          console.warn('Unable to secure link', err);
+        }
+      });
     })();
   </script>
 </body>

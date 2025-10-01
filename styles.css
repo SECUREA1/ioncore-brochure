@@ -583,6 +583,60 @@ main {
   max-width: 780px;
 }
 
+.portfolio-hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(28px, 5vw, 60px);
+  align-items: center;
+}
+
+.portfolio-hero__copy > * + * {
+  margin-top: 16px;
+}
+
+.portfolio-hero__media {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  background: rgba(9, 16, 29, 0.8);
+  box-shadow: var(--shadow-card), var(--highlight-glow);
+}
+
+.portfolio-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.portfolio-hero__note {
+  position: absolute;
+  inset: auto 18px 18px auto;
+  background: rgba(3, 7, 18, 0.86);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.confidential-banner {
+  border-radius: 22px;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  background: rgba(250, 204, 21, 0.12);
+  padding: clamp(18px, 3vw, 28px);
+  margin-top: 36px;
+  color: var(--text-high);
+}
+
+.confidential-banner strong {
+  color: var(--warning);
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -734,6 +788,18 @@ main {
   box-shadow: 0 32px 60px rgba(6, 15, 28, 0.48), var(--highlight-glow-strong);
 }
 
+.product-card__media {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.product-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  box-shadow: none;
+}
+
 .product-card h3 {
   margin: 12px 0;
   font-size: 1.26rem;
@@ -741,6 +807,35 @@ main {
 
 .product-card p {
   font-size: 0.92rem;
+}
+
+.product-card__price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.product-card__price span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.product-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-med);
+  display: grid;
+  gap: 8px;
+}
+
+.product-card ul li::marker {
+  color: var(--accent);
 }
 
 .product-card .card-actions {

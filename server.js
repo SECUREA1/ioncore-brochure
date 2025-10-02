@@ -131,19 +131,12 @@ function clearSessionCookie(res) {
 
 app.get('/login', async (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
-  const requestedNext = typeof req.query.next === 'string' ? req.query.next : '';
-  const safeNext =
-    requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
-  const wantsApeView =
-    typeof req.query.view === 'string' && req.query.view.toLowerCase() === 'ioncore-ape';
-
   if (validateAuthSession(sessionId)) {
     setSessionCookie(res, sessionId);
-    if (!wantsApeView && safeNext) {
-      return res.redirect(safeNext);
-    }
+    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
+    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
+    return res.redirect(safeNext);
   }
-
   await sendHtml(res, path.join(__dirname, 'login.html'));
 });
 
@@ -302,7 +295,7 @@ app.get('/view', async (req, res) => {
   try {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
-    const wrapped = `<!DOCTYPE html><html lang="en"><head>${buildHead(title)}</head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Brochure Index List</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
+    const wrapped = `<!DOCTYPE html><html lang="en"><head>${buildHead(title)}</head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
     res.send(wrapped);
   } catch {
     res.status(404).send('Not found');

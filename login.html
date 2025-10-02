@@ -476,6 +476,7 @@
       gap: 1rem;
     }
 
+    .button-primary,
     .button-secondary,
     .button-tertiary {
       appearance: none;
@@ -487,6 +488,27 @@
       text-transform: uppercase;
       cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .button-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: 1px solid rgba(106, 255, 59, 0.6);
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.88), rgba(72, 255, 226, 0.35));
+      color: #05070e;
+      box-shadow: 0 18px 38px rgba(106, 255, 59, 0.22);
+    }
+
+    .button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 26px 48px rgba(106, 255, 59, 0.28);
+    }
+
+    .button-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 16px 32px rgba(106, 255, 59, 0.24);
     }
 
     .button-secondary {
@@ -519,12 +541,14 @@
     }
 
     button[disabled],
+    .button-primary[aria-disabled="true"],
     .button-secondary[disabled],
     .button-tertiary[disabled] {
       opacity: 0.65;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
+      pointer-events: none;
     }
 
     .wallet-status {
@@ -611,7 +635,12 @@
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
-      <section class="mint-module" aria-labelledby="mint-headline">
+      <section
+        class="mint-module"
+        aria-labelledby="mint-headline"
+        data-ioncore-apes-collection="9wS4XnX7ZLm1EWj1vDLteA94vmMTvEfgQ6UkNzxaz2Ys"
+        data-ioncore-apes-mint-url="https://mint.ioncoreapes.com"
+      >
         <div class="mint-eyebrow"><span>Ioncore</span> Genesis Mint</div>
         <h2 id="mint-headline" class="mint-headline">Mint Your Ioncore Ape on Solana</h2>
         <p class="mint-description">Phase-one Ioncore Apes are forged exclusively for authenticated vault operatives. Connect with Phantom on Solana to mint your collectible and activate its kinetic utilities across the Ioncore ecosystem.</p>
@@ -627,7 +656,25 @@
             </div>
             <button type="button" id="connect-wallet" class="button-secondary">Connect Phantom Wallet</button>
             <button type="button" id="mint-ape" class="button-tertiary" disabled>Mint Ioncore Ape</button>
-            <p id="wallet-status" class="wallet-status status-message" role="status" aria-live="polite">Phantom wallet not connected.</p>
+            <a
+              id="mint-now"
+              class="button-primary"
+              href="https://mint.ioncoreapes.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Mint Now Portal</a>
+            <p
+              id="wallet-status"
+              class="wallet-status status-message"
+              role="status"
+              aria-live="polite"
+            >Phantom wallet not connected.</p>
+            <p
+              id="token-status"
+              class="wallet-status status-message"
+              role="status"
+              aria-live="polite"
+            >Ioncore Ape token verification pending.</p>
           </div>
         </div>
       </section>
@@ -668,15 +715,21 @@
     const query = new URLSearchParams(window.location.search);
     const nextPath = query.get('next') || '/';
 
-    function updateStatus(message, tone = 'neutral') {
-      status.textContent = message;
-      status.classList.remove('status-message--error', 'status-message--success');
+    function setStatusMessage(element, message, tone = 'neutral') {
+      if (!element) {
+        return;
+      }
+      element.textContent = message;
+      element.classList.remove('status-message--error', 'status-message--success');
       if (tone === 'error') {
-        status.classList.add('status-message--error');
+        element.classList.add('status-message--error');
+      } else if (tone === 'success') {
+        element.classList.add('status-message--success');
       }
-      if (tone === 'success') {
-        status.classList.add('status-message--success');
-      }
+    }
+
+    function updateStatus(message, tone = 'neutral') {
+      setStatusMessage(status, message, tone);
     }
 
     form.addEventListener('submit', async (event) => {
@@ -729,38 +782,81 @@
       }
     });
 
+    const mintModuleElement = document.querySelector('.mint-module');
     const connectButton = document.getElementById('connect-wallet');
     const mintButton = document.getElementById('mint-ape');
+    const mintNowLink = document.getElementById('mint-now');
     const walletStatus = document.getElementById('wallet-status');
+    const tokenStatus = document.getElementById('token-status');
+
+    const WALLET_STATUS_DISCONNECTED = 'Phantom wallet not connected.';
+    const TOKEN_STATUS_PENDING = 'Ioncore Ape token verification pending.';
+    const DEFAULT_APES_COLLECTION = '9wS4XnX7ZLm1EWj1vDLteA94vmMTvEfgQ6UkNzxaz2Ys';
+    const DEFAULT_MINT_URL = 'https://mint.ioncoreapes.com';
+    const MINT_NOW_DEFAULT_TEXT = 'Mint Now Portal';
+    const MINT_NOW_VERIFIED_TEXT = 'Mint Another Ioncore Ape';
+
+    const rawApeMintAddresses = (
+      mintModuleElement?.dataset?.ioncoreApesCollection || DEFAULT_APES_COLLECTION
+    )
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+
+    const configuredMintUrl = (mintModuleElement?.dataset?.ioncoreApesMintUrl || DEFAULT_MINT_URL).trim();
+    if (mintNowLink) {
+      if (configuredMintUrl) {
+        mintNowLink.href = configuredMintUrl;
+        if (/^https?:/i.test(configuredMintUrl)) {
+          mintNowLink.target = '_blank';
+          mintNowLink.rel = 'noopener noreferrer';
+        } else {
+          mintNowLink.removeAttribute('target');
+          mintNowLink.removeAttribute('rel');
+        }
+      } else {
+        mintNowLink.href = '#';
+        mintNowLink.setAttribute('aria-disabled', 'true');
+      }
+      mintNowLink.textContent = MINT_NOW_DEFAULT_TEXT;
+    }
+    setStatusMessage(tokenStatus, TOKEN_STATUS_PENDING);
 
     const SOLANA_NETWORK = 'https://api.devnet.solana.com';
     const MINT_PRICE_SOL = 0.1;
     const TREASURY_ADDRESS = '9ZQe2UzsDzfrFwRGnnhzEpw99FQMN9D1Z4SXDqTbJ8fQ';
+    const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 
     let phantomProvider = null;
     let walletPublicKey = null;
     let connection = null;
     let walletEventsRegistered = false;
+    let cachedMintPublicKeys = null;
+    let apeVerificationSucceeded = false;
 
     function getProvider() {
-      if ('solana' in window) {
-        const provider = window.solana;
-        if (provider?.isPhantom) {
+      const { solana, phantom } = window;
+      if (solana?.isPhantom) {
+        return solana;
+      }
+      if (Array.isArray(solana?.providers)) {
+        const provider = solana.providers.find((item) => item?.isPhantom);
+        if (provider) {
           return provider;
         }
+      }
+      if (phantom?.solana?.isPhantom) {
+        return phantom.solana;
       }
       return null;
     }
 
     function updateWalletStatus(message, tone = 'neutral') {
-      walletStatus.textContent = message;
-      walletStatus.classList.remove('status-message--error', 'status-message--success');
-      if (tone === 'error') {
-        walletStatus.classList.add('status-message--error');
-      }
-      if (tone === 'success') {
-        walletStatus.classList.add('status-message--success');
-      }
+      setStatusMessage(walletStatus, message, tone);
+    }
+
+    function updateTokenStatus(message, tone = 'neutral') {
+      setStatusMessage(tokenStatus, message, tone);
     }
 
     async function ensureConnection() {
@@ -773,24 +869,133 @@
       return connection;
     }
 
-    function handleWalletConnected(resolvedKey) {
-      walletPublicKey = resolvedKey;
-      updateWalletStatus(
-        `Wallet connected: ${walletPublicKey.toString().slice(0, 4)}…${walletPublicKey.toString().slice(-4)}`,
-        'success'
-      );
-      mintButton.disabled = false;
-      connectButton.textContent = 'Wallet Connected';
-      connectButton.disabled = true;
+    function getIoncoreApeMintPublicKeys() {
+      if (cachedMintPublicKeys) {
+        return cachedMintPublicKeys;
+      }
+      if (!window.solanaWeb3?.PublicKey) {
+        return [];
+      }
+      const keys = [];
+      for (const address of rawApeMintAddresses) {
+        try {
+          keys.push(new window.solanaWeb3.PublicKey(address));
+        } catch (error) {
+          console.warn('Ignoring invalid Ioncore Ape mint address', address, error);
+        }
+      }
+      cachedMintPublicKeys = keys;
+      return cachedMintPublicKeys;
     }
 
-    function resetWalletState(message = 'Phantom wallet not connected.') {
+    async function verifyIoncoreApeOwnership() {
+      if (!walletPublicKey) {
+        updateTokenStatus('Connect Phantom to verify Ioncore Ape ownership.');
+        return false;
+      }
+
+      const mintPublicKeys = getIoncoreApeMintPublicKeys();
+      if (!mintPublicKeys.length) {
+        updateTokenStatus('No Ioncore Ape contract configured for verification.', 'error');
+        if (mintNowLink) {
+          mintNowLink.textContent = MINT_NOW_DEFAULT_TEXT;
+        }
+        apeVerificationSucceeded = false;
+        return false;
+      }
+
+      try {
+        updateTokenStatus('Verifying Ioncore Ape token on-chain…');
+        const solConnection = await ensureConnection();
+        const tokenProgramId = new window.solanaWeb3.PublicKey(TOKEN_PROGRAM_ID);
+        const response = await solConnection.getParsedTokenAccountsByOwner(walletPublicKey, {
+          programId: tokenProgramId
+        });
+
+        const requiredMints = new Set(mintPublicKeys.map((key) => key.toBase58()));
+        const holdings = new Set(
+          response.value
+            .map((account) => account.account.data?.parsed?.info)
+            .filter((info) => {
+              if (!info?.tokenAmount?.amount) {
+                return false;
+              }
+              try {
+                return BigInt(info.tokenAmount.amount) > 0n;
+              } catch {
+                return false;
+              }
+            })
+            .map((info) => info.mint)
+            .filter(Boolean)
+        );
+
+        const hasToken = [...requiredMints].some((mint) => holdings.has(mint));
+        apeVerificationSucceeded = hasToken;
+
+        if (hasToken) {
+          updateTokenStatus('Ioncore Ape token verified. Clearance confirmed.', 'success');
+          if (mintButton) {
+            mintButton.textContent = 'Mint Another Ioncore Ape';
+          }
+          if (mintNowLink) {
+            mintNowLink.textContent = MINT_NOW_VERIFIED_TEXT;
+          }
+          return true;
+        }
+
+        updateTokenStatus('No Ioncore Ape token detected for this wallet. Use Mint Now to claim.', 'error');
+        if (mintButton) {
+          mintButton.textContent = 'Mint Ioncore Ape';
+        }
+        if (mintNowLink) {
+          mintNowLink.textContent = MINT_NOW_DEFAULT_TEXT;
+        }
+        return false;
+      } catch (error) {
+        apeVerificationSucceeded = false;
+        console.error('Ioncore Ape verification failed', error);
+        updateTokenStatus('Ioncore Ape token verification failed. Retry shortly.', 'error');
+        if (mintNowLink) {
+          mintNowLink.textContent = MINT_NOW_DEFAULT_TEXT;
+        }
+        return false;
+      }
+    }
+
+    function handleWalletConnected(resolvedKey) {
+      walletPublicKey = resolvedKey;
+      const base58Key = walletPublicKey.toString();
+      updateWalletStatus(
+        `Wallet connected: ${base58Key.slice(0, 4)}…${base58Key.slice(-4)}`,
+        'success'
+      );
+      if (mintButton) {
+        mintButton.disabled = false;
+      }
+      if (connectButton) {
+        connectButton.textContent = 'Wallet Connected';
+        connectButton.disabled = true;
+      }
+      verifyIoncoreApeOwnership();
+    }
+
+    function resetWalletState(message = WALLET_STATUS_DISCONNECTED) {
       walletPublicKey = null;
-      mintButton.disabled = true;
-      mintButton.textContent = 'Mint Ioncore Ape';
-      connectButton.textContent = 'Connect Phantom Wallet';
-      connectButton.disabled = false;
+      apeVerificationSucceeded = false;
+      if (mintButton) {
+        mintButton.disabled = true;
+        mintButton.textContent = 'Mint Ioncore Ape';
+      }
+      if (connectButton) {
+        connectButton.textContent = 'Connect Phantom Wallet';
+        connectButton.disabled = false;
+      }
       updateWalletStatus(message);
+      updateTokenStatus(TOKEN_STATUS_PENDING);
+      if (mintNowLink) {
+        mintNowLink.textContent = MINT_NOW_DEFAULT_TEXT;
+      }
     }
 
     function registerWalletEvents(provider) {
@@ -820,6 +1025,7 @@
       phantomProvider = getProvider();
       if (!phantomProvider) {
         updateWalletStatus('Phantom wallet not detected. Install Phantom to continue.', 'error');
+        updateTokenStatus('Install Phantom to verify Ioncore Ape ownership.', 'error');
         window.open('https://phantom.app/download', '_blank', 'noopener');
         return;
       }
@@ -835,6 +1041,7 @@
       } catch (error) {
         if (error?.code !== 4001) {
           updateWalletStatus('Wallet connection failed. Try again.', 'error');
+          updateTokenStatus(TOKEN_STATUS_PENDING);
         }
       }
     }
@@ -869,7 +1076,9 @@
         await solConnection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
 
         updateWalletStatus(`Mint successful! Signature ${signature.slice(0, 8)}…${signature.slice(-8)}`, 'success');
-        mintButton.textContent = 'Minted';
+        await verifyIoncoreApeOwnership();
+        mintButton.disabled = false;
+        mintButton.textContent = apeVerificationSucceeded ? 'Mint Another Ioncore Ape' : 'Mint Ioncore Ape';
       } catch (error) {
         console.error('Mint error', error);
         const message =
@@ -879,6 +1088,7 @@
         updateWalletStatus(message, 'error');
         mintButton.disabled = false;
         mintButton.textContent = 'Mint Ioncore Ape';
+        updateTokenStatus(TOKEN_STATUS_PENDING);
       }
     }
 

@@ -131,12 +131,19 @@ function clearSessionCookie(res) {
 
 app.get('/login', async (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
+  const requestedNext = typeof req.query.next === 'string' ? req.query.next : '';
+  const safeNext =
+    requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
+  const wantsApeView =
+    typeof req.query.view === 'string' && req.query.view.toLowerCase() === 'ioncore-ape';
+
   if (validateAuthSession(sessionId)) {
     setSessionCookie(res, sessionId);
-    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
-    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
-    return res.redirect(safeNext);
+    if (!wantsApeView && safeNext) {
+      return res.redirect(safeNext);
+    }
   }
+
   await sendHtml(res, path.join(__dirname, 'login.html'));
 });
 

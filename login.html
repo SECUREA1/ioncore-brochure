@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@solana/web3.js@1.91.5/lib/index.iife.js" defer></script>
   <style>
     :root {
       color-scheme: dark;
@@ -375,6 +376,184 @@
       font-weight: 700;
     }
 
+    .mint-module {
+      position: relative;
+      margin-top: 2.75rem;
+      padding-top: 2.75rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .mint-module::before {
+      content: "";
+      position: absolute;
+      inset: auto -30% -25% -30%;
+      height: clamp(180px, 40vw, 320px);
+      background: radial-gradient(circle at 15% 25%, rgba(106, 255, 59, 0.12), transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(72, 255, 226, 0.12), transparent 60%);
+      opacity: 0.6;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mint-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(72, 255, 226, 0.28);
+      background: rgba(15, 23, 42, 0.65);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      color: rgba(226, 232, 240, 0.86);
+      margin-bottom: 1.35rem;
+    }
+
+    .mint-eyebrow span {
+      color: var(--ioncore-aqua);
+      font-weight: 700;
+    }
+
+    .mint-headline {
+      margin: 0 0 0.85rem;
+      font-size: clamp(1.35rem, 3vw, 1.85rem);
+      letter-spacing: -0.01em;
+      font-weight: 700;
+    }
+
+    .mint-description {
+      margin: 0 0 1.85rem;
+      color: rgba(148, 163, 184, 0.9);
+      line-height: 1.65;
+      font-size: 0.95rem;
+    }
+
+    .mint-display {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 720px) {
+      .mint-display {
+        grid-template-columns: minmax(0, 0.65fr) minmax(0, 0.35fr);
+        align-items: center;
+      }
+    }
+
+    .mint-art {
+      position: relative;
+      border-radius: 18px;
+      padding: 1.35rem;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(9, 14, 26, 0.95));
+      border: 1px solid rgba(72, 255, 226, 0.25);
+      box-shadow: inset 0 0 45px rgba(72, 255, 226, 0.06);
+      overflow: hidden;
+    }
+
+    .mint-art::after {
+      content: "Limited";
+      position: absolute;
+      top: 1rem;
+      right: -2.25rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.45em;
+      color: rgba(245, 201, 120, 0.35);
+      transform: rotate(90deg);
+      text-transform: uppercase;
+    }
+
+    .mint-art img {
+      width: 100%;
+      border-radius: 14px;
+      display: block;
+      filter: drop-shadow(0 24px 45px rgba(6, 12, 24, 0.45));
+    }
+
+    .mint-actions {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .button-secondary,
+    .button-tertiary {
+      appearance: none;
+      border-radius: 16px;
+      padding: 0.9rem 1.15rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .button-secondary {
+      border: 1px solid rgba(72, 255, 226, 0.45);
+      background: rgba(15, 23, 42, 0.85);
+      color: rgba(248, 250, 252, 0.92);
+      box-shadow: 0 16px 32px rgba(72, 255, 226, 0.12);
+    }
+
+    .button-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 42px rgba(72, 255, 226, 0.2);
+    }
+
+    .button-secondary:active {
+      transform: translateY(0);
+      box-shadow: 0 12px 24px rgba(72, 255, 226, 0.18);
+    }
+
+    .button-tertiary {
+      border: 1px solid rgba(245, 201, 120, 0.45);
+      background: linear-gradient(135deg, rgba(245, 201, 120, 0.16), rgba(72, 255, 226, 0.08));
+      color: #05070e;
+      background-color: rgba(245, 201, 120, 0.75);
+    }
+
+    .button-tertiary:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, rgba(245, 201, 120, 0.24), rgba(72, 255, 226, 0.12));
+    }
+
+    button[disabled],
+    .button-secondary[disabled],
+    .button-tertiary[disabled] {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .wallet-status {
+      min-height: 1.5rem;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      color: rgba(148, 163, 184, 0.92);
+    }
+
+    .wallet-status strong {
+      color: var(--ioncore-aqua);
+    }
+
+    .mint-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.85);
+    }
+
+    .mint-meta span {
+      color: rgba(248, 250, 252, 0.92);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
     @media (max-width: 520px) {
       body {
         padding: 2.5rem 1.25rem;
@@ -393,6 +572,11 @@
 
       .logo-lockup {
         letter-spacing: 0.2em;
+      }
+
+      .mint-module {
+        margin-top: 2.25rem;
+        padding-top: 2.25rem;
       }
     }
   </style>
@@ -427,6 +611,26 @@
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
+      <section class="mint-module" aria-labelledby="mint-headline">
+        <div class="mint-eyebrow"><span>Ioncore</span> Genesis Mint</div>
+        <h2 id="mint-headline" class="mint-headline">Mint Your Ioncore Ape on Solana</h2>
+        <p class="mint-description">Phase-one Ioncore Apes are forged exclusively for authenticated vault operatives. Connect with Phantom on Solana to mint your collectible and activate its kinetic utilities across the Ioncore ecosystem.</p>
+        <div class="mint-display">
+          <figure class="mint-art">
+            <img src="ioncore.png" alt="Ioncore Ape digital collectible render">
+          </figure>
+          <div class="mint-actions" role="group" aria-label="Ioncore Ape mint controls">
+            <div class="mint-meta">
+              <div>Mint Window: <span>Live on Solana Devnet</span></div>
+              <div>Mint Price: <span>0.1 SOL</span></div>
+              <div>Supply: <span>First 500 Operatives</span></div>
+            </div>
+            <button type="button" id="connect-wallet" class="button-secondary">Connect Phantom Wallet</button>
+            <button type="button" id="mint-ape" class="button-tertiary" disabled>Mint Ioncore Ape</button>
+            <p id="wallet-status" class="wallet-status status-message" role="status" aria-live="polite">Phantom wallet not connected.</p>
+          </div>
+        </div>
+      </section>
       <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion.</p>
     </main>
   <script>
@@ -524,6 +728,187 @@
         submitButton.textContent = 'Enter the Vault';
       }
     });
+
+    const connectButton = document.getElementById('connect-wallet');
+    const mintButton = document.getElementById('mint-ape');
+    const walletStatus = document.getElementById('wallet-status');
+
+    const SOLANA_NETWORK = 'https://api.devnet.solana.com';
+    const MINT_PRICE_SOL = 0.1;
+    const TREASURY_ADDRESS = '9ZQe2UzsDzfrFwRGnnhzEpw99FQMN9D1Z4SXDqTbJ8fQ';
+
+    let phantomProvider = null;
+    let walletPublicKey = null;
+    let connection = null;
+    let walletEventsRegistered = false;
+
+    function getProvider() {
+      if ('solana' in window) {
+        const provider = window.solana;
+        if (provider?.isPhantom) {
+          return provider;
+        }
+      }
+      return null;
+    }
+
+    function updateWalletStatus(message, tone = 'neutral') {
+      walletStatus.textContent = message;
+      walletStatus.classList.remove('status-message--error', 'status-message--success');
+      if (tone === 'error') {
+        walletStatus.classList.add('status-message--error');
+      }
+      if (tone === 'success') {
+        walletStatus.classList.add('status-message--success');
+      }
+    }
+
+    async function ensureConnection() {
+      if (!window.solanaWeb3) {
+        throw new Error('Solana SDK unavailable.');
+      }
+      if (!connection) {
+        connection = new window.solanaWeb3.Connection(SOLANA_NETWORK, 'confirmed');
+      }
+      return connection;
+    }
+
+    function handleWalletConnected(resolvedKey) {
+      walletPublicKey = resolvedKey;
+      updateWalletStatus(
+        `Wallet connected: ${walletPublicKey.toString().slice(0, 4)}…${walletPublicKey.toString().slice(-4)}`,
+        'success'
+      );
+      mintButton.disabled = false;
+      connectButton.textContent = 'Wallet Connected';
+      connectButton.disabled = true;
+    }
+
+    function resetWalletState(message = 'Phantom wallet not connected.') {
+      walletPublicKey = null;
+      mintButton.disabled = true;
+      mintButton.textContent = 'Mint Ioncore Ape';
+      connectButton.textContent = 'Connect Phantom Wallet';
+      connectButton.disabled = false;
+      updateWalletStatus(message);
+    }
+
+    function registerWalletEvents(provider) {
+      if (!provider || typeof provider.on !== 'function' || walletEventsRegistered) {
+        return;
+      }
+
+      walletEventsRegistered = true;
+
+      provider.on('accountChanged', (publicKey) => {
+        if (!publicKey) {
+          resetWalletState('Phantom wallet disconnected.');
+          return;
+        }
+        const resolvedKey = typeof publicKey === 'string'
+          ? new window.solanaWeb3.PublicKey(publicKey)
+          : publicKey;
+        handleWalletConnected(resolvedKey);
+      });
+
+      provider.on('disconnect', () => {
+        resetWalletState('Phantom wallet disconnected.');
+      });
+    }
+
+    async function connectWallet() {
+      phantomProvider = getProvider();
+      if (!phantomProvider) {
+        updateWalletStatus('Phantom wallet not detected. Install Phantom to continue.', 'error');
+        window.open('https://phantom.app/download', '_blank', 'noopener');
+        return;
+      }
+
+      try {
+        registerWalletEvents(phantomProvider);
+        const response = await phantomProvider.connect();
+        const publicKey = response?.publicKey;
+        const resolvedKey = typeof publicKey === 'string'
+          ? new window.solanaWeb3.PublicKey(publicKey)
+          : publicKey;
+        handleWalletConnected(resolvedKey);
+      } catch (error) {
+        if (error?.code !== 4001) {
+          updateWalletStatus('Wallet connection failed. Try again.', 'error');
+        }
+      }
+    }
+
+    async function mintIoncoreApe() {
+      if (!phantomProvider || !walletPublicKey) {
+        updateWalletStatus('Connect your Phantom wallet before minting.', 'error');
+        return;
+      }
+
+      try {
+        mintButton.disabled = true;
+        mintButton.textContent = 'Preparing Mint…';
+        updateWalletStatus('Negotiating Solana slot and preparing mint payload…');
+
+        const solConnection = await ensureConnection();
+        const transferIx = window.solanaWeb3.SystemProgram.transfer({
+          fromPubkey: walletPublicKey,
+          toPubkey: new window.solanaWeb3.PublicKey(TREASURY_ADDRESS),
+          lamports: Math.round(window.solanaWeb3.LAMPORTS_PER_SOL * MINT_PRICE_SOL)
+        });
+
+        const { blockhash, lastValidBlockHeight } = await solConnection.getLatestBlockhash();
+
+        const transaction = new window.solanaWeb3.Transaction().add(transferIx);
+        transaction.feePayer = walletPublicKey;
+        transaction.recentBlockhash = blockhash;
+
+        const { signature } = await phantomProvider.signAndSendTransaction(transaction);
+        updateWalletStatus('Confirming mint on Solana…');
+
+        await solConnection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
+
+        updateWalletStatus(`Mint successful! Signature ${signature.slice(0, 8)}…${signature.slice(-8)}`, 'success');
+        mintButton.textContent = 'Minted';
+      } catch (error) {
+        console.error('Mint error', error);
+        const message =
+          error?.message?.includes('User rejected')
+            ? 'Mint cancelled in Phantom.'
+            : 'Mint failed. Please try again or check your SOL balance.';
+        updateWalletStatus(message, 'error');
+        mintButton.disabled = false;
+        mintButton.textContent = 'Mint Ioncore Ape';
+      }
+    }
+
+    if (connectButton && mintButton && walletStatus) {
+      connectButton.addEventListener('click', connectWallet);
+      mintButton.addEventListener('click', mintIoncoreApe);
+
+      const existingProvider = getProvider();
+      if (existingProvider) {
+        phantomProvider = existingProvider;
+        registerWalletEvents(phantomProvider);
+        if (typeof phantomProvider.connect === 'function') {
+          phantomProvider
+            .connect({ onlyIfTrusted: true })
+            .then((response) => {
+              if (response?.publicKey) {
+                const resolvedKey = typeof response.publicKey === 'string'
+                  ? new window.solanaWeb3.PublicKey(response.publicKey)
+                  : response.publicKey;
+                handleWalletConnected(resolvedKey);
+              }
+            })
+            .catch(() => {
+              resetWalletState();
+            });
+        }
+      } else {
+        resetWalletState('Install Phantom to join the Ioncore Ape mint.');
+      }
+    }
   </script>
 </body>
 </html>

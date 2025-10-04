@@ -335,6 +335,12 @@
       display: none;
     }
 
+    #wallet-panel:not([hidden]) {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
     .wallet-intro {
       margin: 0 0 1.1rem 0;
       font-size: 0.92rem;
@@ -343,10 +349,10 @@
     }
 
     .wallet-connect-row {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      gap: 0.75rem;
       margin-top: 1.15rem;
     }
 
@@ -361,6 +367,8 @@
       background: linear-gradient(135deg, rgba(72, 255, 226, 0.92), rgba(106, 255, 59, 0.82));
       cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease;
+      flex: 1 1 220px;
+      min-width: 200px;
     }
 
     .wallet-connect-button:hover:not(:disabled),
@@ -390,6 +398,8 @@
       color: rgba(148, 163, 184, 0.95);
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      flex: 1 1 160px;
+      min-width: 160px;
     }
 
     .wallet-status--connected {
@@ -614,6 +624,14 @@
       .logo-lockup {
         letter-spacing: 0.2em;
       }
+
+      .wallet-connect-row {
+        margin-top: 0.75rem;
+      }
+
+      .wallet-status {
+        min-width: 0;
+      }
     }
   </style>
 </head>
@@ -799,6 +817,17 @@
 
     const triggerFailureAnimation = () => {
       if (!failureOverlay) return;
+
+      const restartAnimation = (element) => {
+        if (!element) return;
+        element.style.animation = 'none';
+        void element.offsetWidth;
+        element.style.animation = '';
+      };
+
+      restartAnimation(failureOverlay.querySelector('.explosion-svg'));
+      restartAnimation(failureOverlay.querySelector('.oops-svg'));
+
       failureOverlay.classList.remove('is-visible');
       void failureOverlay.offsetWidth;
       failureOverlay.classList.add('is-visible');

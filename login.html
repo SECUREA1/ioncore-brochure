@@ -36,9 +36,9 @@
       background: radial-gradient(circle at top, rgba(12, 18, 48, 0.95) 0%, rgba(6, 10, 22, 0.98) 45%, #05070e 100%);
       color: #f8fafc;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 3rem 1.25rem;
+      padding: clamp(6rem, 12vh, 7.5rem) 1.25rem clamp(3.5rem, 8vh, 5rem);
       position: relative;
       overflow-x: hidden;
       overflow-y: auto;
@@ -266,6 +266,11 @@
       transition-delay: 0.12s;
     }
 
+    body.intro-complete .health-bar {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     .logo-lockup {
       display: inline-flex;
       align-items: center;
@@ -326,14 +331,23 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 1.75rem;
-      padding: 0.75rem 1rem;
-      border-radius: 16px;
-      background: rgba(12, 20, 38, 0.78);
-      border: 1px solid rgba(72, 255, 226, 0.18);
-      box-shadow: 0 16px 36px rgba(5, 10, 20, 0.38);
-      position: relative;
+      margin: 0;
+      padding: 0.85rem 1.25rem;
+      border-radius: 18px;
+      background: rgba(8, 14, 28, 0.82);
+      border: 1px solid rgba(72, 255, 226, 0.25);
+      box-shadow: 0 18px 40px rgba(5, 12, 24, 0.5);
+      position: fixed;
+      top: clamp(1rem, 5vw, 1.75rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(480px, calc(100vw - 2.5rem));
+      z-index: 7;
+      backdrop-filter: blur(18px);
       overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
     }
 
     .health-bar::before {
@@ -1497,7 +1511,13 @@
 
     @media (max-width: 520px) {
       body {
-        padding: 2.5rem 1.25rem;
+        padding: 5.75rem 1rem 3.25rem;
+      }
+
+      .health-bar {
+        top: 0.75rem;
+        width: calc(100vw - 1.5rem);
+        padding: 0.75rem 1rem;
       }
 
       body::after {

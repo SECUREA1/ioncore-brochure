@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cooling System Implementation | Ioncore Energy</title>
+  <link rel="icon" type="image/svg+xml" href="battery.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .subnav {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+
+    .subnav span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subnav i {
+      color: var(--accent);
+    }
+
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .process-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      display: grid;
+      gap: 14px;
+      box-shadow: var(--shadow-soft), var(--highlight-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .process-card::after {
+      content: attr(data-step);
+      position: absolute;
+      inset: 18px 18px auto auto;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(94, 249, 180, 0.08);
+      border: 1px solid rgba(94, 249, 180, 0.28);
+      border-radius: 999px;
+      padding: 6px 12px;
+    }
+
+    .process-card h3 {
+      margin: 0;
+      font-size: 1.12rem;
+    }
+
+    .process-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+      color: var(--text-med);
+      font-size: 0.9rem;
+    }
+
+    .process-card li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .process-card li i {
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    .hero__visual-image + .hero__visual-image {
+      margin-top: 16px;
+    }
+
+    .cost-overview {
+      margin-top: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: clamp(24px, 5vw, 40px);
+      box-shadow: var(--shadow-soft), var(--highlight-glow);
+      display: grid;
+      gap: 26px;
+    }
+
+    .cost-overview h3 {
+      margin: 0;
+      font-size: 1.28rem;
+    }
+
+    .cost-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .cost-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+      color: var(--text-med);
+      font-size: 0.92rem;
+    }
+
+    .cost-total {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: linear-gradient(140deg, rgba(94, 249, 180, 0.14), rgba(8, 20, 34, 0.92));
+      border: 1px solid rgba(94, 249, 180, 0.24);
+      border-radius: 22px;
+      padding: 20px 24px;
+      color: var(--text-high);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .cost-total span:last-child {
+      font-size: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .subnav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header container">
+    <a class="logo" href="fullexperience.html">
+      <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+      <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="fullexperience.html#solutions">Solutions</a></li>
+        <li><a href="fullexperience.html#technology">Technology</a></li>
+        <li><a href="fullexperience.html#deployment">Deployment</a></li>
+        <li><a href="fullexperience.html#insights">Insights</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Connect</a>
+  </header>
+
+  <main>
+    <section class="container hero product-hero">
+      <div class="hero__content">
+        <span class="eyebrow">Cooling architecture</span>
+        <h1>Complete Breakdown: Cooling System for the Magnetic Inertia Platform</h1>
+        <p>
+          A field-ready thermal management program engineered to protect high-density magnetic inertia flywheel modules.
+          This playbook aligns procurement, assembly, and validation so your deployment team can deliver reliable cooling
+          performance under peak load conditions.
+        </p>
+        <div class="subnav" aria-label="Page context">
+          <span><i class="fa-solid fa-snowflake"></i> Liquid loop with dual radiators</span>
+          <span><i class="fa-solid fa-gauge-high"></i> Rated for 500 L/h circulation</span>
+          <span><i class="fa-solid fa-shield"></i> Redundant leak &amp; thermal checks</span>
+        </div>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Engage engineering support</a>
+          <a class="btn btn-outline" href="fullexperience.html">Return to main experience</a>
+        </div>
+        <div class="hero__stats">
+          <div class="stat-card">
+            <h3>667</h3>
+            <p>Precision-machined cooling plates staged per platform</p>
+          </div>
+          <div class="stat-card">
+            <h3>500 L/h</h3>
+            <p>High-flow circulation across dual loops for core &amp; buffer zones</p>
+          </div>
+          <div class="stat-card">
+            <h3>24/7</h3>
+            <p>Continuous thermal monitoring pathway for mission-critical uptime</p>
+          </div>
+        </div>
+      </div>
+      <div class="hero__visual" aria-label="Cooling system highlights">
+        <figure class="hero__visual-media">
+          <img
+            src="coolingpipe.png"
+            alt="Precision-formed cooling pipe assembly for the magnetic inertia platform"
+            class="hero__visual-image"
+          />
+          <img
+            src="coooling.png"
+            alt="High-density cooling manifold array prepared for installation"
+            class="hero__visual-image"
+          />
+          <figcaption class="product-hero__caption">Dual-loop piping layout staged for rapid integration with manifold assembly detail.</figcaption>
+        </figure>
+        <div class="hero__visual-list">
+          <h3>Program anchors</h3>
+          <ul>
+            <li><i class="fa-solid fa-diagram-project"></i>Blueprint-driven integration sequencing</li>
+            <li><i class="fa-solid fa-boxes-stacked"></i>Single-source component sourcing optionality</li>
+            <li><i class="fa-solid fa-microchip"></i>Thermal sensors and analytics-ready controls</li>
+            <li><i class="fa-solid fa-clipboard-check"></i>Commissioning scripts for leak and load testing</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Bill of materials</span>
+      <h2 class="section-title">Materials and partner-ready specifications</h2>
+      <p class="section-subtitle">
+        Align procurement teams with vetted dimensions, performance ranges, and suggested manufacturing partners to keep
+        builds moving at enterprise velocity.
+      </p>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Component</th>
+              <th scope="col">Specifications</th>
+              <th scope="col">Supplier alignment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cooling plates</td>
+              <td>Aluminum or copper &bull; 100&times;150&times;5&nbsp;mm &bull; Deburred edges</td>
+              <td>EKWB &middot; AlphaCool</td>
+            </tr>
+            <tr>
+              <td>Cooling channels &amp; tubing</td>
+              <td>Flexible, heat-resistant silicone &bull; 10&nbsp;mm ID &bull; Cut-to-fit layout</td>
+              <td>Digi-Key &middot; Mouser Electronics</td>
+            </tr>
+            <tr>
+              <td>Radiators</td>
+              <td>Aluminum or copper &bull; 120&times;240&times;30&nbsp;mm &bull; High-dissipation fins</td>
+              <td>EKWB &middot; AlphaCool &middot; Noctua</td>
+            </tr>
+            <tr>
+              <td>Pumps</td>
+              <td>High-flow, low-noise &bull; 500&nbsp;L/h &bull; Dual-loop ready</td>
+              <td>EKWB &middot; AlphaCool</td>
+            </tr>
+            <tr>
+              <td>Fans</td>
+              <td>120&times;120&times;25&nbsp;mm &bull; 2000&nbsp;RPM &bull; PWM control</td>
+              <td>Noctua &middot; Corsair</td>
+            </tr>
+            <tr>
+              <td>Thermal pads</td>
+              <td>Silicone-based, high conductivity &bull; 1&nbsp;mm thickness</td>
+              <td>Arctic &middot; Thermal Grizzly</td>
+            </tr>
+            <tr>
+              <td>Coolant</td>
+              <td>Water/glycol mixture &bull; 1&nbsp;L per loop &bull; Anti-corrosive additives</td>
+              <td>EKWB &middot; Corsair</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Deployment framework</span>
+      <h2 class="section-title">Nine-phase assembly and validation sequence</h2>
+      <p class="section-subtitle">
+        Guide technical teams from blueprint creation to operational sign-off. Each card highlights primary tasks, tooling
+        requirements, and tangible deliverables for stakeholder review.
+      </p>
+      <div class="process-grid">
+        <article class="process-card" data-step="Phase 01">
+          <h3>Design &amp; planning</h3>
+          <ul>
+            <li><i class="fa-solid fa-pencil-ruler"></i><span>Create detailed blueprints and thermal schematics.</span></li>
+            <li><i class="fa-solid fa-users"></i><span>Engage the engineering cohort for sign-off.</span></li>
+            <li><i class="fa-solid fa-file-circle-check"></i><span>Deliverable: finalized design package.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 02">
+          <h3>Sourcing</h3>
+          <ul>
+            <li><i class="fa-solid fa-cart-shopping"></i><span>Secure each component from approved vendors.</span></li>
+            <li><i class="fa-solid fa-truck"></i><span>Confirm lead times and logistics windows.</span></li>
+            <li><i class="fa-solid fa-receipt"></i><span>Deliverable: verified receiving manifest.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 03">
+          <h3>Plate preparation</h3>
+          <ul>
+            <li><i class="fa-solid fa-screwdriver-wrench"></i><span>Cut plates to 100&times;150&times;5&nbsp;mm tolerances.</span></li>
+            <li><i class="fa-solid fa-microchip"></i><span>Deburr edges to ensure smooth thermal contact.</span></li>
+            <li><i class="fa-solid fa-box"></i><span>Deliverable: staging-ready plate inventory.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 04">
+          <h3>Plate installation</h3>
+          <ul>
+            <li><i class="fa-solid fa-border-all"></i><span>Apply thermal pads to both plate surfaces.</span></li>
+            <li><i class="fa-solid fa-layer-group"></i><span>Integrate plates between prismatic cells.</span></li>
+            <li><i class="fa-solid fa-check-double"></i><span>Deliverable: thermally balanced module stacks.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 05">
+          <h3>Tubing integration</h3>
+          <ul>
+            <li><i class="fa-solid fa-tape"></i><span>Cut tubing lengths to match the system topology.</span></li>
+            <li><i class="fa-solid fa-route"></i><span>Route channels through plates, radiators, and pumps.</span></li>
+            <li><i class="fa-solid fa-sitemap"></i><span>Deliverable: sealed circulation network.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 06">
+          <h3>Radiator mounting</h3>
+          <ul>
+            <li><i class="fa-solid fa-snowplow"></i><span>Secure radiators to the frame with reinforced brackets.</span></li>
+            <li><i class="fa-solid fa-link"></i><span>Bond radiators into the primary tubing path.</span></li>
+            <li><i class="fa-solid fa-gavel"></i><span>Deliverable: dissipative array aligned to flow.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 07">
+          <h3>Pump deployment</h3>
+          <ul>
+            <li><i class="fa-solid fa-fan"></i><span>Mount pumps within vibration-damped frames.</span></li>
+            <li><i class="fa-solid fa-bolt"></i><span>Integrate electrical controls and redundancy relays.</span></li>
+            <li><i class="fa-solid fa-box-circle-check"></i><span>Deliverable: pumps positioned and powered.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 08">
+          <h3>Fan integration</h3>
+          <ul>
+            <li><i class="fa-solid fa-screwdriver"></i><span>Mount fans to radiators with countersunk fasteners.</span></li>
+            <li><i class="fa-solid fa-wave-square"></i><span>Calibrate PWM controls for adaptive airflow.</span></li>
+            <li><i class="fa-solid fa-light"></i><span>Deliverable: airflow optimized across radiators.</span></li>
+          </ul>
+        </article>
+        <article class="process-card" data-step="Phase 09">
+          <h3>Fill &amp; validation</h3>
+          <ul>
+            <li><i class="fa-solid fa-flask"></i><span>Charge loops with water/glycol coolant mixture.</span></li>
+            <li><i class="fa-solid fa-stethoscope"></i><span>Run leak diagnostics and thermal performance checks.</span></li>
+            <li><i class="fa-solid fa-circle-check"></i><span>Deliverable: certified, leak-free cooling system.</span></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
+      <span class="eyebrow">Financial outline</span>
+      <h2 class="section-title">Investment snapshot for a full system build</h2>
+      <p class="section-subtitle">
+        Plan budgets with transparent labor and material costs. Figures reflect a full deployment cycle inclusive of
+        engineering oversight, fabrication, and commissioning personnel.
+      </p>
+      <div class="cost-overview">
+        <div class="cost-columns">
+          <div>
+            <h3>Labor breakdown</h3>
+            <ul class="cost-list">
+              <li>Project manager: $44,800</li>
+              <li>Design engineers: $78,400</li>
+              <li>Mechanical engineers: $78,400</li>
+              <li>Technicians: $112,000</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Material breakdown</h3>
+            <ul class="cost-list">
+              <li>Cooling plates: $20,010 (667 &times; $30)</li>
+              <li>Cooling channels &amp; tubing: $2,000</li>
+              <li>Radiators: $400 (4 &times; $100)</li>
+              <li>Pumps: $600 (2 &times; $300)</li>
+              <li>Fans: $200 (4 &times; $50)</li>
+              <li>Thermal pads: $200</li>
+              <li>Coolant: $100</li>
+            </ul>
+          </div>
+        </div>
+        <div class="cost-total">
+          <span>Total program investment</span>
+          <span>$337,110</span>
+          <span class="section-subtitle">$313,600 labor &nbsp;&bull;&nbsp; $23,510 materials</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
+      <div class="callout-card">
+        <h3>Mission-ready conclusion</h3>
+        <p>
+          Executing this cooling roadmap equips every magnetic inertia installation with resilient thermal protection. From
+          blueprint validation to leak-free commissioning, the Ioncore methodology keeps your energy platform performant,
+          scalable, and safeguarded for long-term operation.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a design review</a>
+          <a class="btn btn-outline" href="index.html">Explore additional Ioncore brochures</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <a class="logo" href="fullexperience.html">
+            <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+            <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+          </a>
+          <p>
+            Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic innovations.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="fullexperience.html#solutions">Signature systems</a></li>
+            <li><a href="fullexperience.html#deployment">Deployment roadmap</a></li>
+            <li><a href="fullexperience.html#insights">Global impact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Chat with us on Telegram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</span>
+        <span>Curated brochure experience for visionary partners.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

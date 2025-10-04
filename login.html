@@ -291,6 +291,97 @@
       gap: 1.2rem;
     }
 
+    .auth-mode-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+      padding: 0.35rem;
+      background: rgba(14, 23, 43, 0.72);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      border-radius: 16px;
+    }
+
+    .auth-mode {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.82);
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .auth-mode:hover,
+    .auth-mode:focus-visible {
+      outline: none;
+      color: #f8fafc;
+      box-shadow: 0 0 0 2px rgba(72, 255, 226, 0.18);
+    }
+
+    .auth-mode.is-active {
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.82), rgba(106, 255, 59, 0.72));
+      box-shadow: 0 16px 30px rgba(9, 16, 26, 0.45);
+    }
+
+    .mode-panel[hidden] {
+      display: none;
+    }
+
+    .wallet-intro {
+      margin: 0 0 1.1rem 0;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(203, 213, 225, 0.9);
+    }
+
+    .wallet-connect-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.9rem;
+      align-items: center;
+      margin-top: 1.15rem;
+    }
+
+    .wallet-connect-button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.85rem 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.92), rgba(106, 255, 59, 0.82));
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .wallet-connect-button:hover:not(:disabled),
+    .wallet-connect-button:focus-visible:not(:disabled) {
+      outline: none;
+      transform: translateY(-1px);
+      box-shadow: 0 18px 30px rgba(11, 20, 36, 0.48);
+    }
+
+    .wallet-connect-button:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+
+    .wallet-status {
+      font-size: 0.85rem;
+      color: rgba(148, 163, 184, 0.95);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .field {
       display: grid;
       gap: 0.45rem;
@@ -303,7 +394,8 @@
       color: rgba(148, 163, 184, 0.85);
     }
 
-    input {
+    input,
+    select {
       appearance: none;
       border: 1px solid rgba(71, 85, 105, 0.65);
       border-radius: 14px;
@@ -314,7 +406,8 @@
       transition: border 0.2s ease, box-shadow 0.2s ease;
     }
 
-    input:focus {
+    input:focus,
+    select:focus {
       outline: none;
       border-color: rgba(72, 255, 226, 0.55);
       box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.22);
@@ -416,18 +509,44 @@
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
       <form class="access-form" id="login-form" autocomplete="off">
-        <div class="field">
-          <label for="username">Access Key</label>
-          <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" required autofocus>
+        <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
+          <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
+          <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
         </div>
-        <div class="field">
-          <label for="password">Clearance Code</label>
-          <input id="password" name="password" type="password" placeholder="••••••••" required>
+        <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials">
+          <div class="field">
+            <label for="username">Access Key</label>
+            <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" autofocus>
+          </div>
+          <div class="field">
+            <label for="password">Clearance Code</label>
+            <input id="password" name="password" type="password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet" hidden>
+          <p class="wallet-intro">Request a MetaMask or Phantom session and supply the contract or mint to validate NFT-gated access. The Sentinel bridge stores the selected wallet internally.</p>
+          <div class="field">
+            <label for="network">Chain Preference</label>
+            <select id="network" name="network">
+              <option value="evm">EVM via Alchemy</option>
+              <option value="solana">Solana via RPC</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="contract-id">Contract / Mint Identifier</label>
+            <input id="contract-id" name="contractId" type="text" placeholder="0x… or Mint Address">
+          </div>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-wallet" class="wallet-connect-button">Connect Wallet</button>
+            <div id="wallet-connection-status" class="wallet-status">No wallet linked.</div>
+          </div>
+          <input type="hidden" name="walletAddress" id="wallet-address">
+          <input type="hidden" name="walletProvider" id="wallet-provider">
         </div>
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
-      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion.</p>
+      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion. Configure <strong>ALCHEMY_API_KEY</strong> or <strong>SOLANA_RPC_URL</strong> for automated NFT gate checks.</p>
     </main>
   <script>
     const bodyElement = document.body;
@@ -463,67 +582,243 @@
     const status = document.getElementById('status');
     const query = new URLSearchParams(window.location.search);
     const nextPath = query.get('next') || '/';
+    const modeButtons = Array.from(document.querySelectorAll('.auth-mode'));
+    const panels = Array.from(document.querySelectorAll('.mode-panel'));
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const contractInput = document.getElementById('contract-id');
+    const networkSelect = document.getElementById('network');
+    const walletAddressInput = document.getElementById('wallet-address');
+    const walletProviderInput = document.getElementById('wallet-provider');
+    const walletStatus = document.getElementById('wallet-connection-status');
+    const connectWalletButton = document.getElementById('connect-wallet');
 
-    function updateStatus(message, tone = 'neutral') {
-      status.textContent = message;
-      status.classList.remove('status-message--error', 'status-message--success');
-      if (tone === 'error') {
-        status.classList.add('status-message--error');
+    if (form && status) {
+      let activeMode = 'credentials';
+
+      function updateStatus(message, tone = 'neutral') {
+        status.textContent = message;
+        status.classList.remove('status-message--error', 'status-message--success');
+        if (tone === 'error') {
+          status.classList.add('status-message--error');
+        }
+        if (tone === 'success') {
+          status.classList.add('status-message--success');
+        }
       }
-      if (tone === 'success') {
-        status.classList.add('status-message--success');
-      }
-    }
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      updateStatus('Decrypting clearance codes…');
-      const submitButton = form.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
-      submitButton.textContent = 'Verifying…';
+      function setMode(mode, force = false) {
+        if (!force && mode === activeMode) {
+          return;
+        }
 
-      const payload = {
-        username: form.username.value.trim(),
-        password: form.password.value,
-        next: nextPath
-      };
+        activeMode = mode;
 
-      try {
-        const response = await fetch('/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
+        modeButtons.forEach((button) => {
+          const isActive = button.dataset.mode === mode;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          updateStatus('Access granted. Opening vault…', 'success');
-          setTimeout(() => {
-            window.location.href = data.redirect || nextPath || '/';
-          }, 450);
-        } else {
-          let errorMessage = 'Access denied. Check your clearance credentials.';
-          try {
-            const data = await response.json();
-            if (data && data.message) {
-              errorMessage = data.message;
-            }
-          } catch (err) {
-            // ignore parse error and use default message
+        panels.forEach((panel) => {
+          if (panel.dataset.mode === mode) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', 'hidden');
           }
-          updateStatus(errorMessage, 'error');
+        });
+
+        if (activeMode === 'credentials') {
+          if (usernameInput) usernameInput.required = true;
+          if (passwordInput) passwordInput.required = true;
+          if (contractInput) contractInput.required = false;
+        } else {
+          if (usernameInput) usernameInput.required = false;
+          if (passwordInput) passwordInput.required = false;
+          if (contractInput) contractInput.required = true;
+          if (walletStatus && !walletAddressInput.value) {
+            walletStatus.textContent = 'No wallet linked.';
+          }
+        }
+
+        const hasFeedbackTone = status.classList.contains('status-message--error') || status.classList.contains('status-message--success');
+        if (!status.textContent || (!hasFeedbackTone && !force)) {
+          if (activeMode === 'wallet') {
+            updateStatus('Link a wallet and provide the NFT gate to continue.');
+          } else {
+            updateStatus('Authenticate with your assigned access key.');
+          }
+        }
+      }
+
+      modeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const mode = button.dataset.mode;
+          setMode(mode);
+        });
+      });
+
+      if (networkSelect) {
+        networkSelect.addEventListener('change', () => {
+          if (walletAddressInput && walletAddressInput.value) {
+            walletAddressInput.value = '';
+            if (walletProviderInput) {
+              walletProviderInput.value = '';
+            }
+            if (walletStatus) {
+              walletStatus.textContent = 'Network changed. Connect wallet again.';
+            }
+          }
+        });
+      }
+
+      async function handleWalletConnection() {
+        if (!connectWalletButton) {
+          return;
+        }
+
+        const chainPreference = networkSelect ? networkSelect.value : 'evm';
+        updateStatus('Requesting secure wallet session…');
+        connectWalletButton.disabled = true;
+        connectWalletButton.textContent = 'Requesting…';
+
+        try {
+          if (chainPreference === 'solana') {
+            const provider = window.solana;
+            if (!provider) {
+              throw new Error('Solana wallet not detected. Open Phantom and try again.');
+            }
+            const response = await provider.connect();
+            const publicKey = response?.publicKey?.toString();
+            if (!publicKey) {
+              throw new Error('No wallet account returned.');
+            }
+            walletAddressInput.value = publicKey;
+            walletProviderInput.value = 'solana';
+            if (walletStatus) {
+              walletStatus.textContent = `Connected: ${publicKey.slice(0, 6)}…${publicKey.slice(-4)}`;
+            }
+            updateStatus('Wallet channel established. Submit to validate mint access.', 'success');
+          } else {
+            const provider = window.ethereum;
+            if (!provider) {
+              throw new Error('MetaMask or compatible EVM wallet not detected.');
+            }
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            const account = accounts && accounts[0];
+            if (!account) {
+              throw new Error('No wallet account returned.');
+            }
+            walletAddressInput.value = account;
+            walletProviderInput.value = 'evm';
+            if (walletStatus) {
+              walletStatus.textContent = `Connected: ${account.slice(0, 6)}…${account.slice(-4)}`;
+            }
+            updateStatus('Wallet channel established. Submit to validate NFT gate.', 'success');
+          }
+        } catch (error) {
+          walletAddressInput.value = '';
+          walletProviderInput.value = '';
+          const message = error?.message || 'Wallet connection failed. Try again.';
+          if (walletStatus) {
+            walletStatus.textContent = message;
+          }
+          updateStatus(message, 'error');
+        } finally {
+          connectWalletButton.disabled = false;
+          connectWalletButton.textContent = 'Connect Wallet';
+        }
+      }
+
+      if (connectWalletButton) {
+        connectWalletButton.addEventListener('click', handleWalletConnection);
+      }
+
+      setMode('credentials', true);
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const submitButton = form.querySelector('button[type="submit"]');
+        const verifyingMessage = activeMode === 'wallet' ? 'Verifying wallet clearance…' : 'Decrypting clearance codes…';
+        updateStatus(verifyingMessage);
+        submitButton.disabled = true;
+        submitButton.textContent = activeMode === 'wallet' ? 'Verifying Wallet…' : 'Verifying…';
+
+        const payload = {
+          method: activeMode,
+          next: nextPath
+        };
+
+        if (activeMode === 'wallet') {
+          const contractId = contractInput ? contractInput.value.trim() : '';
+          if (!contractId) {
+            updateStatus('Provide a contract or mint identifier to continue.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            return;
+          }
+
+          if (!walletAddressInput || !walletAddressInput.value) {
+            updateStatus('Connect your wallet before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            return;
+          }
+
+          payload.contractId = contractId;
+          payload.walletAddress = walletAddressInput.value;
+          payload.walletProvider = walletProviderInput ? walletProviderInput.value : '';
+          payload.network = networkSelect ? networkSelect.value : 'evm';
+        } else {
+          const username = usernameInput ? usernameInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
+          if (!username || !password) {
+            updateStatus('Enter both your access key and clearance code.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            return;
+          }
+          payload.username = username;
+          payload.password = password;
+        }
+
+        try {
+          const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            updateStatus('Access granted. Opening vault…', 'success');
+            setTimeout(() => {
+              window.location.href = data.redirect || nextPath || '/';
+            }, 450);
+          } else {
+            let errorMessage = 'Access denied. Check your clearance credentials.';
+            try {
+              const data = await response.json();
+              if (data && data.message) {
+                errorMessage = data.message;
+              }
+            } catch (err) {
+              // ignore parse error and use default message
+            }
+            updateStatus(errorMessage, 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+          }
+        } catch (error) {
+          updateStatus('Secure channel disrupted. Please attempt again.', 'error');
           submitButton.disabled = false;
           submitButton.textContent = 'Enter the Vault';
         }
-      } catch (error) {
-        updateStatus('Secure channel disrupted. Please attempt again.', 'error');
-        submitButton.disabled = false;
-        submitButton.textContent = 'Enter the Vault';
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>

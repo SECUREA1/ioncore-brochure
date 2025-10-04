@@ -36,6 +36,7 @@ const COOKIE_NAME = 'ioncore_session';
 const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 const authSessions = new Map();
+const meknxRegistry = new Map();
 
 function registerSession() {
   const sessionId = randomUUID();
@@ -129,6 +130,14 @@ function clearSessionCookie(res) {
   res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
 }
 
+function normalizeProvider(provider) {
+  return provider === 'solana' ? 'solana' : 'evm';
+}
+
+function generateMeknxPassId() {
+  return `MEKNX-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
+}
+
 app.get('/login', async (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
   if (validateAuthSession(sessionId)) {
@@ -166,8 +175,130 @@ app.post('/logout', (req, res) => {
   res.json({ message: 'Logged out' });
 });
 
+app.post('/access/meknx', (req, res) => {
+  const body = req.body || {};
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const actionRaw = typeof body.action === 'string' ? body.action.trim().toLowerCase() : 'verify';
+  const requestedProvider =
+    typeof body.walletProvider === 'string' && body.walletProvider.trim()
+      ? normalizeProvider(body.walletProvider.trim())
+      : '';
+
+  if (!walletAddress) {
+    return res.status(400).json({ message: 'Wallet address required for MEKNX clearance.' });
+  }
+
+  if (actionRaw !== 'verify' && actionRaw !== 'mint') {
+    return res.status(400).json({ message: 'Unsupported MEKNX clearance action.' });
+  }
+
+  const nowIso = new Date().toISOString();
+  const existing = meknxRegistry.get(walletAddress);
+  const walletProvider = requestedProvider || (existing ? existing.walletProvider : 'evm');
+
+  if (actionRaw === 'verify') {
+    if (!existing) {
+      return res.status(404).json({ message: 'No MEKNX pass found for this wallet. Mint a clearance token first.' });
+    }
+
+    existing.lastVerifiedAt = nowIso;
+    meknxRegistry.set(walletAddress, existing);
+    return res.json({
+      status: 'verified',
+      passId: existing.passId,
+      mintedAt: existing.mintedAt,
+      walletProvider: existing.walletProvider,
+      ioncTokens: existing.ioncTokens || 0,
+      message: 'MEKNX verification confirmed.'
+    });
+  }
+
+  if (existing) {
+    existing.walletProvider = walletProvider;
+    if (existing.walletProvider === 'solana' && (!existing.ioncTokens || existing.ioncTokens < 1)) {
+      existing.ioncTokens = 1;
+    }
+    existing.lastVerifiedAt = nowIso;
+    meknxRegistry.set(walletAddress, existing);
+    return res.json({
+      status: 'minted',
+      passId: existing.passId,
+      mintedAt: existing.mintedAt,
+      walletProvider: existing.walletProvider,
+      ioncTokens: existing.ioncTokens || 0,
+      message: 'Existing MEKNX pass located. Verification refreshed.'
+    });
+  }
+
+  const passId = generateMeknxPassId();
+  const mintedAt = nowIso;
+  const ioncTokens = walletProvider === 'solana' ? 1 : 0;
+  const record = {
+    walletAddress,
+    walletProvider,
+    passId,
+    mintedAt,
+    lastVerifiedAt: nowIso,
+    ioncTokens
+  };
+  meknxRegistry.set(walletAddress, record);
+
+  return res.status(201).json({
+    status: 'minted',
+    passId,
+    mintedAt,
+    walletProvider,
+    ioncTokens,
+    message: 'MEKNX pass minted successfully.'
+  });
+});
+
+app.post('/access/ionc', (req, res) => {
+  const body = req.body || {};
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProviderRaw =
+    typeof body.walletProvider === 'string' ? body.walletProvider.trim().toLowerCase() : '';
+  const walletProvider = walletProviderRaw === 'solana' ? 'solana' : walletProviderRaw;
+  const passId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
+
+  if (!walletAddress) {
+    return res.status(400).json({ message: 'Wallet address required for IONC verification.' });
+  }
+
+  if (walletProvider !== 'solana') {
+    return res.status(400).json({ message: 'IONC verification is only available for Solana wallets.' });
+  }
+
+  const record = meknxRegistry.get(walletAddress);
+  if (!record) {
+    return res.status(404).json({ message: 'Mint a MEKNX clearance before requesting IONC verification.' });
+  }
+
+  if (passId && record.passId && passId !== record.passId) {
+    return res.status(409).json({ message: 'MEKNX pass mismatch. Re-verify your clearance token.' });
+  }
+
+  record.walletProvider = 'solana';
+  if (!record.ioncTokens || record.ioncTokens < 1) {
+    return res.status(403).json({ message: 'No IONC access tokens assigned to this wallet. Mint a MEKNX pass on Solana or request a top-up.' });
+  }
+
+  record.lastVerifiedAt = new Date().toISOString();
+  meknxRegistry.set(walletAddress, record);
+
+  return res.json({
+    status: 'verified',
+    passId: record.passId,
+    tokens: record.ioncTokens,
+    message: 'IONC verification complete.'
+  });
+});
+
 function isPublicRoute(req) {
-  if (req.method === 'POST' && (req.path === '/login' || req.path === '/logout')) {
+  if (
+    req.method === 'POST' &&
+    ['/login', '/logout', '/access/meknx', '/access/ionc'].includes(req.path)
+  ) {
     return true;
   }
 

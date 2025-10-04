@@ -45,21 +45,54 @@
 
     .automation-cursor {
       position: fixed;
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.35) 40%, rgba(106, 255, 59, 0.65) 100%);
-      box-shadow: 0 0 24px rgba(106, 255, 59, 0.45);
+      background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.35) 42%, rgba(106, 255, 59, 0.75) 100%);
+      box-shadow: 0 0 28px rgba(106, 255, 59, 0.45);
       transform: translate(-50%, -50%) scale(0.6);
       opacity: 0;
       pointer-events: none;
       z-index: 9999;
-      transition: transform 120ms ease, opacity 120ms ease;
+      transition: transform 140ms ease, opacity 120ms ease;
+    }
+
+    .automation-cursor::before {
+      content: "";
+      position: absolute;
+      inset: -14px;
+      border-radius: 999px;
+      border: 2px solid rgba(106, 255, 59, 0.32);
+      box-shadow: 0 0 18px rgba(106, 255, 59, 0.32);
+      opacity: 0;
+      transform: scale(0.8);
+      transition: transform 220ms ease, opacity 220ms ease;
+    }
+
+    .automation-cursor::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(72, 255, 226, 0.4) 0%, rgba(72, 255, 226, 0.05) 70%, transparent 100%);
+      opacity: 0;
+      transform: scale(0.6);
+      transition: transform 200ms ease, opacity 180ms ease;
     }
 
     .automation-cursor.is-visible {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
+    }
+
+    .automation-cursor.is-visible::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .automation-cursor.is-visible::after {
+      opacity: 1;
+      transform: scale(1.15);
     }
 
     .intro-screen {
@@ -1130,6 +1163,20 @@
     let automationCursor;
     let cursorAutomationActive = false;
     let cursorAutomationAttempts = 0;
+    const computeCursorHomePosition = () => {
+      const width = window.innerWidth || 0;
+      const height = window.innerHeight || 0;
+      return {
+        x: Math.round(Math.min(Math.max(width * 0.78, 72), Math.max(120, width - 72))),
+        y: Math.round(Math.min(Math.max(height * 0.22, 72), Math.max(96, height * 0.4 || 96)))
+      };
+    };
+    let cursorHomePosition = computeCursorHomePosition();
+    let cursorPosition = { ...cursorHomePosition };
+    let cursorAnimationFrame = null;
+    let cursorAnimationToken = null;
+    let automationCursorHoverTarget = null;
+    let cursorAutomationSuppressed = false;
 
     const MAX_CURSOR_AUTOMATION_ATTEMPTS = 4;
 
@@ -1141,14 +1188,19 @@
       const cursor = document.createElement('div');
       cursor.className = 'automation-cursor';
       document.body.appendChild(cursor);
+      cursor.style.left = `${cursorPosition.x}px`;
+      cursor.style.top = `${cursorPosition.y}px`;
       automationCursor = cursor;
       return cursor;
     };
 
     const moveAutomationCursor = (x, y) => {
       const cursor = ensureAutomationCursor();
-      cursor.style.left = `${Math.max(0, Math.min(window.innerWidth, x))}px`;
-      cursor.style.top = `${Math.max(0, Math.min(window.innerHeight, y))}px`;
+      const boundedX = Math.max(0, Math.min(window.innerWidth, x));
+      const boundedY = Math.max(0, Math.min(window.innerHeight, y));
+      cursorPosition = { x: boundedX, y: boundedY };
+      cursor.style.left = `${boundedX}px`;
+      cursor.style.top = `${boundedY}px`;
       cursor.classList.add('is-visible');
     };
 
@@ -1156,6 +1208,77 @@
       if (automationCursor) {
         automationCursor.classList.remove('is-visible');
       }
+    };
+
+    const cancelAutomationCursorMotion = () => {
+      if (cursorAnimationFrame) {
+        cancelAnimationFrame(cursorAnimationFrame);
+        cursorAnimationFrame = null;
+      }
+      if (cursorAnimationToken) {
+        cursorAnimationToken.canceled = true;
+        if (typeof cursorAnimationToken.resolve === 'function') {
+          cursorAnimationToken.resolve(false);
+        }
+        cursorAnimationToken = null;
+      }
+    };
+
+    const dispatchSyntheticHoverEvents = (target, x, y) => {
+      if (!target) {
+        return;
+      }
+
+      const sharedOptions = {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        screenX: (window.screenX || 0) + x,
+        screenY: (window.screenY || 0) + y,
+        view: window,
+        buttons: 0
+      };
+
+      const pointerOptions = {
+        ...sharedOptions,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+        pressure: 0
+      };
+
+      const previousHoverTarget = automationCursorHoverTarget;
+
+      try {
+        if (previousHoverTarget && previousHoverTarget !== target) {
+          if (window.PointerEvent) {
+            previousHoverTarget.dispatchEvent(new PointerEvent('pointerout', pointerOptions));
+            previousHoverTarget.dispatchEvent(new PointerEvent('pointerleave', pointerOptions));
+          }
+          previousHoverTarget.dispatchEvent(new MouseEvent('mouseout', sharedOptions));
+          previousHoverTarget.dispatchEvent(new MouseEvent('mouseleave', sharedOptions));
+        }
+
+        if (window.PointerEvent) {
+          if (target !== previousHoverTarget) {
+            target.dispatchEvent(new PointerEvent('pointerover', pointerOptions));
+            target.dispatchEvent(new PointerEvent('pointerenter', pointerOptions));
+          }
+          target.dispatchEvent(new PointerEvent('pointermove', pointerOptions));
+        }
+
+        if (target !== previousHoverTarget) {
+          target.dispatchEvent(new MouseEvent('mouseover', sharedOptions));
+          target.dispatchEvent(new MouseEvent('mouseenter', sharedOptions));
+        }
+
+        target.dispatchEvent(new MouseEvent('mousemove', sharedOptions));
+      } catch (error) {
+        console.warn('Synthetic hover dispatch failed', error);
+      }
+
+      automationCursorHoverTarget = target;
     };
 
     const dispatchSyntheticPointerEvents = (target, x, y) => {
@@ -1181,59 +1304,195 @@
       const pointerEvents = ['pointerover', 'pointerenter', 'pointermove', 'pointerdown'];
       const mouseDownEvents = ['mouseover', 'mouseenter', 'mousemove', 'mousedown'];
 
-      if (window.PointerEvent) {
-        pointerEvents.forEach((eventName) => {
-          const event = new PointerEvent(eventName, pointerOptions);
+      try {
+        if (window.PointerEvent) {
+          pointerEvents.forEach((eventName) => {
+            const event = new PointerEvent(eventName, pointerOptions);
+            target.dispatchEvent(event);
+          });
+        }
+
+        mouseDownEvents.forEach((eventName) => {
+          const event = new MouseEvent(eventName, { ...sharedOptions, buttons: 1 });
           target.dispatchEvent(event);
         });
-      }
 
-      mouseDownEvents.forEach((eventName) => {
-        const event = new MouseEvent(eventName, { ...sharedOptions, buttons: 1 });
-        target.dispatchEvent(event);
-      });
+        const pointerUpEvents = ['pointerup', 'pointerout', 'pointerleave'];
+        const mouseUpEvents = ['mouseup', 'mouseout', 'mouseleave', 'click'];
 
-      const pointerUpEvents = ['pointerup', 'pointerout', 'pointerleave'];
-      const mouseUpEvents = ['mouseup', 'mouseout', 'mouseleave', 'click'];
+        if (window.PointerEvent) {
+          pointerUpEvents.forEach((eventName) => {
+            const event = new PointerEvent(eventName, { ...pointerOptions, pressure: 0 });
+            target.dispatchEvent(event);
+          });
+        }
 
-      if (window.PointerEvent) {
-        pointerUpEvents.forEach((eventName) => {
-          const event = new PointerEvent(eventName, { ...pointerOptions, pressure: 0 });
+        mouseUpEvents.forEach((eventName) => {
+          const event = new MouseEvent(eventName, sharedOptions);
           target.dispatchEvent(event);
         });
+      } catch (error) {
+        console.warn('Synthetic pointer dispatch failed', error);
       }
 
-      mouseUpEvents.forEach((eventName) => {
-        const event = new MouseEvent(eventName, sharedOptions);
-        target.dispatchEvent(event);
-      });
+      automationCursorHoverTarget = target;
     };
 
     const resetCursorAutomation = () => {
       cursorAutomationActive = false;
       cursorAutomationAttempts = 0;
+      automationCursorHoverTarget = null;
+      cancelAutomationCursorMotion();
+      cursorPosition = { ...cursorHomePosition };
       hideAutomationCursor();
     };
 
+    const animateCursorTo = (targetX, targetY, duration, stepCallback) => {
+      const cursor = ensureAutomationCursor();
+      cursor.classList.add('is-visible');
+
+      const startX = typeof cursorPosition?.x === 'number' ? cursorPosition.x : cursorHomePosition.x;
+      const startY = typeof cursorPosition?.y === 'number' ? cursorPosition.y : cursorHomePosition.y;
+      const distance = Math.hypot(targetX - startX, targetY - startY);
+      const targetDuration = duration || Math.min(520, Math.max(200, distance * 3.2));
+      const startTime = performance.now();
+
+      const token = { canceled: false, resolve: null };
+      cursorAnimationToken = token;
+
+      return new Promise((resolve) => {
+        token.resolve = resolve;
+        const step = (timestamp) => {
+          if (token.canceled) {
+            cursorAnimationFrame = null;
+            token.resolve = null;
+            cursorAnimationToken = null;
+            resolve(false);
+            return;
+          }
+
+          const progress = Math.min(1, (timestamp - startTime) / targetDuration);
+          const eased = progress >= 1 ? 1 : 1 - Math.pow(1 - progress, 3);
+          const currentX = startX + (targetX - startX) * eased;
+          const currentY = startY + (targetY - startY) * eased;
+
+          moveAutomationCursor(currentX, currentY);
+
+          if (typeof stepCallback === 'function') {
+            try {
+              stepCallback(currentX, currentY);
+            } catch (error) {
+              console.warn('Automation cursor step callback failed', error);
+            }
+          }
+
+          if (progress >= 1) {
+            cursorAnimationFrame = null;
+            cursorAnimationToken = null;
+            token.resolve = null;
+            resolve(true);
+            return;
+          }
+
+          cursorAnimationFrame = requestAnimationFrame(step);
+        };
+
+        cursorAnimationFrame = requestAnimationFrame(step);
+      });
+    };
+
+    const performCursorSweep = async (points) => {
+      if (!Array.isArray(points) || points.length === 0) {
+        return false;
+      }
+
+      let success = false;
+
+      for (let index = 0; index < points.length; index += 1) {
+        const { x, y } = points[index];
+        const handleStep = (currentX, currentY) => {
+          const hoverTarget = document.elementFromPoint(currentX, currentY) || document.body;
+          dispatchSyntheticHoverEvents(hoverTarget, currentX, currentY);
+        };
+
+        const completed = await animateCursorTo(x, y, undefined, handleStep);
+        if (!completed) {
+          return false;
+        }
+
+        const target = document.elementFromPoint(x, y) || document.body;
+
+        if (index === points.length - 1) {
+          dispatchSyntheticPointerEvents(target, x, y);
+          success = true;
+        } else {
+          dispatchSyntheticHoverEvents(target, x, y);
+        }
+
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, index === points.length - 1 ? 140 : 80);
+        });
+      }
+
+      return success;
+    };
+
+    window.addEventListener('resize', () => {
+      cursorHomePosition = computeCursorHomePosition();
+      if (!cursorAutomationActive && (!automationCursor || !automationCursor.classList.contains('is-visible'))) {
+        cursorPosition = { ...cursorHomePosition };
+        if (automationCursor) {
+          automationCursor.style.left = `${cursorPosition.x}px`;
+          automationCursor.style.top = `${cursorPosition.y}px`;
+        }
+      }
+    });
+
     const computePermissionPromptTargets = () => {
-      const points = [];
+      const anchorPoints = [];
       const width = window.innerWidth || 0;
       const height = window.innerHeight || 0;
 
-      points.push({ x: Math.max(60, width - 120), y: 84 });
-      points.push({ x: Math.max(48, width - 160), y: 118 });
-      points.push({ x: Math.min(width - 48, Math.max(96, width * 0.75)), y: 88 });
+      cursorHomePosition = computeCursorHomePosition();
+
+      anchorPoints.push({ x: Math.max(60, width - 120), y: 84 });
+      anchorPoints.push({ x: Math.max(48, width - 160), y: 118 });
+      anchorPoints.push({ x: Math.min(width - 48, Math.max(96, width * 0.75)), y: 88 });
 
       if (width <= 640) {
-        points.push({ x: Math.round(width * 0.5 + Math.min(140, width * 0.22)), y: Math.max(56, height - 140) });
-        points.push({ x: Math.round(width * 0.5), y: Math.max(48, height - 96) });
+        anchorPoints.push({ x: Math.round(width * 0.5 + Math.min(140, width * 0.22)), y: Math.max(56, height - 140) });
+        anchorPoints.push({ x: Math.round(width * 0.5), y: Math.max(48, height - 96) });
       }
 
-      return points;
+      const expandedPoints = [];
+      let anchor = typeof cursorPosition?.x === 'number' ? { ...cursorPosition } : { ...cursorHomePosition };
+
+      anchorPoints.forEach((point, index) => {
+        const driftX = (Math.random() - 0.5) * 36;
+        const driftY = (Math.random() - 0.5) * 24;
+        const midX = anchor.x + (point.x - anchor.x) * 0.6 + driftX;
+        const midY = anchor.y + (point.y - anchor.y) * 0.6 + driftY;
+        expandedPoints.push({ x: Math.round(midX), y: Math.round(midY) });
+        expandedPoints.push({
+          x: Math.round(point.x + (Math.random() - 0.5) * 18),
+          y: Math.round(point.y + (Math.random() - 0.5) * 16)
+        });
+        anchor = point;
+
+        if (index === anchorPoints.length - 1) {
+          expandedPoints.push({ x: Math.round(point.x), y: Math.round(point.y) });
+        }
+      });
+
+      return expandedPoints;
     };
 
     const attemptPermissionPromptCursorClick = async () => {
-      if (cursorAutomationActive || cursorAutomationAttempts >= MAX_CURSOR_AUTOMATION_ATTEMPTS) {
+      if (
+        cursorAutomationActive ||
+        cursorAutomationAttempts >= MAX_CURSOR_AUTOMATION_ATTEMPTS ||
+        cursorAutomationSuppressed
+      ) {
         return false;
       }
 
@@ -1243,35 +1502,9 @@
       try {
         window.focus();
         const points = computePermissionPromptTargets();
-
-        await new Promise((resolve) => {
-          let index = 0;
-
-          const advance = () => {
-            if (index >= points.length) {
-              resolve();
-              return;
-            }
-
-            const { x, y } = points[index];
-            index += 1;
-
-            moveAutomationCursor(x, y);
-            const target = document.elementFromPoint(x, y) || document.body;
-            try {
-              dispatchSyntheticPointerEvents(target, x, y);
-            } catch (error) {
-              console.warn('Synthetic pointer dispatch failed', error);
-            }
-
-            window.setTimeout(advance, 90);
-          };
-
-          advance();
-        });
-
-        window.setTimeout(hideAutomationCursor, 180);
-        return true;
+        const success = await performCursorSweep(points);
+        window.setTimeout(hideAutomationCursor, 220);
+        return success;
       } finally {
         cursorAutomationActive = false;
       }
@@ -1461,6 +1694,7 @@
 
               torchUnavailable = false;
 
+              cursorAutomationSuppressed = true;
               resetCursorAutomation();
 
               await openTorchStream();
@@ -1475,6 +1709,7 @@
           return false;
         }
 
+        cursorAutomationSuppressed = false;
         await attemptPermissionPromptCursorClick();
 
         return await new Promise((resolve) => {
@@ -1499,6 +1734,7 @@
             if (granted) {
               torchUnavailable = false;
 
+              cursorAutomationSuppressed = true;
               resetCursorAutomation();
 
               await openTorchStream();
@@ -1537,13 +1773,13 @@
           return;
         }
 
+        cursorAutomationSuppressed = false;
 
         const queueCursorAutomationSweep = () => {
           window.setTimeout(() => {
             attemptPermissionPromptCursorClick();
           }, 140);
         };
-
 
         try {
           await attemptPermissionPromptCursorClick();
@@ -1557,6 +1793,7 @@
           stream.getTracks().forEach((track) => track.stop());
           torchUnavailable = false;
 
+          cursorAutomationSuppressed = true;
           resetCursorAutomation();
 
           await openTorchStream();
@@ -1579,6 +1816,7 @@
         if (cameraPermissionStatus.state === 'granted') {
           torchUnavailable = false;
 
+          cursorAutomationSuppressed = true;
           resetCursorAutomation();
 
           await openTorchStream();
@@ -1587,6 +1825,8 @@
 
         if (cameraPermissionStatus.state === 'prompt') {
 
+          cursorAutomationSuppressed = false;
+
           await attemptPermissionPromptCursorClick();
           window.setTimeout(() => {
             attemptPermissionPromptCursorClick();
@@ -1594,10 +1834,6 @@
           const granted = await attemptAutomatedPermissionGrant();
           if (!granted) {
             await attemptPermissionPromptCursorClick();
-
-          const granted = await attemptAutomatedPermissionGrant();
-          if (!granted) {
-
             await requestPermissionAndActivate();
           }
           return;
@@ -1605,7 +1841,8 @@
 
         if (cameraPermissionStatus.state === 'denied') {
           autoCameraActivationAttempted = false;
-          
+
+          cursorAutomationSuppressed = false;
           resetCursorAutomation();
 
         }
@@ -1628,6 +1865,7 @@
 
       const granted = await attemptAutomatedPermissionGrant();
       if (!granted) {
+        cursorAutomationSuppressed = false;
         await attemptPermissionPromptCursorClick();
 
         await requestPermissionAndActivate();

@@ -686,20 +686,10 @@
       <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
-          <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
-          <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
+          <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
+          <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
         </div>
-        <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials">
-          <div class="field">
-            <label for="username">Access Key</label>
-            <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" autofocus>
-          </div>
-          <div class="field">
-            <label for="password">Clearance Code</label>
-            <input id="password" name="password" type="password" placeholder="••••••••">
-          </div>
-        </div>
-        <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet" hidden>
+        <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
           <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains or Phantom for Solana. Once connected, proceed to request vault access.</p>
           <div class="wallet-connect-row">
             <button type="button" id="connect-metamask" class="wallet-connect-button">Connect MetaMask</button>
@@ -711,6 +701,16 @@
           </div>
           <input type="hidden" name="walletAddress" id="wallet-address">
           <input type="hidden" name="walletProvider" id="wallet-provider">
+        </div>
+        <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials" hidden>
+          <div class="field">
+            <label for="username">Access Key</label>
+            <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA">
+          </div>
+          <div class="field">
+            <label for="password">Clearance Code</label>
+            <input id="password" name="password" type="password" placeholder="••••••••">
+          </div>
         </div>
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
@@ -837,7 +837,7 @@
     };
 
     if (form && status) {
-      let activeMode = 'credentials';
+      let activeMode = 'wallet';
 
       const setMode = (mode, force = false) => {
         if (!force && mode === activeMode) {
@@ -968,7 +968,7 @@
         });
       }
 
-      setMode('credentials', true);
+      setMode('wallet', true);
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();

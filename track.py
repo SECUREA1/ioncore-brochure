@@ -658,7 +658,7 @@ def enforce_nft_gate(
 ############################
 LOGIN_GATE_ENABLED = os.getenv("SENTINEL_LOGIN_ENABLED", "true").lower() not in {"0", "false", "no"}
 LOGIN_USERNAME = os.getenv("BASIC_AUTH_USER", "investor")
-LOGIN_PASSWORD = os.getenv("BASIC_AUTH_PASS", "ioncore")
+LOGIN_PASSWORD = os.getenv("BASIC_AUTH_PASS", "burrito")
 
 
 def _center_window_on_screen(window: tk.Tk, width: int, height: int) -> None:

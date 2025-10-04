@@ -6,6 +6,7 @@
   <title>Ioncore Secure Vault Access</title>
   <meta name="description" content="Ioncore Energy secure access portal for confidential energy ecosystem dossiers.">
   <link rel="icon" type="image/svg+xml" href="/battery.svg">
+  <link rel="shortcut icon" href="/battery.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -182,6 +183,21 @@
       100% {
         transform: scale(1);
         letter-spacing: 0.18em;
+      }
+    }
+
+    @keyframes crestPulse {
+      0% {
+        transform: scale(0.94) rotate(-2deg);
+        box-shadow: 0 0 14px rgba(106, 255, 59, 0.38), inset 0 0 0 1px rgba(106, 255, 59, 0.24);
+      }
+      50% {
+        transform: scale(1.02) rotate(1.5deg);
+        box-shadow: 0 0 20px rgba(106, 255, 59, 0.52), 0 0 0 10px rgba(106, 255, 59, 0.08), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
+      }
+      100% {
+        transform: scale(1) rotate(-1deg);
+        box-shadow: 0 0 16px rgba(106, 255, 59, 0.45), 0 0 0 6px rgba(106, 255, 59, 0.05), inset 0 0 0 1px rgba(106, 255, 59, 0.28);
       }
     }
 
@@ -362,6 +378,11 @@
     }
 
     .wallet-connect-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.85rem;
       border: none;
       border-radius: 999px;
       padding: 0.85rem 1.6rem;
@@ -370,17 +391,36 @@
       text-transform: uppercase;
       color: #0f172a;
       background: linear-gradient(135deg, rgba(72, 255, 226, 0.92), rgba(106, 255, 59, 0.82));
+      box-shadow: 0 12px 28px rgba(9, 16, 26, 0.35);
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
       flex: 1 1 220px;
       min-width: 200px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .wallet-connect-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.26), transparent 55%);
+      opacity: 0.7;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
     }
 
     .wallet-connect-button:hover:not(:disabled),
     .wallet-connect-button:focus-visible:not(:disabled) {
       outline: none;
       transform: translateY(-1px);
-      box-shadow: 0 18px 30px rgba(11, 20, 36, 0.48);
+      box-shadow: 0 18px 34px rgba(11, 20, 36, 0.48);
+      filter: saturate(1.05);
+    }
+
+    .wallet-connect-button:hover:not(:disabled)::before,
+    .wallet-connect-button:focus-visible:not(:disabled)::before {
+      opacity: 1;
     }
 
     .wallet-connect-button:disabled {
@@ -388,14 +428,75 @@
       opacity: 0.72;
     }
 
+    .wallet-connect-button--metamask {
+      background: linear-gradient(135deg, rgba(255, 198, 124, 0.96), rgba(255, 123, 0, 0.88));
+      color: #1b1206;
+      box-shadow: 0 14px 32px rgba(134, 66, 0, 0.45);
+    }
+
+    .wallet-connect-button--metamask:hover:not(:disabled),
+    .wallet-connect-button--metamask:focus-visible:not(:disabled) {
+      box-shadow: 0 20px 36px rgba(134, 66, 0, 0.52);
+    }
+
     .wallet-connect-button--phantom {
       background: linear-gradient(135deg, rgba(116, 95, 255, 0.9), rgba(255, 73, 214, 0.78));
       color: #0b1020;
+      box-shadow: 0 14px 32px rgba(66, 38, 163, 0.45);
     }
 
     .wallet-connect-button--phantom:hover:not(:disabled),
     .wallet-connect-button--phantom:focus-visible:not(:disabled) {
-      box-shadow: 0 18px 30px rgba(112, 74, 255, 0.45);
+      box-shadow: 0 20px 38px rgba(82, 48, 204, 0.5);
+    }
+
+    .wallet-connect-button__icon,
+    .wallet-connect-button__crest {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+    }
+
+    .wallet-connect-button__icon {
+      background: rgba(15, 23, 42, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18);
+    }
+
+    .wallet-connect-button__icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .wallet-connect-button--metamask .wallet-connect-button__icon {
+      background: rgba(255, 255, 255, 0.24);
+      box-shadow: inset 0 0 0 1px rgba(27, 17, 6, 0.18);
+    }
+
+    .wallet-connect-button--phantom .wallet-connect-button__icon {
+      background: rgba(13, 10, 38, 0.42);
+      box-shadow: inset 0 0 0 1px rgba(83, 59, 220, 0.35);
+    }
+
+    .wallet-connect-button__label {
+      flex: 1 1 auto;
+      text-align: center;
+      letter-spacing: 0.16em;
+    }
+
+    .wallet-connect-button__crest {
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 18px rgba(106, 255, 59, 0.45), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
+      animation: crestPulse 2.8s ease-in-out infinite;
+    }
+
+    .wallet-connect-button__crest img {
+      width: 22px;
+      height: 22px;
+      filter: drop-shadow(0 0 6px rgba(106, 255, 59, 0.45));
     }
 
     .wallet-status {
@@ -1167,11 +1268,56 @@
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
           <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains or Phantom for Solana. After connecting, complete the MEKNX clearance flow and, for Solana, confirm your IONC access token.</p>
           <div class="wallet-connect-row">
-            <button type="button" id="connect-metamask" class="wallet-connect-button">Connect MetaMask</button>
+            <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="MetaMask fox mark">
+                  <path fill="#f5841f" d="M4.4 2.5 14.6 10l.9 2.6-7.9-2.1z" />
+                  <path fill="#e2761b" d="m27.6 2.5-10.2 7.5-.9 2.6 7.9-2.1z" />
+                  <path fill="#c0ad9e" d="M12.3 17.4 11.4 24l4.6-2.4-.5-3z" />
+                  <path fill="#c0ad9e" d="m19.7 17.4.9 6.6-4.6-2.4.5-3z" />
+                  <path fill="#f5841f" d="M14.9 14.5 10 13.2 8.6 18l3.7-.2z" />
+                  <path fill="#f5841f" d="m17.1 14.5 4.9-1.3 1.4 4.8-3.7-.2z" />
+                  <path fill="#161616" d="m8.6 18 3.6 2.6-.3 1.4L8.6 18z" />
+                  <path fill="#161616" d="m23.4 18-3.6 2.6.3 1.4 3.3-4z" />
+                  <path fill="#763d16" d="m12.2 20.6 2.9 2.1-.3 1.7z" />
+                  <path fill="#763d16" d="m19.8 20.6-2.9 2.1.3 1.7z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect MetaMask</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
             <div id="metamask-status" class="wallet-status">Not connected.</div>
           </div>
           <div class="wallet-connect-row">
-            <button type="button" id="connect-phantom" class="wallet-connect-button wallet-connect-button--phantom">Connect Phantom</button>
+            <button type="button" id="connect-phantom" class="wallet-connect-button wallet-connect-button--phantom">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Solana triad">
+                  <defs>
+                    <linearGradient id="solana-a" x1="6" y1="9" x2="26" y2="9" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#14f195" />
+                      <stop offset="1" stop-color="#9945ff" />
+                    </linearGradient>
+                    <linearGradient id="solana-b" x1="6" y1="16" x2="26" y2="16" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#00ffa3" />
+                      <stop offset="1" stop-color="#dc1fff" />
+                    </linearGradient>
+                    <linearGradient id="solana-c" x1="6" y1="23" x2="26" y2="23" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#19fb9b" />
+                      <stop offset="1" stop-color="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#solana-a)" d="M6 8.2 10.8 4H26l-4.8 4.2H6Z" />
+                  <path fill="url(#solana-b)" d="M6 15.1 10.8 11h15.2l-4.8 4.1H6Z" />
+                  <path fill="url(#solana-c)" d="M6 22 10.8 17.8H26l-4.8 4.2H6Z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect Phantom</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
           <div class="access-module" id="meknx-module">

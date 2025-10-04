@@ -1589,7 +1589,7 @@
 
     let audioContext;
 
-    const playCameraSnapSound = () => {
+    const playFailureBoomSound = () => {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) {
         return;
@@ -1597,19 +1597,58 @@
       if (!audioContext) {
         audioContext = new AudioContextClass();
       }
-      const duration = 0.12;
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(2400, audioContext.currentTime + duration);
-      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + duration);
+      const now = audioContext.currentTime;
+      const boomDuration = 0.85;
+
+      const masterGain = audioContext.createGain();
+      masterGain.gain.setValueAtTime(0.0001, now);
+      masterGain.gain.exponentialRampToValueAtTime(1.1, now + 0.018);
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
+      masterGain.connect(audioContext.destination);
+
+      const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * boomDuration, audioContext.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i += 1) {
+        noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length);
+      }
+
+      const noiseSource = audioContext.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      const noiseFilter = audioContext.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.setValueAtTime(1000, now);
+      noiseFilter.Q.setValueAtTime(0.8, now);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(masterGain);
+
+      const thumpOscillator = audioContext.createOscillator();
+      thumpOscillator.type = 'sine';
+      thumpOscillator.frequency.setValueAtTime(90, now);
+      thumpOscillator.frequency.exponentialRampToValueAtTime(32, now + boomDuration);
+      const thumpGain = audioContext.createGain();
+      thumpGain.gain.setValueAtTime(0.0001, now);
+      thumpGain.gain.exponentialRampToValueAtTime(0.9, now + 0.02);
+      thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
+      thumpOscillator.connect(thumpGain);
+      thumpGain.connect(masterGain);
+
+      const snapOscillator = audioContext.createOscillator();
+      snapOscillator.type = 'triangle';
+      snapOscillator.frequency.setValueAtTime(1800, now);
+      snapOscillator.frequency.exponentialRampToValueAtTime(220, now + 0.18);
+      const snapGain = audioContext.createGain();
+      snapGain.gain.setValueAtTime(0.0001, now);
+      snapGain.gain.exponentialRampToValueAtTime(0.7, now + 0.012);
+      snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      snapOscillator.connect(snapGain);
+      snapGain.connect(masterGain);
+
+      noiseSource.start(now);
+      noiseSource.stop(now + boomDuration);
+      thumpOscillator.start(now);
+      thumpOscillator.stop(now + boomDuration);
+      snapOscillator.start(now);
+      snapOscillator.stop(now + 0.25);
     };
 
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
@@ -1796,7 +1835,7 @@
       void failureOverlay.offsetWidth;
       failureOverlay.classList.add('is-visible');
       triggerCameraFlashEffect();
-      playCameraSnapSound();
+      playFailureBoomSound();
       setTimeout(() => {
         failureOverlay.classList.remove('is-visible');
       }, 2200);

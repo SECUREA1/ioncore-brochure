@@ -28,3 +28,21 @@ npm run fetch-images
 ```
 
 Images will be placed under `pages/images`.
+
+## Sentinel Track Console (track.py)
+
+`track.py` now requires ownership of a specific NFT before the UI loads. The gate is verified
+through Alchemy's NFT API. Configure the following environment variables before launching the
+application:
+
+| Variable | Purpose |
+| --- | --- |
+| `NFT_GATE_ENABLED` | Set to `0`, `false`, or `no` to bypass the gate (defaults to enabled). |
+| `NFT_GATE_CONTRACT_ADDRESS` | Contract address of the NFT collection required for access. |
+| `NFT_GATE_ALCHEMY_API_KEY` | Alchemy API key with NFT access permissions. |
+| `NFT_GATE_NETWORK` | (Optional) Network slug for the Alchemy endpoint (defaults to `eth-mainnet`). |
+| `NFT_GATE_WALLET_ADDRESS` | (Optional) Wallet address to verify. If omitted, the program prompts for one. |
+
+At startup the script calls Alchemy's `getNFTs` endpoint to confirm the provided wallet holds at
+least one token from the specified contract. If verification fails, the program exits after
+displaying an error message.

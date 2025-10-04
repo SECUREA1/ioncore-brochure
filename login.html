@@ -43,25 +43,6 @@
       overflow-y: auto;
     }
 
-    .automation-cursor {
-      position: fixed;
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.35) 40%, rgba(106, 255, 59, 0.65) 100%);
-      box-shadow: 0 0 24px rgba(106, 255, 59, 0.45);
-      transform: translate(-50%, -50%) scale(0.6);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 9999;
-      transition: transform 120ms ease, opacity 120ms ease;
-    }
-
-    .automation-cursor.is-visible {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
     .intro-screen {
       position: fixed;
       inset: 0;
@@ -1108,7 +1089,6 @@
     const metamaskStatus = document.getElementById('metamask-status');
     const phantomStatus = document.getElementById('phantom-status');
 
-
     let cameraFlashOverlay = document.querySelector('.camera-flash-overlay');
     if (!cameraFlashOverlay) {
       cameraFlashOverlay = document.createElement('div');
@@ -1122,82 +1102,6 @@
     let torchTrack = null;
     let torchCooldownTimeout;
     let torchUnavailable = false;
-    let autoCameraActivationAttempted = false;
-
-    const CAMERA_PROMPT_KEYWORDS = ['allow', 'accept', 'enable', 'ok', 'yes'];
-    const CAMERA_PROMPT_TIMEOUT = 8000;
-    const CAMERA_PROMPT_CHECK_INTERVAL = 250;
-
-    const queryInteractiveElements = () => {
-      return Array.from(
-        document.querySelectorAll(
-          'button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]'
-        )
-      );
-    };
-
-    const findCameraPromptButton = () => {
-      const candidates = queryInteractiveElements();
-      for (const element of candidates) {
-        if (element.disabled) {
-          continue;
-        }
-        const label = (element.textContent || element.value || '').trim().toLowerCase();
-        if (!label) {
-          continue;
-        }
-        if (CAMERA_PROMPT_KEYWORDS.some((keyword) => label.includes(keyword))) {
-          return element;
-        }
-      }
-      return null;
-    };
-
-    const clickCameraPromptButtonIfPresent = () => {
-      const button = findCameraPromptButton();
-      if (!button) {
-        return false;
-      }
-      try {
-        button.click();
-        return true;
-      } catch (error) {
-        console.warn('Unable to click camera permission button', error);
-        return false;
-      }
-    };
-
-    const monitorCameraPrompt = () => {
-      let observer;
-      const deadline = Date.now() + CAMERA_PROMPT_TIMEOUT;
-
-      const stopMonitoring = () => {
-        if (observer) {
-          observer.disconnect();
-          observer = undefined;
-        }
-        window.clearInterval(intervalId);
-      };
-
-      const checkAndClick = () => {
-        if (clickCameraPromptButtonIfPresent()) {
-          stopMonitoring?.();
-          return;
-        }
-
-        if (Date.now() > deadline) {
-          stopMonitoring();
-        }
-      };
-
-      const intervalId = window.setInterval(checkAndClick, CAMERA_PROMPT_CHECK_INTERVAL);
-      checkAndClick();
-
-      observer = new MutationObserver(checkAndClick);
-      observer.observe(document.documentElement, { childList: true, subtree: true });
-
-      return stopMonitoring;
-    };
 
     const stopTorchStream = () => {
       window.clearTimeout(torchCooldownTimeout);
@@ -1226,8 +1130,6 @@
         return null;
       }
 
-      const stopMonitoring = monitorCameraPrompt();
-
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -1236,8 +1138,6 @@
             height: { ideal: 720 }
           }
         });
-
-        stopMonitoring?.();
 
         const [track] = stream.getVideoTracks();
         if (!track) {
@@ -1258,108 +1158,11 @@
         return torchTrack;
       } catch (error) {
         console.warn('Unable to access device torch', error);
-        torchUnavailable = error?.name === 'NotFoundError';
+        torchUnavailable = true;
         return null;
       }
     };
 
-    const autoEnableCamera = async () => {
-      if (autoCameraActivationAttempted || torchUnavailable) {
-        return;
-      }
-
-      autoCameraActivationAttempted = true;
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        return;
-      }
-
-      const stopMonitoring = monitorCameraPrompt();
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' }
-          }
-        });
-const requestPermissionAndActivate = async () => {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return;
-  }
-
-  const queueCursorAutomationSweep = () => {
-    window.setTimeout(() => {
-      attemptPermissionPromptCursorClick();
-    }, 140);
-  };
-
-  try {
-    await attemptPermissionPromptCursorClick();
-    queueCursorAutomationSweep();
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' }
-      }
-    });
-
-    // Stop any active monitoring and close tracks
-    stopMonitoring?.();
-    stream.getTracks().forEach((track) => track.stop());
-    torchUnavailable = false;
-
-    resetCursorAutomation();
-    await openTorchStream();
-  } catch (error) {
-    // Ensure monitoring cleanup even on error
-    stopMonitoring?.();
-
-    if (error && error.name === 'NotAllowedError') {
-      autoCameraActivationAttempted = false;
-    }
-
-    queueCursorAutomationSweep();
-
-    console.warn('Automated camera permission request was blocked', error);
-  }
-};
-
-handlePermissionState = async () => {
-  if (!cameraPermissionStatus) {
-    return;
-  }
-
-  if (cameraPermissionStatus.state === 'granted') {
-    torchUnavailable = false;
-    resetCursorAutomation();
-    await openTorchStream();
-    return;
-  }
-
-  if (cameraPermissionStatus.state === 'prompt') {
-    await attemptPermissionPromptCursorClick();
-    window.setTimeout(() => {
-      attemptPermissionPromptCursorClick();
-    }, 120);
-
-    const granted = await attemptAutomatedPermissionGrant();
-    if (!granted) {
-      await attemptPermissionPromptCursorClick();
-      await requestPermissionAndActivate();
-    }
-    return;
-  }
-
-  if (cameraPermissionStatus.state === 'denied') {
-    console.warn('Camera permission denied by user');
-  }
-};
-
-          autoCameraActivationAttempted = false;
-        }
-        console.warn('Camera permission request failed', error);
-      }
-    };
     const triggerCameraFlashEffect = async () => {
       if (cameraFlashOverlay) {
         cameraFlashOverlay.classList.add('is-active');
@@ -1461,8 +1264,6 @@ handlePermissionState = async () => {
         torchTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
       }
     });
-
-    autoEnableCamera();
 
     const resetWalletIndicators = () => {
       if (metamaskStatus) {

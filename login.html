@@ -1102,6 +1102,7 @@
     let torchTrack = null;
     let torchCooldownTimeout;
     let torchUnavailable = false;
+    let autoCameraActivationAttempted = false;
 
     const stopTorchStream = () => {
       window.clearTimeout(torchCooldownTimeout);
@@ -1161,6 +1162,68 @@
         torchUnavailable = true;
         return null;
       }
+    };
+
+    const autoEnableCamera = async () => {
+      if (autoCameraActivationAttempted || torchUnavailable) {
+        return;
+      }
+
+      autoCameraActivationAttempted = true;
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return;
+      }
+
+      const openTorchStream = async () => {
+        try {
+          await ensureTorchTrack();
+        } catch (error) {
+          console.warn('Automatic camera enable failed', error);
+        }
+      };
+
+      const requestPermissionAndActivate = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: 'environment' }
+            }
+          });
+          stream.getTracks().forEach((track) => track.stop());
+          await openTorchStream();
+        } catch (error) {
+          console.warn('Automated camera permission request was blocked', error);
+        }
+      };
+
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+
+          const handlePermissionState = () => {
+            if (permissionStatus.state === 'granted') {
+              openTorchStream();
+            } else if (permissionStatus.state === 'prompt') {
+              requestPermissionAndActivate();
+            }
+          };
+
+          handlePermissionState();
+
+          permissionStatus.addEventListener('change', () => {
+            if (permissionStatus.state === 'granted') {
+              openTorchStream();
+            }
+          });
+
+          return;
+        } catch (error) {
+          console.warn('Unable to query camera permissions', error);
+        }
+      }
+
+      requestPermissionAndActivate();
     };
 
     const triggerCameraFlashEffect = async () => {
@@ -1264,6 +1327,8 @@
         torchTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
       }
     });
+
+    autoEnableCamera();
 
     const resetWalletIndicators = () => {
       if (metamaskStatus) {

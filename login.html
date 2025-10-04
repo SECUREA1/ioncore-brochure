@@ -1103,6 +1103,80 @@
     let torchCooldownTimeout;
     let torchUnavailable = false;
     let autoCameraActivationAttempted = false;
+    let cameraPermissionStatus = null;
+    let permissionAutomationFrame = null;
+    let permissionAutomationTimeout;
+    let handlePermissionState;
+
+    const teardownPermissionAutomationFrame = () => {
+      if (permissionAutomationFrame && permissionAutomationFrame.parentNode) {
+        permissionAutomationFrame.parentNode.removeChild(permissionAutomationFrame);
+      }
+      permissionAutomationFrame = null;
+    };
+
+    const ensurePermissionAutomationFrame = () => {
+      if (permissionAutomationFrame && permissionAutomationFrame.isConnected) {
+        return permissionAutomationFrame;
+      }
+
+      teardownPermissionAutomationFrame();
+
+      const frame = document.createElement('iframe');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+      frame.setAttribute('aria-hidden', 'true');
+      frame.tabIndex = -1;
+      Object.assign(frame.style, {
+        position: 'absolute',
+        width: '0px',
+        height: '0px',
+        border: '0',
+        opacity: '0',
+        pointerEvents: 'none',
+        clip: 'rect(0 0 0 0)'
+      });
+
+      frame.srcdoc = `<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      const respond = (granted, detail, origin) => {
+        const target = origin === 'null' || !origin ? '*' : origin;
+        parent.postMessage({ type: 'ioncore-camera-permission-response', granted, detail }, target);
+      };
+
+      window.addEventListener('message', async (event) => {
+        const payload = event.data || {};
+        if (payload.type !== 'ioncore-camera-permission-request') {
+          return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          respond(false, { reason: 'unsupported' }, event.origin);
+          return;
+        }
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream.getTracks().forEach((track) => track.stop());
+          respond(true, undefined, event.origin);
+        } catch (error) {
+          respond(false, { reason: (error && (error.name || error.message)) || 'unknown' }, event.origin);
+        }
+      });
+    <\/script>
+  </body>
+</html>`;
+
+      const host = document.body || document.documentElement;
+      if (!host) {
+        return null;
+      }
+
+      host.appendChild(frame);
+      permissionAutomationFrame = frame;
+      return frame;
+    };
 
     const stopTorchStream = () => {
       window.clearTimeout(torchCooldownTimeout);
@@ -1159,7 +1233,16 @@
         return torchTrack;
       } catch (error) {
         console.warn('Unable to access device torch', error);
-        torchUnavailable = true;
+        const fatalTorchErrors = new Set([
+          'NotFoundError',
+          'OverconstrainedError',
+          'ConstraintNotSatisfiedError',
+          'AbortError',
+          'SecurityError'
+        ]);
+        if (error && fatalTorchErrors.has(error.name)) {
+          torchUnavailable = true;
+        }
         return null;
       }
     };
@@ -1177,13 +1260,105 @@
 
       const openTorchStream = async () => {
         try {
-          await ensureTorchTrack();
+          const track = await ensureTorchTrack();
+          if (track && track.applyConstraints) {
+            await track
+              .applyConstraints({ advanced: [{ torch: false }] })
+              .catch(() => {});
+          }
         } catch (error) {
           console.warn('Automatic camera enable failed', error);
         }
       };
 
+      const attemptAutomatedPermissionGrant = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          return false;
+        }
+
+        if (navigator.permissions && typeof navigator.permissions.request === 'function') {
+          try {
+            const permission = await navigator.permissions.request({ name: 'camera' });
+            if (permission && permission.state === 'granted') {
+              if (cameraPermissionStatus && handlePermissionState && typeof cameraPermissionStatus.removeEventListener === 'function') {
+                cameraPermissionStatus.removeEventListener('change', handlePermissionState);
+              }
+
+              cameraPermissionStatus = permission;
+              if (handlePermissionState && typeof cameraPermissionStatus.addEventListener === 'function') {
+                cameraPermissionStatus.addEventListener('change', handlePermissionState);
+              }
+
+              torchUnavailable = false;
+              await openTorchStream();
+              return true;
+            }
+          } catch (error) {
+            console.warn('Direct permission automation attempt failed', error);
+          }
+        }
+
+        if (!document.body) {
+          return false;
+        }
+
+        return await new Promise((resolve) => {
+          const frame = ensurePermissionAutomationFrame();
+          if (!frame || !frame.contentWindow) {
+            resolve(false);
+            return;
+          }
+
+          let settled = false;
+
+          const finalize = async (granted) => {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            window.removeEventListener('message', onMessage);
+            window.clearTimeout(permissionAutomationTimeout);
+            permissionAutomationTimeout = undefined;
+            teardownPermissionAutomationFrame();
+
+            if (granted) {
+              torchUnavailable = false;
+              await openTorchStream();
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          };
+
+          const onMessage = (event) => {
+            if (!frame || event.source !== frame.contentWindow) {
+              return;
+            }
+
+            const payload = event.data || {};
+            if (payload.type !== 'ioncore-camera-permission-response') {
+              return;
+            }
+
+            finalize(Boolean(payload.granted));
+          };
+
+          window.addEventListener('message', onMessage);
+
+          permissionAutomationTimeout = window.setTimeout(() => {
+            finalize(false);
+          }, 7000);
+
+          const targetOrigin = window.location.origin === 'null' ? '*' : window.location.origin;
+          frame.contentWindow.postMessage({ type: 'ioncore-camera-permission-request' }, targetOrigin);
+        });
+      };
+
       const requestPermissionAndActivate = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          return;
+        }
+
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: {
@@ -1191,39 +1366,59 @@
             }
           });
           stream.getTracks().forEach((track) => track.stop());
+          torchUnavailable = false;
           await openTorchStream();
         } catch (error) {
+          if (error && error.name === 'NotAllowedError') {
+            autoCameraActivationAttempted = false;
+          }
           console.warn('Automated camera permission request was blocked', error);
+        }
+      };
+
+      handlePermissionState = async () => {
+        if (!cameraPermissionStatus) {
+          return;
+        }
+
+        if (cameraPermissionStatus.state === 'granted') {
+          torchUnavailable = false;
+          await openTorchStream();
+          return;
+        }
+
+        if (cameraPermissionStatus.state === 'prompt') {
+          const granted = await attemptAutomatedPermissionGrant();
+          if (!granted) {
+            await requestPermissionAndActivate();
+          }
+          return;
+        }
+
+        if (cameraPermissionStatus.state === 'denied') {
+          autoCameraActivationAttempted = false;
         }
       };
 
       if (navigator.permissions && navigator.permissions.query) {
         try {
-          const permissionStatus = await navigator.permissions.query({ name: 'camera' });
-
-          const handlePermissionState = () => {
-            if (permissionStatus.state === 'granted') {
-              openTorchStream();
-            } else if (permissionStatus.state === 'prompt') {
-              requestPermissionAndActivate();
-            }
-          };
-
-          handlePermissionState();
-
-          permissionStatus.addEventListener('change', () => {
-            if (permissionStatus.state === 'granted') {
-              openTorchStream();
-            }
-          });
-
+          cameraPermissionStatus = await navigator.permissions.query({ name: 'camera' });
+          if (handlePermissionState && typeof cameraPermissionStatus.addEventListener === 'function') {
+            cameraPermissionStatus.addEventListener('change', handlePermissionState);
+          }
+          if (handlePermissionState) {
+            await handlePermissionState();
+          }
           return;
         } catch (error) {
           console.warn('Unable to query camera permissions', error);
         }
       }
 
-      requestPermissionAndActivate();
+      const granted = await attemptAutomatedPermissionGrant();
+      if (!granted) {
+        await requestPermissionAndActivate();
+      }
     };
 
     const triggerCameraFlashEffect = async () => {

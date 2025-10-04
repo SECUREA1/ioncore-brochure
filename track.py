@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import io
 import cv2
 import numpy as np
 import face_recognition
@@ -13,6 +14,7 @@ import logging
 from collections import defaultdict, OrderedDict
 import threading
 from typing import Optional
+from html import escape
 
 # NEW for notifications & image hosting
 import urllib.request, urllib.parse, ssl
@@ -342,11 +344,374 @@ def save_notify_settings():
 _media_server = None
 _media_server_thread = None
 
+
+def _format_bytes(num: float) -> str:
+    if num <= 0:
+        return "0 B"
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if num < 1024.0 or unit == "TB":
+            if unit == "B":
+                return f"{int(num)} {unit}"
+            return f"{num:.1f} {unit}"
+        num /= 1024.0
+    return f"{num:.1f} PB"
+
+
+def _format_timestamp(ts: float) -> str:
+    try:
+        return time.strftime("%b %d, %Y · %I:%M %p", time.localtime(ts))
+    except (ValueError, OSError):
+        return "Unknown timestamp"
+
+
 class _MediaHandler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         rel = path.lstrip("/")
         rel_path = rel.split("..")[0]
         return os.path.join(NOTIFY_MEDIA_DIR, os.path.basename(rel_path))
+
+    def list_directory(self, path):
+        try:
+            entries = os.listdir(path)
+        except OSError:
+            self.send_error(404, "Unable to list directory")
+            return None
+
+        entries = [e for e in entries if not e.startswith(".")]
+        entries.sort(key=lambda name: os.path.getmtime(os.path.join(path, name)), reverse=True)
+
+        cards = []
+        for entry in entries:
+            full_path = os.path.join(path, entry)
+            display_name = escape(entry)
+            href = urllib.parse.quote(entry)
+            is_dir = os.path.isdir(full_path)
+            is_file = os.path.isfile(full_path)
+            file_ext = os.path.splitext(entry)[1].lower()
+            is_image = is_file and file_ext in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
+
+            modified_ts = os.path.getmtime(full_path)
+            meta_parts = [_format_timestamp(modified_ts)]
+            if is_file:
+                meta_parts.append(_format_bytes(os.path.getsize(full_path)))
+            meta_html = escape(" • ".join(meta_parts))
+
+            if is_image:
+                preview = f'<div class="card__media"><img src="{href}" alt="{display_name} preview"></div>'
+                btn_class = "btn btn-primary"
+                action_label = "View snapshot"
+                download_attr = " download"
+            elif is_dir:
+                preview = (
+                    '<div class="card__media card__media--icon">'
+                    '<span class="card__icon" aria-hidden="true">📁</span>'
+                    "</div>"
+                )
+                btn_class = "btn btn-outline"
+                action_label = "Open collection"
+                download_attr = ""
+            else:
+                preview = (
+                    '<div class="card__media card__media--icon">'
+                    '<span class="card__icon" aria-hidden="true">⬇️</span>'
+                    "</div>"
+                )
+                btn_class = "btn btn-primary"
+                action_label = "Download file"
+                download_attr = " download"
+
+            cards.append(
+                f"""
+                <article class=\"card\">
+                  {preview}
+                  <div class=\"card__content\">
+                    <h2 class=\"card__title\"><a href=\"{href}\">{display_name}</a></h2>
+                    <p class=\"card__meta\">{meta_html}</p>
+                    <div class=\"card__actions\">
+                      <a class=\"{btn_class}\" href=\"{href}\"{download_attr}>{action_label}</a>
+                    </div>
+                  </div>
+                </article>
+                """
+            )
+
+        if not cards:
+            cards_markup = (
+                "<div class=\"empty-state\">"
+                "<h2>No snapshots yet</h2>"
+                "<p>Images and media captured during alerts will appear here automatically.</p>"
+                "</div>"
+            )
+        else:
+            cards_markup = "\n".join(cards)
+
+        html_content = f"""<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"utf-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+  <title>Ioncore Energy | Sentinel Media Vault</title>
+  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">
+  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>
+  <link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap\" rel=\"stylesheet\">
+  <style>
+    :root {{
+      color-scheme: dark;
+      --brand: #6aff3b;
+      --bg: #050505;
+      --card-bg: rgba(18, 18, 18, 0.95);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-muted: rgba(255, 255, 255, 0.65);
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      margin: 0;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top, rgba(106,255,59,0.12), transparent 55%), var(--bg);
+      color: #f7f7f7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }}
+    header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem clamp(1.25rem, 4vw, 3rem);
+      backdrop-filter: blur(18px);
+      background: rgba(5, 5, 5, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }}
+    .brand {{
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: inherit;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }}
+    .brand__mark {{
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(106,255,59,0.9), rgba(106,255,59,0.45));
+      display: grid;
+      place-items: center;
+      color: #041104;
+      font-weight: 800;
+    }}
+    .brand__text strong {{ color: var(--brand); }}
+    .brand__subtitle {{
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }}
+    .header-actions {{
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }}
+    .btn {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      border-radius: 999px;
+      padding: 0.5rem 1.25rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.25s ease;
+      font-size: 0.9rem;
+    }}
+    .btn-primary {{
+      background: var(--brand);
+      color: #041104;
+      box-shadow: 0 12px 24px rgba(106,255,59,0.35);
+    }}
+    .btn-primary:hover {{
+      background: #87ff6d;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 30px rgba(106,255,59,0.4);
+    }}
+    .btn-outline {{
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #f7f7f7;
+    }}
+    .btn-outline:hover {{
+      border-color: var(--brand);
+      color: var(--brand);
+    }}
+    main {{
+      width: min(1180px, 92vw);
+      margin: 3.5rem auto;
+      flex: 1;
+    }}
+    .hero {{
+      margin-bottom: 2.5rem;
+      display: grid;
+      gap: 1rem;
+    }}
+    .hero__eyebrow {{
+      text-transform: uppercase;
+      letter-spacing: 0.35em;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.55);
+    }}
+    .hero h1 {{
+      font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+      margin: 0;
+    }}
+    .hero p {{
+      max-width: 720px;
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }}
+    .grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.75rem;
+    }}
+    .card {{
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      min-height: 320px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }}
+    .card:hover {{
+      transform: translateY(-6px);
+      border-color: rgba(106,255,59,0.45);
+      box-shadow: 0 28px 55px rgba(0,0,0,0.55);
+    }}
+    .card__media {{
+      position: relative;
+      aspect-ratio: 16 / 10;
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }}
+    .card__media img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }}
+    .card__media--icon {{
+      font-size: 2.5rem;
+      color: rgba(106,255,59,0.65);
+    }}
+    .card__content {{
+      padding: 1.4rem 1.6rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }}
+    .card__title {{
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }}
+    .card__title a {{
+      color: inherit;
+      text-decoration: none;
+    }}
+    .card__title a:hover {{
+      color: var(--brand);
+    }}
+    .card__meta {{
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }}
+    .card__actions {{
+      margin-top: auto;
+    }}
+    .empty-state {{
+      padding: 3.5rem 2rem;
+      border-radius: 24px;
+      border: 1px dashed rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.03);
+      text-align: center;
+      display: grid;
+      gap: 0.75rem;
+      place-items: center;
+    }}
+    .empty-state h2 {{
+      margin: 0;
+      font-size: 1.6rem;
+    }}
+    .empty-state p {{
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 420px;
+    }}
+    footer {{
+      text-align: center;
+      color: var(--text-muted);
+      padding: 2rem 0 3rem;
+      font-size: 0.85rem;
+    }}
+    @media (max-width: 640px) {{
+      header {{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }}
+      .header-actions {{
+        width: 100%;
+        justify-content: flex-start;
+      }}
+    }}
+  </style>
+</head>
+<body>
+  <header>
+    <a class=\"brand\" href=\"#\" aria-label=\"Ioncore Energy Sentinel media vault\">
+      <span class=\"brand__mark\">IE</span>
+      <span class=\"brand__text\"><strong>Ioncore</strong> Sentinel<div class=\"brand__subtitle\">Media Vault</div></span>
+    </a>
+    <div class=\"header-actions\">
+      <a class=\"btn btn-outline\" href=\"mailto:ioncoreenergy@gmail.com\">Connect</a>
+      <a class=\"btn btn-primary\" href=\"/\">Refresh feed</a>
+    </div>
+  </header>
+  <main>
+    <section class=\"hero\">
+      <span class=\"hero__eyebrow\">Sentinel Surveillance</span>
+      <h1>Real-time alert snapshots &amp; intelligence drops</h1>
+      <p>Review the media artifacts captured by Ioncore Sentinel automations. Each card surfaces the freshest snapshots, complete with capture time and asset size, ready for escalation or archival.</p>
+    </section>
+    <section class=\"grid\">
+      {cards_markup}
+    </section>
+  </main>
+  <footer>© {time.strftime("%Y")} Ioncore Energy. Engineered intelligence for autonomous resilience.</footer>
+</body>
+</html>
+"""
+
+        encoded = html_content.encode("utf-8", "surrogateescape")
+        f = io.BytesIO()
+        f.write(encoded)
+        f.seek(0)
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        return f
 
 def _get_local_ip():
     try:

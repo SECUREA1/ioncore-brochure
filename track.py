@@ -458,20 +458,51 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
     :root {{
       color-scheme: dark;
       --brand: #6aff3b;
-      --bg: #050505;
-      --card-bg: rgba(18, 18, 18, 0.95);
-      --card-border: rgba(255, 255, 255, 0.08);
+      --brand-secondary: #21b085;
+      --bg: #020409;
+      --bg-accent: #041219;
+      --card-bg: rgba(7, 14, 18, 0.92);
+      --card-border: rgba(106, 255, 59, 0.18);
       --text-muted: rgba(255, 255, 255, 0.65);
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
       font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at top, rgba(106,255,59,0.12), transparent 55%), var(--bg);
+      background:
+        radial-gradient(780px circle at 12% 20%, rgba(106,255,59,0.16), transparent 62%),
+        radial-gradient(620px circle at 88% 12%, rgba(33,176,133,0.18), transparent 60%),
+        linear-gradient(135deg, rgba(3,18,25,0.94), rgba(2,4,9,0.98));
       color: #f7f7f7;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }}
+    body::before {{
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(460px circle at 18% 78%, rgba(106,255,59,0.12), transparent 62%),
+        radial-gradient(360px circle at 82% 76%, rgba(33,176,133,0.14), transparent 66%),
+        linear-gradient(120deg, rgba(255,255,255,0.05), transparent 70%);
+      opacity: 0.85;
+      pointer-events: none;
+      z-index: -2;
+    }}
+    body::after {{
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 120px 120px;
+      mix-blend-mode: overlay;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: -1;
     }}
     header {{
       display: flex;
@@ -479,11 +510,12 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
       justify-content: space-between;
       padding: 1.5rem clamp(1.25rem, 4vw, 3rem);
       backdrop-filter: blur(18px);
-      background: rgba(5, 5, 5, 0.85);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(120deg, rgba(5, 12, 18, 0.85), rgba(5, 18, 12, 0.75));
+      border-bottom: 1px solid rgba(106,255,59,0.18);
       position: sticky;
       top: 0;
       z-index: 10;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
     }}
     .brand {{
       display: flex;
@@ -493,30 +525,56 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
       text-decoration: none;
       font-weight: 700;
       font-size: 1.1rem;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }}
     .brand__mark {{
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(106,255,59,0.9), rgba(106,255,59,0.45));
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 30% 20%, rgba(106,255,59,0.92), rgba(33,176,133,0.8));
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 25px rgba(33,176,133,0.35);
       display: grid;
       place-items: center;
-      color: #041104;
+      color: #031509;
       font-weight: 800;
+      letter-spacing: 0.06em;
     }}
-    .brand__text strong {{ color: var(--brand); }}
+    .brand__text {{
+      display: grid;
+      gap: 0.1rem;
+    }}
+    .brand__text strong {{ display: block; color: var(--brand); letter-spacing: 0.04em; }}
+    .brand__line {{
+      text-transform: uppercase;
+      letter-spacing: 0.26em;
+      font-size: 0.78rem;
+    }}
     .brand__subtitle {{
-      font-size: 0.8rem;
+      font-size: 0.72rem;
       font-weight: 500;
       color: var(--text-muted);
-      margin-top: 0.15rem;
+      margin-top: 0.2rem;
+      letter-spacing: 0.18em;
     }}
     .header-actions {{
       display: flex;
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
+    }}
+    .header__badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(106,255,59,0.1);
+      color: rgba(255,255,255,0.72);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
     }}
     .btn {{
       display: inline-flex;
@@ -531,42 +589,72 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
       font-size: 0.9rem;
     }}
     .btn-primary {{
-      background: var(--brand);
+      background: linear-gradient(135deg, var(--brand), rgba(106,255,59,0.75));
       color: #041104;
-      box-shadow: 0 12px 24px rgba(106,255,59,0.35);
+      box-shadow: 0 14px 32px rgba(106,255,59,0.28);
+      border: 1px solid rgba(106,255,59,0.35);
     }}
     .btn-primary:hover {{
-      background: #87ff6d;
+      background: linear-gradient(135deg, #87ff6d, rgba(106,255,59,0.85));
       transform: translateY(-2px);
-      box-shadow: 0 16px 30px rgba(106,255,59,0.4);
+      box-shadow: 0 18px 36px rgba(106,255,59,0.36);
     }}
     .btn-outline {{
-      border: 1px solid rgba(255,255,255,0.25);
-      color: #f7f7f7;
+      border: 1px solid rgba(106,255,59,0.28);
+      color: rgba(255,255,255,0.92);
+      background: rgba(255,255,255,0.03);
     }}
     .btn-outline:hover {{
       border-color: var(--brand);
       color: var(--brand);
+      background: rgba(106,255,59,0.08);
     }}
     main {{
       width: min(1180px, 92vw);
       margin: 3.5rem auto;
       flex: 1;
+      position: relative;
+    }}
+    main::before {{
+      content: "";
+      position: absolute;
+      inset: -80px 5% auto;
+      height: 180px;
+      background: linear-gradient(120deg, rgba(106,255,59,0.12), transparent 65%);
+      filter: blur(80px);
+      z-index: -1;
     }}
     .hero {{
-      margin-bottom: 2.5rem;
+      margin-bottom: 3.25rem;
       display: grid;
-      gap: 1rem;
+      gap: 1.25rem;
+      position: relative;
     }}
-    .hero__eyebrow {{
+    .hero::after {{
+      content: "";
+      position: absolute;
+      inset: auto 0 -3rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(106,255,59,0.4), transparent);
+    }}
+    .hero__badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(106,255,59,0.25);
+      background: rgba(6, 40, 24, 0.65);
       text-transform: uppercase;
-      letter-spacing: 0.35em;
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.28em;
+      font-size: 0.66rem;
+      color: rgba(255,255,255,0.78);
+      width: fit-content;
     }}
     .hero h1 {{
-      font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+      font-size: clamp(2.4rem, 4.4vw, 3.4rem);
       margin: 0;
+      line-height: 1.15;
     }}
     .hero p {{
       max-width: 720px;
@@ -574,10 +662,72 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
       color: var(--text-muted);
       line-height: 1.6;
     }}
+    .hero__brand {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      align-items: stretch;
+    }}
+    .hero__seal {{
+      padding: 1.1rem 1.25rem;
+      border-radius: 18px;
+      background: rgba(10, 24, 17, 0.9);
+      border: 1px solid rgba(106,255,59,0.22);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+      display: grid;
+      gap: 0.35rem;
+    }}
+    .hero__seal span {{
+      font-size: 0.75rem;
+      letter-spacing: 0.28em;
+      color: rgba(255,255,255,0.58);
+      text-transform: uppercase;
+    }}
+    .hero__seal strong {{
+      font-size: 1.35rem;
+      letter-spacing: 0.12em;
+      color: var(--brand);
+      text-transform: uppercase;
+    }}
+    .hero__seal small {{
+      font-size: 0.75rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }}
+    .hero__meta {{
+      margin: 0;
+      padding: 1.1rem 1.25rem;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(106,255,59,0.16);
+      display: grid;
+      gap: 0.6rem;
+      list-style: none;
+    }}
+    .hero__meta li {{
+      display: flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.75);
+    }}
+    .hero__meta strong {{
+      color: var(--brand);
+      font-size: 0.75rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }}
+    .hero__meta span {{
+      flex: 1;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.68);
+    }}
     .grid {{
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 1.75rem;
+      position: relative;
     }}
     .card {{
       display: flex;
@@ -661,8 +811,10 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
     footer {{
       text-align: center;
       color: var(--text-muted);
-      padding: 2rem 0 3rem;
+      padding: 2.5rem 0 3.5rem;
       font-size: 0.85rem;
+      border-top: 1px solid rgba(106,255,59,0.18);
+      background: linear-gradient(180deg, rgba(3,12,10,0.4), rgba(2,4,9,0.9));
     }}
     @media (max-width: 640px) {{
       header {{
@@ -674,6 +826,13 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
         width: 100%;
         justify-content: flex-start;
       }}
+      .hero__brand {{
+        grid-template-columns: 1fr;
+      }}
+      .hero__badge {{
+        letter-spacing: 0.18em;
+        font-size: 0.62rem;
+      }}
     }}
   </style>
 </head>
@@ -681,18 +840,31 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
   <header>
     <a class=\"brand\" href=\"#\" aria-label=\"Ioncore Energy Sentinel media vault\">
       <span class=\"brand__mark\">IE</span>
-      <span class=\"brand__text\"><strong>Ioncore</strong> Sentinel<div class=\"brand__subtitle\">Media Vault</div></span>
+      <span class=\"brand__text\"><strong>Ioncore Energy</strong><span class=\"brand__line\">Sentinel Command</span><div class=\"brand__subtitle\">Security Media Vault</div></span>
     </a>
     <div class=\"header-actions\">
-      <a class=\"btn btn-outline\" href=\"mailto:ioncoreenergy@gmail.com\">Connect</a>
+      <span class=\"header__badge\">Sentinel Security Network</span>
+      <a class=\"btn btn-outline\" href=\"mailto:ioncoreenergy@gmail.com\">Contact Ioncore</a>
       <a class=\"btn btn-primary\" href=\"/\">Refresh feed</a>
     </div>
   </header>
   <main>
     <section class=\"hero\">
-      <span class=\"hero__eyebrow\">Sentinel Surveillance</span>
+      <span class=\"hero__badge\">Ioncore Energy • Sentinel Security Cloud</span>
       <h1>Real-time alert snapshots &amp; intelligence drops</h1>
       <p>Review the media artifacts captured by Ioncore Sentinel automations. Each card surfaces the freshest snapshots, complete with capture time and asset size, ready for escalation or archival.</p>
+      <div class=\"hero__brand\">
+        <div class=\"hero__seal\">
+          <span>Ioncore Energy</span>
+          <strong>Sentinel</strong>
+          <small>Autonomous Response</small>
+        </div>
+        <ul class=\"hero__meta\">
+          <li><strong>Zero Lag</strong><span>Edge-computed signal routing keeps every camera feed synchronized with Command.</span></li>
+          <li><strong>Quantum Secure</strong><span>Ioncore encryption hardens telemetry, preserving integrity across the Sentinel mesh.</span></li>
+          <li><strong>Always On</strong><span>Resilient storage ensures alerts and media vault assets persist through any event horizon.</span></li>
+        </ul>
+      </div>
     </section>
     <section class=\"grid\">
       {cards_markup}

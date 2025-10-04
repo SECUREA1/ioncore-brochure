@@ -577,6 +577,21 @@
       color: rgba(72, 255, 226, 0.92);
     }
 
+    .camera-flash-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.2));
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 12;
+    }
+
+    .camera-flash-overlay.is-active {
+      opacity: 1;
+    }
+
     .meknx-access-grid {
       display: grid;
       gap: 1rem;

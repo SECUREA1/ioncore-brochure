@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import face_recognition
 import tkinter as tk
-from tkinter import messagebox, filedialog, StringVar, OptionMenu, ttk
+from tkinter import messagebox, filedialog, StringVar, OptionMenu, ttk, simpledialog
 from PIL import Image, ImageTk
 import random
 import json
@@ -20,6 +20,7 @@ import webbrowser
 # NEW for notifications & image hosting
 import urllib.request, urllib.parse, ssl
 import socket, base64, http.server, socketserver
+import requests
 
 ############################
 # Logging Configuration
@@ -30,6 +31,133 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 logger = logging.getLogger()
+
+
+def _fatal_messagebox(title: str, message: str) -> None:
+    """Display a fatal error message via Tk (with console fallback)."""
+    logger.error("%s: %s", title, message)
+    try:
+        root_temp = tk.Tk()
+        root_temp.withdraw()
+        messagebox.showerror(title, message)
+        root_temp.destroy()
+    except Exception:
+        print(f"{title}: {message}", file=sys.stderr)
+
+
+############################
+# NFT Gating Configuration
+############################
+NFT_GATE_ENABLED = os.getenv("NFT_GATE_ENABLED", "true").lower() not in {"0", "false", "no"}
+NFT_GATE_CONTRACT = os.getenv("NFT_GATE_CONTRACT_ADDRESS")
+NFT_GATE_API_KEY = os.getenv("NFT_GATE_ALCHEMY_API_KEY")
+NFT_GATE_NETWORK = os.getenv("NFT_GATE_NETWORK", "eth-mainnet")
+
+
+def _prompt_wallet_address() -> Optional[str]:
+    try:
+        root_temp = tk.Tk()
+        root_temp.withdraw()
+        wallet = simpledialog.askstring(
+            "NFT Access Required",
+            "Enter the wallet address to verify required NFT ownership:",
+        )
+        root_temp.destroy()
+        if wallet:
+            return wallet.strip()
+        return None
+    except Exception:
+        # Fallback to console prompt if Tk dialogs are unavailable.
+        try:
+            return input("Wallet address required for NFT verification: ").strip() or None
+        except EOFError:
+            return None
+
+
+def enforce_nft_gate() -> None:
+    """Ensure the user holds the required NFT before continuing."""
+    if not NFT_GATE_ENABLED:
+        logger.info("NFT gate disabled via NFT_GATE_ENABLED environment flag.")
+        return
+
+    missing = [
+        name
+        for name, value in (
+            ("NFT_GATE_CONTRACT_ADDRESS", NFT_GATE_CONTRACT),
+            ("NFT_GATE_ALCHEMY_API_KEY", NFT_GATE_API_KEY),
+        )
+        if not value
+    ]
+
+    if missing:
+        _fatal_messagebox(
+            "NFT Gate Misconfigured",
+            "Missing required environment variables: " + ", ".join(missing),
+        )
+        sys.exit(1)
+
+    wallet_address = os.getenv("NFT_GATE_WALLET_ADDRESS")
+    if wallet_address:
+        wallet_address = wallet_address.strip()
+    else:
+        wallet_address = _prompt_wallet_address()
+
+    if not wallet_address:
+        _fatal_messagebox(
+            "NFT Access Denied",
+            "A wallet address is required to verify NFT ownership.",
+        )
+        sys.exit(1)
+
+    params = {
+        "owner": wallet_address,
+        "contractAddresses[]": NFT_GATE_CONTRACT,
+        "withMetadata": "false",
+        "pageSize": "1",
+    }
+    url = f"https://{NFT_GATE_NETWORK}.g.alchemy.com/nft/v2/{NFT_GATE_API_KEY}/getNFTs"
+    logger.debug("Verifying NFT access for wallet %s via %s", wallet_address, url)
+    try:
+        response = requests.get(url, params=params, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+    except requests.RequestException as exc:
+        _fatal_messagebox(
+            "NFT Verification Error",
+            f"Unable to verify NFT ownership due to a network/API error: {exc}",
+        )
+        sys.exit(1)
+    except ValueError:
+        _fatal_messagebox(
+            "NFT Verification Error",
+            "Received an unexpected response from the NFT verification API.",
+        )
+        sys.exit(1)
+
+    owned_nfts = data.get("ownedNfts") or []
+    total = data.get("totalCount")
+    if owned_nfts or (isinstance(total, int) and total > 0):
+        logger.info(
+            "NFT gate verified: wallet %s holds contract %s.",
+            wallet_address,
+            NFT_GATE_CONTRACT,
+        )
+        return
+
+    _fatal_messagebox(
+        "NFT Access Denied",
+        (
+            "Wallet "
+            + wallet_address
+            + " does not appear to hold the required NFT (contract "
+            + NFT_GATE_CONTRACT
+            + ")."
+        ),
+    )
+    sys.exit(1)
+
+
+enforce_nft_gate()
 
 ############################
 # Configuration (defaults)
@@ -85,13 +213,10 @@ spot_locks = defaultdict(list)
 # Check YOLO files
 ############################
 if not all(os.path.exists(f) for f in [yolo_weights, yolo_config, yolo_labels]):
-    root_temp = tk.Tk()
-    root_temp.withdraw()
-    messagebox.showerror(
+    _fatal_messagebox(
         "YOLO Files Missing",
-        "Please ensure YOLO weight, config, and labels files are present."
+        "Please ensure YOLO weight, config, and labels files are present.",
     )
-    root_temp.destroy()
     sys.exit(1)
 
 ############################

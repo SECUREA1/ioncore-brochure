@@ -161,6 +161,247 @@ def enforce_nft_gate() -> None:
 enforce_nft_gate()
 
 ############################
+# Login Gate Configuration
+############################
+LOGIN_GATE_ENABLED = os.getenv("SENTINEL_LOGIN_ENABLED", "true").lower() not in {"0", "false", "no"}
+LOGIN_USERNAME = os.getenv("BASIC_AUTH_USER", "investor")
+LOGIN_PASSWORD = os.getenv("BASIC_AUTH_PASS", "ioncore")
+
+
+def _center_window_on_screen(window: tk.Tk, width: int, height: int) -> None:
+    try:
+        window.update_idletasks()
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        x = max((screen_width - width) // 2, 0)
+        y = max((screen_height - height) // 2, 0)
+        window.geometry(f"{width}x{height}+{x}+{y}")
+    except Exception:
+        window.geometry(f"{width}x{height}")
+
+
+def run_login_gate() -> None:
+    """Display the Ioncore vault login screen before launching the dashboard."""
+
+    if not LOGIN_GATE_ENABLED:
+        return
+
+    expected_user = (LOGIN_USERNAME or "").strip()
+    expected_pass = LOGIN_PASSWORD or ""
+
+    login_root = tk.Tk()
+    login_root.title("Ioncore Secure Vault Access")
+    login_root.configure(bg="#05070e")
+    login_root.resizable(False, False)
+    _center_window_on_screen(login_root, 520, 640)
+
+    # Allow quitting from the login dialog to exit the application entirely.
+    def _abort() -> None:
+        try:
+            login_root.destroy()
+        finally:
+            sys.exit(0)
+
+    login_root.protocol("WM_DELETE_WINDOW", _abort)
+
+    card = tk.Frame(
+        login_root,
+        bg="#0b1627",
+        highlightbackground="#48ffe2",
+        highlightcolor="#48ffe2",
+        highlightthickness=1,
+        bd=0,
+        padx=28,
+        pady=28,
+    )
+    card.place(relx=0.5, rely=0.5, anchor="center")
+
+    lockup = tk.Label(
+        card,
+        text="Ioncore Energy // Clearance Gate",
+        font=("Montserrat", 12, "bold"),
+        fg="#48ffe2",
+        bg="#0b1627",
+    )
+    lockup.pack(anchor="center", pady=(6, 18))
+
+    try:
+        import cairosvg
+
+        logo_bytes = cairosvg.svg2png(
+            bytestring=IONCORE_LOGO_SVG.encode("utf-8"),
+            output_width=96,
+            output_height=96,
+        )
+        logo_image = ImageTk.PhotoImage(Image.open(io.BytesIO(logo_bytes)), master=login_root)
+        logo_label = tk.Label(card, image=logo_image, bg="#0b1627")
+        logo_label.image = logo_image
+        logo_label.pack(pady=(0, 16))
+        try:
+            login_root.iconphoto(False, logo_image)
+        except Exception:
+            pass
+    except Exception:
+        logo_canvas = tk.Canvas(card, width=96, height=96, bg="#0b1627", highlightthickness=0)
+        logo_canvas.pack(pady=(0, 16))
+        logo_canvas.create_oval(8, 8, 88, 88, fill="#6aff3b", outline="#d1dae4", width=4)
+        logo_canvas.create_text(
+            48,
+            48,
+            text="IC",
+            fill="#040a15",
+            font=("Montserrat", 28, "bold"),
+        )
+
+    intel = tk.Label(
+        card,
+        text="⚠ Confidential schematics. Quantum vault monitored 24/7.",
+        font=("Montserrat", 10),
+        fg="#f5c978",
+        bg="#12223a",
+        wraplength=360,
+        padx=14,
+        pady=10,
+        justify=tk.LEFT,
+    )
+    intel.pack(fill="x", pady=(0, 18))
+
+    title = tk.Label(
+        card,
+        text="Vault Access Protocol",
+        font=("Montserrat", 16, "bold"),
+        fg="#6aff3b",
+        bg="#0b1627",
+    )
+    title.pack(anchor="center")
+
+    tagline = tk.Label(
+        card,
+        text=(
+            "Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. "
+            "Unauthorized attempts trigger kinetic countermeasures."
+        ),
+        font=("Montserrat", 10),
+        fg="#cbd5f5",
+        bg="#0b1627",
+        wraplength=380,
+        justify=tk.LEFT,
+        pady=8,
+    )
+    tagline.pack(anchor="w")
+
+    form = tk.Frame(card, bg="#0b1627")
+    form.pack(fill="x", pady=(12, 4))
+
+    username_var = tk.StringVar()
+    password_var = tk.StringVar()
+    status_var = tk.StringVar()
+
+    def _build_field(label_text: str, text_var: tk.StringVar, show: str = "") -> tk.Entry:
+        field = tk.Frame(form, bg="#0b1627")
+        field.pack(fill="x", pady=6)
+        tk.Label(
+            field,
+            text=label_text,
+            font=("Montserrat", 10, "bold"),
+            fg="#48ffe2",
+            bg="#0b1627",
+            anchor="w",
+        ).pack(fill="x", pady=(0, 6))
+        entry = tk.Entry(
+            field,
+            textvariable=text_var,
+            show=show,
+            font=("Montserrat", 12),
+            relief=tk.FLAT,
+            bg="#05070e",
+            fg="#e2f6ff",
+            insertbackground="#48ffe2",
+        )
+        entry.pack(fill="x", ipady=10)
+        entry.configure(highlightthickness=1, highlightbackground="#1f3b5c", highlightcolor="#48ffe2")
+        return entry
+
+    username_entry = _build_field("Access Key", username_var)
+    password_entry = _build_field("Clearance Code", password_var, show="•")
+
+    button = tk.Button(
+        card,
+        text="Enter the Vault",
+        font=("Montserrat", 11, "bold"),
+        fg="#05070e",
+        bg="#48ffe2",
+        activebackground="#6aff3b",
+        activeforeground="#05070e",
+        padx=12,
+        pady=12,
+        relief=tk.FLAT,
+        cursor="hand2",
+    )
+    button.pack(fill="x", pady=(16, 6))
+
+    status_label = tk.Label(
+        card,
+        textvariable=status_var,
+        font=("Montserrat", 9),
+        fg="#94a3b8",
+        bg="#0b1627",
+        wraplength=360,
+        justify=tk.LEFT,
+    )
+    status_label.pack(fill="x", pady=(4, 12))
+
+    tk.Label(
+        card,
+        text="Classified Transmission. Ioncore Eyes Only. Proceed with discretion.",
+        font=("Montserrat", 8, "bold"),
+        fg="#64748b",
+        bg="#0b1627",
+        wraplength=360,
+        justify=tk.CENTER,
+    ).pack(pady=(6, 0))
+
+    def update_status(message: str, tone: str = "neutral") -> None:
+        status_var.set(message)
+        if tone == "success":
+            status_label.configure(fg="#6aff3b")
+        elif tone == "error":
+            status_label.configure(fg="#ff4976")
+        else:
+            status_label.configure(fg="#94a3b8")
+
+    def attempt_login(event=None) -> None:  # type: ignore[override]
+        username = username_var.get().strip()
+        password = password_var.get()
+        update_status("Decrypting clearance codes…")
+        button.configure(state=tk.DISABLED, text="Verifying…")
+        if username == expected_user and password == expected_pass:
+            update_status("Access granted. Opening vault…", tone="success")
+            button.configure(text="Opening Vault…")
+
+            def _finalize() -> None:
+                login_root.quit()
+                login_root.destroy()
+
+            login_root.after(450, _finalize)
+        else:
+            update_status("Access denied. Invalid clearance credentials.", tone="error")
+            password_var.set("")
+            password_entry.focus_set()
+            button.configure(state=tk.NORMAL, text="Enter the Vault")
+
+    button.configure(command=attempt_login)
+    login_root.bind("<Return>", attempt_login)
+    login_root.bind("<Escape>", lambda event: _abort())
+
+    username_entry.focus_set()
+
+    login_root.mainloop()
+
+
+run_login_gate()
+
+############################
 # Configuration (defaults)
 ############################
 KNOWN_FACES_DIR = "known_faces"

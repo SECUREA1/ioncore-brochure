@@ -361,6 +361,119 @@
       color: rgba(72, 255, 226, 0.92);
     }
 
+    .failure-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .failure-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0));
+      opacity: 0.9;
+    }
+
+    .failure-overlay.is-visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .failure-stage {
+      position: relative;
+      width: min(420px, 92vw);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .explosion-svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 24px rgba(255, 220, 128, 0.65));
+      animation: boom 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .oops-svg {
+      position: absolute;
+      width: 56%;
+      height: auto;
+      animation: wobble 1.4s ease-in-out 0.1s forwards;
+    }
+
+    .failure-caption {
+      position: absolute;
+      bottom: -12%;
+      width: 100%;
+      text-align: center;
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      font-weight: 700;
+      color: rgba(255, 178, 200, 0.95);
+      text-shadow: 0 0 12px rgba(15, 23, 42, 0.9);
+      animation: caption-pop 0.65s ease-out 0.2s forwards;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    @keyframes boom {
+      0% {
+        transform: scale(0.35) rotate(-12deg);
+        opacity: 0;
+      }
+      45% {
+        opacity: 1;
+      }
+      60% {
+        transform: scale(1.1) rotate(8deg);
+      }
+      100% {
+        transform: scale(0.2) rotate(22deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes wobble {
+      0% {
+        transform: translateY(-12px) rotate(-6deg) scale(0.8);
+        opacity: 0;
+      }
+      40% {
+        opacity: 1;
+      }
+      55% {
+        transform: translateY(6px) rotate(4deg) scale(1.05);
+      }
+      70% {
+        transform: translateY(-6px) rotate(-4deg) scale(1);
+      }
+      100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 0.92;
+      }
+    }
+
+    @keyframes caption-pop {
+      0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.9);
+      }
+      55% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.03);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     .footnote {
       margin-top: 2.25rem;
       font-size: 0.75rem;
@@ -399,6 +512,37 @@
 </head>
   <body>
     <div class="scanlines" aria-hidden="true"></div>
+    <div class="failure-overlay" aria-hidden="true">
+      <div class="failure-stage">
+        <svg class="explosion-svg" viewBox="0 0 360 360" role="img" aria-label="Access denied explosion">
+          <defs>
+            <radialGradient id="blast-gradient" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="#fff1c1"/>
+              <stop offset="45%" stop-color="#ffb347"/>
+              <stop offset="80%" stop-color="#ff4976"/>
+              <stop offset="100%" stop-color="#7a1b3d" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="180" cy="180" r="140" fill="url(#blast-gradient)" opacity="0.92"/>
+          <polygon points="180,20 205,120 320,80 226,160 340,220 210,210 250,330 180,240 110,330 150,210 20,220 134,160 40,80 155,120" fill="#ffe27a" stroke="#ff9f1c" stroke-width="8" stroke-linejoin="round"/>
+          <circle cx="180" cy="180" r="36" fill="#0f172a" opacity="0.75"/>
+          <circle cx="180" cy="180" r="18" fill="#ff4976"/>
+        </svg>
+        <svg class="oops-svg" viewBox="0 0 220 220" role="img" aria-label="Animated whoops character">
+          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="110" cy="110" r="80" fill="#0f172a" stroke="#6aff3b" stroke-width="6"/>
+            <path d="M66 118c14 10 74 10 88 0" stroke="#48ffe2" stroke-width="8"/>
+            <circle cx="80" cy="90" r="12" fill="#f5c978"/>
+            <circle cx="140" cy="90" r="12" fill="#f5c978"/>
+            <path d="M75 150c18 22 60 22 78 0" stroke="#ff4976" stroke-width="10"/>
+            <path d="M58 70l26 12" stroke="#f5c978" stroke-width="8"/>
+            <path d="M162 70l-26 12" stroke="#f5c978" stroke-width="8"/>
+          </g>
+          <text x="110" y="190" text-anchor="middle" font-size="28" font-weight="700" fill="#f5c978">SORRY!</text>
+        </svg>
+        <p class="failure-caption">Boom! Clearance credentials combusted. Try again, secret agent.</p>
+      </div>
+    </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
       <div class="intro-content">
         <img class="intro-logo" src="battery.svg" alt="">
@@ -461,6 +605,7 @@
 
     const form = document.getElementById('login-form');
     const status = document.getElementById('status');
+    const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
     const nextPath = query.get('next') || '/';
 
@@ -473,6 +618,17 @@
       if (tone === 'success') {
         status.classList.add('status-message--success');
       }
+    }
+
+    function triggerFailureAnimation() {
+      if (!failureOverlay) return;
+      failureOverlay.classList.remove('is-visible');
+      // Force reflow so animation can retrigger quickly
+      void failureOverlay.offsetWidth;
+      failureOverlay.classList.add('is-visible');
+      setTimeout(() => {
+        failureOverlay.classList.remove('is-visible');
+      }, 1800);
     }
 
     form.addEventListener('submit', async (event) => {
@@ -514,12 +670,14 @@
           } catch (err) {
             // ignore parse error and use default message
           }
-          updateStatus(errorMessage, 'error');
+          updateStatus(`${errorMessage} The vault just giggled at the explosion.`, 'error');
+          triggerFailureAnimation();
           submitButton.disabled = false;
           submitButton.textContent = 'Enter the Vault';
         }
       } catch (error) {
-        updateStatus('Secure channel disrupted. Please attempt again.', 'error');
+        updateStatus('Secure channel disrupted. A cartoon blast occurred. Please attempt again.', 'error');
+        triggerFailureAnimation();
         submitButton.disabled = false;
         submitButton.textContent = 'Enter the Vault';
       }

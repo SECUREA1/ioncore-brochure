@@ -1269,6 +1269,7 @@
     const passwordInput = document.getElementById('password');
     const walletAddressInput = document.getElementById('wallet-address');
     const walletProviderInput = document.getElementById('wallet-provider');
+    const ioncVerifiedInput = document.getElementById('ionc-verified');
     const metamaskButton = document.getElementById('connect-metamask');
     const phantomButton = document.getElementById('connect-phantom');
     const metamaskStatus = document.getElementById('metamask-status');
@@ -1279,28 +1280,11 @@
     const ioncModule = document.getElementById('ionc-module');
     const ioncVerifyButton = document.getElementById('ionc-verify-button');
     const ioncInlineStatus = document.getElementById('ionc-inline-status');
-
-    const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
-
-    const meknxState = {
-      status: 'pending',
-      passId: '',
-      mintedAt: '',
-      walletProvider: '',
-      ioncTokens: 0
-    };
-
-    const ioncState = {
-      verified: false,
-      tokens: 0
-    };
-
-    const meknxActionSelect = document.getElementById('meknx-action');
-    const meknxActionButton = document.getElementById('meknx-action-button');
-    const meknxInlineStatus = document.getElementById('meknx-inline-status');
-    const ioncModule = document.getElementById('ionc-module');
-    const ioncVerifyButton = document.getElementById('ionc-verify-button');
-    const ioncInlineStatus = document.getElementById('ionc-inline-status');
+    const meknxVerifyButton = document.getElementById('meknx-verify');
+    const meknxMintButton = document.getElementById('meknx-mint');
+    const meknxStatus = document.getElementById('meknx-status');
+    const meknxPasscodeInput = document.getElementById('meknx-passcode');
+    const meknxPassIdInput = document.getElementById('meknx-pass-id');
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
 
@@ -1321,30 +1305,13 @@
     if (!cameraFlashOverlay) {
       cameraFlashOverlay = document.createElement('div');
       cameraFlashOverlay.className = 'camera-flash-overlay';
+      cameraFlashOverlay.setAttribute('aria-hidden', 'true');
       if (bodyElement) {
         bodyElement.appendChild(cameraFlashOverlay);
       }
     }
 
     const triggerCameraFlashEffect = () => {
-
-      if (cameraFlashOverlay) {
-        cameraFlashOverlay.classList.add('is-active');
-        window.setTimeout(() => {
-          cameraFlashOverlay.classList.remove('is-active');
-        }, 200);
-      }
-    };
-
-    const setInlineStatus = (element, message, tone = 'neutral') => {
-      if (!element) return;
-      element.textContent = message;
-      element.classList.remove(...inlineStatusToneClasses);
-      if (tone === 'error') {
-        element.classList.add('inline-status--error');
-      } else if (tone === 'success') {
-        element.classList.add('inline-status--success');
-
       if (!cameraFlashOverlay) {
         return;
       }
@@ -1368,6 +1335,9 @@
     const resetIoncState = (options = {}) => {
       ioncState.verified = false;
       ioncState.tokens = 0;
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = '';
+      }
       if (!options.silent) {
         setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
       }
@@ -1377,12 +1347,19 @@
       meknxState.status = 'pending';
       meknxState.passId = '';
       meknxState.mintedAt = '';
-      meknxState.walletProvider = '';
+      meknxState.walletProvider = walletProviderInput ? walletProviderInput.value : '';
       meknxState.ioncTokens = 0;
+      if (!options.keepPassId && meknxPassIdInput) {
+        meknxPassIdInput.value = '';
+      }
       if (!options.silent) {
         setInlineStatus(meknxInlineStatus, 'MEKNX clearance pending.');
+        if (meknxStatus) {
+          meknxStatus.textContent = 'Awaiting verification.';
+          meknxStatus.classList.remove('wallet-status--connected');
+        }
       }
-      resetIoncState();
+      resetIoncState({ silent: options.silent });
     };
 
     const syncIoncModuleVisibility = () => {
@@ -1393,16 +1370,7 @@
       if (!shouldShow) {
         resetIoncState();
         return;
-
       }
-    };
-
-
-    const resetIoncState = (options = {}) => {
-      ioncState.verified = false;
-      ioncState.tokens = 0;
-      if (!options.silent) {
-        setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
 
       if (ioncState.verified) {
         setInlineStatus(
@@ -1410,80 +1378,7 @@
           `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
           'success'
         );
-        return;
-
-      }
-    };
-
-
-    const resetMeknxState = (options = {}) => {
-      meknxState.status = 'pending';
-      meknxState.passId = '';
-      meknxState.mintedAt = '';
-      meknxState.walletProvider = '';
-      meknxState.ioncTokens = 0;
-      if (!options.silent) {
-        setInlineStatus(meknxInlineStatus, 'MEKNX clearance pending.');
-      }
-      resetIoncState();
-    };
-
-    const syncIoncModuleVisibility = () => {
-      if (!ioncModule) return;
-      const provider = walletProviderInput ? walletProviderInput.value : '';
-      const shouldShow = provider === 'solana';
-      ioncModule.hidden = !shouldShow;
-      if (!shouldShow) {
-        resetIoncState();
-        return;
-
-      if (ioncState.tokens > 0) {
-        const tokenLabel = ioncState.tokens === 1 ? 'token' : 'tokens';
-        setInlineStatus(
-          ioncInlineStatus,
-          `Detected ${ioncState.tokens} IONC access ${tokenLabel}. Verify to continue.`
-        );
-      } else {
-        setInlineStatus(ioncInlineStatus, 'Phantom session detected. Verify IONC token to continue.');
-      }
-    };
-
-    const applyMeknxResponse = (data) => {
-      if (!data) return;
-      const normalizedStatus = data.status === 'verified' ? 'verified' : 'minted';
-      meknxState.status = normalizedStatus;
-      meknxState.passId = data.passId || '';
-      meknxState.mintedAt = data.mintedAt || '';
-      meknxState.walletProvider = data.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
-      meknxState.ioncTokens = typeof data.ioncTokens === 'number' ? data.ioncTokens : meknxState.ioncTokens;
-
-      const statusLabel =
-        normalizedStatus === 'verified' ? 'MEKNX verification confirmed.' : 'MEKNX pass minted successfully.';
-      const passSuffix = meknxState.passId ? ` Pass ID: ${meknxState.passId}.` : '';
-      setInlineStatus(meknxInlineStatus, `${statusLabel}${passSuffix}`, 'success');
-
-      const isSolanaSession =
-        meknxState.walletProvider === 'solana' || (walletProviderInput && walletProviderInput.value === 'solana');
-
-      ioncState.tokens = meknxState.ioncTokens;
-
-      if (isSolanaSession || !ioncState.verified) {
-        syncIoncModuleVisibility();
-
-      }
-    };
-
-
-      if (ioncState.verified) {
-        setInlineStatus(
-          ioncInlineStatus,
-          `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
-          'success'
-        );
-        return;
-      }
-
-      if (ioncState.tokens > 0) {
+      } else if (ioncState.tokens > 0) {
         const tokenLabel = ioncState.tokens === 1 ? 'token' : 'tokens';
         setInlineStatus(
           ioncInlineStatus,
@@ -1521,6 +1416,9 @@
     const markIoncVerified = (tokens) => {
       ioncState.verified = true;
       ioncState.tokens = typeof tokens === 'number' ? tokens : ioncState.tokens;
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = 'true';
+      }
       setInlineStatus(
         ioncInlineStatus,
         `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
@@ -1534,25 +1432,24 @@
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) {
         return;
-
-    const markIoncVerified = (tokens) => {
-      ioncState.verified = true;
-      ioncState.tokens = typeof tokens === 'number' ? tokens : ioncState.tokens;
-      setInlineStatus(
-        ioncInlineStatus,
-        `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
-        'success'
-      );
+      }
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+      }
+      const duration = 0.12;
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(2400, audioContext.currentTime + duration);
+      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
     };
-
-    let audioContext;
-
-    const ioncVerifiedInput = document.getElementById('ionc-verified');
-    const meknxVerifyButton = document.getElementById('meknx-verify');
-    const meknxMintButton = document.getElementById('meknx-mint');
-    const meknxStatus = document.getElementById('meknx-status');
-    const meknxPasscodeInput = document.getElementById('meknx-passcode');
-    const meknxPassIdInput = document.getElementById('meknx-pass-id');
 
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
     const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
@@ -1566,121 +1463,8 @@
 
     const normaliseMeknxToken = (value) => {
       if (!value) return '';
-      return value
-        .toUpperCase()
-        .replace(/[^A-Z0-9-]/g, '')
-        .replace(/-{2,}/g, '-');
+      return value.toUpperCase().replace(/[^A-Z0-9-]/g, '').replace(/-{2,}/g, '-');
     };
-
-    const resetWalletIndicators = () => {
-      if (metamaskStatus) {
-        metamaskStatus.textContent = 'Not connected.';
-        metamaskStatus.classList.remove('wallet-status--connected');
-      }
-      if (phantomStatus) {
-        phantomStatus.textContent = 'Not connected.';
-        phantomStatus.classList.remove('wallet-status--connected');
-      }
-      if (walletAddressInput) {
-        walletAddressInput.value = '';
-      }
-      if (walletProviderInput) {
-        walletProviderInput.value = '';
-      }
-      if (ioncVerifiedInput) {
-        ioncVerifiedInput.value = '';
-      }
-    };
-
-    const resetMeknxState = () => {
-      if (meknxStatus) {
-        meknxStatus.textContent = 'Awaiting verification.';
-        meknxStatus.classList.remove('wallet-status--connected');
-      }
-      if (meknxPassIdInput) {
-        meknxPassIdInput.value = '';
-      }
-    };
-
-    const checkIonCTokenBalance = async (publicKey) => {
-      if (!publicKey) {
-        return false;
-      }
-
-      try {
-        const response = await fetch(SOLANA_RPC_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 'ionc-token-check',
-            method: 'getTokenAccountsByOwner',
-            params: [
-              publicKey,
-              { mint: IONC_TOKEN_MINT },
-              { encoding: 'jsonParsed' }
-            ]
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network error verifying IONC token.');
-        }
-
-        const data = await response.json();
-
-        if (data.error) {
-          throw new Error(data.error?.message || 'RPC error verifying IONC token.');
-        }
-
-        const accounts = data?.result?.value || [];
-        return accounts.some((entry) => {
-          const tokenAmount = entry?.account?.data?.parsed?.info?.tokenAmount;
-          if (!tokenAmount) {
-            return false;
-          }
-          const precise = Number.parseFloat(tokenAmount.uiAmountString || tokenAmount.uiAmount || '0');
-          return Number.isFinite(precise) && precise > 0;
-        });
-      } catch (error) {
-        console.warn('IONC token verification failed', error);
-        throw error;
-      }
-    };
-
-    const enforceIoncRequirement = async (publicKey) => {
-      if (!publicKey) {
-        throw new Error('No wallet account returned.');
-
-      }
-
-      const hasToken = await checkIonCTokenBalance(publicKey);
-
-      if (!hasToken) {
-        if (ioncVerifiedInput) {
-          ioncVerifiedInput.value = '';
-        }
-        throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
-      }
-
-
-      if (ioncVerifiedInput) {
-        ioncVerifiedInput.value = 'true';
-      }
-
-      return true;
-    };
-
-
-    const verifyMeknxToken = async (rawToken) => {
-      const formatted = normaliseMeknxToken(rawToken);
-
-      if (!formatted) {
-        throw new Error('Enter your MEKNX access token before verifying.');
-      }
-
 
     const resetWalletIndicators = () => {
       if (metamaskStatus) {
@@ -1699,7 +1483,78 @@
       }
       resetMeknxState();
       syncIoncModuleVisibility();
+    };
 
+    const checkIonCTokenBalance = async (publicKey) => {
+      if (!publicKey) {
+        return false;
+      }
+
+      const response = await fetch(SOLANA_RPC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'ionc-token-check',
+          method: 'getTokenAccountsByOwner',
+          params: [
+            publicKey,
+            { mint: IONC_TOKEN_MINT },
+            { encoding: 'jsonParsed' }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network error verifying IONC token.');
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error?.message || 'RPC error verifying IONC token.');
+      }
+
+      const accounts = data?.result?.value || [];
+      return accounts.some((entry) => {
+        const tokenAmount = entry?.account?.data?.parsed?.info?.tokenAmount;
+        if (!tokenAmount) {
+          return false;
+        }
+        const precise = Number.parseFloat(tokenAmount.uiAmountString || tokenAmount.uiAmount || '0');
+        return Number.isFinite(precise) && precise > 0;
+      });
+    };
+
+    const enforceIoncRequirement = async (publicKey) => {
+      if (!publicKey) {
+        throw new Error('No wallet account returned.');
+      }
+
+      const hasToken = await checkIonCTokenBalance(publicKey);
+
+      if (!hasToken) {
+        if (ioncVerifiedInput) {
+          ioncVerifiedInput.value = '';
+        }
+        throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
+      }
+
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = 'true';
+      }
+
+      return true;
+    };
+
+    const verifyMeknxToken = async (rawToken) => {
+      const formatted = normaliseMeknxToken(rawToken);
+
+      if (!formatted) {
+        throw new Error('Enter your MEKNX access token before verifying.');
+      }
 
       if (!formatted.startsWith('MEKNX')) {
         throw new Error('MEKNX token must begin with "MEKNX".');
@@ -1714,7 +1569,6 @@
       });
 
       return formatted;
-
     };
 
     const indicateWalletConnection = (providerLabel, address) => {
@@ -1780,6 +1634,8 @@
       failureOverlay.classList.remove('is-visible');
       void failureOverlay.offsetWidth;
       failureOverlay.classList.add('is-visible');
+      triggerCameraFlashEffect();
+      playCameraSnapSound();
       setTimeout(() => {
         failureOverlay.classList.remove('is-visible');
       }, 2200);
@@ -1799,9 +1655,6 @@
               meknxStatus.textContent = 'Awaiting verification.';
               meknxStatus.classList.remove('wallet-status--connected');
             }
-          }
-          if (!normalised) {
-            resetMeknxState();
           }
         });
       }
@@ -1836,25 +1689,23 @@
           if (usernameInput) usernameInput.required = false;
           if (passwordInput) passwordInput.required = false;
 
-          if (!walletAddressInput || !walletAddressInput.value) {
-            resetWalletIndicators();
-          } else {
-            syncIoncModuleVisibility();
-
-
           if (activeMode === 'wallet') {
             if (!walletAddressInput || !walletAddressInput.value) {
               resetWalletIndicators();
+            } else {
+              syncIoncModuleVisibility();
             }
           } else if (activeMode === 'meknx') {
             if (!meknxPassIdInput || !meknxPassIdInput.value) {
               resetMeknxState();
             }
-
           }
         }
 
-        const hasFeedbackTone = status.classList.contains('status-message--error') || status.classList.contains('status-message--success');
+        const hasFeedbackTone =
+          status.classList.contains('status-message--error') ||
+          status.classList.contains('status-message--success');
+
         if (!status.textContent || (!hasFeedbackTone && !force)) {
           if (activeMode === 'wallet') {
             updateStatus('Link MetaMask or Phantom to request vault entry.');
@@ -1992,14 +1843,8 @@
             resetMeknxState();
             syncIoncModuleVisibility();
             indicateWalletConnection('solana', publicKey);
-
             updateStatus('Phantom channel ready. Complete MEKNX and IONC verification to continue.', 'success');
-
-
-            updateStatus('Phantom channel ready. Complete MEKNX and IONC verification to continue.', 'success');
-
-            updateStatus('IONC holdings confirmed. Submit to enter the vault.', 'success');
-
+            setInlineStatus(ioncInlineStatus, 'IONC holdings confirmed. Submit to enter the vault.', 'success');
           } catch (error) {
             resetWalletIndicators();
             const message = error?.message || 'Phantom connection failed. Try again.';
@@ -2030,7 +1875,8 @@
             return;
           }
 
-          const progressLabel = action === 'mint' ? 'Minting MEKNX clearance…' : 'Verifying MEKNX pass…';
+          const progressLabel =
+            action === 'mint' ? 'Minting MEKNX clearance…' : 'Verifying MEKNX pass…';
           setInlineStatus(meknxInlineStatus, progressLabel);
           meknxActionButton.disabled = true;
 
@@ -2039,7 +1885,7 @@
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                Accept: 'application/json'
+                'Accept': 'application/json'
               },
               body: JSON.stringify({
                 action,
@@ -2073,8 +1919,8 @@
               data && data.message
                 ? data.message
                 : action === 'mint'
-                  ? 'MEKNX pass minted successfully.'
-                  : 'MEKNX verification confirmed.';
+                ? 'MEKNX pass minted successfully.'
+                : 'MEKNX verification confirmed.';
             const continuation =
               (provider === 'solana' || meknxState.walletProvider === 'solana') && !ioncState.verified
                 ? ' Continue with IONC verification.'
@@ -2116,7 +1962,7 @@
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                Accept: 'application/json'
+                'Accept': 'application/json'
               },
               body: JSON.stringify({
                 walletAddress: walletAddressInput.value,
@@ -2223,22 +2069,6 @@
           payload.meknxMintedAt = meknxState.mintedAt;
           payload.ioncTokens = ioncState.tokens;
           payload.ioncVerified = ioncState.verified;
-
-
-          payload.walletProvider = walletProviderInput ? walletProviderInput.value : '';
-          if (walletProviderInput && walletProviderInput.value === 'solana') {
-            const ioncVerified = ioncVerifiedInput ? ioncVerifiedInput.value === 'true' : false;
-            if (!ioncVerified) {
-              updateStatus('IONC token verification is required before entering the vault.', 'error');
-              submitButton.disabled = false;
-              submitButton.textContent = 'Enter the Vault';
-              triggerFailureAnimation();
-              return;
-            }
-            payload.ioncVerified = 'true';
-          } else if (ioncVerifiedInput && ioncVerifiedInput.value) {
-            payload.ioncVerified = ioncVerifiedInput.value;
-          }
         } else if (activeMode === 'meknx') {
           const meknxPassId = meknxPassIdInput ? meknxPassIdInput.value.trim() : '';
           if (!meknxPassId) {
@@ -2249,7 +2079,6 @@
             return;
           }
           payload.meknxPassId = meknxPassId;
-
         } else {
           const username = usernameInput ? usernameInput.value.trim() : '';
           const password = passwordInput ? passwordInput.value : '';

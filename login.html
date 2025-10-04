@@ -483,6 +483,21 @@
       color: rgba(72, 255, 226, 0.92);
     }
 
+    .camera-flash-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.2));
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 12;
+    }
+
+    .camera-flash-overlay.is-active {
+      opacity: 1;
+    }
+
     .failure-overlay {
       position: fixed;
       inset: 0;
@@ -1074,6 +1089,182 @@
     const metamaskStatus = document.getElementById('metamask-status');
     const phantomStatus = document.getElementById('phantom-status');
 
+    let cameraFlashOverlay = document.querySelector('.camera-flash-overlay');
+    if (!cameraFlashOverlay) {
+      cameraFlashOverlay = document.createElement('div');
+      cameraFlashOverlay.className = 'camera-flash-overlay';
+      if (bodyElement) {
+        bodyElement.appendChild(cameraFlashOverlay);
+      }
+    }
+
+    let torchStream = null;
+    let torchTrack = null;
+    let torchCooldownTimeout;
+    let torchUnavailable = false;
+
+    const stopTorchStream = () => {
+      window.clearTimeout(torchCooldownTimeout);
+      torchCooldownTimeout = undefined;
+      if (torchStream) {
+        torchStream.getTracks().forEach((track) => track.stop());
+      }
+      torchStream = null;
+      torchTrack = null;
+    };
+
+    const ensureTorchTrack = async () => {
+      if (torchUnavailable) {
+        return null;
+      }
+
+      if (torchTrack && torchTrack.readyState === 'live') {
+        return torchTrack;
+      }
+
+      if (torchStream) {
+        stopTorchStream();
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return null;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+
+        const [track] = stream.getVideoTracks();
+        if (!track) {
+          stream.getTracks().forEach((mediaTrack) => mediaTrack.stop());
+          torchUnavailable = true;
+          return null;
+        }
+
+        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+        if (!capabilities || !capabilities.torch) {
+          stream.getTracks().forEach((mediaTrack) => mediaTrack.stop());
+          torchUnavailable = true;
+          return null;
+        }
+
+        torchStream = stream;
+        torchTrack = track;
+        return torchTrack;
+      } catch (error) {
+        console.warn('Unable to access device torch', error);
+        torchUnavailable = true;
+        return null;
+      }
+    };
+
+    const triggerCameraFlashEffect = async () => {
+      if (cameraFlashOverlay) {
+        cameraFlashOverlay.classList.add('is-active');
+        window.setTimeout(() => {
+          cameraFlashOverlay.classList.remove('is-active');
+        }, 200);
+      }
+
+      try {
+        const track = await ensureTorchTrack();
+        if (!track) {
+          return;
+        }
+
+        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+        if (!capabilities || !capabilities.torch) {
+          return;
+        }
+
+        await track.applyConstraints({ advanced: [{ torch: true }] });
+        window.clearTimeout(torchCooldownTimeout);
+        torchCooldownTimeout = window.setTimeout(() => {
+          track.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
+        }, 200);
+      } catch (error) {
+        console.warn('Unable to trigger torch flash', error);
+      }
+    };
+
+    let audioContext;
+
+    const playCameraSnapSound = () => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        return;
+      }
+
+      try {
+        if (!audioContext) {
+          audioContext = new AudioContextClass();
+        }
+
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+
+        const now = audioContext.currentTime;
+
+        const shutterGain = audioContext.createGain();
+        shutterGain.gain.setValueAtTime(0.0001, now);
+        shutterGain.gain.exponentialRampToValueAtTime(0.6, now + 0.02);
+        shutterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+        shutterGain.connect(audioContext.destination);
+
+        const shutterOsc = audioContext.createOscillator();
+        shutterOsc.type = 'triangle';
+        shutterOsc.frequency.setValueAtTime(1200, now);
+        shutterOsc.frequency.exponentialRampToValueAtTime(90, now + 0.18);
+        shutterOsc.connect(shutterGain);
+        shutterOsc.start(now);
+        shutterOsc.stop(now + 0.25);
+
+        const clickOsc = audioContext.createOscillator();
+        const clickGain = audioContext.createGain();
+        clickOsc.type = 'square';
+        clickOsc.frequency.setValueAtTime(80, now + 0.16);
+        clickOsc.frequency.exponentialRampToValueAtTime(45, now + 0.24);
+        clickGain.gain.setValueAtTime(0.0001, now + 0.14);
+        clickGain.gain.exponentialRampToValueAtTime(0.45, now + 0.2);
+        clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+        clickOsc.connect(clickGain).connect(audioContext.destination);
+        clickOsc.start(now + 0.14);
+        clickOsc.stop(now + 0.32);
+
+        const noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * 0.22), audioContext.sampleRate);
+        const channelData = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < channelData.length; i += 1) {
+          const decay = Math.exp(-i / (audioContext.sampleRate * 0.09));
+          channelData[i] = (Math.random() * 2 - 1) * decay;
+        }
+
+        const noiseSource = audioContext.createBufferSource();
+        const noiseGain = audioContext.createGain();
+        noiseGain.gain.setValueAtTime(0.0001, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.5, now + 0.03);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        noiseSource.buffer = noiseBuffer;
+        noiseSource.connect(noiseGain).connect(audioContext.destination);
+        noiseSource.start(now);
+        noiseSource.stop(now + 0.22);
+      } catch (error) {
+        console.warn('Unable to play camera snap sound', error);
+      }
+    };
+
+    window.addEventListener('beforeunload', stopTorchStream);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' && torchTrack) {
+        torchTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
+      }
+    });
+
     const resetWalletIndicators = () => {
       if (metamaskStatus) {
         metamaskStatus.textContent = 'Not connected.';
@@ -1127,6 +1318,9 @@
     };
 
     const triggerFailureAnimation = () => {
+      void triggerCameraFlashEffect();
+      playCameraSnapSound();
+
       if (!failureOverlay) return;
 
       const restartAnimation = (element) => {

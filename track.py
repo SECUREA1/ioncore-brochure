@@ -15,6 +15,7 @@ from collections import defaultdict, OrderedDict
 import threading
 from typing import Optional
 from html import escape
+import webbrowser
 
 # NEW for notifications & image hosting
 import urllib.request, urllib.parse, ssl
@@ -2044,31 +2045,412 @@ def process_frame(frame, camera_tag):
 ############################
 # Tkinter GUI
 ############################
+
+BRAND_FONT_FAMILY = "Segoe UI"
+FONT_BASE = (BRAND_FONT_FAMILY, 10)
+FONT_SMALL = (BRAND_FONT_FAMILY, 9)
+FONT_SECTION = (BRAND_FONT_FAMILY, 11, "bold")
+FONT_TITLE = (BRAND_FONT_FAMILY, 18, "bold")
+
+BRAND_BG = "#040a15"
+BRAND_SURFACE = "#0b1627"
+BRAND_SURFACE_ALT = "#10213a"
+BRAND_SURFACE_STRONG = "#0f1d33"
+BRAND_BORDER = "#12304a"
+BRAND_ACCENT = "#48ffe2"
+BRAND_ACCENT_ALT = "#f5c978"
+BRAND_TEXT = "#e2f6ff"
+BRAND_MUTED = "#94a3b8"
+BUTTON_BG = "#152941"
+BUTTON_ACTIVE_BG = "#1f3856"
+
+_DEFAULT_BGS = {
+    "SystemButtonFace",
+    "SystemWindow",
+    "SystemWindowBody",
+    "#F0F0F0",
+    "white",
+    "#ffffff",
+    "gray85",
+    "gray95",
+    "",
+}
+_DEFAULT_FGS = {"SystemButtonText", "black", "#000000"}
+
+
+def _maybe_config(widget, **kwargs):
+    try:
+        widget.configure(**kwargs)
+    except tk.TclError:
+        pass
+
+
+def apply_branding(widget):
+    cls = widget.winfo_class()
+    try:
+        current_bg = widget.cget("bg")
+    except tk.TclError:
+        current_bg = None
+
+    if cls in ("Tk", "Toplevel"):
+        _maybe_config(widget, bg=BRAND_BG)
+        current_bg = BRAND_BG
+
+    if cls in ("Frame", "Labelframe", "TFrame", "Canvas"):
+        if current_bg in _DEFAULT_BGS or current_bg is None:
+            target_bg = BRAND_SURFACE
+            if cls == "Canvas":
+                target_bg = BRAND_SURFACE_ALT
+            _maybe_config(widget, bg=target_bg)
+            current_bg = target_bg
+
+    if cls == "Labelframe":
+        _maybe_config(
+            widget,
+            fg=BRAND_ACCENT,
+            font=FONT_SECTION,
+            labelanchor="w",
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=BRAND_BORDER,
+            highlightcolor=BRAND_BORDER,
+            padx=10,
+            pady=8,
+        )
+
+    if cls == "Label":
+        if current_bg in _DEFAULT_BGS or current_bg is None:
+            parent_bg = BRAND_SURFACE
+            try:
+                parent_bg = widget.master.cget("bg")
+            except Exception:
+                pass
+            _maybe_config(widget, bg=parent_bg)
+        try:
+            current_fg = widget.cget("fg")
+        except tk.TclError:
+            current_fg = None
+        if current_fg in _DEFAULT_FGS or current_fg is None:
+            _maybe_config(widget, fg=BRAND_TEXT)
+        _maybe_config(widget, font=FONT_BASE)
+
+    if cls in ("Button", "Checkbutton", "Radiobutton"):
+        _maybe_config(widget, font=FONT_BASE, borderwidth=0, relief=tk.FLAT)
+        if current_bg in _DEFAULT_BGS or current_bg in {None, "", "SystemButtonFace"}:
+            _maybe_config(
+                widget,
+                bg=BUTTON_BG,
+                fg=BRAND_TEXT,
+                activebackground=BUTTON_ACTIVE_BG,
+                activeforeground=BRAND_TEXT,
+            )
+        else:
+            _maybe_config(widget, activeforeground=BRAND_TEXT)
+        _maybe_config(
+            widget,
+            highlightthickness=1,
+            highlightbackground=BRAND_BORDER,
+            highlightcolor=BRAND_BORDER,
+        )
+        if cls in ("Checkbutton", "Radiobutton") and (
+            current_bg in _DEFAULT_BGS or current_bg in {None, "", "SystemButtonFace"}
+        ):
+            _maybe_config(widget, selectcolor=BRAND_SURFACE_ALT)
+
+    if cls in ("Entry", "Spinbox"):
+        if current_bg in _DEFAULT_BGS or current_bg in {"white", "#ffffff"}:
+            _maybe_config(widget, bg=BRAND_SURFACE_STRONG)
+        _maybe_config(
+            widget,
+            fg=BRAND_TEXT,
+            insertbackground=BRAND_ACCENT,
+            relief=tk.FLAT,
+            highlightthickness=1,
+            highlightbackground=BRAND_BORDER,
+            highlightcolor=BRAND_BORDER,
+            font=FONT_BASE,
+        )
+
+    if cls == "Listbox":
+        _maybe_config(
+            widget,
+            bg=BRAND_SURFACE_STRONG,
+            fg=BRAND_TEXT,
+            selectbackground=BRAND_ACCENT,
+            selectforeground=BRAND_BG,
+            borderwidth=0,
+            highlightthickness=1,
+            highlightbackground=BRAND_BORDER,
+            relief=tk.FLAT,
+            font=FONT_SMALL,
+        )
+
+    if cls == "Scrollbar":
+        _maybe_config(widget, bg=BRAND_SURFACE_ALT, troughcolor=BRAND_SURFACE_STRONG, activebackground=BUTTON_ACTIVE_BG)
+
+    if cls == "Menubutton":
+        _maybe_config(
+            widget,
+            bg=BRAND_SURFACE_ALT,
+            fg=BRAND_TEXT,
+            activebackground=BUTTON_ACTIVE_BG,
+            activeforeground=BRAND_TEXT,
+            borderwidth=0,
+            highlightthickness=1,
+            highlightbackground=BRAND_BORDER,
+            highlightcolor=BRAND_BORDER,
+            relief=tk.FLAT,
+            font=FONT_BASE,
+        )
+
+    if cls == "Canvas" and widget.cget("highlightthickness") != 0:
+        _maybe_config(widget, highlightthickness=0)
+
+    if cls == "Text":
+        _maybe_config(
+            widget,
+            bg=BRAND_SURFACE_STRONG,
+            fg=BRAND_TEXT,
+            insertbackground=BRAND_ACCENT,
+            relief=tk.FLAT,
+            highlightthickness=1,
+            highlightbackground=BRAND_BORDER,
+            highlightcolor=BRAND_BORDER,
+            font=FONT_SMALL,
+        )
+
+    for child in widget.winfo_children():
+        apply_branding(child)
+
+
 root = tk.Tk()
 root.title("Multi-Camera Recognition (Feeds • Notifications • Vehicle DB)")
 root.geometry("1366x900")
+root.configure(bg=BRAND_BG)
+
+root.option_add("*Font", f"{BRAND_FONT_FAMILY} 10")
+root.option_add("*Label*Foreground", BRAND_TEXT)
+root.option_add("*Label*Background", BRAND_SURFACE)
+root.option_add("*LabelFrame*Font", f"{BRAND_FONT_FAMILY} 11 bold")
+root.option_add("*LabelFrame*Foreground", BRAND_ACCENT)
+root.option_add("*Entry*Background", BRAND_SURFACE_STRONG)
+root.option_add("*Entry*Foreground", BRAND_TEXT)
+root.option_add("*Spinbox*Background", BRAND_SURFACE_STRONG)
+root.option_add("*Spinbox*Foreground", BRAND_TEXT)
+root.option_add("*Listbox*Background", BRAND_SURFACE_STRONG)
+root.option_add("*Listbox*Foreground", BRAND_TEXT)
+root.option_add("*Menu.background", BRAND_SURFACE_STRONG)
+root.option_add("*Menu.foreground", BRAND_TEXT)
+root.option_add("*Menu.activeBackground", BUTTON_ACTIVE_BG)
+root.option_add("*Menu.activeForeground", BRAND_TEXT)
+
+style = ttk.Style()
+try:
+    style.theme_use("clam")
+except tk.TclError:
+    pass
+style.configure("TFrame", background=BRAND_SURFACE)
+style.configure("TLabelframe", background=BRAND_SURFACE, borderwidth=0)
+style.configure("TLabelframe.Label", background=BRAND_SURFACE, foreground=BRAND_ACCENT, font=FONT_SECTION)
+style.configure("TLabel", background=BRAND_SURFACE, foreground=BRAND_TEXT, font=FONT_BASE)
+style.configure("TNotebook", background=BRAND_SURFACE, borderwidth=0, padding=0)
+style.configure("TNotebook.Tab", background=BRAND_SURFACE_ALT, foreground=BRAND_MUTED, padding=(14, 8))
+style.map("TNotebook.Tab", background=[("selected", BRAND_SURFACE_STRONG)], foreground=[("selected", BRAND_TEXT)])
+try:
+    style.configure(
+        "TCombobox",
+        fieldbackground=BRAND_SURFACE_STRONG,
+        background=BRAND_SURFACE_STRONG,
+        foreground=BRAND_TEXT,
+        bordercolor=BRAND_BORDER,
+        darkcolor=BRAND_BORDER,
+        lightcolor=BRAND_BORDER,
+        arrowcolor=BRAND_ACCENT,
+    )
+    style.map(
+        "TCombobox",
+        fieldbackground=[("readonly", BRAND_SURFACE_STRONG)],
+        foreground=[("readonly", BRAND_TEXT)],
+        background=[("readonly", BRAND_SURFACE_STRONG)],
+    )
+except tk.TclError:
+    pass
+style.configure("TButton", background=BUTTON_BG, foreground=BRAND_TEXT, font=FONT_BASE)
+style.map("TButton", background=[("active", BUTTON_ACTIVE_BG)])
 
 # Grid config
 for c in range(3):
     root.columnconfigure(c, weight=1, uniform="cols")
-root.rowconfigure(0, weight=1)  # feeds
-root.rowconfigure(1, weight=2)  # upper row
-root.rowconfigure(2, weight=2)  # middle row
-root.rowconfigure(3, weight=2)  # lower row
+root.rowconfigure(0, weight=0)  # brand header
+root.rowconfigure(1, weight=1)  # feeds
+root.rowconfigure(2, weight=2)  # upper row
+root.rowconfigure(3, weight=2)  # middle row
+root.rowconfigure(4, weight=2)  # lower row
+root.rowconfigure(5, weight=0)  # bottom toolbar
+
+brand_header = tk.Frame(
+    root,
+    bg=BRAND_SURFACE,
+    highlightbackground=BRAND_BORDER,
+    highlightcolor=BRAND_BORDER,
+    highlightthickness=1,
+    bd=0,
+    padx=18,
+    pady=16,
+)
+brand_header.grid(row=0, column=0, columnspan=3, sticky="ew", padx=12, pady=(12, 6))
+brand_header.columnconfigure(0, weight=1)
+brand_header.columnconfigure(1, weight=0)
+
+status_text_var = tk.StringVar(value="Review the media artifacts captured by Sentinel automations. Real-time alert snapshots & intelligence drops.")
+
+
+def _refresh_command_center():
+    try:
+        refresh_tracked_objects_list()
+    except Exception:
+        pass
+    try:
+        refresh_tracked_persons_list()
+    except Exception:
+        pass
+    try:
+        refresh_live_logs_ui()
+    except Exception:
+        pass
+    try:
+        update_unknown_count()
+    except Exception:
+        pass
+    status_text_var.set(f"Command center refreshed • {time.strftime('%H:%M:%S')}")
+
+
+def _contact_ioncore():
+    try:
+        webbrowser.open("mailto:ioncoreenergy@gmail.com")
+    except Exception:
+        messagebox.showinfo("Contact", "Email ioncoreenergy@gmail.com")
+
+
+def _launch_media_vault():
+    _start_media_server_if_needed()
+    try:
+        port = int(notify_config.get("media_hosting", {}).get("port", 8765))
+        url = f"http://{_get_local_ip()}:{port}/"
+    except Exception:
+        url = "http://127.0.0.1:8765/"
+    try:
+        webbrowser.open(url)
+    except Exception:
+        messagebox.showinfo("Media Vault", f"Open the Sentinel media vault at {url}")
+
+
+brand_left = tk.Frame(brand_header, bg=BRAND_SURFACE)
+brand_left.grid(row=0, column=0, sticky="nsew")
+
+logo_wrap = tk.Frame(brand_left, bg=BRAND_SURFACE)
+logo_wrap.pack(anchor="w")
+
+logo_mark = tk.Label(
+    logo_wrap,
+    text="IE",
+    font=(BRAND_FONT_FAMILY, 16, "bold"),
+    bg=BRAND_ACCENT,
+    fg=BRAND_BG,
+    padx=14,
+    pady=10,
+)
+logo_mark.pack(side=tk.LEFT, padx=(0, 12))
+
+logo_text = tk.Frame(logo_wrap, bg=BRAND_SURFACE)
+logo_text.pack(side=tk.LEFT)
+tk.Label(logo_text, text="Ioncore Energy", font=FONT_TITLE, fg=BRAND_TEXT, bg=BRAND_SURFACE).pack(anchor="w")
+tk.Label(
+    logo_text,
+    text="Sentinel Command • Security Media Vault",
+    font=(BRAND_FONT_FAMILY, 11),
+    fg=BRAND_MUTED,
+    bg=BRAND_SURFACE,
+).pack(anchor="w")
+
+tk.Label(
+    brand_left,
+    textvariable=status_text_var,
+    font=(BRAND_FONT_FAMILY, 11),
+    fg=BRAND_TEXT,
+    bg=BRAND_SURFACE,
+    wraplength=520,
+    justify="left",
+).pack(anchor="w", pady=(12, 0))
+
+badge_row = tk.Frame(brand_left, bg=BRAND_SURFACE)
+badge_row.pack(anchor="w", pady=(14, 0))
+
+for title, subtitle in (
+    ("Zero Lag", "Edge-computed routing keeps every feed synchronized with Command."),
+    ("Quantum Secure", "Ioncore encryption hardens telemetry across the Sentinel mesh."),
+    ("Always On", "Resilient storage preserves alerts through any event horizon."),
+):
+    card = tk.Frame(
+        badge_row,
+        bg=BRAND_SURFACE_ALT,
+        highlightbackground=BRAND_BORDER,
+        highlightcolor=BRAND_BORDER,
+        highlightthickness=1,
+        bd=0,
+        padx=14,
+        pady=10,
+    )
+    card.pack(side=tk.LEFT, padx=(0, 12))
+    tk.Label(card, text=title, font=(BRAND_FONT_FAMILY, 10, "bold"), fg=BRAND_ACCENT, bg=BRAND_SURFACE_ALT).pack(anchor="w")
+    tk.Label(
+        card,
+        text=subtitle,
+        font=(BRAND_FONT_FAMILY, 9),
+        fg=BRAND_MUTED,
+        bg=BRAND_SURFACE_ALT,
+        wraplength=160,
+        justify="left",
+    ).pack(anchor="w", pady=(4, 0))
+
+brand_right = tk.Frame(brand_header, bg=BRAND_SURFACE)
+brand_right.grid(row=0, column=1, sticky="ne")
+
+tk.Label(
+    brand_right,
+    text="Sentinel Security Network",
+    font=(BRAND_FONT_FAMILY, 10, "bold"),
+    bg=BRAND_ACCENT_ALT,
+    fg=BRAND_BG,
+    padx=12,
+    pady=6,
+).pack(anchor="e")
+
+actions = tk.Frame(brand_right, bg=BRAND_SURFACE)
+actions.pack(anchor="e", pady=(12, 0))
+
+contact_btn = tk.Button(actions, text="Contact Ioncore", command=_contact_ioncore, bg=BRAND_SURFACE_ALT, fg=BRAND_ACCENT)
+contact_btn.pack(side=tk.LEFT, padx=6)
+contact_btn.configure(activebackground=BUTTON_ACTIVE_BG, activeforeground=BRAND_TEXT)
+vault_btn = tk.Button(actions, text="Open Media Vault", command=_launch_media_vault, bg=BRAND_ACCENT, fg=BRAND_BG)
+vault_btn.pack(side=tk.LEFT, padx=6)
+vault_btn.configure(activebackground=BRAND_ACCENT_ALT, activeforeground=BRAND_BG)
+refresh_btn = tk.Button(actions, text="Refresh Command Center", command=_refresh_command_center)
+refresh_btn.pack(side=tk.LEFT, padx=6)
 
 ############################
-# Row 0 (FULL WIDTH): Video Feeds with horizontal scroll
+# Row 1 (FULL WIDTH): Video Feeds with horizontal scroll
 ############################
-video_feed_frame = tk.LabelFrame(root, text="Video Feeds")
-video_feed_frame.grid(row=0, column=0, columnspan=3, padx=8, pady=8, sticky="nsew")
+video_feed_frame = tk.LabelFrame(root, text="Live Sentinel Feeds")
+video_feed_frame.grid(row=1, column=0, columnspan=3, padx=12, pady=(0, 10), sticky="nsew")
 
-video_canvas = tk.Canvas(video_feed_frame, highlightthickness=0)
+video_canvas = tk.Canvas(video_feed_frame, highlightthickness=0, bg=BRAND_SURFACE_ALT)
 h_scroll = tk.Scrollbar(video_feed_frame, orient="horizontal", command=video_canvas.xview)
 video_canvas.configure(xscrollcommand=h_scroll.set)
 video_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
 
-video_strip = tk.Frame(video_canvas)
+video_strip = tk.Frame(video_canvas, bg=BRAND_SURFACE_ALT)
 video_canvas.create_window((0, 0), window=video_strip, anchor="nw")
 
 def _update_video_strip_scrollregion(event=None):
@@ -2079,9 +2461,25 @@ def _update_video_strip_scrollregion(event=None):
 video_strip.bind("<Configure>", _update_video_strip_scrollregion)
 
 def make_camera_cell(parent, title):
-    cell = tk.Frame(parent, bd=1, relief=tk.SOLID)
-    tk.Label(cell, text=title, anchor="w").pack(fill=tk.X)
-    img_lbl = tk.Label(cell, bg="#111")
+    cell = tk.Frame(
+        parent,
+        bd=0,
+        bg=BRAND_SURFACE_ALT,
+        highlightbackground=BRAND_BORDER,
+        highlightcolor=BRAND_BORDER,
+        highlightthickness=1,
+        padx=6,
+        pady=6,
+    )
+    tk.Label(
+        cell,
+        text=title,
+        anchor="w",
+        bg=BRAND_SURFACE_ALT,
+        fg=BRAND_MUTED,
+        font=(BRAND_FONT_FAMILY, 10, "bold"),
+    ).pack(fill=tk.X, pady=(0, 4))
+    img_lbl = tk.Label(cell, bg="#050b12")
     img_lbl.pack()
     return cell, img_lbl
 
@@ -2138,12 +2536,13 @@ def _open_scrolling_window(title, header_lines, rows):
     footer.pack(side=tk.BOTTOM, fill=tk.X)
     tk.Button(footer, text="Save as .txt", command=_export_txt).pack(side=tk.LEFT, padx=6, pady=6)
     tk.Button(footer, text="Close", command=win.destroy).pack(side=tk.RIGHT, padx=6, pady=6)
+    apply_branding(win)
 
 ############################
 # LEFT COLUMN STACK (rows 1–3): Controls + Panel (Objects/Persons) + Tuner Overlay
 ############################
-col0_stack = tk.Frame(root)
-col0_stack.grid(row=1, column=0, rowspan=3, padx=8, pady=8, sticky="nsew")
+col0_stack = tk.Frame(root, bg=BRAND_SURFACE)
+col0_stack.grid(row=2, column=0, rowspan=3, padx=12, pady=(0, 12), sticky="nsew")
 col0_stack.rowconfigure(0, weight=0)
 col0_stack.rowconfigure(1, weight=1)
 col0_stack.columnconfigure(0, weight=1)
@@ -2445,22 +2844,35 @@ def apply_and_close_tuner():
 
 def build_tuner_overlay():
     # container overlay that covers the entire left lower area
-    ov = tk.Frame(lower_area, bd=1, relief=tk.RIDGE, bg="#202020")
+    ov = tk.Frame(
+        lower_area,
+        bd=0,
+        bg=BRAND_SURFACE,
+        highlightbackground=BRAND_BORDER,
+        highlightcolor=BRAND_BORDER,
+        highlightthickness=1,
+    )
     ov.place(in_=lower_area, relx=0, rely=0, relwidth=1, relheight=1)
 
     # Top bar
-    top = tk.Frame(ov, bg="#2b2b2b")
+    top = tk.Frame(ov, bg=BRAND_SURFACE_ALT)
     top.pack(side=tk.TOP, fill="x")
-    tk.Label(top, text="Tuning (Recognition & Idle Thresholds)", fg="#ffffff", bg="#2b2b2b").pack(side=tk.LEFT, padx=8, pady=6)
+    tk.Label(
+        top,
+        text="Tuning (Recognition & Idle Thresholds)",
+        fg=BRAND_TEXT,
+        bg=BRAND_SURFACE_ALT,
+        font=(BRAND_FONT_FAMILY, 11, "bold"),
+    ).pack(side=tk.LEFT, padx=8, pady=6)
     tk.Button(top, text="Close", command=hide_tuner_overlay).pack(side=tk.RIGHT, padx=6, pady=6)
 
     # Scrollable body
-    body_wrap = tk.Frame(ov, bg="#202020")
+    body_wrap = tk.Frame(ov, bg=BRAND_SURFACE)
     body_wrap.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
 
-    canvas = tk.Canvas(body_wrap, highlightthickness=0, bg="#202020")
+    canvas = tk.Canvas(body_wrap, highlightthickness=0, bg=BRAND_SURFACE)
     vbar = tk.Scrollbar(body_wrap, orient=tk.VERTICAL, command=canvas.yview)
-    inner = tk.Frame(canvas, bg="#202020")
+    inner = tk.Frame(canvas, bg=BRAND_SURFACE)
 
     inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
     canvas.create_window((0, 0), window=inner, anchor="nw")
@@ -2469,7 +2881,7 @@ def build_tuner_overlay():
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     vbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    form = tk.LabelFrame(inner, text="Parameters", bg="#202020", fg="#dddddd")
+    form = tk.LabelFrame(inner, text="Parameters")
     form.grid(row=0, column=0, sticky="nw", padx=6, pady=6)
     form.columnconfigure(1, weight=1)
 
@@ -2491,7 +2903,7 @@ def build_tuner_overlay():
     _spin(form, 12, "Retag Hold (s)",             retag_hold_var, 1.0, 120.0, 1.0)
 
     # Footer buttons
-    fbar = tk.Frame(inner, bg="#202020")
+    fbar = tk.Frame(inner, bg=BRAND_SURFACE)
     fbar.grid(row=1, column=0, sticky="ew", padx=6, pady=(10,0))
     tk.Button(fbar, text="Apply & Close", command=apply_and_close_tuner).pack(side=tk.LEFT, padx=4)
     tk.Button(fbar, text="Cancel", command=hide_tuner_overlay).pack(side=tk.LEFT, padx=4)
@@ -2504,6 +2916,7 @@ def build_tuner_overlay():
             pass
     canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
+    apply_branding(ov)
     return ov
 
 def show_tuner_overlay():
@@ -2566,12 +2979,13 @@ def open_tuning_popup():
 
     tk.Button(win, text="Apply", command=apply_tuning).pack(pady=8, fill="x")
     win.bind("<Escape>", lambda e: win.destroy())
+    apply_branding(win)
 
 ############################
 # Row 1 Column 1: REVIEW QUEUE
 ############################
 unknown_face_frame = tk.LabelFrame(root, text="Review Queue (Faces / Persons / Vehicles)")
-unknown_face_frame.grid(row=1, column=1, padx=8, pady=8, sticky="nsew")
+unknown_face_frame.grid(row=2, column=1, padx=12, pady=(0, 12), sticky="nsew")
 unknown_face_frame.columnconfigure(0, weight=1)
 unknown_face_frame.rowconfigure(7, weight=1)
 
@@ -2684,6 +3098,7 @@ def open_fullsize_window():
 
     win.bind("<Escape>", lambda e: win.destroy())
     win.bind("r", lambda e: _reject_and_next())
+    apply_branding(win)
 
 tk.Button(button_frame, text="Open Full Size", command=open_fullsize_window).grid(row=0, column=0, padx=4, pady=2, sticky="ew")
 tk.Button(button_frame, text="Save Face", command=save_face_callback).grid(row=0, column=1, padx=4, pady=2, sticky="ew")
@@ -2809,7 +3224,7 @@ tk.Button(veh_form, text="Save Vehicle Entry", command=save_vehicle_callback).gr
 # Row 1 Column 2: Right-top — Detections + Notifications + Vehicles
 ############################
 right_top_tabs = ttk.Notebook(root)
-right_top_tabs.grid(row=1, column=2, padx=8, pady=8, sticky="nsew")
+right_top_tabs.grid(row=2, column=2, padx=12, pady=(0, 12), sticky="nsew")
 
 # Tab: Detections
 tab_detections = tk.Frame(right_top_tabs)
@@ -3164,6 +3579,8 @@ def open_vehicle_last_snap():
     canvas.image = imgtk
     canvas.config(scrollregion=(0, 0, pil.width, pil.height))
     win.bind("<Escape>", lambda e: win.destroy())
+    apply_branding(win)
+    apply_branding(win)
 
 def show_vehicle_details():
     sel = vehicle_results_list.curselection()
@@ -3181,10 +3598,10 @@ tk.Button(btn_row_vehicle, text="Open Last Snap", command=open_vehicle_last_snap
 tk.Button(btn_row_vehicle, text="Details", command=show_vehicle_details).pack(side=tk.LEFT, padx=3)
 
 ############################
-# Row 2 Column 2: OBJECT RECALL & HISTORY
+# Row 3 Column 2: OBJECT RECALL & HISTORY
 ############################
 object_history_frame = tk.LabelFrame(root, text="Object Recall & History")
-object_history_frame.grid(row=2, column=2, padx=8, pady=8, sticky="nsew")
+object_history_frame.grid(row=3, column=2, padx=12, pady=(0, 12), sticky="nsew")
 object_history_frame.rowconfigure(4, weight=1)
 object_history_frame.columnconfigure(0, weight=1)
 
@@ -3253,10 +3670,10 @@ except Exception:
     pass
 
 ############################
-# Row 3 Column 2: PERSON RECALL & HISTORY
+# Row 4 Column 2: PERSON RECALL & HISTORY
 ############################
 person_history_frame = tk.LabelFrame(root, text="Person Recall & History")
-person_history_frame.grid(row=3, column=2, padx=8, pady=8, sticky="nsew")
+person_history_frame.grid(row=4, column=2, padx=12, pady=(0, 12), sticky="nsew")
 person_history_frame.rowconfigure(4, weight=1)
 person_history_frame.columnconfigure(0, weight=1)
 
@@ -3444,6 +3861,7 @@ def open_object_recall_window(obj_label=None):
         lbl.bind('<Double-1>', lambda e: _display_bgr_in_canvas(f"{obj_label} — Full", preview))
     else:
         tk.Label(panel, text="(No snapshot available)").pack(pady=20)
+    apply_branding(win)
 
 def open_person_recall_window(name=None):
     name = name or person_var.get()
@@ -3530,12 +3948,13 @@ def open_person_recall_window(name=None):
         lbl.bind('<Double-1>', lambda e: _display_bgr_in_canvas(f"{name} — Full", preview))
     else:
         tk.Label(panel, text="(No snapshot available)").pack(pady=20)
+    apply_branding(win)
 
 ############################
-# Row 2 Column 1: LIVE LOGS (moved under captured image; snug)
+# Row 3 Column 1: LIVE LOGS (moved under captured image; snug)
 ############################
 live_logs_frame = tk.LabelFrame(root, text="Per-Camera Live Logs")
-live_logs_frame.grid(row=2, column=1, padx=8, pady=(0,8), sticky="nsew")  # snug to box above
+live_logs_frame.grid(row=3, column=1, padx=12, pady=(0, 12), sticky="nsew")  # snug to box above
 live_logs_frame.rowconfigure(1, weight=1)
 live_logs_frame.columnconfigure(0, weight=1)
 
@@ -3590,8 +4009,15 @@ def clear_live_logs():
 ############################
 # Bottom toolbar (Refined; Recall wired to new popups)
 ############################
-bottom_bar = tk.Frame(root, bd=1, relief=tk.GROOVE)
-bottom_bar.grid(row=4, column=0, columnspan=3, sticky="ew", padx=8, pady=(0,8))
+bottom_bar = tk.Frame(
+    root,
+    bd=0,
+    bg=BRAND_SURFACE,
+    highlightbackground=BRAND_BORDER,
+    highlightcolor=BRAND_BORDER,
+    highlightthickness=1,
+)
+bottom_bar.grid(row=5, column=0, columnspan=3, sticky="ew", padx=12, pady=(0, 16))
 for c in range(12):
     bottom_bar.columnconfigure(c, weight=0)
 
@@ -3865,6 +4291,7 @@ def _start_app():
     update_cameras()
     root.after(200, _push_once)
     root.protocol("WM_DELETE_WINDOW", on_closing)
+    apply_branding(root)
     root.mainloop()
 
 if __name__ == "__main__":

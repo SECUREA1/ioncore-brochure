@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 3000;
 
 const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip';
 const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
+const CARDANO_POLICY_ID =
+  process.env.CARDANO_POLICY_ID || 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
 
 const BRAND = {
   name: 'Ioncore Energy',
@@ -131,7 +133,20 @@ function clearSessionCookie(res) {
 }
 
 function normalizeProvider(provider) {
-  return provider === 'solana' ? 'solana' : 'evm';
+  if (typeof provider !== 'string') {
+    return 'evm';
+  }
+  const normalized = provider.trim().toLowerCase();
+  if (!normalized) {
+    return 'evm';
+  }
+  if (normalized === 'solana') {
+    return 'solana';
+  }
+  if (normalized === 'cardano' || normalized.startsWith('cardano-')) {
+    return 'cardano';
+  }
+  return 'evm';
 }
 
 function generateMeknxPassId() {
@@ -194,14 +209,19 @@ app.post('/access/meknx', (req, res) => {
 
   const nowIso = new Date().toISOString();
   const existing = meknxRegistry.get(walletAddress);
-  const walletProvider = requestedProvider || (existing ? existing.walletProvider : 'evm');
+  const fallbackProvider = existing ? normalizeProvider(existing.walletProvider) : 'evm';
+  const walletProvider = requestedProvider || fallbackProvider;
 
   if (actionRaw === 'verify') {
     if (!existing) {
       return res.status(404).json({ message: 'No MEKNX pass found for this wallet. Mint a clearance token first.' });
     }
 
+    existing.walletProvider = walletProvider;
     existing.lastVerifiedAt = nowIso;
+    if (existing.walletProvider === 'cardano' && !existing.cardanoPolicyId) {
+      existing.cardanoPolicyId = CARDANO_POLICY_ID;
+    }
     meknxRegistry.set(walletAddress, existing);
     return res.json({
       status: 'verified',
@@ -209,6 +229,8 @@ app.post('/access/meknx', (req, res) => {
       mintedAt: existing.mintedAt,
       walletProvider: existing.walletProvider,
       ioncTokens: existing.ioncTokens || 0,
+      cardanoPolicyId: existing.cardanoPolicyId || '',
+      cardanoPolicyVerified: !!existing.cardanoPolicyVerified,
       message: 'MEKNX verification confirmed.'
     });
   }
@@ -218,6 +240,12 @@ app.post('/access/meknx', (req, res) => {
     if (existing.walletProvider === 'solana' && (!existing.ioncTokens || existing.ioncTokens < 1)) {
       existing.ioncTokens = 1;
     }
+    if (existing.walletProvider === 'cardano') {
+      existing.cardanoPolicyId = existing.cardanoPolicyId || CARDANO_POLICY_ID;
+      existing.cardanoPolicyVerified = existing.cardanoPolicyVerified === true;
+    } else if (existing.cardanoPolicyVerified) {
+      existing.cardanoPolicyVerified = false;
+    }
     existing.lastVerifiedAt = nowIso;
     meknxRegistry.set(walletAddress, existing);
     return res.json({
@@ -226,6 +254,8 @@ app.post('/access/meknx', (req, res) => {
       mintedAt: existing.mintedAt,
       walletProvider: existing.walletProvider,
       ioncTokens: existing.ioncTokens || 0,
+      cardanoPolicyId: existing.cardanoPolicyId || '',
+      cardanoPolicyVerified: !!existing.cardanoPolicyVerified,
       message: 'Existing MEKNX pass located. Verification refreshed.'
     });
   }
@@ -239,7 +269,9 @@ app.post('/access/meknx', (req, res) => {
     passId,
     mintedAt,
     lastVerifiedAt: nowIso,
-    ioncTokens
+    ioncTokens,
+    cardanoPolicyId: walletProvider === 'cardano' ? CARDANO_POLICY_ID : '',
+    cardanoPolicyVerified: false
   };
   meknxRegistry.set(walletAddress, record);
 
@@ -249,6 +281,8 @@ app.post('/access/meknx', (req, res) => {
     mintedAt,
     walletProvider,
     ioncTokens,
+    cardanoPolicyId: record.cardanoPolicyId,
+    cardanoPolicyVerified: record.cardanoPolicyVerified,
     message: 'MEKNX pass minted successfully.'
   });
 });
@@ -294,10 +328,70 @@ app.post('/access/ionc', (req, res) => {
   });
 });
 
+app.post('/access/cardano', (req, res) => {
+  const body = req.body || {};
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProvider = normalizeProvider(
+    typeof body.walletProvider === 'string' ? body.walletProvider.trim() : ''
+  );
+  const passId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
+  const policyIdRaw = typeof body.policyId === 'string' ? body.policyId.trim() : '';
+
+  if (!walletAddress) {
+    return res
+      .status(400)
+      .json({ message: 'Wallet address required for Cardano policy verification.' });
+  }
+
+  if (walletProvider !== 'cardano') {
+    return res
+      .status(400)
+      .json({ message: 'Cardano policy verification requires a Cardano wallet session.' });
+  }
+
+  if (!policyIdRaw) {
+    return res.status(400).json({ message: 'Policy identifier required for verification.' });
+  }
+
+  const expectedPolicyId = (CARDANO_POLICY_ID || '').toLowerCase();
+  const providedPolicyId = policyIdRaw.toLowerCase();
+
+  if (expectedPolicyId && providedPolicyId !== expectedPolicyId) {
+    return res
+      .status(403)
+      .json({ message: 'Wallet does not hold the required Cardano policy asset.' });
+  }
+
+  const record = meknxRegistry.get(walletAddress);
+  if (!record) {
+    return res
+      .status(404)
+      .json({ message: 'Mint a MEKNX clearance before verifying Cardano policies.' });
+  }
+
+  if (passId && record.passId && passId !== record.passId) {
+    return res.status(409).json({ message: 'MEKNX pass mismatch. Re-verify your clearance token.' });
+  }
+
+  record.walletProvider = 'cardano';
+  record.cardanoPolicyId = CARDANO_POLICY_ID;
+  record.cardanoPolicyVerified = true;
+  record.cardanoPolicyVerifiedAt = new Date().toISOString();
+  record.lastVerifiedAt = record.cardanoPolicyVerifiedAt;
+  meknxRegistry.set(walletAddress, record);
+
+  return res.json({
+    status: 'verified',
+    passId: record.passId,
+    policyId: record.cardanoPolicyId,
+    message: 'Cardano policy verification complete.'
+  });
+});
+
 function isPublicRoute(req) {
   if (
     req.method === 'POST' &&
-    ['/login', '/logout', '/access/meknx', '/access/ionc'].includes(req.path)
+    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano'].includes(req.path)
   ) {
     return true;
   }

@@ -450,6 +450,17 @@
       box-shadow: 0 20px 38px rgba(82, 48, 204, 0.5);
     }
 
+    .wallet-connect-button--cardano {
+      background: linear-gradient(135deg, rgba(41, 173, 255, 0.85), rgba(0, 75, 173, 0.72));
+      color: #051021;
+      box-shadow: 0 14px 32px rgba(16, 70, 128, 0.45);
+    }
+
+    .wallet-connect-button--cardano:hover:not(:disabled),
+    .wallet-connect-button--cardano:focus-visible:not(:disabled) {
+      box-shadow: 0 20px 38px rgba(21, 94, 170, 0.52);
+    }
+
     .wallet-connect-button__icon,
     .wallet-connect-button__crest {
       display: inline-flex;
@@ -481,6 +492,11 @@
       box-shadow: inset 0 0 0 1px rgba(83, 59, 220, 0.35);
     }
 
+    .wallet-connect-button--cardano .wallet-connect-button__icon {
+      background: rgba(5, 16, 33, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(64, 145, 255, 0.35);
+    }
+
     .wallet-connect-button__label {
       flex: 1 1 auto;
       text-align: center;
@@ -510,6 +526,11 @@
 
     .wallet-status--connected {
       color: rgba(165, 255, 214, 0.92);
+    }
+
+    .module-tag--cardano {
+      background: linear-gradient(135deg, rgba(41, 173, 255, 0.35), rgba(0, 75, 173, 0.58));
+      border-color: rgba(41, 173, 255, 0.65);
     }
 
     .access-module {
@@ -1266,7 +1287,7 @@
           <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Meknx Access</button>
         </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
-          <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains or Phantom for Solana. After connecting, complete the MEKNX clearance flow and, for Solana, confirm your IONC access token.</p>
+          <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
           <div class="wallet-connect-row">
             <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
               <span class="wallet-connect-button__icon" aria-hidden="true">
@@ -1320,6 +1341,26 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Cardano wallet emblem">
+                  <circle cx="16" cy="16" r="10.5" fill="#0c2d57" />
+                  <path
+                    d="M16 5.5c-5.8 0-10.5 4.7-10.5 10.5S10.2 26.5 16 26.5 26.5 21.8 26.5 16 21.8 5.5 16 5.5Zm0 17.2a6.7 6.7 0 1 1 0-13.4 6.7 6.7 0 0 1 0 13.4Z"
+                    fill="#0d3f7d"
+                  />
+                  <circle cx="16" cy="16" r="3.8" fill="#2a9dff" />
+                  <circle cx="16" cy="16" r="1.9" fill="#6bd5ff" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect Cardano Wallet</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="cardano-status" class="wallet-status">Not connected.</div>
+          </div>
           <div class="access-module" id="meknx-module">
             <div class="module-header">
               <h3>MEKNX Clearance</h3>
@@ -1349,9 +1390,22 @@
               <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
             </div>
           </div>
+          <div class="access-module" id="cardano-module" hidden>
+            <div class="module-header">
+              <h3>Cardano Policy Gate</h3>
+              <span class="module-tag module-tag--cardano">Cardano</span>
+            </div>
+            <p class="module-copy">Cardano sessions must confirm holdings under the Ioncore policy ID before requesting entry.</p>
+            <div class="module-actions">
+              <button type="button" id="cardano-verify-button" class="action-button action-button--outline">Verify Cardano Policy</button>
+              <div id="cardano-inline-status" class="inline-status">Awaiting policy verification.</div>
+            </div>
+          </div>
           <input type="hidden" name="walletAddress" id="wallet-address">
           <input type="hidden" name="walletProvider" id="wallet-provider">
           <input type="hidden" name="ioncVerified" id="ionc-verified">
+          <input type="hidden" name="cardanoVerified" id="cardano-verified">
+          <input type="hidden" name="cardanoPolicyId" id="cardano-policy-id">
         </div>
         <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials" hidden>
           <div class="field">
@@ -1431,16 +1485,23 @@
     const walletAddressInput = document.getElementById('wallet-address');
     const walletProviderInput = document.getElementById('wallet-provider');
     const ioncVerifiedInput = document.getElementById('ionc-verified');
+    const cardanoVerifiedInput = document.getElementById('cardano-verified');
+    const cardanoPolicyInput = document.getElementById('cardano-policy-id');
     const metamaskButton = document.getElementById('connect-metamask');
     const phantomButton = document.getElementById('connect-phantom');
+    const cardanoButton = document.getElementById('connect-cardano');
     const metamaskStatus = document.getElementById('metamask-status');
     const phantomStatus = document.getElementById('phantom-status');
+    const cardanoStatus = document.getElementById('cardano-status');
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
     const ioncModule = document.getElementById('ionc-module');
+    const cardanoModule = document.getElementById('cardano-module');
     const ioncVerifyButton = document.getElementById('ionc-verify-button');
     const ioncInlineStatus = document.getElementById('ionc-inline-status');
+    const cardanoVerifyButton = document.getElementById('cardano-verify-button');
+    const cardanoInlineStatus = document.getElementById('cardano-inline-status');
     const meknxVerifyButton = document.getElementById('meknx-verify');
     const meknxMintButton = document.getElementById('meknx-mint');
     const meknxStatus = document.getElementById('meknx-status');
@@ -1461,6 +1522,17 @@
       verified: false,
       tokens: 0
     };
+
+    const cardanoState = {
+      verified: false,
+      policyId: '',
+      walletType: '',
+      api: null
+    };
+
+    if (cardanoPolicyInput && !cardanoPolicyInput.value) {
+      cardanoPolicyInput.value = CARDANO_POLICY_ID;
+    }
 
     let cameraFlashOverlay = document.querySelector('.camera-flash-overlay');
     if (!cameraFlashOverlay) {
@@ -1501,6 +1573,26 @@
       }
       if (!options.silent) {
         setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
+      }
+    };
+
+    const resetCardanoState = (options = {}) => {
+      cardanoState.verified = false;
+      cardanoState.policyId = CARDANO_POLICY_ID;
+      if (!options.keepWalletType) {
+        cardanoState.walletType = '';
+      }
+      if (!options.keepApi) {
+        cardanoState.api = null;
+      }
+      if (cardanoVerifiedInput) {
+        cardanoVerifiedInput.value = '';
+      }
+      if (cardanoPolicyInput && !options.preservePolicyInput) {
+        cardanoPolicyInput.value = CARDANO_POLICY_ID;
+      }
+      if (!options.silent) {
+        setInlineStatus(cardanoInlineStatus, 'Awaiting policy verification.');
       }
     };
 
@@ -1550,6 +1642,34 @@
       }
     };
 
+    const syncCardanoModuleVisibility = () => {
+      if (!cardanoModule) return;
+      const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+      const shouldShow = provider.startsWith('cardano');
+      cardanoModule.hidden = !shouldShow;
+
+      if (!shouldShow) {
+        resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+        setInlineStatus(cardanoInlineStatus, 'Awaiting policy verification.');
+        return;
+      }
+
+      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Ioncore policy';
+
+      if (cardanoState.verified) {
+        setInlineStatus(
+          cardanoInlineStatus,
+          `Cardano policy ${policyLabel} verified. Submit to enter the vault.`,
+          'success'
+        );
+      } else {
+        setInlineStatus(
+          cardanoInlineStatus,
+          `Confirm holdings under policy ${policyLabel} to continue.`
+        );
+      }
+    };
+
     const applyMeknxResponse = (data) => {
       if (!data) return;
       const normalizedStatus = data.status === 'verified' ? 'verified' : 'minted';
@@ -1567,10 +1687,32 @@
       const isSolanaSession =
         meknxState.walletProvider === 'solana' || (walletProviderInput && walletProviderInput.value === 'solana');
 
+      const isCardanoSession =
+        (typeof meknxState.walletProvider === 'string' && meknxState.walletProvider.startsWith('cardano')) ||
+        (walletProviderInput && (walletProviderInput.value || '').startsWith('cardano'));
+
       ioncState.tokens = meknxState.ioncTokens;
 
       if (isSolanaSession || !ioncState.verified) {
         syncIoncModuleVisibility();
+      }
+
+      if (typeof data.cardanoPolicyId === 'string' && data.cardanoPolicyId) {
+        cardanoState.policyId = data.cardanoPolicyId;
+        if (cardanoPolicyInput) {
+          cardanoPolicyInput.value = data.cardanoPolicyId;
+        }
+      }
+
+      if (typeof data.cardanoPolicyVerified === 'boolean') {
+        cardanoState.verified = data.cardanoPolicyVerified;
+        if (cardanoVerifiedInput) {
+          cardanoVerifiedInput.value = data.cardanoPolicyVerified ? 'true' : '';
+        }
+      }
+
+      if (isCardanoSession || !cardanoState.verified) {
+        syncCardanoModuleVisibility();
       }
     };
 
@@ -1653,6 +1795,7 @@
 
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
     const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
+    const CARDANO_POLICY_ID = 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
 
     const shortenIdentifier = (value) => {
       if (!value || value.length <= 10) {
@@ -1675,6 +1818,10 @@
         phantomStatus.textContent = 'Not connected.';
         phantomStatus.classList.remove('wallet-status--connected');
       }
+      if (cardanoStatus) {
+        cardanoStatus.textContent = 'Not connected.';
+        cardanoStatus.classList.remove('wallet-status--connected');
+      }
       if (walletAddressInput) {
         walletAddressInput.value = '';
       }
@@ -1683,6 +1830,8 @@
       }
       resetMeknxState();
       syncIoncModuleVisibility();
+      resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+      syncCardanoModuleVisibility();
     };
 
     const checkIonCTokenBalance = async (publicKey) => {
@@ -1749,6 +1898,112 @@
       return true;
     };
 
+    const connectCardanoWallet = (button, statusElement) => {
+      if (!button) return;
+      const originalLabel = button.textContent;
+
+      const getSupportedWallet = () => {
+        const cardano = window.cardano;
+        if (!cardano) {
+          return null;
+        }
+
+        const supported = [
+          { key: 'lace', label: 'Lace' },
+          { key: 'daedalus', label: 'Daedalus' }
+        ];
+
+        for (const candidate of supported) {
+          const provider = cardano[candidate.key];
+          if (provider && typeof provider.enable === 'function') {
+            return { ...candidate, provider };
+          }
+        }
+
+        return null;
+      };
+
+      button.addEventListener('click', async () => {
+        const wallet = getSupportedWallet();
+        const walletLabel = wallet ? wallet.label : 'Cardano';
+        updateStatus(`Requesting ${walletLabel} session…`);
+        button.disabled = true;
+        button.textContent = 'Connecting…';
+
+        try {
+          if (!wallet) {
+            throw new Error('No supported Cardano wallets detected. Open Lace or Daedalus and try again.');
+          }
+
+          const { key: walletKey, provider } = wallet;
+          const api = await provider.enable();
+          if (!api) {
+            throw new Error(`Unable to establish a ${walletLabel} wallet session.`);
+          }
+
+          if (typeof api.getNetworkId === 'function') {
+            const networkId = await api.getNetworkId();
+            if (networkId !== 1) {
+              throw new Error('Switch your wallet to Cardano mainnet before connecting.');
+            }
+          }
+
+          let addresses = [];
+          if (typeof api.getUsedAddresses === 'function') {
+            addresses = await api.getUsedAddresses();
+          }
+          if ((!addresses || addresses.length === 0) && typeof api.getUnusedAddresses === 'function') {
+            addresses = await api.getUnusedAddresses();
+          }
+
+          const accountAddress = Array.isArray(addresses) && addresses.length ? addresses[0] : '';
+          if (!accountAddress) {
+            throw new Error('No wallet address returned. Ensure the wallet has an active account.');
+          }
+
+          if (walletAddressInput) {
+            walletAddressInput.value = accountAddress;
+          }
+          if (walletProviderInput) {
+            walletProviderInput.value = `cardano-${walletKey}`;
+          }
+          if (cardanoPolicyInput) {
+            cardanoPolicyInput.value = CARDANO_POLICY_ID;
+          }
+          if (cardanoVerifiedInput) {
+            cardanoVerifiedInput.value = '';
+          }
+
+          cardanoState.walletType = walletKey;
+          cardanoState.api = api;
+          cardanoState.policyId = CARDANO_POLICY_ID;
+          cardanoState.verified = false;
+
+          resetMeknxState();
+          syncIoncModuleVisibility();
+          syncCardanoModuleVisibility();
+          indicateWalletConnection(`cardano-${walletKey}`, accountAddress, walletLabel);
+
+          const continuationMessage =
+            meknxState.status === 'verified' || meknxState.status === 'minted'
+              ? ' Verify the Cardano policy to continue.'
+              : ' Complete MEKNX clearance then verify the Cardano policy.';
+          updateStatus(`${walletLabel} session established.${continuationMessage}`, 'success');
+        } catch (error) {
+          resetWalletIndicators();
+          const message = error?.message || 'Unable to connect to the Cardano wallet. Try again.';
+          if (statusElement) {
+            statusElement.textContent = message;
+          }
+          updateStatus(message, 'error');
+          triggerFailureAnimation();
+        } finally {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        }
+      });
+    };
+
     const verifyMeknxToken = async (rawToken) => {
       const formatted = normaliseMeknxToken(rawToken);
 
@@ -1771,7 +2026,7 @@
       return formatted;
     };
 
-    const indicateWalletConnection = (providerLabel, address) => {
+    const indicateWalletConnection = (providerLabel, address, cardanoLabel = '') => {
       const formatted = shortenIdentifier(address);
       if (providerLabel === 'evm') {
         if (metamaskStatus) {
@@ -1782,6 +2037,10 @@
           phantomStatus.textContent = 'Not connected.';
           phantomStatus.classList.remove('wallet-status--connected');
         }
+        if (cardanoStatus) {
+          cardanoStatus.textContent = 'Not connected.';
+          cardanoStatus.classList.remove('wallet-status--connected');
+        }
       } else if (providerLabel === 'solana') {
         if (phantomStatus) {
           phantomStatus.textContent = `Connected: ${formatted}`;
@@ -1790,6 +2049,30 @@
         if (metamaskStatus) {
           metamaskStatus.textContent = 'Not connected.';
           metamaskStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          cardanoStatus.textContent = 'Not connected.';
+          cardanoStatus.classList.remove('wallet-status--connected');
+        }
+      } else if (providerLabel && providerLabel.startsWith('cardano')) {
+        if (metamaskStatus) {
+          metamaskStatus.textContent = 'Not connected.';
+          metamaskStatus.classList.remove('wallet-status--connected');
+        }
+        if (phantomStatus) {
+          phantomStatus.textContent = 'Not connected.';
+          phantomStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          const resolvedLabel =
+            cardanoLabel ||
+            (providerLabel === 'cardano-lace'
+              ? 'Lace'
+              : providerLabel === 'cardano-daedalus'
+              ? 'Daedalus'
+              : 'Cardano');
+          cardanoStatus.textContent = `Connected (${resolvedLabel}): ${formatted}`;
+          cardanoStatus.classList.add('wallet-status--connected');
         }
       }
     };
@@ -1894,6 +2177,7 @@
               resetWalletIndicators();
             } else {
               syncIoncModuleVisibility();
+              syncCardanoModuleVisibility();
             }
           } else if (activeMode === 'meknx') {
             if (!meknxPassIdInput || !meknxPassIdInput.value) {
@@ -1908,7 +2192,7 @@
 
         if (!status.textContent || (!hasFeedbackTone && !force)) {
           if (activeMode === 'wallet') {
-            updateStatus('Link MetaMask or Phantom to request vault entry.');
+            updateStatus('Link MetaMask, Phantom, or a Cardano wallet to request vault entry.');
           } else if (activeMode === 'credentials') {
             updateStatus('Authenticate with your assigned access key.');
           } else if (activeMode === 'meknx') {
@@ -1996,6 +2280,7 @@
             }
             resetMeknxState();
             syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
             indicateWalletConnection('evm', account);
             updateStatus('Wallet channel established. Run MEKNX clearance to continue.', 'success');
           } catch (error) {
@@ -2042,6 +2327,7 @@
             }
             resetMeknxState();
             syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
             indicateWalletConnection('solana', publicKey);
             updateStatus('Phantom channel ready. Complete MEKNX and IONC verification to continue.', 'success');
             setInlineStatus(ioncInlineStatus, 'IONC holdings confirmed. Submit to enter the vault.', 'success');
@@ -2060,6 +2346,8 @@
         });
       }
 
+      connectCardanoWallet(cardanoButton, cardanoStatus);
+
       if (meknxActionButton) {
         meknxActionButton.addEventListener('click', async () => {
           const action = (meknxActionSelect && meknxActionSelect.value) || 'verify';
@@ -2067,7 +2355,7 @@
           if (!walletAddressInput || !walletAddressInput.value) {
             setInlineStatus(
               meknxInlineStatus,
-              'Connect MetaMask or Phantom before requesting MEKNX clearance.',
+              'Connect MetaMask, Phantom, or a Cardano wallet before requesting MEKNX clearance.',
               'error'
             );
             updateStatus('Connect a wallet before starting MEKNX clearance.', 'error');
@@ -2121,10 +2409,17 @@
                 : action === 'mint'
                 ? 'MEKNX pass minted successfully.'
                 : 'MEKNX verification confirmed.';
-            const continuation =
-              (provider === 'solana' || meknxState.walletProvider === 'solana') && !ioncState.verified
-                ? ' Continue with IONC verification.'
-                : ' Submit to enter the vault.';
+            const normalizedProvider =
+              provider || meknxState.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
+            const needsIonc =
+              normalizedProvider === 'solana' && !ioncState.verified;
+            const needsCardanoPolicy =
+              normalizedProvider.startsWith && normalizedProvider.startsWith('cardano') && !cardanoState.verified;
+            const continuation = needsIonc
+              ? ' Continue with IONC verification.'
+              : needsCardanoPolicy
+              ? ' Continue with Cardano policy verification.'
+              : ' Submit to enter the vault.';
             updateStatus(`${successMessage}${continuation}`, 'success');
           } catch (error) {
             const fallbackMessage = 'MEKNX clearance request failed. Try again shortly.';
@@ -2207,6 +2502,94 @@
         });
       }
 
+      if (cardanoVerifyButton) {
+        cardanoVerifyButton.addEventListener('click', async () => {
+          const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(
+              cardanoInlineStatus,
+              'Connect a Cardano wallet before verifying the policy.',
+              'error'
+            );
+            updateStatus('Connect a Cardano wallet before verifying the policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (!provider || !provider.startsWith('cardano')) {
+            setInlineStatus(cardanoInlineStatus, 'Active session is not a Cardano wallet.', 'error');
+            updateStatus('Switch to a Cardano wallet to verify the policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
+            setInlineStatus(cardanoInlineStatus, 'Complete MEKNX clearance before policy checks.', 'error');
+            updateStatus('Complete MEKNX clearance before verifying the Cardano policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          cardanoVerifyButton.disabled = true;
+          setInlineStatus(cardanoInlineStatus, 'Verifying Cardano policy…');
+          updateStatus('Confirming Cardano policy holdings…');
+
+          try {
+            const response = await fetch('/access/cardano', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider,
+                meknxPassId: meknxState.passId,
+                policyId: cardanoState.policyId || CARDANO_POLICY_ID
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage = 'Cardano policy verification failed. Try again.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(cardanoInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            cardanoState.verified = true;
+            cardanoState.policyId = data.policyId || cardanoState.policyId || CARDANO_POLICY_ID;
+            if (cardanoVerifiedInput) {
+              cardanoVerifiedInput.value = 'true';
+            }
+            if (cardanoPolicyInput) {
+              cardanoPolicyInput.value = cardanoState.policyId;
+            }
+            syncCardanoModuleVisibility();
+            const successMessage =
+              data && data.message ? data.message : 'Cardano policy verification complete.';
+            updateStatus(`${successMessage} Submit to enter the vault.`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'Cardano policy verification failed. Try again shortly.';
+            setInlineStatus(cardanoInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            cardanoVerifyButton.disabled = false;
+          }
+        });
+      }
+
       setMode('wallet', true);
 
       form.addEventListener('submit', async (event) => {
@@ -2238,7 +2621,7 @@
 
         if (activeMode === 'wallet') {
           if (!walletAddressInput || !walletAddressInput.value) {
-            updateStatus('Connect MetaMask or Phantom before requesting access.', 'error');
+            updateStatus('Connect MetaMask, Phantom, or a Cardano wallet before requesting access.', 'error');
             submitButton.disabled = false;
             submitButton.textContent = 'Enter the Vault';
             triggerFailureAnimation();
@@ -2262,6 +2645,14 @@
             return;
           }
 
+          if (provider && provider.startsWith('cardano') && !cardanoState.verified) {
+            updateStatus('Verify the required Cardano policy before requesting entry.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
           payload.walletAddress = walletAddressInput.value;
           payload.walletProvider = provider;
           payload.meknxPassId = meknxState.passId;
@@ -2269,6 +2660,8 @@
           payload.meknxMintedAt = meknxState.mintedAt;
           payload.ioncTokens = ioncState.tokens;
           payload.ioncVerified = ioncState.verified;
+          payload.cardanoPolicyVerified = provider && provider.startsWith('cardano') ? cardanoState.verified : false;
+          payload.cardanoPolicyId = provider && provider.startsWith('cardano') ? cardanoState.policyId : '';
         } else if (activeMode === 'meknx') {
           const meknxPassId = meknxPassIdInput ? meknxPassIdInput.value.trim() : '';
           if (!meknxPassId) {

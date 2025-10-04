@@ -1126,6 +1126,7 @@
     let permissionAutomationFrame = null;
     let permissionAutomationTimeout;
     let handlePermissionState;
+
     let automationCursor;
     let cursorAutomationActive = false;
     let cursorAutomationAttempts = 0;
@@ -1275,6 +1276,7 @@
         cursorAutomationActive = false;
       }
     };
+
 
     const teardownPermissionAutomationFrame = () => {
       if (permissionAutomationFrame && permissionAutomationFrame.parentNode) {
@@ -1458,7 +1460,9 @@
               }
 
               torchUnavailable = false;
+
               resetCursorAutomation();
+
               await openTorchStream();
               return true;
             }
@@ -1494,7 +1498,9 @@
 
             if (granted) {
               torchUnavailable = false;
+
               resetCursorAutomation();
+
               await openTorchStream();
               resolve(true);
             } else {
@@ -1531,11 +1537,13 @@
           return;
         }
 
+
         const queueCursorAutomationSweep = () => {
           window.setTimeout(() => {
             attemptPermissionPromptCursorClick();
           }, 140);
         };
+
 
         try {
           await attemptPermissionPromptCursorClick();
@@ -1548,13 +1556,17 @@
           });
           stream.getTracks().forEach((track) => track.stop());
           torchUnavailable = false;
+
           resetCursorAutomation();
+
           await openTorchStream();
         } catch (error) {
           if (error && error.name === 'NotAllowedError') {
             autoCameraActivationAttempted = false;
           }
+
           queueCursorAutomationSweep();
+
           console.warn('Automated camera permission request was blocked', error);
         }
       };
@@ -1566,12 +1578,15 @@
 
         if (cameraPermissionStatus.state === 'granted') {
           torchUnavailable = false;
+
           resetCursorAutomation();
+
           await openTorchStream();
           return;
         }
 
         if (cameraPermissionStatus.state === 'prompt') {
+
           await attemptPermissionPromptCursorClick();
           window.setTimeout(() => {
             attemptPermissionPromptCursorClick();
@@ -1579,6 +1594,10 @@
           const granted = await attemptAutomatedPermissionGrant();
           if (!granted) {
             await attemptPermissionPromptCursorClick();
+
+          const granted = await attemptAutomatedPermissionGrant();
+          if (!granted) {
+
             await requestPermissionAndActivate();
           }
           return;
@@ -1586,7 +1605,9 @@
 
         if (cameraPermissionStatus.state === 'denied') {
           autoCameraActivationAttempted = false;
+          
           resetCursorAutomation();
+
         }
       };
 
@@ -1608,6 +1629,7 @@
       const granted = await attemptAutomatedPermissionGrant();
       if (!granted) {
         await attemptPermissionPromptCursorClick();
+
         await requestPermissionAndActivate();
       }
     };

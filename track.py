@@ -90,11 +90,12 @@ def enforce_nft_gate() -> None:
     ]
 
     if missing:
-        _fatal_messagebox(
-            "NFT Gate Misconfigured",
-            "Missing required environment variables: " + ", ".join(missing),
+        logger.warning(
+            "NFT gate misconfigured. Missing required environment variables: %s."
+            " Proceeding without NFT enforcement.",
+            ", ".join(missing),
         )
-        sys.exit(1)
+        return
 
     wallet_address = os.getenv("NFT_GATE_WALLET_ADDRESS")
     if wallet_address:

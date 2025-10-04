@@ -2047,10 +2047,11 @@ def process_frame(frame, camera_tag):
 ############################
 
 BRAND_FONT_FAMILY = "Segoe UI"
-FONT_BASE = (BRAND_FONT_FAMILY, 10)
-FONT_SMALL = (BRAND_FONT_FAMILY, 9)
-FONT_SECTION = (BRAND_FONT_FAMILY, 11, "bold")
-FONT_TITLE = (BRAND_FONT_FAMILY, 18, "bold")
+_BRACED_FAMILY = f"{{{BRAND_FONT_FAMILY}}}"
+FONT_BASE = f"{_BRACED_FAMILY} 10"
+FONT_SMALL = f"{_BRACED_FAMILY} 9"
+FONT_SECTION = f"{_BRACED_FAMILY} 11 bold"
+FONT_TITLE = f"{_BRACED_FAMILY} 18 bold"
 
 BRAND_BG = "#040a15"
 BRAND_SURFACE = "#0b1627"
@@ -2228,10 +2229,10 @@ root.title("Multi-Camera Recognition (Feeds • Notifications • Vehicle DB)")
 root.geometry("1366x900")
 root.configure(bg=BRAND_BG)
 
-root.option_add("*Font", f"{BRAND_FONT_FAMILY} 10")
+root.option_add("*Font", f"{_BRACED_FAMILY} 10")
 root.option_add("*Label*Foreground", BRAND_TEXT)
 root.option_add("*Label*Background", BRAND_SURFACE)
-root.option_add("*LabelFrame*Font", f"{BRAND_FONT_FAMILY} 11 bold")
+root.option_add("*LabelFrame*Font", f"{_BRACED_FAMILY} 11 bold")
 root.option_add("*LabelFrame*Foreground", BRAND_ACCENT)
 root.option_add("*Entry*Background", BRAND_SURFACE_STRONG)
 root.option_add("*Entry*Foreground", BRAND_TEXT)
@@ -2354,7 +2355,7 @@ logo_wrap.pack(anchor="w")
 logo_mark = tk.Label(
     logo_wrap,
     text="IE",
-    font=(BRAND_FONT_FAMILY, 16, "bold"),
+    font=f"{_BRACED_FAMILY} 16 bold",
     bg=BRAND_ACCENT,
     fg=BRAND_BG,
     padx=14,
@@ -2368,7 +2369,7 @@ tk.Label(logo_text, text="Ioncore Energy", font=FONT_TITLE, fg=BRAND_TEXT, bg=BR
 tk.Label(
     logo_text,
     text="Sentinel Command • Security Media Vault",
-    font=(BRAND_FONT_FAMILY, 11),
+    font=f"{_BRACED_FAMILY} 11",
     fg=BRAND_MUTED,
     bg=BRAND_SURFACE,
 ).pack(anchor="w")
@@ -2376,7 +2377,7 @@ tk.Label(
 tk.Label(
     brand_left,
     textvariable=status_text_var,
-    font=(BRAND_FONT_FAMILY, 11),
+    font=f"{_BRACED_FAMILY} 11",
     fg=BRAND_TEXT,
     bg=BRAND_SURFACE,
     wraplength=520,
@@ -2402,11 +2403,11 @@ for title, subtitle in (
         pady=10,
     )
     card.pack(side=tk.LEFT, padx=(0, 12))
-    tk.Label(card, text=title, font=(BRAND_FONT_FAMILY, 10, "bold"), fg=BRAND_ACCENT, bg=BRAND_SURFACE_ALT).pack(anchor="w")
+    tk.Label(card, text=title, font=f"{_BRACED_FAMILY} 10 bold", fg=BRAND_ACCENT, bg=BRAND_SURFACE_ALT).pack(anchor="w")
     tk.Label(
         card,
         text=subtitle,
-        font=(BRAND_FONT_FAMILY, 9),
+        font=f"{_BRACED_FAMILY} 9",
         fg=BRAND_MUTED,
         bg=BRAND_SURFACE_ALT,
         wraplength=160,
@@ -2419,7 +2420,7 @@ brand_right.grid(row=0, column=1, sticky="ne")
 tk.Label(
     brand_right,
     text="Sentinel Security Network",
-    font=(BRAND_FONT_FAMILY, 10, "bold"),
+    font=f"{_BRACED_FAMILY} 10 bold",
     bg=BRAND_ACCENT_ALT,
     fg=BRAND_BG,
     padx=12,
@@ -2477,7 +2478,7 @@ def make_camera_cell(parent, title):
         anchor="w",
         bg=BRAND_SURFACE_ALT,
         fg=BRAND_MUTED,
-        font=(BRAND_FONT_FAMILY, 10, "bold"),
+        font=f"{_BRACED_FAMILY} 10 bold",
     ).pack(fill=tk.X, pady=(0, 4))
     img_lbl = tk.Label(cell, bg="#050b12")
     img_lbl.pack()
@@ -2862,7 +2863,7 @@ def build_tuner_overlay():
         text="Tuning (Recognition & Idle Thresholds)",
         fg=BRAND_TEXT,
         bg=BRAND_SURFACE_ALT,
-        font=(BRAND_FONT_FAMILY, 11, "bold"),
+        font=f"{_BRACED_FAMILY} 11 bold",
     ).pack(side=tk.LEFT, padx=8, pady=6)
     tk.Button(top, text="Close", command=hide_tuner_overlay).pack(side=tk.RIGHT, padx=6, pady=6)
 

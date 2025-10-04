@@ -1443,7 +1443,7 @@
 
     let audioContext;
 
-    const playCameraSnapSound = () => {
+    const playShotgunBoomSound = () => {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) {
         return;
@@ -1451,19 +1451,54 @@
       if (!audioContext) {
         audioContext = new AudioContextClass();
       }
-      const duration = 0.12;
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(2400, audioContext.currentTime + duration);
-      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + duration);
+      const now = audioContext.currentTime;
+      const duration = 0.6;
+
+      const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+      const channelData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseBuffer.length; i += 1) {
+        const decay = 1 - i / noiseBuffer.length;
+        channelData[i] = (Math.random() * 2 - 1) * decay * decay;
+      }
+
+      const noiseSource = audioContext.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+
+      const noiseFilter = audioContext.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.setValueAtTime(1400, now);
+      noiseFilter.Q.setValueAtTime(0.8, now);
+
+      const noiseGain = audioContext.createGain();
+      noiseGain.gain.setValueAtTime(1.4, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      const bassOscillator = audioContext.createOscillator();
+      bassOscillator.type = 'sine';
+      bassOscillator.frequency.setValueAtTime(90, now);
+      bassOscillator.frequency.exponentialRampToValueAtTime(40, now + duration);
+
+      const bassGain = audioContext.createGain();
+      bassGain.gain.setValueAtTime(1.0, now);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      const masterGain = audioContext.createGain();
+      masterGain.gain.setValueAtTime(0.9, now);
+
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(masterGain);
+
+      bassOscillator.connect(bassGain);
+      bassGain.connect(masterGain);
+
+      masterGain.connect(audioContext.destination);
+
+      noiseSource.start(now);
+      noiseSource.stop(now + duration);
+
+      bassOscillator.start(now);
+      bassOscillator.stop(now + duration);
     };
 
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
@@ -1650,7 +1685,7 @@
       void failureOverlay.offsetWidth;
       failureOverlay.classList.add('is-visible');
       triggerCameraFlashEffect();
-      playCameraSnapSound();
+      playShotgunBoomSound();
       setTimeout(() => {
         failureOverlay.classList.remove('is-visible');
       }, 2200);

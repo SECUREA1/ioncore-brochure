@@ -11,11 +11,13 @@ from PIL import Image, ImageTk
 import random
 import json
 import logging
+import secrets
 from collections import defaultdict, OrderedDict
 import threading
-from typing import Optional
+from typing import Optional, Dict, Any
 from html import escape
 import webbrowser
+from http import HTTPStatus
 
 # NEW for notifications & image hosting
 import urllib.request, urllib.parse, ssl
@@ -52,26 +54,480 @@ NFT_GATE_ENABLED = os.getenv("NFT_GATE_ENABLED", "true").lower() not in {"0", "f
 NFT_GATE_CONTRACT = os.getenv("NFT_GATE_CONTRACT_ADDRESS")
 NFT_GATE_API_KEY = os.getenv("NFT_GATE_ALCHEMY_API_KEY")
 NFT_GATE_NETWORK = os.getenv("NFT_GATE_NETWORK", "eth-mainnet")
+NFT_GATE_CHAIN_DEFAULT = os.getenv("NFT_GATE_CHAIN", "evm").strip().lower()
+NFT_GATE_SOLANA_MINT = os.getenv("NFT_GATE_SOLANA_MINT_ADDRESS")
+NFT_GATE_SOLANA_RPC = os.getenv(
+    "NFT_GATE_SOLANA_RPC", "https://api.mainnet-beta.solana.com"
+)
+NFT_GATE_WALLET_CHAIN = os.getenv("NFT_GATE_WALLET_CHAIN")
 
 
-def _prompt_wallet_address() -> Optional[str]:
+class _WalletConnectServer:
+    """Serve a lightweight wallet-connect bridge for browser wallets."""
+
+    def __init__(self) -> None:
+        self._server: Optional[socketserver.TCPServer] = None
+        self._thread: Optional[threading.Thread] = None
+        self._event = threading.Event()
+        self.state_token = secrets.token_urlsafe(16)
+        self.address: Optional[str] = None
+        self.chain: Optional[str] = None
+
+    def _build_handler(self) -> type:
+        parent = self
+
+        class _Handler(http.server.BaseHTTPRequestHandler):
+            def _send_bytes(self, payload: bytes, status: HTTPStatus = HTTPStatus.OK) -> None:
+                self.send_response(status)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+
+            def do_GET(self) -> None:  # type: ignore[override]
+                if self.path != "/":
+                    self._send_bytes(b"Not found", HTTPStatus.NOT_FOUND)
+                    return
+
+                html = f"""<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"utf-8\" />
+    <title>Ioncore Wallet Connect</title>
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <style>
+        body {{ font-family: Arial, sans-serif; background: #030712; color: #e2e8f0; margin: 0; padding: 24px; }}
+        h1 {{ color: #38bdf8; }}
+        button {{ background: #22d3ee; color: #030712; border: none; border-radius: 6px; padding: 12px 18px; margin: 8px 0; font-size: 16px; cursor: pointer; }}
+        button:hover {{ background: #0ea5e9; color: white; }}
+        .card {{ max-width: 520px; margin: 0 auto; background: rgba(15, 23, 42, 0.85); border-radius: 12px; padding: 24px; box-shadow: 0 18px 48px rgba(8, 47, 73, 0.3); }}
+        .status {{ margin-top: 18px; padding: 12px; border-radius: 8px; background: rgba(148, 163, 184, 0.12); }}
+        .success {{ color: #4ade80; }}
+        .error {{ color: #f87171; }}
+        code {{ color: #facc15; }}
+    </style>
+</head>
+<body>
+    <div class=\"card\">
+        <h1>Ioncore Wallet Connect</h1>
+        <p>Select your wallet provider to continue. Once connected your address will be securely relayed back to the Sentinel desktop.</p>
+        <button onclick=\"connectEvm()\">Connect MetaMask / EVM Wallet</button>
+        <button onclick=\"connectPhantom()\">Connect Phantom (Solana)</button>
+        <div id=\"status\" class=\"status\">Awaiting wallet connection…</div>
+    </div>
+    <script>
+    const stateToken = "{parent.state_token}";
+
+    async function postWallet(address, chain) {{
+        const payload = {{ address, chain, state: stateToken }};
+        const response = await fetch('/wallet-callback', {{
+            method: 'POST',
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify(payload)
+        }});
+        if (!response.ok) {{
+            throw new Error('Bridge rejected wallet connection.');
+        }}
+        return response.json();
+    }}
+
+    function updateStatus(message, tone) {{
+        const status = document.getElementById('status');
+        status.textContent = message;
+        status.classList.remove('success', 'error');
+        if (tone) {{ status.classList.add(tone); }}
+    }}
+
+    async function connectEvm() {{
+        try {{
+            if (!window.ethereum) {{
+                updateStatus('MetaMask or another EVM wallet is required in this browser.', 'error');
+                return;
+            }}
+            const accounts = await window.ethereum.request({{ method: 'eth_requestAccounts' }});
+            const address = accounts && accounts[0];
+            if (!address) {{
+                updateStatus('No account was shared by the wallet.', 'error');
+                return;
+            }}
+            await postWallet(address, 'evm');
+            updateStatus('EVM wallet connected: ' + address, 'success');
+        }} catch (err) {{
+            console.error(err);
+            updateStatus('Failed to connect MetaMask: ' + err.message, 'error');
+        }}
+    }}
+
+    async function connectPhantom() {{
+        try {{
+            const provider = window.solana;
+            if (!provider || !provider.isPhantom) {{
+                updateStatus('Phantom wallet extension is required for Solana access.', 'error');
+                return;
+            }}
+            const resp = await provider.connect();
+            const address = resp && resp.publicKey ? resp.publicKey.toString() : null;
+            if (!address) {{
+                updateStatus('No Solana account returned by Phantom.', 'error');
+                return;
+            }}
+            await postWallet(address, 'solana');
+            updateStatus('Phantom wallet connected: ' + address, 'success');
+        }} catch (err) {{
+            console.error(err);
+            updateStatus('Failed to connect Phantom: ' + err.message, 'error');
+        }}
+    }}
+    </script>
+</body>
+</html>"""
+
+                self._send_bytes(html.encode("utf-8"))
+
+            def do_POST(self) -> None:  # type: ignore[override]
+                if self.path != "/wallet-callback":
+                    self._send_bytes(b"Not found", HTTPStatus.NOT_FOUND)
+                    return
+
+                try:
+                    length = int(self.headers.get("Content-Length", "0"))
+                except ValueError:
+                    length = 0
+                payload = self.rfile.read(length or 0)
+                try:
+                    data = json.loads(payload.decode("utf-8"))
+                except Exception:
+                    self._send_bytes(b"Invalid payload", HTTPStatus.BAD_REQUEST)
+                    return
+
+                if not isinstance(data, dict) or data.get("state") != parent.state_token:
+                    self._send_bytes(b"Unauthorized", HTTPStatus.FORBIDDEN)
+                    return
+
+                address = (data.get("address") or "").strip()
+                chain = (data.get("chain") or "").strip().lower()
+                if not address:
+                    self._send_bytes(b"Missing address", HTTPStatus.BAD_REQUEST)
+                    return
+
+                parent.address = address
+                parent.chain = chain or None
+                parent._event.set()
+
+                response = json.dumps({"status": "ok"}).encode("utf-8")
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(response)))
+                self.end_headers()
+                self.wfile.write(response)
+
+            def log_message(self, format: str, *args: Any) -> None:
+                # Silence default HTTP server logging to avoid noise.
+                logger.debug("Wallet bridge: " + format, *args)
+
+        return _Handler
+
+    def start(self) -> None:
+        if self._server:
+            return
+
+        handler = self._build_handler()
+
+        class _TCPServer(socketserver.TCPServer):
+            allow_reuse_address = True
+
+        server = _TCPServer(("127.0.0.1", 0), handler)
+        server.timeout = 0.5
+        self._server = server
+        self._thread = threading.Thread(target=server.serve_forever, daemon=True)
+        self._thread.start()
+
+    def stop(self) -> None:
+        if self._server:
+            try:
+                self._server.shutdown()
+            except Exception:
+                pass
+            try:
+                self._server.server_close()
+            except Exception:
+                pass
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=1.0)
+        self._server = None
+        self._thread = None
+
+    @property
+    def url(self) -> Optional[str]:
+        if not self._server:
+            return None
+        host, port = self._server.server_address
+        return f"http://{host}:{port}/"
+
+    def is_running(self) -> bool:
+        return self._server is not None
+
+    def pop_wallet(self) -> Optional[Dict[str, str]]:
+        if not self._event.is_set() or not self.address:
+            return None
+        self._event.clear()
+        result = {
+            "address": self.address,
+            "chain": (self.chain or "").lower() or "evm",
+        }
+        return result
+
+
+
+def _prompt_wallet_address() -> Optional[Dict[str, str]]:
+    connector = _WalletConnectServer()
+    result: Optional[Dict[str, str]] = None
+
     try:
         root_temp = tk.Tk()
-        root_temp.withdraw()
-        wallet = simpledialog.askstring(
-            "NFT Access Required",
-            "Enter the wallet address to verify required NFT ownership:",
+        root_temp.title("Ioncore Wallet Verification")
+        root_temp.configure(bg="#05070e")
+        root_temp.resizable(False, False)
+
+        card = tk.Frame(
+            root_temp,
+            bg="#0b1627",
+            padx=24,
+            pady=24,
+            highlightbackground="#38bdf8",
+            highlightcolor="#38bdf8",
+            highlightthickness=1,
         )
-        root_temp.destroy()
-        if wallet:
-            return wallet.strip()
-        return None
+        card.pack(fill="both", expand=True, padx=18, pady=18)
+
+        heading = tk.Label(
+            card,
+            text="Secure Wallet Authentication",
+            font=("Montserrat", 14, "bold"),
+            fg="#38bdf8",
+            bg="#0b1627",
+        )
+        heading.pack(anchor="center", pady=(0, 8))
+
+        blurb = tk.Label(
+            card,
+            text=(
+                "Connect a wallet or enter an address manually to confirm ownership of the required access token."
+            ),
+            wraplength=420,
+            justify=tk.LEFT,
+            font=("Montserrat", 10),
+            fg="#cbd5f5",
+            bg="#0b1627",
+        )
+        blurb.pack(fill="x", pady=(0, 16))
+
+        chain_var = tk.StringVar(value=NFT_GATE_CHAIN_DEFAULT or "evm")
+        address_var = tk.StringVar()
+        status_var = tk.StringVar(value="No wallet connected yet.")
+
+        form = tk.Frame(card, bg="#0b1627")
+        form.pack(fill="x")
+
+        tk.Label(
+            form,
+            text="Wallet Address",
+            font=("Montserrat", 10, "bold"),
+            fg="#48ffe2",
+            bg="#0b1627",
+        ).pack(anchor="w")
+
+        address_entry = tk.Entry(
+            form,
+            textvariable=address_var,
+            font=("Montserrat", 12),
+            relief=tk.FLAT,
+            bg="#030712",
+            fg="#f8fafc",
+            insertbackground="#38bdf8",
+            width=48,
+        )
+        address_entry.pack(fill="x", pady=(4, 12))
+
+        tk.Label(
+            form,
+            text="Wallet Network",
+            font=("Montserrat", 10, "bold"),
+            fg="#48ffe2",
+            bg="#0b1627",
+        ).pack(anchor="w")
+
+        chain_options = [
+            ("Ethereum / EVM (MetaMask)", "evm"),
+            ("Solana (Phantom)", "solana"),
+        ]
+
+        chain_menu = ttk.Combobox(
+            form,
+            values=[label for label, _ in chain_options],
+            state="readonly",
+        )
+        chain_menu.pack(fill="x", pady=(4, 12))
+
+        def _sync_chain(event=None) -> None:
+            index = chain_menu.current()
+            if 0 <= index < len(chain_options):
+                chain_var.set(chain_options[index][1])
+
+        chain_menu.current(0 if (chain_var.get() or "evm") == "evm" else 1)
+        chain_menu.bind("<<ComboboxSelected>>", _sync_chain)
+        _sync_chain()
+
+        status_label = tk.Label(
+            card,
+            textvariable=status_var,
+            font=("Montserrat", 10),
+            fg="#94a3b8",
+            bg="#12223a",
+            wraplength=420,
+            justify=tk.LEFT,
+            padx=12,
+            pady=10,
+        )
+        status_label.pack(fill="x", pady=(0, 12))
+
+        button_row = tk.Frame(card, bg="#0b1627")
+        button_row.pack(fill="x", pady=(4, 0))
+
+        def _connect_wallet() -> None:
+            try:
+                connector.start()
+                url = connector.url
+                if not url:
+                    raise RuntimeError("Wallet bridge unavailable")
+                webbrowser.open(url)
+                status_var.set("Wallet bridge opened in browser. Complete the connection there.")
+                status_label.configure(fg="#94a3b8")
+            except Exception as exc:
+                status_var.set(f"Unable to open wallet bridge: {exc}")
+                status_label.configure(fg="#ff4976")
+
+        def _poll_wallet() -> None:
+            info = connector.pop_wallet()
+            if info:
+                address_var.set(info.get("address", ""))
+                chain = info.get("chain", "")
+                if chain == "solana":
+                    chain_menu.current(1)
+                else:
+                    chain_menu.current(0)
+                _sync_chain()
+                status_var.set(f"Wallet connected: {info['address']}")
+                status_label.configure(fg="#6aff3b")
+            if connector.is_running():  # Continue polling while running
+                root_temp.after(750, _poll_wallet)
+
+        connect_button = tk.Button(
+            button_row,
+            text="Connect Wallet",
+            command=_connect_wallet,
+            font=("Montserrat", 11, "bold"),
+            bg="#22d3ee",
+            fg="#030712",
+            activebackground="#0ea5e9",
+            activeforeground="#f8fafc",
+            relief=tk.FLAT,
+            padx=12,
+            pady=8,
+        )
+        connect_button.pack(side=tk.LEFT)
+
+        def _confirm() -> None:
+            nonlocal result
+            address = address_var.get().strip()
+            if not address:
+                messagebox.showerror("Wallet Required", "A wallet address is required to continue.")
+                return
+            result = {"address": address, "chain": chain_var.get() or "evm"}
+            root_temp.quit()
+            root_temp.destroy()
+
+        confirm_button = tk.Button(
+            button_row,
+            text="Verify Access",
+            command=_confirm,
+            font=("Montserrat", 11, "bold"),
+            bg="#38bdf8",
+            fg="#030712",
+            activebackground="#0ea5e9",
+            activeforeground="#f8fafc",
+            relief=tk.FLAT,
+            padx=12,
+            pady=8,
+        )
+        confirm_button.pack(side=tk.RIGHT)
+
+        def _on_close() -> None:
+            root_temp.quit()
+            root_temp.destroy()
+
+        root_temp.protocol("WM_DELETE_WINDOW", _on_close)
+
+        address_entry.focus_set()
+        root_temp.after(750, _poll_wallet)
+        root_temp.mainloop()
+
     except Exception:
         # Fallback to console prompt if Tk dialogs are unavailable.
         try:
-            return input("Wallet address required for NFT verification: ").strip() or None
+            wallet = input("Wallet address required for NFT verification: ").strip()
         except EOFError:
+            wallet = ""
+        if not wallet:
             return None
+        chain = input(
+            "Wallet network (evm/solana) [default evm]: "
+        ).strip().lower()
+        chain = chain or "evm"
+        return {"address": wallet, "chain": chain}
+    finally:
+        connector.stop()
+
+    return result
+
+
+def _verify_evm_wallet(address: str) -> bool:
+    params = {
+        "owner": address,
+        "contractAddresses[]": NFT_GATE_CONTRACT,
+        "withMetadata": "false",
+        "pageSize": "1",
+    }
+    url = f"https://{NFT_GATE_NETWORK}.g.alchemy.com/nft/v2/{NFT_GATE_API_KEY}/getNFTs"
+    logger.debug("Verifying EVM NFT access for wallet %s via %s", address, url)
+    response = requests.get(url, params=params, timeout=15)
+    response.raise_for_status()
+    data = response.json()
+    owned_nfts = data.get("ownedNfts") or []
+    total = data.get("totalCount")
+    return bool(owned_nfts or (isinstance(total, int) and total > 0))
+
+
+def _verify_solana_wallet(address: str) -> bool:
+    if not NFT_GATE_SOLANA_MINT:
+        raise RuntimeError("NFT_GATE_SOLANA_MINT_ADDRESS environment variable is required for Solana checks.")
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getTokenAccountsByOwner",
+        "params": [
+            address,
+            {"mint": NFT_GATE_SOLANA_MINT},
+            {"encoding": "jsonParsed"},
+        ],
+    }
+    logger.debug("Verifying Solana token access for wallet %s via %s", address, NFT_GATE_SOLANA_RPC)
+    response = requests.post(NFT_GATE_SOLANA_RPC, json=payload, timeout=20)
+    response.raise_for_status()
+    data = response.json()
+    result = data.get("result") or {}
+    value = result.get("value") or []
+    return bool(value)
 
 
 def enforce_nft_gate() -> None:
@@ -80,68 +536,80 @@ def enforce_nft_gate() -> None:
         logger.info("NFT gate disabled via NFT_GATE_ENABLED environment flag.")
         return
 
-    missing = [
-        name
-        for name, value in (
-            ("NFT_GATE_CONTRACT_ADDRESS", NFT_GATE_CONTRACT),
-            ("NFT_GATE_ALCHEMY_API_KEY", NFT_GATE_API_KEY),
-        )
-        if not value
-    ]
-
-    if missing:
+    if not NFT_GATE_CONTRACT and not NFT_GATE_SOLANA_MINT:
         logger.warning(
-            "NFT gate misconfigured. Missing required environment variables: %s."
-            " Proceeding without NFT enforcement.",
-            ", ".join(missing),
+            "NFT gate misconfigured. Missing contract/mint configuration. Proceeding without enforcement."
         )
         return
 
-    wallet_address = os.getenv("NFT_GATE_WALLET_ADDRESS")
-    if wallet_address:
-        wallet_address = wallet_address.strip()
-    else:
-        wallet_address = _prompt_wallet_address()
+    if NFT_GATE_CONTRACT and not NFT_GATE_API_KEY:
+        logger.warning(
+            "NFT gate misconfigured. Missing NFT_GATE_ALCHEMY_API_KEY. Proceeding without NFT enforcement."
+        )
+        return
 
-    if not wallet_address:
+    wallet_env = os.getenv("NFT_GATE_WALLET_ADDRESS")
+    if wallet_env:
+        wallet_info = {
+            "address": wallet_env.strip(),
+            "chain": (NFT_GATE_WALLET_CHAIN or NFT_GATE_CHAIN_DEFAULT or "evm"),
+        }
+    else:
+        wallet_info = _prompt_wallet_address()
+
+    if not wallet_info or not wallet_info.get("address"):
         _fatal_messagebox(
             "NFT Access Denied",
             "A wallet address is required to verify NFT ownership.",
         )
         sys.exit(1)
 
-    params = {
-        "owner": wallet_address,
-        "contractAddresses[]": NFT_GATE_CONTRACT,
-        "withMetadata": "false",
-        "pageSize": "1",
-    }
-    url = f"https://{NFT_GATE_NETWORK}.g.alchemy.com/nft/v2/{NFT_GATE_API_KEY}/getNFTs"
-    logger.debug("Verifying NFT access for wallet %s via %s", wallet_address, url)
+    wallet_address = wallet_info.get("address", "").strip()
+    wallet_chain = (wallet_info.get("chain") or NFT_GATE_CHAIN_DEFAULT or "evm").lower()
+    if wallet_chain not in {"evm", "solana"}:
+        wallet_chain = "evm"
+
+    if wallet_chain == "solana" and not NFT_GATE_SOLANA_MINT:
+        _fatal_messagebox(
+            "NFT Verification Error",
+            "Solana wallet selected but NFT_GATE_SOLANA_MINT_ADDRESS is not configured.",
+        )
+        sys.exit(1)
+    if wallet_chain == "evm" and not NFT_GATE_CONTRACT:
+        _fatal_messagebox(
+            "NFT Verification Error",
+            "EVM wallet selected but NFT_GATE_CONTRACT_ADDRESS is not configured.",
+        )
+        sys.exit(1)
+
     try:
-        response = requests.get(url, params=params, timeout=15)
-        response.raise_for_status()
-        data = response.json()
+        if wallet_chain == "solana":
+            has_access = _verify_solana_wallet(wallet_address)
+            contract_display = NFT_GATE_SOLANA_MINT or "specified Solana mint"
+        else:
+            has_access = _verify_evm_wallet(wallet_address)
+            contract_display = NFT_GATE_CONTRACT or "specified contract"
     except requests.RequestException as exc:
         _fatal_messagebox(
             "NFT Verification Error",
-            f"Unable to verify NFT ownership due to a network/API error: {exc}",
+            f"Unable to verify token ownership due to a network/API error: {exc}",
         )
         sys.exit(1)
     except ValueError:
         _fatal_messagebox(
             "NFT Verification Error",
-            "Received an unexpected response from the NFT verification API.",
+            "Received an unexpected response from the verification endpoint.",
         )
         sys.exit(1)
+    except RuntimeError as exc:
+        _fatal_messagebox("NFT Verification Error", str(exc))
+        sys.exit(1)
 
-    owned_nfts = data.get("ownedNfts") or []
-    total = data.get("totalCount")
-    if owned_nfts or (isinstance(total, int) and total > 0):
+    if has_access:
         logger.info(
-            "NFT gate verified: wallet %s holds contract %s.",
+            "NFT gate verified: wallet %s holds required asset (%s).",
             wallet_address,
-            NFT_GATE_CONTRACT,
+            contract_display,
         )
         return
 
@@ -150,8 +618,8 @@ def enforce_nft_gate() -> None:
         (
             "Wallet "
             + wallet_address
-            + " does not appear to hold the required NFT (contract "
-            + NFT_GATE_CONTRACT
+            + " does not appear to hold the required token ("
+            + contract_display
             + ")."
         ),
     )

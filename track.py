@@ -2061,6 +2061,25 @@ BRAND_BORDER = "#12304a"
 BRAND_ACCENT = "#48ffe2"
 BRAND_ACCENT_ALT = "#f5c978"
 BRAND_TEXT = "#e2f6ff"
+
+# Ioncore header branding
+IONCORE_GREEN = "#6dff7a"
+IONCORE_SILVER = "#d1dae4"
+IONCORE_LOGO_SVG = """
+<svg width=\"96\" height=\"96\" viewBox=\"0 0 96 96\" xmlns=\"http://www.w3.org/2000/svg\">
+  <defs>
+    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">
+      <stop offset=\"0%\" stop-color=\"#6dff7a\"/>
+      <stop offset=\"100%\" stop-color=\"#8df2c4\"/>
+    </linearGradient>
+  </defs>
+  <rect x=\"6\" y=\"6\" width=\"84\" height=\"84\" rx=\"18\" ry=\"18\" fill=\"none\" stroke=\"#d1dae4\" stroke-width=\"6\"/>
+  <path d=\"M25 69 L48 21 L71 69 Z\" fill=\"url(#ioncoreGradient)\"/>
+  <circle cx=\"48\" cy=\"52\" r=\"12\" fill=\"#0b1627\" stroke=\"#d1dae4\" stroke-width=\"4\"/>
+  <circle cx=\"48\" cy=\"52\" r=\"6\" fill=\"#6dff7a\"/>
+</svg>
+"""
+ioncore_logo_image = None
 BRAND_MUTED = "#94a3b8"
 BUTTON_BG = "#152941"
 BUTTON_ACTIVE_BG = "#1f3856"
@@ -2301,7 +2320,6 @@ brand_header = tk.Frame(
 )
 brand_header.grid(row=0, column=0, columnspan=3, sticky="ew", padx=12, pady=(12, 6))
 brand_header.columnconfigure(0, weight=1)
-brand_header.columnconfigure(1, weight=0)
 
 status_text_var = tk.StringVar(value="Review the media artifacts captured by Sentinel automations. Real-time alert snapshots & intelligence drops.")
 
@@ -2346,46 +2364,89 @@ def _launch_media_vault():
         messagebox.showinfo("Media Vault", f"Open the Sentinel media vault at {url}")
 
 
-brand_left = tk.Frame(brand_header, bg=BRAND_SURFACE)
-brand_left.grid(row=0, column=0, sticky="nsew")
+header_bar = tk.Frame(brand_header, bg=BRAND_SURFACE)
+header_bar.grid(row=0, column=0, sticky="ew")
+header_bar.columnconfigure(0, weight=1)
+header_bar.columnconfigure(1, weight=0)
 
-logo_wrap = tk.Frame(brand_left, bg=BRAND_SURFACE)
-logo_wrap.pack(anchor="w")
+logo_wrap = tk.Frame(header_bar, bg=BRAND_SURFACE)
+logo_wrap.grid(row=0, column=0, sticky="w")
 
-logo_mark = tk.Label(
-    logo_wrap,
-    text="IE",
-    font=f"{_BRACED_FAMILY} 16 bold",
-    bg=BRAND_ACCENT,
-    fg=BRAND_BG,
-    padx=14,
-    pady=10,
-)
-logo_mark.pack(side=tk.LEFT, padx=(0, 12))
+
+def _load_ioncore_logo():
+    global ioncore_logo_image
+    if ioncore_logo_image is not None:
+        return ioncore_logo_image
+    try:
+        import cairosvg
+
+        png_bytes = cairosvg.svg2png(
+            bytestring=IONCORE_LOGO_SVG.encode("utf-8"), output_width=72, output_height=72
+        )
+        ioncore_logo_image = ImageTk.PhotoImage(Image.open(io.BytesIO(png_bytes)))
+        return ioncore_logo_image
+    except Exception as exc:
+        logger.debug("Falling back to canvas logo: %s", exc)
+        ioncore_logo_image = None
+        return None
+
+
+logo_image = _load_ioncore_logo()
+if logo_image is not None:
+    logo_label = tk.Label(logo_wrap, image=logo_image, bg=BRAND_SURFACE)
+    logo_label.image = logo_image
+    logo_label.pack(side=tk.LEFT, padx=(0, 12))
+else:
+    logo_canvas = tk.Canvas(
+        logo_wrap,
+        width=60,
+        height=60,
+        bg=BRAND_SURFACE,
+        highlightthickness=0,
+    )
+    logo_canvas.pack(side=tk.LEFT, padx=(0, 12))
+    logo_canvas.create_oval(6, 6, 54, 54, fill=IONCORE_GREEN, outline=IONCORE_SILVER, width=3)
+    logo_canvas.create_text(30, 30, text="IC", fill=BRAND_BG, font=f"{_BRACED_FAMILY} 16 bold")
 
 logo_text = tk.Frame(logo_wrap, bg=BRAND_SURFACE)
 logo_text.pack(side=tk.LEFT)
-tk.Label(logo_text, text="Ioncore Energy", font=FONT_TITLE, fg=BRAND_TEXT, bg=BRAND_SURFACE).pack(anchor="w")
 tk.Label(
     logo_text,
-    text="Sentinel Command • Security Media Vault",
+    text="IONCORE SENTINEL",
+    font=f"{_BRACED_FAMILY} 16 bold",
+    fg=IONCORE_GREEN,
+    bg=BRAND_SURFACE,
+).pack(anchor="w")
+tk.Label(
+    logo_text,
+    text="Security Media Vault Dashboard",
     font=f"{_BRACED_FAMILY} 11",
-    fg=BRAND_MUTED,
+    fg=IONCORE_SILVER,
     bg=BRAND_SURFACE,
 ).pack(anchor="w")
 
-tk.Label(
+brand_body = tk.Frame(brand_header, bg=BRAND_SURFACE)
+brand_body.grid(row=1, column=0, sticky="ew", pady=(12, 0))
+brand_body.columnconfigure(0, weight=1)
+brand_body.columnconfigure(1, weight=0)
+
+brand_left = tk.Frame(brand_body, bg=BRAND_SURFACE)
+brand_left.grid(row=0, column=0, sticky="nw")
+brand_left.grid_columnconfigure(0, weight=1)
+
+status_label = tk.Label(
     brand_left,
     textvariable=status_text_var,
     font=f"{_BRACED_FAMILY} 11",
     fg=BRAND_TEXT,
     bg=BRAND_SURFACE,
-    wraplength=520,
+    wraplength=560,
     justify="left",
-).pack(anchor="w", pady=(12, 0))
+)
+status_label.grid(row=0, column=0, sticky="w")
 
 badge_row = tk.Frame(brand_left, bg=BRAND_SURFACE)
-badge_row.pack(anchor="w", pady=(14, 0))
+badge_row.grid(row=1, column=0, sticky="w", pady=(14, 0))
 
 for title, subtitle in (
     ("Zero Lag", "Edge-computed routing keeps every feed synchronized with Command."),
@@ -2414,21 +2475,44 @@ for title, subtitle in (
         justify="left",
     ).pack(anchor="w", pady=(4, 0))
 
-brand_right = tk.Frame(brand_header, bg=BRAND_SURFACE)
-brand_right.grid(row=0, column=1, sticky="ne")
+brand_right = tk.Frame(brand_body, bg=BRAND_SURFACE)
+brand_right.grid(row=0, column=1, sticky="ne", padx=(24, 0))
 
 tk.Label(
     brand_right,
     text="Sentinel Security Network",
-    font=f"{_BRACED_FAMILY} 10 bold",
-    bg=BRAND_ACCENT_ALT,
-    fg=BRAND_BG,
-    padx=12,
-    pady=6,
+    font=f"{_BRACED_FAMILY} 11 bold",
+    bg=BRAND_SURFACE_ALT,
+    fg=IONCORE_SILVER,
+    padx=14,
+    pady=8,
 ).pack(anchor="e")
+tk.Label(
+    brand_right,
+    text="Powered by Ioncore Intelligence",
+    font=f"{_BRACED_FAMILY} 10",
+    bg=BRAND_SURFACE,
+    fg=BRAND_MUTED,
+).pack(anchor="e", pady=(8, 0))
 
-actions = tk.Frame(brand_right, bg=BRAND_SURFACE)
-actions.pack(anchor="e", pady=(12, 0))
+header_collapsed = tk.BooleanVar(value=False)
+
+
+def _toggle_brand_header():
+    collapsed = header_collapsed.get()
+    if collapsed:
+        brand_body.grid()
+        brand_header.configure(pady=16)
+        toggle_btn.configure(text="Minimize Header")
+    else:
+        brand_body.grid_remove()
+        brand_header.configure(pady=10)
+        toggle_btn.configure(text="Expand Header")
+    header_collapsed.set(not collapsed)
+
+
+actions = tk.Frame(header_bar, bg=BRAND_SURFACE)
+actions.grid(row=0, column=1, sticky="e")
 
 contact_btn = tk.Button(actions, text="Contact Ioncore", command=_contact_ioncore, bg=BRAND_SURFACE_ALT, fg=BRAND_ACCENT)
 contact_btn.pack(side=tk.LEFT, padx=6)
@@ -2438,6 +2522,8 @@ vault_btn.pack(side=tk.LEFT, padx=6)
 vault_btn.configure(activebackground=BRAND_ACCENT_ALT, activeforeground=BRAND_BG)
 refresh_btn = tk.Button(actions, text="Refresh Command Center", command=_refresh_command_center)
 refresh_btn.pack(side=tk.LEFT, padx=6)
+toggle_btn = tk.Button(actions, text="Minimize Header", command=_toggle_brand_header, bg=BRAND_SURFACE_ALT, fg=IONCORE_SILVER)
+toggle_btn.pack(side=tk.LEFT, padx=(12, 0))
 
 ############################
 # Row 1 (FULL WIDTH): Video Feeds with horizontal scroll

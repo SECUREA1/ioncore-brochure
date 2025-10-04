@@ -507,22 +507,254 @@
       position: relative;
       width: min(420px, 92vw);
       aspect-ratio: 1 / 1;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .explosion-svg {
+    .bomb-scene {
+      position: relative;
       width: 100%;
-      height: auto;
-      filter: drop-shadow(0 0 24px rgba(255, 220, 128, 0.65));
-      animation: boom 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      pointer-events: none;
     }
 
-    .oops-svg {
+    .bomb {
       position: absolute;
-      width: 56%;
-      height: auto;
-      animation: wobble 1.4s ease-in-out 0.1s forwards;
+      top: -26%;
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #3b82f6 0%, #0f172a 65%, #05070e 100%);
+      border: 4px solid rgba(4, 10, 24, 0.85);
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.65);
+      transform: translateY(-180%) scale(0.85);
+      opacity: 0;
+    }
+
+    .bomb::after {
+      content: "";
+      position: absolute;
+      inset: 20% 18% auto 18%;
+      height: 34%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), transparent 68%);
+      filter: blur(1px);
+    }
+
+    .bomb-fuse {
+      position: absolute;
+      top: -38px;
+      right: 32px;
+      width: 12px;
+      height: 46px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f97316 0%, #a855f7 100%);
+      transform: rotate(18deg);
+      box-shadow: 0 0 0 2px rgba(5, 7, 14, 0.32);
+    }
+
+    .bomb-spark {
+      position: absolute;
+      top: -54px;
+      right: 18px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff7b2 0%, #ffb347 45%, #ff4976 100%);
+      box-shadow: 0 0 18px rgba(255, 184, 108, 0.85);
+      opacity: 0;
+      transform: scale(0.3);
+    }
+
+    .bomb-shadow {
+      position: absolute;
+      bottom: 18%;
+      width: 32%;
+      height: 12%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(5, 7, 14, 0.58) 0%, rgba(5, 7, 14, 0) 70%);
+      transform: scale(0.35);
+      opacity: 0;
+      filter: blur(1px);
+    }
+
+    .face-silhouette {
+      position: relative;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      filter: drop-shadow(0 18px 30px rgba(15, 23, 42, 0.55));
+      display: block;
+    }
+
+    .face-piece {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 40%, #fff4cc 0%, #ffd27d 55%, #ffb347 100%);
+      border: 2px solid rgba(255, 185, 120, 0.35);
+      transform: translate(0, 0) rotate(0deg) scale(1);
+      opacity: 1;
+      --dx: 0px;
+      --dy: 0px;
+      --rot: 0deg;
+      --delay: 0.18s;
+      clip-path: circle(50% at 50% 50%);
+    }
+
+    .face-piece--1 {
+      clip-path: polygon(0% 0%, 55% 0%, 45% 45%, 0% 55%);
+      --dx: -70px;
+      --dy: -34px;
+      --rot: -18deg;
+      --delay: 0.24s;
+    }
+
+    .face-piece--2 {
+      clip-path: polygon(45% 0%, 100% 0%, 100% 55%, 55% 45%);
+      --dx: 68px;
+      --dy: -36px;
+      --rot: 16deg;
+      --delay: 0.26s;
+    }
+
+    .face-piece--3 {
+      clip-path: polygon(0% 45%, 45% 50%, 35% 100%, 0% 100%);
+      --dx: -60px;
+      --dy: 64px;
+      --rot: -14deg;
+      --delay: 0.3s;
+    }
+
+    .face-piece--4 {
+      clip-path: polygon(55% 50%, 100% 45%, 100% 100%, 35% 100%);
+      --dx: 62px;
+      --dy: 62px;
+      --rot: 22deg;
+      --delay: 0.32s;
+    }
+
+    .face-piece--5 {
+      clip-path: polygon(25% 55%, 75% 55%, 70% 100%, 30% 100%);
+      --dx: 0px;
+      --dy: 78px;
+      --rot: 10deg;
+      --delay: 0.34s;
+    }
+
+    .face-piece--6 {
+      clip-path: polygon(30% 0%, 70% 0%, 60% 45%, 40% 45%);
+      --dx: 0px;
+      --dy: -74px;
+      --rot: -10deg;
+      --delay: 0.22s;
+    }
+
+    .face-feature {
+      position: absolute;
+      background: #0f172a;
+      border-radius: 50%;
+      transform: translate(0, 0) rotate(0deg);
+      --dx: 0px;
+      --dy: 0px;
+      --rot: 0deg;
+      --delay: 0.26s;
+    }
+
+    .face-feature::after {
+      content: "";
+      position: absolute;
+      inset: 18% 24% 32% 24%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      filter: blur(1px);
+    }
+
+    .face-feature--eye-left {
+      top: 34%;
+      left: 30%;
+      width: 16%;
+      height: 16%;
+      --dx: -64px;
+      --dy: -28px;
+      --rot: -16deg;
+      --delay: 0.28s;
+    }
+
+    .face-feature--eye-right {
+      top: 34%;
+      right: 30%;
+      width: 16%;
+      height: 16%;
+      --dx: 64px;
+      --dy: -28px;
+      --rot: 18deg;
+      --delay: 0.3s;
+    }
+
+    .face-feature--mouth {
+      top: 58%;
+      left: 36%;
+      width: 28%;
+      height: 18%;
+      border-radius: 0 0 120px 120px;
+      background: transparent;
+      border: 6px solid #ff4976;
+      border-top: 0;
+      --dx: 0px;
+      --dy: 72px;
+      --rot: 12deg;
+      --delay: 0.36s;
+    }
+
+    .face-feature--mouth::after {
+      display: none;
+    }
+
+    .face-feature--brow {
+      top: 26%;
+      left: 28%;
+      width: 44%;
+      height: 12%;
+      border-radius: 60% 60% 20% 20%;
+      background: linear-gradient(90deg, rgba(255, 180, 124, 0), rgba(255, 180, 124, 0.6), rgba(255, 180, 124, 0));
+      --dx: 0px;
+      --dy: -68px;
+      --rot: -12deg;
+      --delay: 0.25s;
+    }
+
+    .face-feature--brow::after {
+      display: none;
+    }
+
+    .face-shatter-ring {
+      position: absolute;
+      width: 84%;
+      height: 84%;
+      border-radius: 50%;
+      border: 4px dashed rgba(255, 186, 120, 0.65);
+      opacity: 0;
+      transform: scale(0.35);
+      filter: drop-shadow(0 0 16px rgba(255, 200, 150, 0.4));
+    }
+
+    .comic-text {
+      position: absolute;
+      bottom: 6%;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ffdf85;
+      text-shadow: 0 8px 24px rgba(5, 7, 14, 0.8);
+      transform: scale(0.4) rotate(-6deg);
+      opacity: 0;
     }
 
     .failure-caption {
@@ -534,45 +766,98 @@
       font-weight: 700;
       color: rgba(255, 178, 200, 0.95);
       text-shadow: 0 0 12px rgba(15, 23, 42, 0.9);
-      animation: caption-pop 0.65s ease-out 0.2s forwards;
+      animation: caption-pop 0.65s ease-out 0.45s forwards;
       opacity: 0;
       transform: translateY(16px);
     }
 
-    @keyframes boom {
+    @keyframes bomb-drop {
       0% {
-        transform: scale(0.35) rotate(-12deg);
+        transform: translateY(-180%) scale(0.85) rotate(-8deg);
         opacity: 0;
       }
-      45% {
+      70% {
         opacity: 1;
-      }
-      60% {
-        transform: scale(1.1) rotate(8deg);
+        transform: translateY(12%) scale(1) rotate(6deg);
       }
       100% {
-        transform: scale(0.2) rotate(22deg);
+        transform: translateY(160%) scale(0.7) rotate(16deg);
         opacity: 0;
       }
     }
 
-    @keyframes wobble {
+    @keyframes spark-ignite {
       0% {
-        transform: translateY(-12px) rotate(-6deg) scale(0.8);
         opacity: 0;
+        transform: scale(0.2) rotate(0deg);
       }
-      40% {
+      30% {
+        opacity: 1;
+        transform: scale(1.1) rotate(18deg);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.1) rotate(-18deg);
+      }
+    }
+
+    @keyframes shadow-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.35);
+      }
+      55% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.3);
+      }
+    }
+
+    @keyframes face-piece-shatter {
+      0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
         opacity: 1;
       }
       55% {
-        transform: translateY(6px) rotate(4deg) scale(1.05);
-      }
-      70% {
-        transform: translateY(-6px) rotate(-4deg) scale(1);
+        transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * 0.6)) rotate(calc(var(--rot) * 0.6)) scale(1.05);
+        opacity: 1;
       }
       100% {
-        transform: translateY(0) rotate(0deg) scale(1);
-        opacity: 0.92;
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.85);
+        opacity: 0;
+      }
+    }
+
+    @keyframes ring-blast {
+      0% {
+        opacity: 0;
+        transform: scale(0.35) rotate(0deg);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.05) rotate(12deg);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.4) rotate(24deg);
+      }
+    }
+
+    @keyframes comic-pop {
+      0% {
+        transform: scale(0.4) rotate(-6deg);
+        opacity: 0;
+      }
+      55% {
+        transform: scale(1.1) rotate(6deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
       }
     }
 
@@ -589,6 +874,32 @@
         opacity: 1;
         transform: translateY(0) scale(1);
       }
+    }
+
+    .failure-overlay.is-visible .bomb {
+      animation: bomb-drop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .failure-overlay.is-visible .bomb-spark {
+      animation: spark-ignite 0.55s ease-out 0.28s forwards;
+    }
+
+    .failure-overlay.is-visible .bomb-shadow {
+      animation: shadow-pop 0.8s ease-out 0.32s forwards;
+    }
+
+    .failure-overlay.is-visible .face-piece,
+    .failure-overlay.is-visible .face-feature {
+      animation: face-piece-shatter 0.85s cubic-bezier(0.33, 1.54, 0.64, 1) forwards;
+      animation-delay: var(--delay);
+    }
+
+    .failure-overlay.is-visible .face-shatter-ring {
+      animation: ring-blast 0.78s ease-out 0.34s forwards;
+    }
+
+    .failure-overlay.is-visible .comic-text {
+      animation: comic-pop 0.6s ease-out 0.58s forwards;
     }
 
     .footnote {
@@ -639,33 +950,28 @@
     <div class="scanlines" aria-hidden="true"></div>
     <div class="failure-overlay" aria-hidden="true">
       <div class="failure-stage">
-        <svg class="explosion-svg" viewBox="0 0 360 360" role="img" aria-label="Access denied explosion">
-          <defs>
-            <radialGradient id="blast-gradient" cx="50%" cy="50%" r="70%">
-              <stop offset="0%" stop-color="#fff1c1"/>
-              <stop offset="45%" stop-color="#ffb347"/>
-              <stop offset="80%" stop-color="#ff4976"/>
-              <stop offset="100%" stop-color="#7a1b3d" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <circle cx="180" cy="180" r="140" fill="url(#blast-gradient)" opacity="0.92"/>
-          <polygon points="180,20 205,120 320,80 226,160 340,220 210,210 250,330 180,240 110,330 150,210 20,220 134,160 40,80 155,120" fill="#ffe27a" stroke="#ff9f1c" stroke-width="8" stroke-linejoin="round"/>
-          <circle cx="180" cy="180" r="36" fill="#0f172a" opacity="0.75"/>
-          <circle cx="180" cy="180" r="18" fill="#ff4976"/>
-        </svg>
-        <svg class="oops-svg" viewBox="0 0 220 220" role="img" aria-label="Animated whoops character">
-          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="110" cy="110" r="80" fill="#0f172a" stroke="#6aff3b" stroke-width="6"/>
-            <path d="M66 118c14 10 74 10 88 0" stroke="#48ffe2" stroke-width="8"/>
-            <circle cx="80" cy="90" r="12" fill="#f5c978"/>
-            <circle cx="140" cy="90" r="12" fill="#f5c978"/>
-            <path d="M75 150c18 22 60 22 78 0" stroke="#ff4976" stroke-width="10"/>
-            <path d="M58 70l26 12" stroke="#f5c978" stroke-width="8"/>
-            <path d="M162 70l-26 12" stroke="#f5c978" stroke-width="8"/>
-          </g>
-          <text x="110" y="190" text-anchor="middle" font-size="28" font-weight="700" fill="#f5c978">SORRY!</text>
-        </svg>
-        <p class="failure-caption">Boom! Clearance credentials combusted. Try again, secret agent.</p>
+        <div class="bomb-scene" aria-hidden="true">
+          <div class="bomb" role="img" aria-label="Cartoon bomb">
+            <div class="bomb-fuse" aria-hidden="true"></div>
+            <div class="bomb-spark" aria-hidden="true"></div>
+          </div>
+          <div class="bomb-shadow" aria-hidden="true"></div>
+          <div class="face-silhouette">
+            <div class="face-piece face-piece--1"></div>
+            <div class="face-piece face-piece--2"></div>
+            <div class="face-piece face-piece--3"></div>
+            <div class="face-piece face-piece--4"></div>
+            <div class="face-piece face-piece--5"></div>
+            <div class="face-piece face-piece--6"></div>
+            <div class="face-feature face-feature--eye-left"></div>
+            <div class="face-feature face-feature--eye-right"></div>
+            <div class="face-feature face-feature--mouth"></div>
+            <div class="face-feature face-feature--brow"></div>
+          </div>
+          <div class="face-shatter-ring" aria-hidden="true"></div>
+          <div class="comic-text" aria-hidden="true">Kaboom!</div>
+        </div>
+        <p class="failure-caption">The clearance dummy detonated the security selfie. Try another access combo.</p>
       </div>
     </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
@@ -825,15 +1131,27 @@
         element.style.animation = '';
       };
 
-      restartAnimation(failureOverlay.querySelector('.explosion-svg'));
-      restartAnimation(failureOverlay.querySelector('.oops-svg'));
+      const animatedSelectors = [
+        '.bomb',
+        '.bomb-fuse',
+        '.bomb-spark',
+        '.bomb-shadow',
+        '.face-piece',
+        '.face-feature',
+        '.face-shatter-ring',
+        '.comic-text'
+      ];
+
+      animatedSelectors.forEach((selector) => {
+        failureOverlay.querySelectorAll(selector).forEach(restartAnimation);
+      });
 
       failureOverlay.classList.remove('is-visible');
       void failureOverlay.offsetWidth;
       failureOverlay.classList.add('is-visible');
       setTimeout(() => {
         failureOverlay.classList.remove('is-visible');
-      }, 1800);
+      }, 2200);
     };
 
     if (form && status) {

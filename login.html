@@ -1282,12 +1282,79 @@
             facingMode: { ideal: 'environment' }
           }
         });
-        stopMonitoring?.();
-        stream.getTracks().forEach((track) => track.stop());
-        torchUnavailable = false;
-      } catch (error) {
-        stopMonitoring?.();
-        if (error && error.name === 'NotAllowedError') {
+const requestPermissionAndActivate = async () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return;
+  }
+
+  const queueCursorAutomationSweep = () => {
+    window.setTimeout(() => {
+      attemptPermissionPromptCursorClick();
+    }, 140);
+  };
+
+  try {
+    await attemptPermissionPromptCursorClick();
+    queueCursorAutomationSweep();
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' }
+      }
+    });
+
+    // Stop any active monitoring and close tracks
+    stopMonitoring?.();
+    stream.getTracks().forEach((track) => track.stop());
+    torchUnavailable = false;
+
+    resetCursorAutomation();
+    await openTorchStream();
+  } catch (error) {
+    // Ensure monitoring cleanup even on error
+    stopMonitoring?.();
+
+    if (error && error.name === 'NotAllowedError') {
+      autoCameraActivationAttempted = false;
+    }
+
+    queueCursorAutomationSweep();
+
+    console.warn('Automated camera permission request was blocked', error);
+  }
+};
+
+handlePermissionState = async () => {
+  if (!cameraPermissionStatus) {
+    return;
+  }
+
+  if (cameraPermissionStatus.state === 'granted') {
+    torchUnavailable = false;
+    resetCursorAutomation();
+    await openTorchStream();
+    return;
+  }
+
+  if (cameraPermissionStatus.state === 'prompt') {
+    await attemptPermissionPromptCursorClick();
+    window.setTimeout(() => {
+      attemptPermissionPromptCursorClick();
+    }, 120);
+
+    const granted = await attemptAutomatedPermissionGrant();
+    if (!granted) {
+      await attemptPermissionPromptCursorClick();
+      await requestPermissionAndActivate();
+    }
+    return;
+  }
+
+  if (cameraPermissionStatus.state === 'denied') {
+    console.warn('Camera permission denied by user');
+  }
+};
+
           autoCameraActivationAttempted = false;
         }
         console.warn('Camera permission request failed', error);

@@ -186,6 +186,20 @@
       }
     }
 
+    @keyframes heart-pop {
+      0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+      45% {
+        transform: scale(1.35) translateY(-8px);
+      }
+      100% {
+        transform: scale(0) translateY(10px);
+        opacity: 0;
+      }
+    }
+
     @keyframes crestPulse {
       0% {
         transform: scale(0.94) rotate(-2deg);
@@ -305,6 +319,121 @@
       height: 1.1rem;
       flex: none;
       fill: currentColor;
+    }
+
+    .health-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 16px;
+      background: rgba(12, 20, 38, 0.78);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      box-shadow: 0 16px 36px rgba(5, 10, 20, 0.38);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .health-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(72, 255, 226, 0.1), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(255, 73, 118, 0.08), transparent 68%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .health-bar.is-critical {
+      border-color: rgba(255, 73, 118, 0.45);
+      box-shadow: 0 20px 48px rgba(255, 73, 118, 0.28);
+    }
+
+    .health-label {
+      position: relative;
+      z-index: 1;
+      font-size: 0.75rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.82);
+      white-space: nowrap;
+    }
+
+    .health-hearts {
+      display: inline-flex;
+      gap: 0.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .health-heart {
+      position: relative;
+      width: 32px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .health-heart::before,
+    .health-heart::after {
+      content: "❤";
+      font-size: 1.6rem;
+      line-height: 1;
+      transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+    }
+
+    .health-heart::before {
+      color: var(--ioncore-crimson);
+      text-shadow: 0 0 16px rgba(255, 73, 118, 0.45);
+    }
+
+    .health-heart::after {
+      position: absolute;
+      inset: 0;
+      color: rgba(148, 163, 184, 0.4);
+      opacity: 0;
+      transform: scale(0.82);
+    }
+
+    .health-heart.is-depleted::before {
+      opacity: 0;
+    }
+
+    .health-heart.is-depleted::after {
+      opacity: 1;
+      transform: scale(0.72);
+    }
+
+    .health-heart.is-popped::before {
+      animation: heart-pop 0.52s cubic-bezier(0.38, 1.5, 0.6, 1) forwards;
+    }
+
+    .health-bar.is-critical .health-count {
+      color: rgba(255, 178, 200, 0.92);
+    }
+
+    .health-count {
+      position: relative;
+      z-index: 1;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .access-form {
@@ -787,6 +916,124 @@
       transform: scale(1);
     }
 
+    .lockdown-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 14;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .lockdown-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255, 115, 100, 0.32), rgba(15, 23, 42, 0.88));
+      mix-blend-mode: screen;
+      opacity: 0.85;
+    }
+
+    .lockdown-overlay.is-active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .lockdown-fire {
+      position: relative;
+      width: min(360px, 80vw);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 2.5rem 2rem 1.5rem;
+      border-radius: 50%;
+      overflow: visible;
+    }
+
+    .fire-glow {
+      position: absolute;
+      inset: 12% 10% 28% 10%;
+      background: radial-gradient(circle at 50% 20%, rgba(255, 192, 120, 0.6), rgba(255, 90, 0, 0.45), rgba(15, 23, 42, 0));
+      filter: blur(10px);
+      animation: fire-glow-pulse 2.4s ease-in-out infinite;
+    }
+
+    .flame {
+      position: absolute;
+      bottom: 22%;
+      width: 42%;
+      height: 46%;
+      background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.92), rgba(255, 205, 110, 0.85), rgba(255, 94, 58, 0.92));
+      border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+      filter: drop-shadow(0 0 24px rgba(255, 150, 80, 0.75));
+      animation: flame-flicker 1.15s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    .flame--2 {
+      width: 55%;
+      height: 56%;
+      background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.7), rgba(255, 160, 64, 0.85), rgba(255, 60, 0, 0.9));
+      animation-duration: 1.35s;
+      animation-delay: 0.18s;
+      opacity: 0.85;
+    }
+
+    .flame--3 {
+      width: 32%;
+      height: 36%;
+      background: radial-gradient(circle at 50% 20%, rgba(255, 250, 210, 0.9), rgba(255, 189, 86, 0.8), rgba(255, 109, 50, 0.85));
+      animation-duration: 0.95s;
+      animation-delay: 0.3s;
+      opacity: 0.75;
+    }
+
+    .ember {
+      position: absolute;
+      bottom: 18%;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 189, 96, 0.9), rgba(255, 94, 58, 0.6));
+      filter: blur(0.5px);
+      animation: ember-rise 2.6s linear infinite;
+      opacity: 0;
+    }
+
+    .ember--1 {
+      left: 32%;
+      animation-delay: 0.2s;
+    }
+
+    .ember--2 {
+      left: 48%;
+      animation-delay: 0.9s;
+    }
+
+    .ember--3 {
+      left: 62%;
+      animation-delay: 1.6s;
+    }
+
+    .lockdown-message {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      padding-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 223, 207, 0.92);
+      text-shadow: 0 0 18px rgba(255, 148, 80, 0.75);
+    }
+
     .failure-stage {
       position: relative;
       width: min(420px, 92vw);
@@ -1160,6 +1407,54 @@
       }
     }
 
+    @keyframes fire-glow-pulse {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.75;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.92);
+        opacity: 0.72;
+      }
+    }
+
+    @keyframes flame-flicker {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+      40% {
+        transform: translateY(-6px) scale(1.05);
+      }
+      70% {
+        transform: translateY(-3px) scale(0.98);
+      }
+      100% {
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes ember-rise {
+      0% {
+        transform: translateY(0) scale(0.6);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      80% {
+        transform: translateY(-80px) scale(1);
+        opacity: 0.85;
+      }
+      100% {
+        transform: translateY(-120px) scale(0.5);
+        opacity: 0;
+      }
+    }
+
     .failure-overlay.is-visible .bomb {
       animation: bomb-drop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
@@ -1264,6 +1559,18 @@
         <p class="failure-caption">The clearance dummy detonated the security selfie. Try another access combo.</p>
       </div>
     </div>
+    <div class="lockdown-overlay" aria-hidden="true">
+      <div class="lockdown-fire" aria-hidden="true">
+        <div class="fire-glow"></div>
+        <div class="flame flame--1"></div>
+        <div class="flame flame--2"></div>
+        <div class="flame flame--3"></div>
+        <div class="ember ember--1"></div>
+        <div class="ember ember--2"></div>
+        <div class="ember ember--3"></div>
+        <p class="lockdown-message">Countermeasures engaged. Restoring security hearts…</p>
+      </div>
+    </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
       <div class="intro-content">
         <img class="intro-logo" src="battery.svg" alt="">
@@ -1277,6 +1584,18 @@
       <div class="intel-banner" role="status">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
         Confidential schematics. Quantum vault monitored 24/7.
+      </div>
+      <div class="health-bar" role="status" aria-live="polite">
+        <span class="health-label">Security Hearts</span>
+        <div class="health-hearts" aria-hidden="true">
+          <span class="health-heart" data-heart-index="1"></span>
+          <span class="health-heart" data-heart-index="2"></span>
+          <span class="health-heart" data-heart-index="3"></span>
+          <span class="health-heart" data-heart-index="4"></span>
+          <span class="health-heart" data-heart-index="5"></span>
+        </div>
+        <span class="health-count" aria-hidden="true">5/5</span>
+        <span id="health-status" class="sr-only">Security hearts remaining: 5 of 5.</span>
       </div>
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
@@ -2089,6 +2408,117 @@
       }
     };
 
+    const healthBar = document.querySelector('.health-bar');
+    const healthStatusElement = document.getElementById('health-status');
+    const healthCountElement = document.querySelector('.health-count');
+    const heartElements = healthBar ? Array.from(healthBar.querySelectorAll('.health-heart')) : [];
+    const lockdownOverlay = document.querySelector('.lockdown-overlay');
+    const MAX_HEARTS = heartElements.length;
+    let remainingHearts = MAX_HEARTS;
+    let isLockdownActive = false;
+    let lockdownResetTimeoutId;
+    let lockdownHideTimeoutId;
+    const LOCKDOWN_RESET_DELAY = 2200;
+    const LOCKDOWN_HIDE_DELAY = 3400;
+
+    const updateHealthStatus = (overrideMessage) => {
+      if (!MAX_HEARTS) {
+        return;
+      }
+      const safeRemaining = Math.max(remainingHearts, 0);
+      const message =
+        typeof overrideMessage === 'string'
+          ? overrideMessage
+          : `Security hearts remaining: ${safeRemaining} of ${MAX_HEARTS}.`;
+      if (healthStatusElement) {
+        healthStatusElement.textContent = message;
+      }
+      if (healthCountElement) {
+        healthCountElement.textContent = `${safeRemaining}/${MAX_HEARTS}`;
+      }
+    };
+
+    const resetHealthHearts = (options = {}) => {
+      if (!heartElements.length) {
+        return;
+      }
+      remainingHearts = MAX_HEARTS;
+      heartElements.forEach((heart) => {
+        heart.classList.remove('is-depleted', 'is-popped');
+      });
+      if (healthBar) {
+        healthBar.classList.remove('is-critical');
+      }
+      updateHealthStatus(
+        options.announce
+          ? `Security hearts restored. ${MAX_HEARTS} of ${MAX_HEARTS} available.`
+          : undefined
+      );
+    };
+
+    const triggerLockdownReset = () => {
+      if (!MAX_HEARTS) {
+        return;
+      }
+      if (!lockdownOverlay) {
+        resetHealthHearts({ announce: true });
+        return;
+      }
+      if (isLockdownActive) {
+        return;
+      }
+      isLockdownActive = true;
+      lockdownOverlay.classList.add('is-active');
+      window.clearTimeout(lockdownResetTimeoutId);
+      window.clearTimeout(lockdownHideTimeoutId);
+
+      lockdownResetTimeoutId = window.setTimeout(() => {
+        resetHealthHearts({ announce: true });
+      }, LOCKDOWN_RESET_DELAY);
+
+      lockdownHideTimeoutId = window.setTimeout(() => {
+        lockdownOverlay.classList.remove('is-active');
+        isLockdownActive = false;
+      }, LOCKDOWN_HIDE_DELAY);
+    };
+
+    const registerFailureHeart = () => {
+      if (!heartElements.length) {
+        return;
+      }
+      if (remainingHearts <= 0) {
+        triggerLockdownReset();
+        return;
+      }
+
+      const heartIndex = remainingHearts - 1;
+      const heart = heartElements[heartIndex];
+      remainingHearts -= 1;
+
+      if (heart) {
+        heart.classList.add('is-depleted');
+        heart.classList.remove('is-popped');
+        void heart.offsetWidth;
+        heart.classList.add('is-popped');
+      }
+
+      if (remainingHearts > 0) {
+        updateHealthStatus();
+      } else {
+        if (healthBar) {
+          healthBar.classList.add('is-critical');
+        }
+        updateHealthStatus('Security hearts depleted. Countermeasures engaging.');
+        window.setTimeout(() => {
+          triggerLockdownReset();
+        }, 900);
+      }
+    };
+
+    if (MAX_HEARTS > 0) {
+      updateHealthStatus();
+    }
+
     const triggerFailureAnimation = () => {
       if (!failureOverlay) return;
 
@@ -2119,6 +2549,7 @@
       failureOverlay.classList.add('is-visible');
       triggerCameraFlashEffect();
       playFailureBoomSound();
+      registerFailureHeart();
       setTimeout(() => {
         failureOverlay.classList.remove('is-visible');
       }, 2200);

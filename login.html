@@ -1586,18 +1586,14 @@
         }
 
         if (cameraPermissionStatus.state === 'prompt') {
-
           await attemptPermissionPromptCursorClick();
           window.setTimeout(() => {
             attemptPermissionPromptCursorClick();
           }, 120);
+
           const granted = await attemptAutomatedPermissionGrant();
           if (!granted) {
             await attemptPermissionPromptCursorClick();
-
-          const granted = await attemptAutomatedPermissionGrant();
-          if (!granted) {
-
             await requestPermissionAndActivate();
           }
           return;

@@ -18,15 +18,307 @@
       color: var(--text-muted);
       font-size: 0.85rem;
       margin-top: 12px;
+      flex-wrap: wrap;
     }
 
     .subnav span {
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(94, 249, 180, 0.22);
+      background: rgba(94, 249, 180, 0.08);
     }
 
     .subnav i {
+      color: var(--accent);
+    }
+
+    .hero__visual-image + .hero__visual-image {
+      margin-top: 16px;
+    }
+
+    .program-health {
+      position: relative;
+    }
+
+    .program-health::after {
+      content: "";
+      position: absolute;
+      inset: auto 5% -80px auto;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(94, 249, 180, 0.16) 0%, rgba(94, 249, 180, 0) 70%);
+      filter: blur(0.4px);
+      z-index: -1;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+      position: relative;
+      box-shadow: var(--shadow-soft), var(--highlight-glow);
+      overflow: hidden;
+    }
+
+    .status-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(140deg, rgba(94, 249, 180, 0.12), transparent 55%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .status-card__icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(94, 249, 180, 0.1);
+      border: 1px solid rgba(94, 249, 180, 0.3);
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+
+    .status-card__label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .status-card__value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-high);
+    }
+
+    .status-card__meta {
+      font-size: 0.9rem;
+      color: var(--text-med);
+      margin: 0;
+    }
+
+    .status-card__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+      color: var(--text-med);
+      font-size: 0.88rem;
+    }
+
+    .status-card__list li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .status-card__list i {
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .progress-meter {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .progress-meter__bar {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(135deg, var(--accent), rgba(94, 249, 180, 0.4));
+    }
+
+    .status-card.status-card--accent {
+      border-color: rgba(94, 249, 180, 0.4);
+      box-shadow: var(--shadow-soft), var(--highlight-glow-strong);
+    }
+
+    .timeline-wrapper {
+      display: grid;
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 26px;
+      padding-left: 0;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 16px;
+      bottom: 16px;
+      left: 28px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline__item {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 22px 24px 24px 74px;
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline__item::before {
+      content: "";
+      position: absolute;
+      left: 22px;
+      top: 28px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(94, 249, 180, 0.6);
+      background: var(--page-bg);
+      box-shadow: 0 0 0 4px rgba(94, 249, 180, 0.18);
+    }
+
+    .timeline__item--complete::before,
+    .timeline__item--active::before {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .timeline__item--active {
+      border-color: rgba(94, 249, 180, 0.28);
+      box-shadow: var(--tile-glow-hover);
+    }
+
+    .timeline__label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .timeline__title {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .timeline__meta {
+      color: var(--text-med);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .timeline__tasks {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+      color: var(--text-med);
+      font-size: 0.9rem;
+    }
+
+    .timeline__tasks li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .timeline__tasks i {
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .alignment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 28px;
+    }
+
+    .alignment-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .alignment-card h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .alignment-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+      color: var(--text-med);
+      font-size: 0.9rem;
+    }
+
+    .alignment-card li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .alignment-card li i {
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .resource-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .resource-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(94, 249, 180, 0.28);
+      background: rgba(94, 249, 180, 0.12);
+      color: var(--text-high);
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    .resource-links a i {
       color: var(--accent);
     }
 
@@ -89,8 +381,38 @@
       margin-top: 4px;
     }
 
-    .hero__visual-image + .hero__visual-image {
-      margin-top: 16px;
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .insight-card span {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .insight-card h3 {
+      margin: 0;
+      font-size: 1.06rem;
+    }
+
+    .insight-card p {
+      margin: 0;
     }
 
     .cost-overview {
@@ -142,10 +464,31 @@
       font-size: 1.5rem;
     }
 
+    @media (max-width: 820px) {
+      .timeline::before {
+        left: 24px;
+      }
+
+      .timeline__item {
+        padding-left: 68px;
+      }
+
+      .timeline__item::before {
+        left: 18px;
+      }
+    }
+
     @media (max-width: 640px) {
       .subnav {
         flex-direction: column;
         align-items: flex-start;
+      }
+
+      .status-grid,
+      .alignment-grid,
+      .insight-grid,
+      .process-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -171,16 +514,16 @@
     <section class="container hero product-hero">
       <div class="hero__content">
         <span class="eyebrow">Cooling architecture</span>
-        <h1>Complete Breakdown: Cooling System for the Magnetic Inertia Platform</h1>
+        <h1>Cooling System Execution Tracker for the Magnetic Inertia Platform</h1>
         <p>
-          A field-ready thermal management program engineered to protect high-density magnetic inertia flywheel modules.
-          This playbook aligns procurement, assembly, and validation so your deployment team can deliver reliable cooling
-          performance under peak load conditions.
+          A program-level dashboard that keeps hardware, procurement, and commissioning teams synchronized as the
+          dual-loop cooling stack comes online. Follow the schedule, understand the risk posture, and accelerate the
+          transition from validation to round-the-clock operation.
         </p>
         <div class="subnav" aria-label="Page context">
-          <span><i class="fa-solid fa-snowflake"></i> Liquid loop with dual radiators</span>
-          <span><i class="fa-solid fa-gauge-high"></i> Rated for 500 L/h circulation</span>
-          <span><i class="fa-solid fa-shield"></i> Redundant leak &amp; thermal checks</span>
+          <span><i class="fa-solid fa-circle-play"></i> Phase 05 &mdash; Tubing integration</span>
+          <span><i class="fa-solid fa-percent"></i> 72% overall completion</span>
+          <span><i class="fa-solid fa-person-chalkboard"></i> Next design review: 28 Mar 2024</span>
         </div>
         <div class="hero__actions">
           <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Engage engineering support</a>
@@ -188,16 +531,16 @@
         </div>
         <div class="hero__stats">
           <div class="stat-card">
-            <h3>667</h3>
-            <p>Precision-machined cooling plates staged per platform</p>
+            <h3>4</h3>
+            <p>Active workstreams across mechanics, fluids, QA, and controls</p>
           </div>
           <div class="stat-card">
-            <h3>500 L/h</h3>
-            <p>High-flow circulation across dual loops for core &amp; buffer zones</p>
+            <h3>0</h3>
+            <p>Critical blockers following plate fit-up validation</p>
           </div>
           <div class="stat-card">
-            <h3>24/7</h3>
-            <p>Continuous thermal monitoring pathway for mission-critical uptime</p>
+            <h3>96 hrs</h3>
+            <p>Forecast to dual-loop circulation readiness</p>
           </div>
         </div>
       </div>
@@ -213,7 +556,7 @@
             alt="High-density cooling manifold array prepared for installation"
             class="hero__visual-image"
           />
-          <figcaption class="product-hero__caption">Dual-loop piping layout staged for rapid integration with manifold assembly detail.</figcaption>
+          <figcaption class="product-hero__caption">Dual-loop piping layout staged for rapid integration with manifold assembly.</figcaption>
         </figure>
         <div class="hero__visual-list">
           <h3>Program anchors</h3>
@@ -224,6 +567,56 @@
             <li><i class="fa-solid fa-clipboard-check"></i>Commissioning scripts for leak and load testing</li>
           </ul>
         </div>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight program-health">
+      <span class="eyebrow">Program health</span>
+      <h2 class="section-title">Where the cooling deployment stands today</h2>
+      <p class="section-subtitle">
+        Track project health at a glance. These live metrics ground coordination calls and executive reviews in the same
+        performance narrative across engineering, manufacturing, and operations.
+      </p>
+      <div class="status-grid">
+        <article class="status-card status-card--accent">
+          <span class="status-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-play"></i></span>
+          <div>
+            <span class="status-card__label">Current phase</span>
+            <div class="status-card__value">Phase 05 &mdash; Tubing integration</div>
+          </div>
+          <p class="status-card__meta">Feedstock validated, routing jigs locked, technicians cleared for install.</p>
+        </article>
+        <article class="status-card">
+          <span class="status-card__icon" aria-hidden="true"><i class="fa-solid fa-percent"></i></span>
+          <div>
+            <span class="status-card__label">Completion index</span>
+            <div class="status-card__value">72% overall</div>
+            <div class="progress-meter" role="presentation">
+              <span class="progress-meter__bar" style="width: 72%" aria-hidden="true"></span>
+            </div>
+          </div>
+          <p class="status-card__meta">Remaining scope: pump deployment, fan integration, leak validation cycle.</p>
+        </article>
+        <article class="status-card">
+          <span class="status-card__icon" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span>
+          <div>
+            <span class="status-card__label">Next review</span>
+            <div class="status-card__value">28 Mar 2024</div>
+          </div>
+          <p class="status-card__meta">Joint QA checkpoint covering instrumentation calibration and coolant quality.</p>
+        </article>
+        <article class="status-card">
+          <span class="status-card__icon" aria-hidden="true"><i class="fa-solid fa-shield-heart"></i></span>
+          <div>
+            <span class="status-card__label">Risk posture</span>
+            <div class="status-card__value">Low &middot; Mitigated</div>
+          </div>
+          <ul class="status-card__list">
+            <li><i class="fa-solid fa-circle-check"></i><span>Redundant leak tests staged for each circuit.</span></li>
+            <li><i class="fa-solid fa-circle-check"></i><span>Spare pumps and PWM controllers on deck.</span></li>
+            <li><i class="fa-solid fa-circle-check"></i><span>Thermal analytics tuned to 0.5&deg;C tolerance.</span></li>
+          </ul>
+        </article>
       </div>
     </section>
 
@@ -285,11 +678,91 @@
     </section>
 
     <section class="container page-section page-section--tight">
+      <span class="eyebrow">Milestone timeline</span>
+      <h2 class="section-title">Delivery milestones and operational checkpoints</h2>
+      <p class="section-subtitle">
+        A transparent cadence for every stakeholder: what just cleared, what is happening now, and what unlocks the final
+        sign-off.
+      </p>
+      <div class="timeline-wrapper">
+        <div class="timeline" aria-label="Cooling deployment timeline">
+          <article class="timeline__item timeline__item--complete">
+            <span class="timeline__label">Weeks 1-2</span>
+            <h3 class="timeline__title">Design, planning &amp; sourcing</h3>
+            <p class="timeline__meta">Blueprint approvals, long-lead procurement, and logistics scheduling completed.</p>
+            <ul class="timeline__tasks">
+              <li><i class="fa-solid fa-circle-check"></i><span>Digital twin finalized with tolerances locked.</span></li>
+              <li><i class="fa-solid fa-circle-check"></i><span>Vendor POs issued; kitting initiated.</span></li>
+            </ul>
+          </article>
+          <article class="timeline__item timeline__item--complete">
+            <span class="timeline__label">Weeks 3-4</span>
+            <h3 class="timeline__title">Plate prep &amp; installation</h3>
+            <p class="timeline__meta">Module stacks staged and thermal pad inventory confirmed against BOM.</p>
+            <ul class="timeline__tasks">
+              <li><i class="fa-solid fa-circle-check"></i><span>Fit-up QA complete on all 667 plates.</span></li>
+              <li><i class="fa-solid fa-circle-check"></i><span>Thermal pad lamination under clean-room controls.</span></li>
+            </ul>
+          </article>
+          <article class="timeline__item timeline__item--active">
+            <span class="timeline__label">Week 5</span>
+            <h3 class="timeline__title">Tubing integration &amp; routing</h3>
+            <p class="timeline__meta">Technicians are routing and sealing dual loops with live telemetry from the controls lab.</p>
+            <ul class="timeline__tasks">
+              <li><i class="fa-solid fa-screwdriver-wrench"></i><span>Compression fittings torqued to 14&nbsp;N&middot;m spec.</span></li>
+              <li><i class="fa-solid fa-wave-square"></i><span>Flow simulation cross-check with CFD baseline.</span></li>
+            </ul>
+          </article>
+          <article class="timeline__item">
+            <span class="timeline__label">Week 6</span>
+            <h3 class="timeline__title">Pumps, fans &amp; validation</h3>
+            <p class="timeline__meta">Loop fill, leak tests, and 24-hour thermal soak drive final acceptance testing.</p>
+            <ul class="timeline__tasks">
+              <li><i class="fa-solid fa-gauge-high"></i><span>Dual pump redundancy and sensor calibration.</span></li>
+              <li><i class="fa-solid fa-clipboard-check"></i><span>Commissioning script for performance verification.</span></li>
+            </ul>
+          </article>
+        </div>
+        <div>
+          <h3>Communication cadence</h3>
+          <div class="alignment-grid">
+            <article class="alignment-card">
+              <h3><i class="fa-solid fa-people-group"></i> Daily stand-up</h3>
+              <ul>
+                <li><i class="fa-solid fa-check"></i><span>15-minute sync across mechanical and controls squads.</span></li>
+                <li><i class="fa-solid fa-check"></i><span>Immediate escalation channel via secure Telegram.</span></li>
+              </ul>
+            </article>
+            <article class="alignment-card">
+              <h3><i class="fa-solid fa-chart-line"></i> Weekly executive brief</h3>
+              <ul>
+                <li><i class="fa-solid fa-check"></i><span>Snapshot of burn, risks, and mitigation posture.</span></li>
+                <li><i class="fa-solid fa-check"></i><span>Includes CFD vs. live telemetry delta reporting.</span></li>
+              </ul>
+            </article>
+            <article class="alignment-card">
+              <h3><i class="fa-solid fa-shield-halved"></i> QA sign-off pack</h3>
+              <ul>
+                <li><i class="fa-solid fa-check"></i><span>Leak logs, flow curves, and thermal soak evidence.</span></li>
+                <li><i class="fa-solid fa-check"></i><span>Delivered 48 hours before certification review.</span></li>
+              </ul>
+            </article>
+          </div>
+          <div class="resource-links" aria-label="Reference downloads">
+            <a href="magnetic-stripe-checkout.html"><i class="fa-solid fa-file-lines"></i>Cooling SOP (v2)</a>
+            <a href="fullexperience.html#technology"><i class="fa-solid fa-diagram-project"></i>System architecture</a>
+            <a href="mailto:ioncoreenergy@gmail.com"><i class="fa-solid fa-message"></i>Request integration support</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
       <span class="eyebrow">Deployment framework</span>
       <h2 class="section-title">Nine-phase assembly and validation sequence</h2>
       <p class="section-subtitle">
-        Guide technical teams from blueprint creation to operational sign-off. Each card highlights primary tasks, tooling
-        requirements, and tangible deliverables for stakeholder review.
+        Guide technical teams from blueprint creation to operational sign-off. Each card highlights primary tasks,
+        tooling requirements, and tangible deliverables for stakeholder review.
       </p>
       <div class="process-grid">
         <article class="process-card" data-step="Phase 01">
@@ -368,6 +841,36 @@
     </section>
 
     <section class="container page-section page-section--tight">
+      <span class="eyebrow">Instrumentation</span>
+      <h2 class="section-title">Telemetry, compliance, and readiness gates</h2>
+      <p class="section-subtitle">
+        Assurance measures that keep the Magnetic Inertia platform compliant and data-rich from the first revolution.
+      </p>
+      <div class="insight-grid">
+        <article class="insight-card">
+          <span>Telemetry</span>
+          <h3>Sensor fusion</h3>
+          <p>18 thermistors and dual flow meters stream into the Ioncore analytics fabric with 2-second latency.</p>
+        </article>
+        <article class="insight-card">
+          <span>Quality</span>
+          <h3>Leak integrity</h3>
+          <p>Pressure decay test at 1.4 bar sustained for 30 minutes prior to charge-and-bleed sequence.</p>
+        </article>
+        <article class="insight-card">
+          <span>Controls</span>
+          <h3>Adaptive tuning</h3>
+          <p>Closed-loop PID parameters pushed over-the-air from the commissioning console during thermal soak.</p>
+        </article>
+        <article class="insight-card">
+          <span>Readiness</span>
+          <h3>Site handover</h3>
+          <p>Operations receives a redline package and 24-hour response commitment post-acceptance test.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section page-section--tight">
       <span class="eyebrow">Financial outline</span>
       <h2 class="section-title">Investment snapshot for a full system build</h2>
       <p class="section-subtitle">
@@ -410,9 +913,9 @@
       <div class="callout-card">
         <h3>Mission-ready conclusion</h3>
         <p>
-          Executing this cooling roadmap equips every magnetic inertia installation with resilient thermal protection. From
-          blueprint validation to leak-free commissioning, the Ioncore methodology keeps your energy platform performant,
-          scalable, and safeguarded for long-term operation.
+          Executing this cooling roadmap equips every magnetic inertia installation with resilient thermal protection.
+          From blueprint validation to leak-free commissioning, the Ioncore methodology keeps your energy platform
+          performant, scalable, and safeguarded for long-term operation.
         </p>
         <div class="hero__actions">
           <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a design review</a>
@@ -431,7 +934,8 @@
             <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
           </a>
           <p>
-            Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic innovations.
+            Access, compare, and deploy Ioncore’s full library of magnetic inertia, hybrid storage, and cryogenic
+            innovations.
           </p>
         </div>
         <div class="footer-col">

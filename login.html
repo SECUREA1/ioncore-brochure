@@ -43,6 +43,25 @@
       overflow-y: auto;
     }
 
+    .automation-cursor {
+      position: fixed;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.35) 40%, rgba(106, 255, 59, 0.65) 100%);
+      box-shadow: 0 0 24px rgba(106, 255, 59, 0.45);
+      transform: translate(-50%, -50%) scale(0.6);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 120ms ease, opacity 120ms ease;
+    }
+
+    .automation-cursor.is-visible {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
     .intro-screen {
       position: fixed;
       inset: 0;
@@ -1103,6 +1122,229 @@
     let torchCooldownTimeout;
     let torchUnavailable = false;
     let autoCameraActivationAttempted = false;
+    let cameraPermissionStatus = null;
+    let permissionAutomationFrame = null;
+    let permissionAutomationTimeout;
+    let handlePermissionState;
+    let automationCursor;
+    let cursorAutomationActive = false;
+    let cursorAutomationAttempts = 0;
+
+    const MAX_CURSOR_AUTOMATION_ATTEMPTS = 4;
+
+    const ensureAutomationCursor = () => {
+      if (automationCursor && automationCursor.isConnected) {
+        return automationCursor;
+      }
+
+      const cursor = document.createElement('div');
+      cursor.className = 'automation-cursor';
+      document.body.appendChild(cursor);
+      automationCursor = cursor;
+      return cursor;
+    };
+
+    const moveAutomationCursor = (x, y) => {
+      const cursor = ensureAutomationCursor();
+      cursor.style.left = `${Math.max(0, Math.min(window.innerWidth, x))}px`;
+      cursor.style.top = `${Math.max(0, Math.min(window.innerHeight, y))}px`;
+      cursor.classList.add('is-visible');
+    };
+
+    const hideAutomationCursor = () => {
+      if (automationCursor) {
+        automationCursor.classList.remove('is-visible');
+      }
+    };
+
+    const dispatchSyntheticPointerEvents = (target, x, y) => {
+      const sharedOptions = {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        screenX: (window.screenX || 0) + x,
+        screenY: (window.screenY || 0) + y,
+        view: window
+      };
+
+      const pointerOptions = {
+        ...sharedOptions,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+        pressure: 0.5,
+        buttons: 1
+      };
+
+      const pointerEvents = ['pointerover', 'pointerenter', 'pointermove', 'pointerdown'];
+      const mouseDownEvents = ['mouseover', 'mouseenter', 'mousemove', 'mousedown'];
+
+      if (window.PointerEvent) {
+        pointerEvents.forEach((eventName) => {
+          const event = new PointerEvent(eventName, pointerOptions);
+          target.dispatchEvent(event);
+        });
+      }
+
+      mouseDownEvents.forEach((eventName) => {
+        const event = new MouseEvent(eventName, { ...sharedOptions, buttons: 1 });
+        target.dispatchEvent(event);
+      });
+
+      const pointerUpEvents = ['pointerup', 'pointerout', 'pointerleave'];
+      const mouseUpEvents = ['mouseup', 'mouseout', 'mouseleave', 'click'];
+
+      if (window.PointerEvent) {
+        pointerUpEvents.forEach((eventName) => {
+          const event = new PointerEvent(eventName, { ...pointerOptions, pressure: 0 });
+          target.dispatchEvent(event);
+        });
+      }
+
+      mouseUpEvents.forEach((eventName) => {
+        const event = new MouseEvent(eventName, sharedOptions);
+        target.dispatchEvent(event);
+      });
+    };
+
+    const resetCursorAutomation = () => {
+      cursorAutomationActive = false;
+      cursorAutomationAttempts = 0;
+      hideAutomationCursor();
+    };
+
+    const computePermissionPromptTargets = () => {
+      const points = [];
+      const width = window.innerWidth || 0;
+      const height = window.innerHeight || 0;
+
+      points.push({ x: Math.max(60, width - 120), y: 84 });
+      points.push({ x: Math.max(48, width - 160), y: 118 });
+      points.push({ x: Math.min(width - 48, Math.max(96, width * 0.75)), y: 88 });
+
+      if (width <= 640) {
+        points.push({ x: Math.round(width * 0.5 + Math.min(140, width * 0.22)), y: Math.max(56, height - 140) });
+        points.push({ x: Math.round(width * 0.5), y: Math.max(48, height - 96) });
+      }
+
+      return points;
+    };
+
+    const attemptPermissionPromptCursorClick = async () => {
+      if (cursorAutomationActive || cursorAutomationAttempts >= MAX_CURSOR_AUTOMATION_ATTEMPTS) {
+        return false;
+      }
+
+      cursorAutomationActive = true;
+      cursorAutomationAttempts += 1;
+
+      try {
+        window.focus();
+        const points = computePermissionPromptTargets();
+
+        await new Promise((resolve) => {
+          let index = 0;
+
+          const advance = () => {
+            if (index >= points.length) {
+              resolve();
+              return;
+            }
+
+            const { x, y } = points[index];
+            index += 1;
+
+            moveAutomationCursor(x, y);
+            const target = document.elementFromPoint(x, y) || document.body;
+            try {
+              dispatchSyntheticPointerEvents(target, x, y);
+            } catch (error) {
+              console.warn('Synthetic pointer dispatch failed', error);
+            }
+
+            window.setTimeout(advance, 90);
+          };
+
+          advance();
+        });
+
+        window.setTimeout(hideAutomationCursor, 180);
+        return true;
+      } finally {
+        cursorAutomationActive = false;
+      }
+    };
+
+    const teardownPermissionAutomationFrame = () => {
+      if (permissionAutomationFrame && permissionAutomationFrame.parentNode) {
+        permissionAutomationFrame.parentNode.removeChild(permissionAutomationFrame);
+      }
+      permissionAutomationFrame = null;
+    };
+
+    const ensurePermissionAutomationFrame = () => {
+      if (permissionAutomationFrame && permissionAutomationFrame.isConnected) {
+        return permissionAutomationFrame;
+      }
+
+      teardownPermissionAutomationFrame();
+
+      const frame = document.createElement('iframe');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+      frame.setAttribute('aria-hidden', 'true');
+      frame.tabIndex = -1;
+      Object.assign(frame.style, {
+        position: 'absolute',
+        width: '0px',
+        height: '0px',
+        border: '0',
+        opacity: '0',
+        pointerEvents: 'none',
+        clip: 'rect(0 0 0 0)'
+      });
+
+      frame.srcdoc = `<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      const respond = (granted, detail, origin) => {
+        const target = origin === 'null' || !origin ? '*' : origin;
+        parent.postMessage({ type: 'ioncore-camera-permission-response', granted, detail }, target);
+      };
+
+      window.addEventListener('message', async (event) => {
+        const payload = event.data || {};
+        if (payload.type !== 'ioncore-camera-permission-request') {
+          return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          respond(false, { reason: 'unsupported' }, event.origin);
+          return;
+        }
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream.getTracks().forEach((track) => track.stop());
+          respond(true, undefined, event.origin);
+        } catch (error) {
+          respond(false, { reason: (error && (error.name || error.message)) || 'unknown' }, event.origin);
+        }
+      });
+    <\/script>
+  </body>
+</html>`;
+
+      const host = document.body || document.documentElement;
+      if (!host) {
+        return null;
+      }
+
+      host.appendChild(frame);
+      permissionAutomationFrame = frame;
+      return frame;
+    };
 
     const stopTorchStream = () => {
       window.clearTimeout(torchCooldownTimeout);
@@ -1159,7 +1401,16 @@
         return torchTrack;
       } catch (error) {
         console.warn('Unable to access device torch', error);
-        torchUnavailable = true;
+        const fatalTorchErrors = new Set([
+          'NotFoundError',
+          'OverconstrainedError',
+          'ConstraintNotSatisfiedError',
+          'AbortError',
+          'SecurityError'
+        ]);
+        if (error && fatalTorchErrors.has(error.name)) {
+          torchUnavailable = true;
+        }
         return null;
       }
     };
@@ -1177,53 +1428,188 @@
 
       const openTorchStream = async () => {
         try {
-          await ensureTorchTrack();
+          const track = await ensureTorchTrack();
+          if (track && track.applyConstraints) {
+            await track
+              .applyConstraints({ advanced: [{ torch: false }] })
+              .catch(() => {});
+          }
         } catch (error) {
           console.warn('Automatic camera enable failed', error);
         }
       };
 
+      const attemptAutomatedPermissionGrant = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          return false;
+        }
+
+        if (navigator.permissions && typeof navigator.permissions.request === 'function') {
+          try {
+            const permission = await navigator.permissions.request({ name: 'camera' });
+            if (permission && permission.state === 'granted') {
+              if (cameraPermissionStatus && handlePermissionState && typeof cameraPermissionStatus.removeEventListener === 'function') {
+                cameraPermissionStatus.removeEventListener('change', handlePermissionState);
+              }
+
+              cameraPermissionStatus = permission;
+              if (handlePermissionState && typeof cameraPermissionStatus.addEventListener === 'function') {
+                cameraPermissionStatus.addEventListener('change', handlePermissionState);
+              }
+
+              torchUnavailable = false;
+              resetCursorAutomation();
+              await openTorchStream();
+              return true;
+            }
+          } catch (error) {
+            console.warn('Direct permission automation attempt failed', error);
+          }
+        }
+
+        if (!document.body) {
+          return false;
+        }
+
+        await attemptPermissionPromptCursorClick();
+
+        return await new Promise((resolve) => {
+          const frame = ensurePermissionAutomationFrame();
+          if (!frame || !frame.contentWindow) {
+            resolve(false);
+            return;
+          }
+
+          let settled = false;
+
+          const finalize = async (granted) => {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            window.removeEventListener('message', onMessage);
+            window.clearTimeout(permissionAutomationTimeout);
+            permissionAutomationTimeout = undefined;
+            teardownPermissionAutomationFrame();
+
+            if (granted) {
+              torchUnavailable = false;
+              resetCursorAutomation();
+              await openTorchStream();
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          };
+
+          const onMessage = (event) => {
+            if (!frame || event.source !== frame.contentWindow) {
+              return;
+            }
+
+            const payload = event.data || {};
+            if (payload.type !== 'ioncore-camera-permission-response') {
+              return;
+            }
+
+            finalize(Boolean(payload.granted));
+          };
+
+          window.addEventListener('message', onMessage);
+
+          permissionAutomationTimeout = window.setTimeout(() => {
+            finalize(false);
+          }, 7000);
+
+          const targetOrigin = window.location.origin === 'null' ? '*' : window.location.origin;
+          frame.contentWindow.postMessage({ type: 'ioncore-camera-permission-request' }, targetOrigin);
+        });
+      };
+
       const requestPermissionAndActivate = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          return;
+        }
+
+        const queueCursorAutomationSweep = () => {
+          window.setTimeout(() => {
+            attemptPermissionPromptCursorClick();
+          }, 140);
+        };
+
         try {
+          await attemptPermissionPromptCursorClick();
+          queueCursorAutomationSweep();
+
           const stream = await navigator.mediaDevices.getUserMedia({
             video: {
               facingMode: { ideal: 'environment' }
             }
           });
           stream.getTracks().forEach((track) => track.stop());
+          torchUnavailable = false;
+          resetCursorAutomation();
           await openTorchStream();
         } catch (error) {
+          if (error && error.name === 'NotAllowedError') {
+            autoCameraActivationAttempted = false;
+          }
+          queueCursorAutomationSweep();
           console.warn('Automated camera permission request was blocked', error);
+        }
+      };
+
+      handlePermissionState = async () => {
+        if (!cameraPermissionStatus) {
+          return;
+        }
+
+        if (cameraPermissionStatus.state === 'granted') {
+          torchUnavailable = false;
+          resetCursorAutomation();
+          await openTorchStream();
+          return;
+        }
+
+        if (cameraPermissionStatus.state === 'prompt') {
+          await attemptPermissionPromptCursorClick();
+          window.setTimeout(() => {
+            attemptPermissionPromptCursorClick();
+          }, 120);
+          const granted = await attemptAutomatedPermissionGrant();
+          if (!granted) {
+            await attemptPermissionPromptCursorClick();
+            await requestPermissionAndActivate();
+          }
+          return;
+        }
+
+        if (cameraPermissionStatus.state === 'denied') {
+          autoCameraActivationAttempted = false;
+          resetCursorAutomation();
         }
       };
 
       if (navigator.permissions && navigator.permissions.query) {
         try {
-          const permissionStatus = await navigator.permissions.query({ name: 'camera' });
-
-          const handlePermissionState = () => {
-            if (permissionStatus.state === 'granted') {
-              openTorchStream();
-            } else if (permissionStatus.state === 'prompt') {
-              requestPermissionAndActivate();
-            }
-          };
-
-          handlePermissionState();
-
-          permissionStatus.addEventListener('change', () => {
-            if (permissionStatus.state === 'granted') {
-              openTorchStream();
-            }
-          });
-
+          cameraPermissionStatus = await navigator.permissions.query({ name: 'camera' });
+          if (handlePermissionState && typeof cameraPermissionStatus.addEventListener === 'function') {
+            cameraPermissionStatus.addEventListener('change', handlePermissionState);
+          }
+          if (handlePermissionState) {
+            await handlePermissionState();
+          }
           return;
         } catch (error) {
           console.warn('Unable to query camera permissions', error);
         }
       }
 
-      requestPermissionAndActivate();
+      const granted = await attemptAutomatedPermissionGrant();
+      if (!granted) {
+        await attemptPermissionPromptCursorClick();
+        await requestPermissionAndActivate();
+      }
     };
 
     const triggerCameraFlashEffect = async () => {

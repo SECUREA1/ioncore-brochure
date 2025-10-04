@@ -62,6 +62,15 @@ NFT_GATE_SOLANA_RPC = os.getenv(
 NFT_GATE_WALLET_CHAIN = os.getenv("NFT_GATE_WALLET_CHAIN")
 
 
+class NFTGateError(Exception):
+    """Raised when NFT gate verification fails in a recoverable way."""
+
+    def __init__(self, title: str, message: str) -> None:
+        super().__init__(message)
+        self.title = title
+        self.message = message
+
+
 class _WalletConnectServer:
     """Serve a lightweight wallet-connect bridge for browser wallets."""
 
@@ -530,57 +539,73 @@ def _verify_solana_wallet(address: str) -> bool:
     return bool(value)
 
 
-def enforce_nft_gate() -> None:
+def _handle_gate_error(title: str, message: str, fatal: bool) -> None:
+    if fatal:
+        _fatal_messagebox(title, message)
+        sys.exit(1)
+    raise NFTGateError(title, message)
+
+
+def enforce_nft_gate(
+    wallet_info: Optional[Dict[str, str]] = None,
+    *,
+    fatal: bool = True,
+) -> Optional[Dict[str, str]]:
     """Ensure the user holds the required NFT before continuing."""
     if not NFT_GATE_ENABLED:
         logger.info("NFT gate disabled via NFT_GATE_ENABLED environment flag.")
-        return
+        return None
 
     if not NFT_GATE_CONTRACT and not NFT_GATE_SOLANA_MINT:
         logger.warning(
             "NFT gate misconfigured. Missing contract/mint configuration. Proceeding without enforcement."
         )
-        return
+        return None
 
     if NFT_GATE_CONTRACT and not NFT_GATE_API_KEY:
         logger.warning(
             "NFT gate misconfigured. Missing NFT_GATE_ALCHEMY_API_KEY. Proceeding without NFT enforcement."
         )
-        return
+        return None
 
-    wallet_env = os.getenv("NFT_GATE_WALLET_ADDRESS")
-    if wallet_env:
-        wallet_info = {
-            "address": wallet_env.strip(),
-            "chain": (NFT_GATE_WALLET_CHAIN or NFT_GATE_CHAIN_DEFAULT or "evm"),
-        }
-    else:
-        wallet_info = _prompt_wallet_address()
+    if wallet_info is None:
+        wallet_env = os.getenv("NFT_GATE_WALLET_ADDRESS")
+        if wallet_env:
+            wallet_info = {
+                "address": wallet_env.strip(),
+                "chain": (NFT_GATE_WALLET_CHAIN or NFT_GATE_CHAIN_DEFAULT or "evm"),
+            }
+        else:
+            wallet_info = _prompt_wallet_address()
 
     if not wallet_info or not wallet_info.get("address"):
-        _fatal_messagebox(
+        _handle_gate_error(
             "NFT Access Denied",
             "A wallet address is required to verify NFT ownership.",
+            fatal,
         )
-        sys.exit(1)
+        return None
 
     wallet_address = wallet_info.get("address", "").strip()
     wallet_chain = (wallet_info.get("chain") or NFT_GATE_CHAIN_DEFAULT or "evm").lower()
     if wallet_chain not in {"evm", "solana"}:
         wallet_chain = "evm"
+        wallet_info["chain"] = wallet_chain
 
     if wallet_chain == "solana" and not NFT_GATE_SOLANA_MINT:
-        _fatal_messagebox(
+        _handle_gate_error(
             "NFT Verification Error",
             "Solana wallet selected but NFT_GATE_SOLANA_MINT_ADDRESS is not configured.",
+            fatal,
         )
-        sys.exit(1)
+        return None
     if wallet_chain == "evm" and not NFT_GATE_CONTRACT:
-        _fatal_messagebox(
+        _handle_gate_error(
             "NFT Verification Error",
             "EVM wallet selected but NFT_GATE_CONTRACT_ADDRESS is not configured.",
+            fatal,
         )
-        sys.exit(1)
+        return None
 
     try:
         if wallet_chain == "solana":
@@ -590,20 +615,22 @@ def enforce_nft_gate() -> None:
             has_access = _verify_evm_wallet(wallet_address)
             contract_display = NFT_GATE_CONTRACT or "specified contract"
     except requests.RequestException as exc:
-        _fatal_messagebox(
+        _handle_gate_error(
             "NFT Verification Error",
             f"Unable to verify token ownership due to a network/API error: {exc}",
+            fatal,
         )
-        sys.exit(1)
+        return None
     except ValueError:
-        _fatal_messagebox(
+        _handle_gate_error(
             "NFT Verification Error",
             "Received an unexpected response from the verification endpoint.",
+            fatal,
         )
-        sys.exit(1)
+        return None
     except RuntimeError as exc:
-        _fatal_messagebox("NFT Verification Error", str(exc))
-        sys.exit(1)
+        _handle_gate_error("NFT Verification Error", str(exc), fatal)
+        return None
 
     if has_access:
         logger.info(
@@ -611,9 +638,9 @@ def enforce_nft_gate() -> None:
             wallet_address,
             contract_display,
         )
-        return
+        return {"address": wallet_address, "chain": wallet_chain}
 
-    _fatal_messagebox(
+    _handle_gate_error(
         "NFT Access Denied",
         (
             "Wallet "
@@ -622,11 +649,9 @@ def enforce_nft_gate() -> None:
             + contract_display
             + ")."
         ),
+        fatal,
     )
-    sys.exit(1)
-
-
-enforce_nft_gate()
+    return None
 
 ############################
 # Login Gate Configuration
@@ -663,9 +688,12 @@ def run_login_gate() -> None:
     login_root.resizable(False, False)
     _center_window_on_screen(login_root, 520, 640)
 
+    connector = _WalletConnectServer()
+
     # Allow quitting from the login dialog to exit the application entirely.
     def _abort() -> None:
         try:
+            connector.stop()
             login_root.destroy()
         finally:
             sys.exit(0)
@@ -758,12 +786,32 @@ def run_login_gate() -> None:
     )
     tagline.pack(anchor="w")
 
-    form = tk.Frame(card, bg="#0b1627")
-    form.pack(fill="x", pady=(12, 4))
-
+    mode_var = tk.StringVar(value="credentials")
     username_var = tk.StringVar()
     password_var = tk.StringVar()
-    status_var = tk.StringVar()
+    status_var = tk.StringVar(value="Awaiting clearance verification.")
+    wallet_address_var = tk.StringVar()
+    wallet_chain_var = tk.StringVar(value=NFT_GATE_CHAIN_DEFAULT or "evm")
+    wallet_status_var = tk.StringVar(
+        value="No wallet connected. Use Connect Wallet or paste an address manually."
+    )
+
+    toggle_frame = tk.Frame(card, bg="#0b1627")
+    toggle_frame.pack(fill="x", pady=(12, 8))
+
+    tk.Label(
+        toggle_frame,
+        text="Authentication Method",
+        font=("Montserrat", 10, "bold"),
+        fg="#48ffe2",
+        bg="#0b1627",
+    ).pack(anchor="w", pady=(0, 6))
+
+    toggle_buttons = tk.Frame(toggle_frame, bg="#0b1627")
+    toggle_buttons.pack(fill="x")
+
+    form = tk.Frame(card, bg="#0b1627")
+    wallet_frame = tk.Frame(card, bg="#0b1627")
 
     def _build_field(label_text: str, text_var: tk.StringVar, show: str = "") -> tk.Entry:
         field = tk.Frame(form, bg="#0b1627")
@@ -792,6 +840,159 @@ def run_login_gate() -> None:
 
     username_entry = _build_field("Access Key", username_var)
     password_entry = _build_field("Clearance Code", password_var, show="•")
+
+    wallet_intro = tk.Label(
+        wallet_frame,
+        text=(
+            "Connect via MetaMask/Phantom using the embedded bridge or manually paste a wallet "
+            "address. The selected network determines which NFT gate check will run."
+        ),
+        font=("Montserrat", 10),
+        fg="#cbd5f5",
+        bg="#0b1627",
+        wraplength=380,
+        justify=tk.LEFT,
+    )
+    wallet_intro.pack(fill="x", pady=(0, 12))
+
+    wallet_field = tk.Frame(wallet_frame, bg="#0b1627")
+    wallet_field.pack(fill="x", pady=(0, 10))
+
+    tk.Label(
+        wallet_field,
+        text="Wallet Address",
+        font=("Montserrat", 10, "bold"),
+        fg="#48ffe2",
+        bg="#0b1627",
+    ).pack(anchor="w")
+
+    wallet_entry = tk.Entry(
+        wallet_field,
+        textvariable=wallet_address_var,
+        font=("Montserrat", 12),
+        relief=tk.FLAT,
+        bg="#05070e",
+        fg="#e2f6ff",
+        insertbackground="#38bdf8",
+    )
+    wallet_entry.pack(fill="x", ipady=10, pady=(4, 12))
+    wallet_entry.configure(highlightthickness=1, highlightbackground="#1f3b5c", highlightcolor="#38bdf8")
+
+    tk.Label(
+        wallet_field,
+        text="Wallet Network",
+        font=("Montserrat", 10, "bold"),
+        fg="#48ffe2",
+        bg="#0b1627",
+    ).pack(anchor="w")
+
+    chain_options = [
+        ("Ethereum / EVM (MetaMask)", "evm"),
+        ("Solana (Phantom)", "solana"),
+    ]
+
+    wallet_chain_menu = ttk.Combobox(
+        wallet_field,
+        values=[label for label, _ in chain_options],
+        state="readonly",
+    )
+    wallet_chain_menu.pack(fill="x", pady=(4, 12))
+
+    def _sync_chain(event=None) -> None:
+        index = wallet_chain_menu.current()
+        if 0 <= index < len(chain_options):
+            wallet_chain_var.set(chain_options[index][1])
+
+    wallet_chain_menu.current(0 if (wallet_chain_var.get() or "evm") == "evm" else 1)
+    wallet_chain_menu.bind("<<ComboboxSelected>>", _sync_chain)
+    _sync_chain()
+
+    wallet_status_label = tk.Label(
+        wallet_frame,
+        textvariable=wallet_status_var,
+        font=("Montserrat", 9),
+        fg="#94a3b8",
+        bg="#12223a",
+        wraplength=380,
+        justify=tk.LEFT,
+        padx=12,
+        pady=10,
+    )
+    wallet_status_label.pack(fill="x", pady=(0, 12))
+
+    wallet_button_row = tk.Frame(wallet_frame, bg="#0b1627")
+    wallet_button_row.pack(fill="x")
+
+    def _poll_wallet() -> None:
+        info = connector.pop_wallet()
+        if info:
+            connector.stop()
+            wallet_address_var.set(info.get("address", ""))
+            chain = (info.get("chain") or "evm").lower()
+            if chain == "solana":
+                wallet_chain_menu.current(1)
+            else:
+                wallet_chain_menu.current(0)
+            _sync_chain()
+            wallet_status_var.set(f"Wallet connected: {info['address']}")
+            wallet_status_label.configure(fg="#6aff3b")
+        elif connector.is_running():
+            login_root.after(750, _poll_wallet)
+
+    def _connect_wallet() -> None:
+        try:
+            if connector.is_running():
+                connector.stop()
+            connector.start()
+            url = connector.url
+            if not url:
+                raise RuntimeError("Wallet bridge unavailable")
+            webbrowser.open(url)
+            wallet_status_var.set(
+                "Wallet bridge opened in your browser. Complete the connection to send the address back."
+            )
+            wallet_status_label.configure(fg="#94a3b8")
+            login_root.after(750, _poll_wallet)
+        except Exception as exc:
+            wallet_status_var.set(f"Unable to open wallet bridge: {exc}")
+            wallet_status_label.configure(fg="#ff4976")
+
+    def _clear_wallet() -> None:
+        connector.stop()
+        wallet_address_var.set("")
+        wallet_status_var.set("No wallet connected. Use Connect Wallet or paste an address manually.")
+        wallet_status_label.configure(fg="#94a3b8")
+
+    connect_button = tk.Button(
+        wallet_button_row,
+        text="Connect Wallet",
+        command=_connect_wallet,
+        font=("Montserrat", 11, "bold"),
+        bg="#22d3ee",
+        fg="#030712",
+        activebackground="#0ea5e9",
+        activeforeground="#f8fafc",
+        relief=tk.FLAT,
+        padx=12,
+        pady=8,
+        cursor="hand2",
+    )
+    connect_button.pack(side=tk.LEFT)
+
+    tk.Button(
+        wallet_button_row,
+        text="Clear",
+        command=_clear_wallet,
+        font=("Montserrat", 11, "bold"),
+        bg="#12223a",
+        fg="#e2f6ff",
+        activebackground="#1f3b5c",
+        activeforeground="#f8fafc",
+        relief=tk.FLAT,
+        padx=12,
+        pady=8,
+        cursor="hand2",
+    ).pack(side=tk.RIGHT)
 
     button = tk.Button(
         card,
@@ -838,7 +1039,93 @@ def run_login_gate() -> None:
         else:
             status_label.configure(fg="#94a3b8")
 
+    def _refresh_toggle() -> None:
+        cred_active = mode_var.get() == "credentials"
+        wallet_active = mode_var.get() == "wallet"
+        cred_button.configure(
+            bg="#48ffe2" if cred_active else "#12223a",
+            fg="#05070e" if cred_active else "#94a3b8",
+        )
+        wallet_button.configure(
+            bg="#38bdf8" if wallet_active else "#12223a",
+            fg="#05070e" if wallet_active else "#94a3b8",
+        )
+
+    def _set_mode(mode: str) -> None:
+        mode_var.set(mode)
+        form.pack_forget()
+        wallet_frame.pack_forget()
+        if mode == "credentials":
+            form.pack(fill="x", pady=(12, 4))
+            button.configure(text="Enter the Vault")
+            update_status("Awaiting clearance verification.")
+            username_entry.focus_set()
+        else:
+            wallet_frame.pack(fill="x", pady=(12, 4))
+            button.configure(text="Verify Wallet Access")
+            update_status("Connect a wallet that holds the required NFT access token.")
+            wallet_entry.focus_set()
+        _refresh_toggle()
+
+    cred_button = tk.Button(
+        toggle_buttons,
+        text="Credentials",
+        command=lambda: _set_mode("credentials"),
+        font=("Montserrat", 10, "bold"),
+        relief=tk.FLAT,
+        padx=12,
+        pady=8,
+        cursor="hand2",
+    )
+    cred_button.pack(side=tk.LEFT, expand=True, fill="x", padx=(0, 6))
+
+    wallet_button = tk.Button(
+        toggle_buttons,
+        text="Wallet Connect",
+        command=lambda: _set_mode("wallet"),
+        font=("Montserrat", 10, "bold"),
+        relief=tk.FLAT,
+        padx=12,
+        pady=8,
+        cursor="hand2",
+    )
+    wallet_button.pack(side=tk.LEFT, expand=True, fill="x", padx=(6, 0))
+
     def attempt_login(event=None) -> None:  # type: ignore[override]
+        mode = mode_var.get()
+        if mode == "wallet":
+            wallet_address = wallet_address_var.get().strip()
+            wallet_chain = (wallet_chain_var.get() or "evm").lower()
+            if not wallet_address:
+                update_status("Wallet address required for verification.", tone="error")
+                wallet_entry.focus_set()
+                return
+            update_status("Verifying wallet clearance…")
+            button.configure(state=tk.DISABLED, text="Verifying Wallet…")
+            try:
+                enforce_nft_gate({"address": wallet_address, "chain": wallet_chain}, fatal=False)
+            except NFTGateError as exc:
+                update_status(exc.message, tone="error")
+                messagebox.showerror(exc.title, exc.message)
+                button.configure(state=tk.NORMAL, text="Verify Wallet Access")
+                wallet_entry.focus_set()
+                return
+            except Exception as exc:  # Defensive catch for unexpected issues
+                update_status(f"Wallet verification failed: {exc}", tone="error")
+                button.configure(state=tk.NORMAL, text="Verify Wallet Access")
+                wallet_entry.focus_set()
+                return
+            update_status("Wallet verified. Opening vault…", tone="success")
+            button.configure(text="Opening Vault…")
+
+            def _finalize_wallet() -> None:
+                connector.stop()
+                login_root.quit()
+                login_root.destroy()
+
+            login_root.after(450, _finalize_wallet)
+            return
+
         username = username_var.get().strip()
         password = password_var.get()
         update_status("Decrypting clearance codes…")
@@ -848,6 +1135,7 @@ def run_login_gate() -> None:
             button.configure(text="Opening Vault…")
 
             def _finalize() -> None:
+                connector.stop()
                 login_root.quit()
                 login_root.destroy()
 
@@ -858,16 +1146,19 @@ def run_login_gate() -> None:
             password_entry.focus_set()
             button.configure(state=tk.NORMAL, text="Enter the Vault")
 
+    _set_mode("credentials")
+
     button.configure(command=attempt_login)
     login_root.bind("<Return>", attempt_login)
     login_root.bind("<Escape>", lambda event: _abort())
 
-    username_entry.focus_set()
-
     login_root.mainloop()
 
 
-run_login_gate()
+if LOGIN_GATE_ENABLED:
+    run_login_gate()
+else:
+    enforce_nft_gate()
 
 ############################
 # Configuration (defaults)

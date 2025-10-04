@@ -509,20 +509,100 @@
       aspect-ratio: 1 / 1;
       display: grid;
       place-items: center;
+      overflow: visible;
     }
 
-    .explosion-svg {
-      width: 100%;
-      height: auto;
-      filter: drop-shadow(0 0 24px rgba(255, 220, 128, 0.65));
-      animation: boom 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    .oops-svg {
+    .cartoon-bomb {
       position: absolute;
-      width: 56%;
+      top: 18%;
+      left: 50%;
+      width: clamp(70px, 26vw, 110px);
+      aspect-ratio: 1 / 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(15, 23, 42, 0.95));
+      box-shadow: inset -12px -18px 24px rgba(2, 6, 23, 0.85), 0 0 24px rgba(255, 180, 76, 0.35);
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 8px 22px rgba(255, 147, 56, 0.55));
+      animation: bomb-bob 1.2s ease-in-out infinite;
+    }
+
+    .cartoon-bomb::before {
+      content: "";
+      position: absolute;
+      top: -22%;
+      right: 22%;
+      width: 34%;
+      height: 34%;
+      border-radius: 45% 45% 35% 35%;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(148, 163, 184, 0.1));
+      border: 3px solid rgba(71, 85, 105, 0.45);
+      transform: rotate(-8deg);
+    }
+
+    .bomb-fuse {
+      position: absolute;
+      top: -28%;
+      right: 24%;
+      width: clamp(26px, 6vw, 38px);
+      height: clamp(40px, 8vw, 58px);
+      transform: rotate(18deg);
+      transform-origin: bottom left;
+    }
+
+    .bomb-fuse::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 60% 40% 60% 40%;
+      background: linear-gradient(120deg, rgba(148, 163, 184, 0.85), rgba(15, 23, 42, 0.95));
+    }
+
+    .bomb-fuse::after {
+      content: "";
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 237, 160, 1) 0%, rgba(255, 94, 94, 0.9) 55%, rgba(248, 113, 113, 0) 100%);
+      transform: translate(-50%, -30%);
+      animation: spark-pop 0.6s ease-in-out infinite;
+    }
+
+    .shatter-face {
+      width: 86%;
       height: auto;
-      animation: wobble 1.4s ease-in-out 0.1s forwards;
+    }
+
+    .face-base {
+      transform-origin: center;
+      animation: face-pop 1.35s ease-in-out forwards;
+      filter: drop-shadow(0 0 22px rgba(255, 246, 196, 0.4));
+    }
+
+    .face-piece {
+      transform-origin: center;
+      animation: piece-fly 1.4s cubic-bezier(0.36, 1.56, 0.38, 0.95) forwards;
+      animation-delay: var(--delay, 0s);
+      opacity: 0;
+      filter: drop-shadow(0 6px 16px rgba(15, 23, 42, 0.55));
+    }
+
+    .kaboom-text {
+      position: absolute;
+      top: 54%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(1.8rem, 7vw, 2.6rem);
+      letter-spacing: 0.18em;
+      font-weight: 800;
+      color: #ffec99;
+      text-shadow: 0 0 18px rgba(255, 180, 76, 0.75), 0 0 32px rgba(255, 88, 136, 0.55);
+      animation: kaboom-flash 1.1s ease-out forwards;
+      opacity: 0;
     }
 
     .failure-caption {
@@ -539,40 +619,83 @@
       transform: translateY(16px);
     }
 
-    @keyframes boom {
-      0% {
-        transform: scale(0.35) rotate(-12deg);
-        opacity: 0;
+    @keyframes bomb-bob {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
       }
-      45% {
+      50% {
+        transform: translate(-50%, calc(-50% - 8px)) scale(1.03);
+      }
+    }
+
+    @keyframes spark-pop {
+      0% {
+        transform: translate(-50%, -30%) scale(0.7);
+        opacity: 0.6;
+      }
+      50% {
+        transform: translate(-50%, -60%) scale(1.12);
         opacity: 1;
       }
-      60% {
-        transform: scale(1.1) rotate(8deg);
+      100% {
+        transform: translate(-50%, -30%) scale(0.65);
+        opacity: 0.2;
+      }
+    }
+
+    @keyframes face-pop {
+      0% {
+        transform: scale(0.85);
+        opacity: 0;
+      }
+      25% {
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      70% {
+        opacity: 0.4;
       }
       100% {
-        transform: scale(0.2) rotate(22deg);
+        transform: scale(0.4);
         opacity: 0;
       }
     }
 
-    @keyframes wobble {
+    @keyframes piece-fly {
       0% {
-        transform: translateY(-12px) rotate(-6deg) scale(0.8);
+        transform: translate(0, 0) rotate(0deg) scale(1);
         opacity: 0;
       }
-      40% {
+      15% {
         opacity: 1;
       }
       55% {
-        transform: translateY(6px) rotate(4deg) scale(1.05);
-      }
-      70% {
-        transform: translateY(-6px) rotate(-4deg) scale(1);
+        transform: translate(calc(var(--dx, 0px) * 0.65), calc(var(--dy, 0px) * 0.65)) rotate(calc(var(--dr, 0deg) * 0.6)) scale(1.05);
       }
       100% {
-        transform: translateY(0) rotate(0deg) scale(1);
-        opacity: 0.92;
+        transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--dr, 0deg)) scale(0.85);
+        opacity: 0;
+      }
+    }
+
+    @keyframes kaboom-flash {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7) rotate(-6deg);
+      }
+      35% {
+        opacity: 1;
+        transform: translate(-50%, -56%) scale(1.1) rotate(4deg);
+      }
+      65% {
+        opacity: 1;
+        transform: translate(-50%, -52%) scale(0.96) rotate(-2deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.6) rotate(8deg);
       }
     }
 
@@ -639,33 +762,44 @@
     <div class="scanlines" aria-hidden="true"></div>
     <div class="failure-overlay" aria-hidden="true">
       <div class="failure-stage">
-        <svg class="explosion-svg" viewBox="0 0 360 360" role="img" aria-label="Access denied explosion">
-          <defs>
-            <radialGradient id="blast-gradient" cx="50%" cy="50%" r="70%">
-              <stop offset="0%" stop-color="#fff1c1"/>
-              <stop offset="45%" stop-color="#ffb347"/>
-              <stop offset="80%" stop-color="#ff4976"/>
-              <stop offset="100%" stop-color="#7a1b3d" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <circle cx="180" cy="180" r="140" fill="url(#blast-gradient)" opacity="0.92"/>
-          <polygon points="180,20 205,120 320,80 226,160 340,220 210,210 250,330 180,240 110,330 150,210 20,220 134,160 40,80 155,120" fill="#ffe27a" stroke="#ff9f1c" stroke-width="8" stroke-linejoin="round"/>
-          <circle cx="180" cy="180" r="36" fill="#0f172a" opacity="0.75"/>
-          <circle cx="180" cy="180" r="18" fill="#ff4976"/>
-        </svg>
-        <svg class="oops-svg" viewBox="0 0 220 220" role="img" aria-label="Animated whoops character">
-          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="110" cy="110" r="80" fill="#0f172a" stroke="#6aff3b" stroke-width="6"/>
-            <path d="M66 118c14 10 74 10 88 0" stroke="#48ffe2" stroke-width="8"/>
-            <circle cx="80" cy="90" r="12" fill="#f5c978"/>
-            <circle cx="140" cy="90" r="12" fill="#f5c978"/>
-            <path d="M75 150c18 22 60 22 78 0" stroke="#ff4976" stroke-width="10"/>
-            <path d="M58 70l26 12" stroke="#f5c978" stroke-width="8"/>
-            <path d="M162 70l-26 12" stroke="#f5c978" stroke-width="8"/>
+        <div class="cartoon-bomb" aria-hidden="true" data-restart>
+          <div class="bomb-fuse"></div>
+        </div>
+        <svg class="shatter-face" viewBox="0 0 280 280" role="img" aria-label="Cartoon face shattering into pieces">
+          <g class="face-base" data-restart>
+            <circle cx="140" cy="130" r="88" fill="#ffe4bf" stroke="#ffbd5a" stroke-width="6"/>
+            <ellipse cx="110" cy="118" rx="12" ry="16" fill="#0f172a"/>
+            <ellipse cx="170" cy="118" rx="12" ry="16" fill="#0f172a"/>
+            <circle cx="108" cy="114" r="4" fill="#f8fafc"/>
+            <circle cx="168" cy="114" r="4" fill="#f8fafc"/>
+            <path d="M96 160c18 24 68 24 88 0" stroke="#ff4976" stroke-width="10" stroke-linecap="round" fill="none"/>
+            <path d="M86 86c12-22 92-22 104 0" stroke="#f5c978" stroke-width="8" stroke-linecap="round" fill="none"/>
           </g>
-          <text x="110" y="190" text-anchor="middle" font-size="28" font-weight="700" fill="#f5c978">SORRY!</text>
+          <g class="face-piece" data-restart style="--dx: -120px; --dy: -70px; --dr: -28deg; --delay: 0.05s;">
+            <path d="M64 70c22-24 64-38 104-16v74H64z" fill="#ffe4bf" stroke="#ffbd5a" stroke-width="4"/>
+            <ellipse cx="110" cy="108" rx="11" ry="14" fill="#0f172a"/>
+            <circle cx="108" cy="104" r="4" fill="#f8fafc"/>
+          </g>
+          <g class="face-piece" data-restart style="--dx: 140px; --dy: -60px; --dr: 32deg; --delay: 0.12s;">
+            <path d="M168 62c30 6 52 36 54 68l-68 18V62z" fill="#ffe4bf" stroke="#ffbd5a" stroke-width="4"/>
+            <ellipse cx="170" cy="120" rx="12" ry="16" fill="#0f172a"/>
+            <circle cx="168" cy="114" r="4" fill="#f8fafc"/>
+          </g>
+          <g class="face-piece" data-restart style="--dx: -140px; --dy: 110px; --dr: -40deg; --delay: 0.18s;">
+            <path d="M64 132c12 36 54 66 102 70v-66z" fill="#ffe4bf" stroke="#ffbd5a" stroke-width="4"/>
+            <path d="M96 166c18 18 58 18 76-2" stroke="#ff4976" stroke-width="10" stroke-linecap="round" fill="none"/>
+          </g>
+          <g class="face-piece" data-restart style="--dx: 110px; --dy: 130px; --dr: 26deg; --delay: 0.22s;">
+            <path d="M140 188l74-18c-12 42-46 72-90 78z" fill="#ffe4bf" stroke="#ffbd5a" stroke-width="4"/>
+            <path d="M150 168c12 10 28 10 36 2" stroke="#ff4976" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
+          <g class="face-piece" data-restart style="--dx: 10px; --dy: -150px; --dr: 18deg; --delay: 0.26s;">
+            <path d="M112 40c14-6 36-6 52 0l-4 44h-44z" fill="#ffe4bf" stroke="#ffbd5a" stroke-width="4"/>
+            <path d="M120 68c10-6 24-6 36 0" stroke="#f5c978" stroke-width="6" stroke-linecap="round" fill="none"/>
+          </g>
         </svg>
-        <p class="failure-caption">Boom! Clearance credentials combusted. Try again, secret agent.</p>
+        <div class="kaboom-text" aria-hidden="true" data-restart>KA-BOOM!</div>
+        <p class="failure-caption">Kaboom! Clearance credentials atomized the cartoon guard. Try again, secret agent.</p>
       </div>
     </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
@@ -821,12 +955,14 @@
       const restartAnimation = (element) => {
         if (!element) return;
         element.style.animation = 'none';
-        void element.offsetWidth;
+        element.offsetHeight;
         element.style.animation = '';
       };
 
-      restartAnimation(failureOverlay.querySelector('.explosion-svg'));
-      restartAnimation(failureOverlay.querySelector('.oops-svg'));
+      const animatedElements = failureOverlay.querySelectorAll('[data-restart]');
+      animatedElements.forEach((element) => {
+        restartAnimation(element);
+      });
 
       failureOverlay.classList.remove('is-visible');
       void failureOverlay.offsetWidth;

@@ -1851,6 +1851,9 @@
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
     const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
     const CARDANO_POLICY_ID = 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
+    const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
+    const MIN_WALLET_VALUE_USD = 10;
+    const MIN_LOGIN_VALUE_USD = 15;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
 
@@ -1873,6 +1876,16 @@
       walletType: '',
       api: null
     };
+
+    const walletValueState = {
+      provider: '',
+      tokenSymbol: '',
+      tokenBalance: 0,
+      usdValue: 0,
+      checkedAt: 0
+    };
+
+    const tokenPriceCache = new Map();
 
     if (cardanoPolicyInput && !cardanoPolicyInput.value) {
       cardanoPolicyInput.value = CARDANO_POLICY_ID;
@@ -2149,6 +2162,283 @@
       return value.toUpperCase().replace(/[^A-Z0-9-]/g, '').replace(/-{2,}/g, '-');
     };
 
+    const clearWalletValueState = () => {
+      walletValueState.provider = '';
+      walletValueState.tokenSymbol = '';
+      walletValueState.tokenBalance = 0;
+      walletValueState.usdValue = 0;
+      walletValueState.checkedAt = 0;
+    };
+
+    const recordWalletValueState = (provider, tokenSymbol, tokenBalance, usdValue) => {
+      walletValueState.provider = provider;
+      walletValueState.tokenSymbol = tokenSymbol;
+      walletValueState.tokenBalance = tokenBalance;
+      walletValueState.usdValue = usdValue;
+      walletValueState.checkedAt = Date.now();
+      return { ...walletValueState };
+    };
+
+    const formatTokenAmount = (amount) => {
+      if (!Number.isFinite(amount)) {
+        return '0';
+      }
+      if (amount >= 100) {
+        return amount.toFixed(2);
+      }
+      if (amount >= 1) {
+        return amount.toFixed(4);
+      }
+      return amount.toFixed(6);
+    };
+
+    const formatUsd = (value) => {
+      if (!Number.isFinite(value)) {
+        return '$0.00';
+      }
+      return value.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    };
+
+    const hexToBytes = (hex) => {
+      if (typeof hex !== 'string') {
+        throw new Error('Invalid Cardano balance payload.');
+      }
+      const cleaned = hex.startsWith('0x') ? hex.slice(2) : hex;
+      if (cleaned.length % 2 !== 0) {
+        throw new Error('Malformed Cardano balance payload.');
+      }
+      const bytes = new Uint8Array(cleaned.length / 2);
+      for (let i = 0; i < cleaned.length; i += 2) {
+        bytes[i / 2] = Number.parseInt(cleaned.slice(i, i + 2), 16);
+      }
+      return bytes;
+    };
+
+    const readCborLength = (bytes, offset, additionalInfo) => {
+      if (additionalInfo < 24) {
+        return { value: BigInt(additionalInfo), offset };
+      }
+      const byteLengths = {
+        24: 1,
+        25: 2,
+        26: 4,
+        27: 8
+      };
+      const lengthBytes = byteLengths[additionalInfo];
+      if (!lengthBytes) {
+        throw new Error('Unsupported CBOR length descriptor.');
+      }
+      if (offset + lengthBytes > bytes.length) {
+        throw new Error('Unexpected end of CBOR payload.');
+      }
+      let value = 0n;
+      for (let i = 0; i < lengthBytes; i += 1) {
+        value = (value << 8n) + BigInt(bytes[offset + i]);
+      }
+      return { value, offset: offset + lengthBytes };
+    };
+
+    const decodeCborValue = (bytes, startOffset = 0) => {
+      if (startOffset >= bytes.length) {
+        throw new Error('Unexpected end of CBOR payload.');
+      }
+      const initialByte = bytes[startOffset];
+      const majorType = initialByte >> 5;
+      const additionalInfo = initialByte & 0x1f;
+      let offset = startOffset + 1;
+
+      if (majorType === 0) {
+        const { value, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        return { value, offset: nextOffset };
+      }
+
+      if (majorType === 1) {
+        const { value, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        return { value: -1n - value, offset: nextOffset };
+      }
+
+      if (majorType === 2 || majorType === 3) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber) || nextOffset + lengthNumber > bytes.length) {
+          throw new Error('Invalid CBOR byte/string length.');
+        }
+        const slice = bytes.slice(nextOffset, nextOffset + lengthNumber);
+        const value =
+          majorType === 3
+            ? typeof TextDecoder !== 'undefined'
+              ? new TextDecoder().decode(slice)
+              : String.fromCharCode(...slice)
+            : slice;
+        return { value, offset: nextOffset + lengthNumber };
+      }
+
+      if (majorType === 4) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber)) {
+          throw new Error('CBOR array too large.');
+        }
+        const result = [];
+        let innerOffset = nextOffset;
+        for (let i = 0; i < lengthNumber; i += 1) {
+          const decoded = decodeCborValue(bytes, innerOffset);
+          result.push(decoded.value);
+          innerOffset = decoded.offset;
+        }
+        return { value: result, offset: innerOffset };
+      }
+
+      if (majorType === 5) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber)) {
+          throw new Error('CBOR map too large.');
+        }
+        const result = new Map();
+        let innerOffset = nextOffset;
+        for (let i = 0; i < lengthNumber; i += 1) {
+          const key = decodeCborValue(bytes, innerOffset);
+          const value = decodeCborValue(bytes, key.offset);
+          result.set(key.value, value.value);
+          innerOffset = value.offset;
+        }
+        return { value: result, offset: innerOffset };
+      }
+
+      throw new Error('Unsupported CBOR data type encountered.');
+    };
+
+    const extractCardanoLovelace = (hexBalance) => {
+      const bytes = hexToBytes(hexBalance);
+      const decoded = decodeCborValue(bytes);
+      const payload = decoded.value;
+      if (typeof payload === 'bigint') {
+        return payload;
+      }
+      if (Array.isArray(payload) && payload.length > 0 && typeof payload[0] === 'bigint') {
+        return payload[0];
+      }
+      throw new Error('Unsupported Cardano balance format.');
+    };
+
+    const fetchTokenPriceUsd = async (tokenId) => {
+      const cached = tokenPriceCache.get(tokenId);
+      const now = Date.now();
+      if (cached && now - cached.timestamp < 60000) {
+        return cached.price;
+      }
+
+      const response = await fetch(`${TOKEN_PRICE_ENDPOINT}?ids=${encodeURIComponent(tokenId)}&vs_currencies=usd`);
+      if (!response.ok) {
+        throw new Error(`Unable to retrieve ${tokenId.toUpperCase()} price data.`);
+      }
+      const data = await response.json();
+      const price = Number(data?.[tokenId]?.usd);
+      if (!Number.isFinite(price)) {
+        throw new Error(`USD price unavailable for ${tokenId.toUpperCase()}.`);
+      }
+      tokenPriceCache.set(tokenId, { price, timestamp: now });
+      return price;
+    };
+
+    const getSolanaBalanceLamports = async (publicKey) => {
+      const response = await fetch(SOLANA_RPC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'solana-balance-check',
+          method: 'getBalance',
+          params: [publicKey]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to retrieve SOL balance.');
+      }
+
+      const data = await response.json();
+      const lamports = data?.result?.value;
+      if (!Number.isFinite(lamports)) {
+        throw new Error('Invalid SOL balance response.');
+      }
+      return lamports;
+    };
+
+    const getCardanoBalanceLovelace = async (api) => {
+      if (!api || typeof api.getBalance !== 'function') {
+        throw new Error('Connected Cardano wallet does not expose balance queries.');
+      }
+      const balanceHex = await api.getBalance();
+      if (!balanceHex) {
+        throw new Error('No Cardano balance data returned.');
+      }
+      return extractCardanoLovelace(balanceHex);
+    };
+
+    const ensureWalletUsdValue = async ({
+      provider,
+      address,
+      api,
+      statusElement,
+      walletLabel = ''
+    }) => {
+      const normalizedProvider = provider || '';
+
+      if (normalizedProvider === 'solana') {
+        if (statusElement) {
+          statusElement.textContent = 'Assessing SOL balance value…';
+        }
+        const lamports = await getSolanaBalanceLamports(address);
+        const solBalance = lamports / 1_000_000_000;
+        const solPrice = await fetchTokenPriceUsd('solana');
+        const usdValue = solBalance * solPrice;
+        if (usdValue < MIN_WALLET_VALUE_USD) {
+          throw new Error(
+            `SOL holdings below ${formatUsd(MIN_WALLET_VALUE_USD)}. Increase your balance to continue.`
+          );
+        }
+        const snapshot = recordWalletValueState('solana', 'SOL', solBalance, usdValue);
+        if (statusElement) {
+          statusElement.textContent = `SOL balance ≈ ${formatTokenAmount(solBalance)} (${formatUsd(usdValue)})`;
+        }
+        return snapshot;
+      }
+
+      if (normalizedProvider.startsWith('cardano')) {
+        if (statusElement) {
+          statusElement.textContent = 'Assessing ADA balance value…';
+        }
+        const lovelace = await getCardanoBalanceLovelace(api);
+        const adaBalance = Number(lovelace) / 1_000_000;
+        const adaPrice = await fetchTokenPriceUsd('cardano');
+        const usdValue = adaBalance * adaPrice;
+        if (usdValue < MIN_WALLET_VALUE_USD) {
+          const label = walletLabel || 'Cardano';
+          throw new Error(
+            `${label} holdings below ${formatUsd(MIN_WALLET_VALUE_USD)}. Increase your ADA balance to continue.`
+          );
+        }
+        const snapshot = recordWalletValueState(normalizedProvider, 'ADA', adaBalance, usdValue);
+        if (statusElement) {
+          const label = walletLabel || 'Cardano';
+          statusElement.textContent = `${label} balance ≈ ${formatTokenAmount(adaBalance)} ADA (${formatUsd(usdValue)})`;
+        }
+        return snapshot;
+      }
+
+      clearWalletValueState();
+      return null;
+    };
+
     const resetWalletIndicators = () => {
       if (metamaskStatus) {
         metamaskStatus.textContent = 'Not connected.';
@@ -2168,6 +2458,7 @@
       if (walletProviderInput) {
         walletProviderInput.value = '';
       }
+      clearWalletValueState();
       resetMeknxState();
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
@@ -2319,6 +2610,14 @@
           cardanoState.policyId = CARDANO_POLICY_ID;
           cardanoState.verified = false;
 
+          const cardanoValueSnapshot = await ensureWalletUsdValue({
+            provider: `cardano-${walletKey}`,
+            address: accountAddress,
+            api,
+            statusElement,
+            walletLabel
+          });
+
           resetMeknxState();
           syncIoncModuleVisibility();
           syncCardanoModuleVisibility();
@@ -2328,7 +2627,13 @@
             meknxState.status === 'verified' || meknxState.status === 'minted'
               ? ' Verify the Cardano policy to continue.'
               : ' Complete MEKNX clearance then verify the Cardano policy.';
-          updateStatus(`${walletLabel} session established.${continuationMessage}`, 'success');
+          const cardanoValueMessage = cardanoValueSnapshot
+            ? ` ADA value ≈ ${formatUsd(cardanoValueSnapshot.usdValue)}.`
+            : '';
+          updateStatus(
+            `${walletLabel} session established.${cardanoValueMessage}${continuationMessage}`,
+            'success'
+          );
         } catch (error) {
           resetWalletIndicators();
           const message = error?.message || 'Unable to connect to the Cardano wallet. Try again.';
@@ -2368,9 +2673,15 @@
 
     const indicateWalletConnection = (providerLabel, address, cardanoLabel = '') => {
       const formatted = shortenIdentifier(address);
+      const balanceSuffix =
+        walletValueState.provider === providerLabel && walletValueState.tokenSymbol
+          ? ` • ${walletValueState.tokenSymbol} ≈ ${formatTokenAmount(walletValueState.tokenBalance)} (${formatUsd(
+              walletValueState.usdValue
+            )})`
+          : '';
       if (providerLabel === 'evm') {
         if (metamaskStatus) {
-          metamaskStatus.textContent = `Connected: ${formatted}`;
+          metamaskStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
           metamaskStatus.classList.add('wallet-status--connected');
         }
         if (phantomStatus) {
@@ -2383,7 +2694,7 @@
         }
       } else if (providerLabel === 'solana') {
         if (phantomStatus) {
-          phantomStatus.textContent = `Connected: ${formatted}`;
+          phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
           phantomStatus.classList.add('wallet-status--connected');
         }
         if (metamaskStatus) {
@@ -2411,7 +2722,7 @@
               : providerLabel === 'cardano-daedalus'
               ? 'Daedalus'
               : 'Cardano');
-          cardanoStatus.textContent = `Connected (${resolvedLabel}): ${formatted}`;
+          cardanoStatus.textContent = `Connected (${resolvedLabel}): ${formatted}${balanceSuffix}`;
           cardanoStatus.classList.add('wallet-status--connected');
         }
       }
@@ -2730,6 +3041,7 @@
             if (walletProviderInput) {
               walletProviderInput.value = 'evm';
             }
+            clearWalletValueState();
             resetMeknxState();
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
@@ -2771,6 +3083,12 @@
             }
             updateStatus('Verifying IONC token holdings…');
             await enforceIoncRequirement(publicKey);
+            const solanaValueSnapshot = await ensureWalletUsdValue({
+              provider: 'solana',
+              address: publicKey,
+              statusElement: phantomStatus,
+              walletLabel: 'Solana'
+            });
             if (walletAddressInput) {
               walletAddressInput.value = publicKey;
             }
@@ -2781,8 +3099,18 @@
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
             indicateWalletConnection('solana', publicKey);
-            updateStatus('Phantom channel ready. Complete MEKNX and IONC verification to continue.', 'success');
-            setInlineStatus(ioncInlineStatus, 'IONC holdings confirmed. Submit to enter the vault.', 'success');
+            const solanaValueMessage = solanaValueSnapshot
+              ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
+              : '';
+            updateStatus(
+              `Phantom channel ready.${solanaValueMessage} Complete MEKNX and IONC verification to continue.`,
+              'success'
+            );
+            setInlineStatus(
+              ioncInlineStatus,
+              'IONC holdings confirmed. SOL balance meets the access requirement. Submit to enter the vault.',
+              'success'
+            );
           } catch (error) {
             resetWalletIndicators();
             const message = error?.message || 'Phantom connection failed. Try again.';
@@ -3103,6 +3431,30 @@
             submitButton.textContent = 'Enter the Vault';
             triggerFailureAnimation();
             return;
+          }
+
+          if (provider === 'solana' || (provider && provider.startsWith('cardano'))) {
+            if (walletValueState.provider !== provider) {
+              updateStatus('Reconnect your wallet to refresh the on-chain balance check.', 'error');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+
+            if (walletValueState.usdValue < MIN_LOGIN_VALUE_USD) {
+              const tokenLabel = walletValueState.tokenSymbol || 'Wallet';
+              updateStatus(
+                `${tokenLabel} holdings must exceed ${formatUsd(
+                  MIN_LOGIN_VALUE_USD
+                )} before entering. Current value: ${formatUsd(walletValueState.usdValue)}.`,
+                'error'
+              );
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
           }
 
           payload.walletAddress = walletAddressInput.value;

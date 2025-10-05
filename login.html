@@ -2311,24 +2311,74 @@
       return true;
     };
 
+    const sanitizeDeepLinkTarget = (url) => {
+      if (!url) {
+        return '';
+      }
+
+      try {
+        const parsed = new URL(url);
+        parsed.hash = '';
+        return parsed.toString();
+      } catch (error) {
+        return url.split('#')[0];
+      }
+    };
+
+    const normalizeForHttps = (url) => {
+      if (!url) {
+        return '';
+      }
+
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol === 'http:') {
+          if (!/^(localhost|127\.0\.0\.1)/i.test(parsed.hostname)) {
+            parsed.protocol = 'https:';
+          }
+          return parsed.toString();
+        }
+        if (!parsed.protocol || parsed.protocol === ':') {
+          parsed.protocol = 'https:';
+          return parsed.toString();
+        }
+        return parsed.toString();
+      } catch (error) {
+        if (!/^https?:\/\//i.test(url)) {
+          return `https://${url}`;
+        }
+        if (/^http:\/\//i.test(url) && !/^http:\/\/localhost/i.test(url) && !/^http:\/\/127\.0\.0\.1/i.test(url)) {
+          return url.replace(/^http:\/\//i, 'https://');
+        }
+        return url;
+      }
+    };
+
     const triggerMobileWalletDeepLink = (wallet) => {
       if (!isMobileDevice()) {
         return false;
       }
 
-      const currentUrl = window.location.href;
+      const currentUrl = sanitizeDeepLinkTarget(window.location.href);
       if (!currentUrl) {
         return false;
       }
 
       if (wallet === 'metamask') {
         const sanitized = currentUrl.replace(/^https?:\/\//i, '');
+        if (!sanitized) {
+          return false;
+        }
         const deepLink = `https://metamask.app.link/dapp/${sanitized}`;
         return openDeepLinkWindow(deepLink);
       }
 
       if (wallet === 'phantom') {
-        const encoded = encodeURIComponent(currentUrl);
+        const httpsUrl = normalizeForHttps(currentUrl);
+        if (!httpsUrl) {
+          return false;
+        }
+        const encoded = encodeURIComponent(httpsUrl);
         const deepLink = `https://phantom.app/ul/v1/open-app?app_url=${encoded}`;
         return openDeepLinkWindow(deepLink);
       }

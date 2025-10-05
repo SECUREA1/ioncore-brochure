@@ -2373,6 +2373,57 @@
     };
 
     const phantomDeepLinkStateKey = 'phantomDeepLinkRequestedAt';
+    const phantomAutoConnectQueryKey = 'phantom_auto_connect';
+
+    const appendPhantomAutoConnectFlag = (url) => {
+      if (!url) {
+        return '';
+      }
+
+      try {
+        const parsed = new URL(url);
+        parsed.searchParams.set(phantomAutoConnectQueryKey, '1');
+        return parsed.toString();
+      } catch (error) {
+        const withoutExisting = url.replace(
+          new RegExp(`([?&])${phantomAutoConnectQueryKey}=[^&#]*`),
+          (match, prefix) => (prefix === '?' ? '?' : '')
+        );
+        const separator = withoutExisting.includes('?') ? '&' : '?';
+        return `${withoutExisting}${separator}${phantomAutoConnectQueryKey}=1`;
+      }
+    };
+
+    const hasPhantomAutoConnectFlag = () => {
+      try {
+        const parsed = new URL(window.location.href);
+        return parsed.searchParams.get(phantomAutoConnectQueryKey) === '1';
+      } catch (error) {
+        return new RegExp(`([?&])${phantomAutoConnectQueryKey}=1(&|$)`).test(window.location.href);
+      }
+    };
+
+    const consumePhantomAutoConnectFlag = () => {
+      if (!hasPhantomAutoConnectFlag()) {
+        return;
+      }
+      try {
+        const parsed = new URL(window.location.href);
+        parsed.searchParams.delete(phantomAutoConnectQueryKey);
+        const newSearch = parsed.searchParams.toString();
+        const updatedPath = `${parsed.pathname}${newSearch ? `?${newSearch}` : ''}${parsed.hash}`;
+        window.history.replaceState({}, '', updatedPath);
+      } catch (error) {
+        let cleaned = window.location.href.replace(
+          new RegExp(`([?&])${phantomAutoConnectQueryKey}=[^&#]*`),
+          (match, prefix) => (prefix === '?' ? '?' : '')
+        );
+        cleaned = cleaned.replace(/\?&/, '?');
+        cleaned = cleaned.replace(/&&+/g, '&');
+        cleaned = cleaned.replace(/[?&]$/, '');
+        window.history.replaceState({}, '', cleaned);
+      }
+    };
 
     const readPhantomDeepLinkState = () => {
       try {
@@ -2539,9 +2590,10 @@
         if (!httpsUrl) {
           return false;
         }
+        const flaggedUrl = appendPhantomAutoConnectFlag(httpsUrl);
         const params = new URLSearchParams({
-          app_url: httpsUrl,
-          redirect_link: httpsUrl
+          app_url: flaggedUrl,
+          redirect_link: flaggedUrl
         });
         if (options.autoConnect) {
           params.set('dapp_enforcement', 'true');
@@ -4081,8 +4133,12 @@
         if (!isPhantomInAppBrowser()) {
           return;
         }
-        if (!shouldAutoConnectPhantom()) {
+        const hasFlag = hasPhantomAutoConnectFlag();
+        if (!hasFlag && !shouldAutoConnectPhantom()) {
           return;
+        }
+        if (hasFlag) {
+          consumePhantomAutoConnectFlag();
         }
         void attemptPhantomConnection({ autoInitiated: true, skipDeepLink: true });
       };

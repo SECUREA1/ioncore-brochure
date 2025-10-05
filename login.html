@@ -10,20 +10,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
   <style>
     :root {
       color-scheme: dark;
-      --sharpe-midnight: #020b07;
-      --sharpe-navy: #041810;
-      --sharpe-royal: #0b3b27;
-      --sharpe-cyan: #6aff3b;
-      --sharpe-flare: #38f2a3;
-      --sharpe-ink: rgba(2, 12, 8, 0.9);
-      --sharpe-ice: #f5fff0;
-      --sharpe-emerald: #1f8a57;
-      --sharpe-emerald-bright: #33c06d;
-      --sharpe-emerald-lift: #49d486;
+      --ioncore-gold: #f5c978;
+      --ioncore-blue: #0f172a;
+      --ioncore-aqua: #48ffe2;
+      --ioncore-crimson: #ff4976;
+      --ioncore-ink: rgba(6, 12, 24, 0.82);
+      --ioncore-neon: #6aff3b;
     }
 
     * {
@@ -34,59 +29,25 @@
       scroll-behavior: smooth;
     }
 
-    .login-body {
+    body {
       margin: 0;
       min-height: 100vh;
       font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at 18% -12%, rgba(36, 94, 56, 0.92) 0%, rgba(6, 26, 18, 0.96) 55%, #020806 100%);
-      color: var(--sharpe-ice);
+      background: radial-gradient(circle at top, rgba(12, 18, 48, 0.95) 0%, rgba(6, 10, 22, 0.98) 45%, #05070e 100%);
+      color: #f8fafc;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      gap: clamp(1.5rem, 4vh, 2.5rem);
-      padding: clamp(1.5rem, 4vh, 2rem) 1.25rem clamp(3.5rem, 8vh, 5rem);
+      align-items: flex-start;
+      justify-content: center;
+      padding: clamp(6rem, 12vh, 7.5rem) 1.25rem clamp(3.5rem, 8vh, 5rem);
       position: relative;
       overflow-x: hidden;
       overflow-y: auto;
     }
 
-    .login-site-header {
-      position: relative;
-      width: min(1180px, 92vw);
-      z-index: 6;
-      margin-inline: auto;
-      padding: clamp(0.85rem, 2vh, 1.5rem) clamp(1rem, 3vw, 1.75rem);
-      border-radius: 18px;
-      background: rgba(4, 20, 14, 0.72);
-      border: 1px solid rgba(106, 255, 59, 0.22);
-      box-shadow: 0 18px 42px rgba(2, 14, 9, 0.45);
-      backdrop-filter: blur(14px);
-    }
-
-    .login-site-header .site-nav ul {
-      gap: clamp(1.25rem, 3vw, 2.5rem);
-    }
-
-    .login-site-header .btn {
-      white-space: nowrap;
-    }
-
-    .login-contact {
-      border-color: rgba(106, 255, 59, 0.35);
-      color: var(--sharpe-ice);
-    }
-
-    .login-contact:hover,
-    .login-contact:focus-visible {
-      border-color: rgba(106, 255, 59, 0.65);
-      color: var(--sharpe-ice);
-    }
-
     .intro-screen {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at top, rgba(7, 24, 16, 0.94) 0%, rgba(4, 12, 9, 0.96) 40%, rgba(1, 4, 3, 0.98) 100%);
+      background: radial-gradient(circle at top, rgba(6, 14, 36, 0.94) 0%, rgba(5, 8, 18, 0.96) 40%, rgba(1, 2, 6, 0.98) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -98,8 +59,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 45% 30%, rgba(106, 255, 59, 0.3), transparent 58%),
-        radial-gradient(circle at 60% 70%, rgba(56, 242, 163, 0.2), transparent 60%);
+      background: radial-gradient(circle at 45% 30%, rgba(106, 255, 59, 0.24), transparent 58%),
+        radial-gradient(circle at 60% 70%, rgba(72, 255, 226, 0.18), transparent 60%);
       mix-blend-mode: screen;
       opacity: 0.9;
     }
@@ -127,45 +88,39 @@
     .intro-text {
       font-size: clamp(1.75rem, 6vw, 3.4rem);
       font-weight: 700;
-      color: var(--sharpe-cyan);
-      text-shadow: 0 0 24px rgba(106, 255, 59, 0.3);
+      color: var(--ioncore-neon);
+      text-shadow: 0 0 24px rgba(106, 255, 59, 0.35);
       animation: text-expand 2.1s ease forwards;
     }
 
     .intro-text span {
-      color: var(--sharpe-flare);
+      color: #f8fafc;
       display: block;
       letter-spacing: 0.32em;
       font-size: 0.78em;
       margin-bottom: 0.4rem;
     }
 
-    .login-body::before {
+    body::before {
       content: "";
       position: absolute;
       inset: -20%;
-      background: conic-gradient(
-        from 210deg at 50% 50%,
-        rgba(106, 255, 59, 0.16),
-        rgba(61, 190, 123, 0.1),
-        rgba(56, 242, 163, 0.14),
-        rgba(106, 255, 59, 0.16)
-      );
+      background: conic-gradient(from 180deg at 50% 50%, rgba(72, 255, 226, 0.12), rgba(245, 201, 120, 0.08), rgba(255, 73, 118, 0.1), rgba(72, 255, 226, 0.12));
       filter: blur(90px);
       opacity: 0.75;
       z-index: 0;
     }
 
-    .login-body::after {
-      content: "IONCORE SECURE";
+    body::after {
+      content: "TOP SECRET";
       position: absolute;
-      top: 6%;
+      top: 5%;
       right: -12%;
       font-size: clamp(3.5rem, 12vw, 7rem);
       font-weight: 800;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: rgba(206, 255, 218, 0.06);
+      color: rgba(248, 250, 252, 0.06);
       transform: rotate(-18deg);
       z-index: 0;
       pointer-events: none;
@@ -248,15 +203,15 @@
     @keyframes crestPulse {
       0% {
         transform: scale(0.94) rotate(-2deg);
-        box-shadow: 0 0 14px rgba(73, 212, 134, 0.36), inset 0 0 0 1px rgba(73, 212, 134, 0.24);
+        box-shadow: 0 0 14px rgba(106, 255, 59, 0.38), inset 0 0 0 1px rgba(106, 255, 59, 0.24);
       }
       50% {
         transform: scale(1.02) rotate(1.5deg);
-        box-shadow: 0 0 20px rgba(73, 212, 134, 0.52), 0 0 0 10px rgba(73, 212, 134, 0.08), inset 0 0 0 1px rgba(73, 212, 134, 0.28);
+        box-shadow: 0 0 20px rgba(106, 255, 59, 0.52), 0 0 0 10px rgba(106, 255, 59, 0.08), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
       }
       100% {
         transform: scale(1) rotate(-1deg);
-        box-shadow: 0 0 16px rgba(73, 212, 134, 0.45), 0 0 0 6px rgba(73, 212, 134, 0.06), inset 0 0 0 1px rgba(73, 212, 134, 0.24);
+        box-shadow: 0 0 16px rgba(106, 255, 59, 0.45), 0 0 0 6px rgba(106, 255, 59, 0.05), inset 0 0 0 1px rgba(106, 255, 59, 0.28);
       }
     }
 
@@ -264,12 +219,11 @@
       position: relative;
       z-index: 2;
       width: min(480px, 100%);
-      margin: clamp(1rem, 4vh, 2.5rem) auto 0;
-      background: linear-gradient(145deg, rgba(12, 38, 24, 0.92), rgba(4, 20, 14, 0.96));
-      border: 1px solid rgba(106, 255, 59, 0.28);
-      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(13, 21, 39, 0.88), rgba(9, 14, 26, 0.96));
+      border: 1px solid rgba(72, 255, 226, 0.25);
+      border-radius: 24px;
       padding: clamp(2rem, 4vw, 2.75rem);
-      box-shadow: 0 26px 68px rgba(2, 14, 9, 0.6);
+      box-shadow: 0 22px 60px rgba(6, 12, 24, 0.55);
       backdrop-filter: blur(18px);
       overflow: hidden;
       opacity: 0;
@@ -281,38 +235,38 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 20% -20%, rgba(106, 255, 59, 0.24), transparent 60%),
-        radial-gradient(circle at 80% 120%, rgba(56, 242, 163, 0.22), transparent 60%);
+      background: radial-gradient(circle at 20% -20%, rgba(245, 201, 120, 0.25), transparent 60%),
+        radial-gradient(circle at 80% 120%, rgba(72, 255, 226, 0.2), transparent 60%);
       opacity: 0.6;
       z-index: -1;
     }
 
     .vault-card::after {
-      content: "IONCORE CLEARANCE";
+      content: "IONCORE EYES ONLY";
       position: absolute;
       bottom: 1.25rem;
       right: -2.5rem;
       font-size: 0.85rem;
       font-weight: 700;
       letter-spacing: 0.4em;
-      color: rgba(106, 255, 59, 0.18);
+      color: rgba(255, 73, 118, 0.2);
       transform: rotate(-90deg);
       pointer-events: none;
     }
 
-    .login-body.intro-complete .intro-screen {
+    body.intro-complete .intro-screen {
       opacity: 0;
       transform: scale(1.05);
       pointer-events: none;
     }
 
-    .login-body.intro-complete .vault-card {
+    body.intro-complete .vault-card {
       opacity: 1;
       transform: translateY(0);
       transition-delay: 0.12s;
     }
 
-    .login-body.intro-complete .health-bar {
+    body.intro-complete .health-bar {
       opacity: 1;
       pointer-events: auto;
     }
@@ -321,21 +275,20 @@
       display: inline-flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.65rem 1.1rem;
-      border-radius: 0;
-      background: rgba(8, 26, 20, 0.82);
-      border: 1px solid rgba(106, 255, 59, 0.24);
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(72, 255, 226, 0.18);
       margin-bottom: 1.75rem;
       text-transform: uppercase;
       letter-spacing: 0.3em;
       font-size: 0.75rem;
-      color: rgba(242, 246, 255, 0.82);
-      box-shadow: 0 12px 26px rgba(3, 18, 12, 0.45);
+      color: rgba(248, 250, 252, 0.85);
     }
 
     .logo-lockup span {
       font-weight: 700;
-      color: var(--sharpe-flare);
+      color: var(--ioncore-aqua);
     }
 
     h1 {
@@ -357,15 +310,13 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: linear-gradient(90deg, rgba(34, 197, 94, 0.28), rgba(106, 255, 59, 0.22));
-      color: rgba(206, 222, 255, 0.92);
-      border: 1px solid rgba(106, 255, 59, 0.32);
-      border-radius: 0;
+      background: rgba(255, 73, 118, 0.18);
+      color: rgba(255, 178, 200, 0.9);
+      border: 1px solid rgba(255, 73, 118, 0.35);
+      border-radius: 12px;
       padding: 0.65rem 1rem;
       font-weight: 600;
       margin-bottom: 1.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
     }
 
     .intel-banner svg {
@@ -382,12 +333,12 @@
       gap: 1rem;
       margin: 0;
       padding: 0.85rem 1.25rem;
-      border-radius: 8px;
-      background: rgba(4, 20, 14, 0.9);
-      border: 1px solid rgba(106, 255, 59, 0.32);
-      box-shadow: 0 18px 40px rgba(3, 18, 12, 0.55);
+      border-radius: 18px;
+      background: rgba(8, 14, 28, 0.82);
+      border: 1px solid rgba(72, 255, 226, 0.25);
+      box-shadow: 0 18px 40px rgba(5, 12, 24, 0.5);
       position: fixed;
-      top: clamp(5rem, 9vw, 6rem);
+      top: clamp(1rem, 5vw, 1.75rem);
       left: 50%;
       transform: translateX(-50%);
       width: min(480px, calc(100vw - 2.5rem));
@@ -403,15 +354,15 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(106, 255, 59, 0.12), transparent 60%),
-        radial-gradient(circle at 70% 70%, rgba(56, 242, 163, 0.1), transparent 68%);
+      background: radial-gradient(circle at 30% 30%, rgba(72, 255, 226, 0.1), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(255, 73, 118, 0.08), transparent 68%);
       opacity: 0.6;
       pointer-events: none;
     }
 
     .health-bar.is-critical {
-      border-color: rgba(56, 242, 163, 0.55);
-      box-shadow: 0 20px 48px rgba(56, 242, 163, 0.32);
+      border-color: rgba(255, 73, 118, 0.45);
+      box-shadow: 0 20px 48px rgba(255, 73, 118, 0.28);
     }
 
     .health-label {
@@ -420,7 +371,7 @@
       font-size: 0.75rem;
       letter-spacing: 0.28em;
       text-transform: uppercase;
-      color: rgba(206, 222, 255, 0.82);
+      color: rgba(226, 232, 240, 0.82);
       white-space: nowrap;
     }
 
@@ -449,8 +400,8 @@
     }
 
     .health-heart::before {
-      color: var(--sharpe-flare);
-      text-shadow: 0 0 16px rgba(56, 242, 163, 0.45);
+      color: var(--ioncore-crimson);
+      text-shadow: 0 0 16px rgba(255, 73, 118, 0.45);
     }
 
     .health-heart::after {
@@ -510,22 +461,22 @@
       gap: 0.75rem;
       margin-bottom: 1.75rem;
       padding: 0.35rem;
-      background: rgba(8, 26, 20, 0.72);
-      border: 1px solid rgba(106, 255, 59, 0.25);
-      border-radius: 8px;
+      background: rgba(14, 23, 43, 0.72);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      border-radius: 16px;
     }
 
     .auth-mode {
       appearance: none;
       border: none;
-      border-radius: 0;
+      border-radius: 12px;
       padding: 0.9rem 1rem;
       font-family: inherit;
       font-size: 0.95rem;
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(188, 202, 226, 0.85);
+      color: rgba(226, 232, 240, 0.82);
       background: transparent;
       cursor: pointer;
       transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
@@ -534,14 +485,14 @@
     .auth-mode:hover,
     .auth-mode:focus-visible {
       outline: none;
-      color: var(--sharpe-ice);
-      box-shadow: 0 0 0 2px rgba(106, 255, 59, 0.18);
+      color: #f8fafc;
+      box-shadow: 0 0 0 2px rgba(72, 255, 226, 0.18);
     }
 
     .auth-mode.is-active {
-      color: var(--sharpe-ice);
-      background: linear-gradient(96deg, rgba(31, 138, 87, 0.94), rgba(73, 212, 134, 0.86));
-      box-shadow: 0 18px 36px rgba(2, 14, 9, 0.5);
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.82), rgba(106, 255, 59, 0.72));
+      box-shadow: 0 16px 30px rgba(9, 16, 26, 0.45);
     }
 
     .mode-panel[hidden] {
@@ -575,17 +526,17 @@
       align-items: center;
       justify-content: center;
       gap: 0.85rem;
-      border: 1px solid rgba(51, 192, 109, 0.55);
-      border-radius: 0;
-      padding: 0.9rem 1.75rem;
+      border: none;
+      border-radius: 999px;
+      padding: 0.85rem 1.6rem;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--sharpe-ice);
-      background: linear-gradient(96deg, rgba(31, 138, 87, 0.96), rgba(73, 212, 134, 0.9));
-      box-shadow: 0 18px 34px rgba(2, 14, 9, 0.6);
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.92), rgba(106, 255, 59, 0.82));
+      box-shadow: 0 12px 28px rgba(9, 16, 26, 0.35);
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
       flex: 1 1 220px;
       min-width: 200px;
       overflow: hidden;
@@ -596,8 +547,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, rgba(73, 212, 134, 0.3), transparent 55%);
-      opacity: 0.65;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.26), transparent 55%);
+      opacity: 0.7;
       pointer-events: none;
       transition: opacity 0.18s ease;
     }
@@ -605,14 +556,14 @@
     .wallet-connect-button:hover:not(:disabled),
     .wallet-connect-button:focus-visible:not(:disabled) {
       outline: none;
-      transform: translateY(-2px);
-      box-shadow: 0 22px 42px rgba(2, 14, 9, 0.72);
-      border-color: rgba(73, 212, 134, 0.75);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 34px rgba(11, 20, 36, 0.48);
+      filter: saturate(1.05);
     }
 
     .wallet-connect-button:hover:not(:disabled)::before,
     .wallet-connect-button:focus-visible:not(:disabled)::before {
-      opacity: 0.9;
+      opacity: 1;
     }
 
     .wallet-connect-button:disabled {
@@ -621,33 +572,36 @@
     }
 
     .wallet-connect-button--metamask {
-      background: linear-gradient(106deg, rgba(31, 138, 87, 0.96), rgba(73, 212, 134, 0.88) 62%, rgba(255, 147, 102, 0.85));
-      border-color: rgba(255, 147, 102, 0.55);
+      background: linear-gradient(135deg, rgba(255, 198, 124, 0.96), rgba(255, 123, 0, 0.88));
+      color: #1b1206;
+      box-shadow: 0 14px 32px rgba(134, 66, 0, 0.45);
     }
 
     .wallet-connect-button--metamask:hover:not(:disabled),
     .wallet-connect-button--metamask:focus-visible:not(:disabled) {
-      border-color: rgba(255, 168, 130, 0.85);
+      box-shadow: 0 20px 36px rgba(134, 66, 0, 0.52);
     }
 
     .wallet-connect-button--phantom {
-      background: linear-gradient(106deg, rgba(31, 138, 87, 0.96), rgba(73, 212, 134, 0.88) 58%, rgba(123, 97, 255, 0.82));
-      border-color: rgba(123, 97, 255, 0.55);
+      background: linear-gradient(135deg, rgba(116, 95, 255, 0.9), rgba(255, 73, 214, 0.78));
+      color: #0b1020;
+      box-shadow: 0 14px 32px rgba(66, 38, 163, 0.45);
     }
 
     .wallet-connect-button--phantom:hover:not(:disabled),
     .wallet-connect-button--phantom:focus-visible:not(:disabled) {
-      border-color: rgba(159, 133, 255, 0.85);
+      box-shadow: 0 20px 38px rgba(82, 48, 204, 0.5);
     }
 
     .wallet-connect-button--cardano {
-      background: linear-gradient(106deg, rgba(31, 138, 87, 0.96), rgba(73, 212, 134, 0.9));
-      border-color: rgba(73, 212, 134, 0.7);
+      background: linear-gradient(135deg, rgba(41, 173, 255, 0.85), rgba(0, 75, 173, 0.72));
+      color: #051021;
+      box-shadow: 0 14px 32px rgba(16, 70, 128, 0.45);
     }
 
     .wallet-connect-button--cardano:hover:not(:disabled),
     .wallet-connect-button--cardano:focus-visible:not(:disabled) {
-      border-color: rgba(88, 214, 255, 0.85);
+      box-shadow: 0 20px 38px rgba(21, 94, 170, 0.52);
     }
 
     .wallet-connect-button__icon,
@@ -693,20 +647,20 @@
     }
 
     .wallet-connect-button__crest {
-      background: rgba(255, 255, 255, 0.14);
-      box-shadow: 0 0 18px rgba(73, 212, 134, 0.45), inset 0 0 0 1px rgba(73, 212, 134, 0.32);
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 18px rgba(106, 255, 59, 0.45), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
       animation: crestPulse 2.8s ease-in-out infinite;
     }
 
     .wallet-connect-button__crest img {
       width: 22px;
       height: 22px;
-      filter: drop-shadow(0 0 6px rgba(73, 212, 134, 0.45));
+      filter: drop-shadow(0 0 6px rgba(106, 255, 59, 0.45));
     }
 
     .wallet-status {
       font-size: 0.85rem;
-      color: rgba(188, 202, 226, 0.95);
+      color: rgba(148, 163, 184, 0.95);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       flex: 1 1 160px;
@@ -714,21 +668,21 @@
     }
 
     .wallet-status--connected {
-      color: rgba(73, 212, 134, 0.85);
+      color: rgba(165, 255, 214, 0.92);
     }
 
     .module-tag--cardano {
-      background: linear-gradient(135deg, rgba(106, 255, 59, 0.28), rgba(34, 197, 94, 0.32));
-      border-color: rgba(106, 255, 59, 0.5);
+      background: linear-gradient(135deg, rgba(41, 173, 255, 0.35), rgba(0, 75, 173, 0.58));
+      border-color: rgba(41, 173, 255, 0.65);
     }
 
     .access-module {
       display: grid;
       gap: 0.75rem;
       padding: 1.1rem 1.25rem;
-      border-radius: 8px;
-      background: rgba(8, 26, 20, 0.68);
-      border: 1px solid rgba(106, 255, 59, 0.2);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(72, 255, 226, 0.18);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
@@ -751,20 +705,20 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.25rem 0.75rem;
-      border-radius: 0;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
       font-size: 0.68rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      background: rgba(34, 197, 94, 0.24);
-      color: rgba(206, 222, 255, 0.88);
-      border: 1px solid rgba(106, 255, 59, 0.32);
+      background: rgba(72, 255, 226, 0.16);
+      color: rgba(148, 163, 184, 0.95);
+      border: 1px solid rgba(72, 255, 226, 0.28);
     }
 
     .module-tag--solana {
-      background: linear-gradient(135deg, rgba(123, 97, 255, 0.24), rgba(106, 255, 59, 0.2));
-      border-color: rgba(123, 97, 255, 0.35);
-      color: rgba(222, 217, 255, 0.9);
+      background: linear-gradient(135deg, rgba(116, 95, 255, 0.2), rgba(255, 73, 214, 0.15));
+      border-color: rgba(144, 120, 255, 0.35);
+      color: rgba(221, 214, 255, 0.9);
     }
 
     .module-copy {
@@ -782,31 +736,23 @@
     }
 
     .action-button {
-      padding: 0.85rem 1.5rem;
+      padding: 0.75rem 1.35rem;
       font-size: 0.85rem;
       letter-spacing: 0.18em;
-      background: linear-gradient(96deg, rgba(56, 242, 163, 0.92), rgba(106, 255, 59, 0.88));
-      border-color: rgba(56, 242, 163, 0.55);
-    }
-
-    .action-button:hover,
-    .action-button:focus-visible {
-      border-color: rgba(255, 140, 92, 0.85);
     }
 
     .action-button--outline {
-      background: transparent;
-      color: var(--sharpe-ice);
-      border-color: rgba(106, 255, 59, 0.45);
+      background: rgba(15, 23, 42, 0.8);
+      color: rgba(226, 232, 240, 0.92);
+      border: 1px solid rgba(72, 255, 226, 0.35);
       box-shadow: none;
     }
 
     .action-button--outline:hover,
     .action-button--outline:focus-visible {
-      background: rgba(106, 255, 59, 0.12);
-      color: var(--sharpe-ice);
-      border-color: rgba(106, 255, 59, 0.75);
-      box-shadow: 0 0 0 2px rgba(106, 255, 59, 0.25);
+      background: rgba(15, 23, 42, 0.95);
+      color: #f8fafc;
+      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.2);
     }
 
     .inline-status {
@@ -817,7 +763,7 @@
     }
 
     .inline-status--success {
-      color: rgba(106, 255, 59, 0.92);
+      color: rgba(72, 255, 226, 0.92);
     }
 
     .inline-status--error {
@@ -839,49 +785,46 @@
     input,
     select {
       appearance: none;
-      border: 1px solid rgba(106, 255, 59, 0.25);
-      border-radius: 6px;
-      background: rgba(8, 26, 20, 0.88);
-      color: var(--sharpe-ice);
+      border: 1px solid rgba(71, 85, 105, 0.65);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
       font-size: 1rem;
       padding: 0.85rem 1rem;
-      transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
     }
 
     input:focus,
     select:focus {
       outline: none;
-      border-color: rgba(106, 255, 59, 0.65);
-      box-shadow: 0 0 0 3px rgba(106, 255, 59, 0.2);
-      background: rgba(4, 24, 17, 0.95);
+      border-color: rgba(72, 255, 226, 0.55);
+      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.22);
     }
 
     button {
       appearance: none;
-      border: 1px solid rgba(106, 255, 59, 0.45);
-      border-radius: 0;
-      padding: 0.95rem 1.35rem;
+      border: none;
+      border-radius: 16px;
+      padding: 0.95rem 1.25rem;
       font-size: 1rem;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       cursor: pointer;
-      color: var(--sharpe-ice);
-      background: linear-gradient(96deg, rgba(34, 197, 94, 0.95), rgba(106, 255, 59, 0.88));
-      box-shadow: 0 18px 32px rgba(2, 14, 9, 0.55);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      color: #05070e;
+      background: linear-gradient(135deg, var(--ioncore-aqua), var(--ioncore-gold));
+      box-shadow: 0 16px 32px rgba(72, 255, 226, 0.25);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 24px 44px rgba(2, 14, 9, 0.68);
-      border-color: rgba(106, 255, 59, 0.78);
+      box-shadow: 0 24px 42px rgba(72, 255, 226, 0.32);
     }
 
     button:active {
       transform: translateY(0);
-      box-shadow: 0 14px 26px rgba(2, 14, 9, 0.5);
-      border-color: rgba(106, 255, 59, 0.6);
+      box-shadow: 0 12px 24px rgba(72, 255, 226, 0.22);
     }
 
     .status-message {
@@ -896,7 +839,7 @@
     }
 
     .status-message--success {
-      color: rgba(106, 255, 59, 0.92);
+      color: rgba(72, 255, 226, 0.92);
     }
 
     .camera-flash-overlay {
@@ -919,9 +862,9 @@
       gap: 1rem;
       margin-top: 1.5rem;
       padding: 1.25rem;
-      border-radius: 8px;
-      background: rgba(8, 26, 20, 0.78);
-      border: 1px solid rgba(106, 255, 59, 0.2);
+      border-radius: 18px;
+      background: rgba(12, 20, 38, 0.78);
+      border: 1px solid rgba(72, 255, 226, 0.18);
     }
 
     .meknx-access-grid h2 {
@@ -929,14 +872,14 @@
       font-size: 1rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: rgba(206, 222, 255, 0.88);
+      color: rgba(226, 232, 240, 0.88);
     }
 
     .meknx-description {
       margin: 0;
       font-size: 0.95rem;
       line-height: 1.6;
-      color: rgba(188, 202, 226, 0.92);
+      color: rgba(148, 163, 184, 0.92);
     }
 
     .meknx-actions {
@@ -1003,7 +946,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(56, 242, 163, 0.32), rgba(4, 20, 14, 0.88));
+      background: radial-gradient(circle at center, rgba(255, 115, 100, 0.32), rgba(15, 23, 42, 0.88));
       mix-blend-mode: screen;
       opacity: 0.85;
     }
@@ -1030,7 +973,7 @@
     .fire-glow {
       position: absolute;
       inset: 12% 10% 28% 10%;
-      background: radial-gradient(circle at 50% 20%, rgba(106, 255, 59, 0.55), rgba(56, 242, 163, 0.4), rgba(4, 20, 14, 0));
+      background: radial-gradient(circle at 50% 20%, rgba(255, 192, 120, 0.6), rgba(255, 90, 0, 0.45), rgba(15, 23, 42, 0));
       filter: blur(10px);
       animation: fire-glow-pulse 2.4s ease-in-out infinite;
     }
@@ -1040,9 +983,9 @@
       bottom: 22%;
       width: 42%;
       height: 46%;
-      background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.92), rgba(180, 255, 195, 0.85), rgba(56, 242, 163, 0.92));
+      background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.92), rgba(255, 205, 110, 0.85), rgba(255, 94, 58, 0.92));
       border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
-      filter: drop-shadow(0 0 24px rgba(106, 255, 59, 0.55));
+      filter: drop-shadow(0 0 24px rgba(255, 150, 80, 0.75));
       animation: flame-flicker 1.15s ease-in-out infinite;
       transform-origin: center bottom;
     }
@@ -1050,7 +993,7 @@
     .flame--2 {
       width: 55%;
       height: 56%;
-      background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.7), rgba(174, 255, 201, 0.85), rgba(45, 212, 191, 0.9));
+      background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.7), rgba(255, 160, 64, 0.85), rgba(255, 60, 0, 0.9));
       animation-duration: 1.35s;
       animation-delay: 0.18s;
       opacity: 0.85;
@@ -1059,7 +1002,7 @@
     .flame--3 {
       width: 32%;
       height: 36%;
-      background: radial-gradient(circle at 50% 20%, rgba(236, 253, 245, 0.9), rgba(167, 255, 210, 0.8), rgba(74, 222, 128, 0.85));
+      background: radial-gradient(circle at 50% 20%, rgba(255, 250, 210, 0.9), rgba(255, 189, 86, 0.8), rgba(255, 109, 50, 0.85));
       animation-duration: 0.95s;
       animation-delay: 0.3s;
       opacity: 0.75;
@@ -1071,7 +1014,7 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(167, 255, 210, 0.9), rgba(56, 242, 163, 0.6));
+      background: radial-gradient(circle, rgba(255, 189, 96, 0.9), rgba(255, 94, 58, 0.6));
       filter: blur(0.5px);
       animation: ember-rise 2.6s linear infinite;
       opacity: 0;
@@ -1101,8 +1044,8 @@
       text-align: center;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(222, 255, 233, 0.9);
-      text-shadow: 0 0 18px rgba(56, 242, 163, 0.5);
+      color: rgba(255, 223, 207, 0.92);
+      text-shadow: 0 0 18px rgba(255, 148, 80, 0.75);
     }
 
     .failure-stage {
@@ -1131,9 +1074,9 @@
       width: 108px;
       height: 108px;
       border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, #34d399 0%, #052e1a 65%, #020905 100%);
-      border: 4px solid rgba(5, 26, 14, 0.85);
-      box-shadow: 0 16px 28px rgba(5, 26, 14, 0.65);
+      background: radial-gradient(circle at 40% 35%, #3b82f6 0%, #0f172a 65%, #05070e 100%);
+      border: 4px solid rgba(4, 10, 24, 0.85);
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.65);
       transform: translateY(-180%) scale(0.85);
       opacity: 0;
     }
@@ -1155,7 +1098,7 @@
       width: 12px;
       height: 46px;
       border-radius: 8px;
-      background: linear-gradient(180deg, #6aff3b 0%, #15803d 100%);
+      background: linear-gradient(180deg, #f97316 0%, #a855f7 100%);
       transform: rotate(18deg);
       box-shadow: 0 0 0 2px rgba(5, 7, 14, 0.32);
     }
@@ -1167,8 +1110,8 @@
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      background: radial-gradient(circle, #fafff0 0%, #34d399 45%, #0ea5e9 100%);
-      box-shadow: 0 0 18px rgba(106, 255, 59, 0.65);
+      background: radial-gradient(circle, #fff7b2 0%, #ffb347 45%, #ff4976 100%);
+      box-shadow: 0 0 18px rgba(255, 184, 108, 0.85);
       opacity: 0;
       transform: scale(0.3);
     }
@@ -1198,8 +1141,8 @@
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle at 50% 40%, #f5fff0 0%, #bbf7d0 55%, #34d399 100%);
-      border: 2px solid rgba(180, 255, 210, 0.35);
+      background: radial-gradient(circle at 50% 40%, #fff4cc 0%, #ffd27d 55%, #ffb347 100%);
+      border: 2px solid rgba(255, 185, 120, 0.35);
       transform: translate(0, 0) rotate(0deg) scale(1);
       opacity: 1;
       --dx: 0px;
@@ -1259,7 +1202,7 @@
 
     .face-feature {
       position: absolute;
-      background: #052e1a;
+      background: #0f172a;
       border-radius: 50%;
       transform: translate(0, 0) rotate(0deg);
       --dx: 0px;
@@ -1306,7 +1249,7 @@
       height: 18%;
       border-radius: 0 0 120px 120px;
       background: transparent;
-      border: 6px solid #34d399;
+      border: 6px solid #ff4976;
       border-top: 0;
       --dx: 0px;
       --dy: 72px;
@@ -1324,7 +1267,7 @@
       width: 44%;
       height: 12%;
       border-radius: 60% 60% 20% 20%;
-      background: linear-gradient(90deg, rgba(180, 255, 210, 0), rgba(180, 255, 210, 0.65), rgba(180, 255, 210, 0));
+      background: linear-gradient(90deg, rgba(255, 180, 124, 0), rgba(255, 180, 124, 0.6), rgba(255, 180, 124, 0));
       --dx: 0px;
       --dy: -68px;
       --rot: -12deg;
@@ -1340,10 +1283,10 @@
       width: 84%;
       height: 84%;
       border-radius: 50%;
-      border: 4px dashed rgba(106, 255, 59, 0.55);
+      border: 4px dashed rgba(255, 186, 120, 0.65);
       opacity: 0;
       transform: scale(0.35);
-      filter: drop-shadow(0 0 16px rgba(106, 255, 59, 0.32));
+      filter: drop-shadow(0 0 16px rgba(255, 200, 150, 0.4));
     }
 
     .comic-text {
@@ -1353,7 +1296,7 @@
       font-weight: 800;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: #bef264;
+      color: #ffdf85;
       text-shadow: 0 8px 24px rgba(5, 7, 14, 0.8);
       transform: scale(0.4) rotate(-6deg);
       opacity: 0;
@@ -1567,17 +1510,17 @@
     }
 
     @media (max-width: 520px) {
-      .login-body {
+      body {
         padding: 5.75rem 1rem 3.25rem;
       }
 
       .health-bar {
-        top: 4.25rem;
+        top: 0.75rem;
         width: calc(100vw - 1.5rem);
         padding: 0.75rem 1rem;
       }
 
-      .login-body::after {
+      body::after {
         font-size: clamp(2.5rem, 18vw, 4.5rem);
         top: 8%;
         right: -25%;
@@ -1609,20 +1552,7 @@
   </style>
     <link rel="stylesheet" href="legal-footer.css">
 </head>
-  <body class="login-body">
-    <header class="site-header container login-site-header">
-      <a class="logo" href="index.html" aria-label="Ioncore Energy brochure library">
-        <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
-        <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
-      </a>
-      <nav class="site-nav" aria-label="Ioncore navigation">
-        <ul>
-          <li><a href="index.html">Brochure library</a></li>
-          <li><a href="fullexperience.html">Main experience</a></li>
-        </ul>
-      </nav>
-      <a class="btn btn-outline login-contact" href="mailto:ioncoreenergy@gmail.com">Contact</a>
-    </header>
+  <body>
     <div class="scanlines" aria-hidden="true"></div>
     <div class="failure-overlay" aria-hidden="true">
       <div class="failure-stage">
@@ -1664,8 +1594,8 @@
     </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
       <div class="intro-content">
-        <img class="intro-logo" src="battery.svg" alt="Ioncore Energy emblem">
-        <div class="intro-text" aria-hidden="true"><span>Ioncore</span> Energy</div>
+        <img class="intro-logo" src="battery.svg" alt="">
+        <div class="intro-text" aria-hidden="true"><span>Ioncore</span>Energy</div>
       </div>
     </div>
     <div class="health-bar" role="status" aria-live="polite">
@@ -1681,15 +1611,15 @@
       <span id="health-status" class="sr-only">Security hearts remaining: 5 of 5.</span>
     </div>
     <main class="vault-card" role="main">
-      <div class="logo-lockup" aria-label="Ioncore Secure Vault">
-        <span>Ioncore</span> Energy // Partner Vault
+      <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
+        <span>Ioncore</span> Energy // Clearance Gate
       </div>
       <div class="intel-banner" role="status">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
-        Ioncore telemetry active. Partner vault monitored 24/7.
+        Confidential schematics. Quantum vault monitored 24/7.
       </div>
       <h1>Vault Access Protocol</h1>
-      <p class="tagline">Authenticate with your assigned credentials to review Ioncore Energy's confidential deployment playbooks and financial dossiers. Unauthorized access attempts will be logged and escalated.</p>
+      <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
           <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
@@ -1736,7 +1666,7 @@
                     </linearGradient>
                     <linearGradient id="solana-c" x1="6" y1="23" x2="26" y2="23" gradientUnits="userSpaceOnUse">
                       <stop offset="0" stop-color="#19fb9b" />
-                      <stop offset="1" stop-color="#15803d" />
+                      <stop offset="1" stop-color="#a855f7" />
                     </linearGradient>
                   </defs>
                   <path fill="url(#solana-a)" d="M6 8.2 10.8 4H26l-4.8 4.2H6Z" />
@@ -2772,7 +2702,7 @@
 
       if (meknxMintButton) {
         meknxMintButton.addEventListener('click', () => {
-          const mintUrl = 'https://meknx.com/mint/sharpe-access';
+          const mintUrl = 'https://meknx.com/mint/ioncore-access';
           window.open(mintUrl, '_blank', 'noopener');
           updateStatus('MEKNX minting portal opened in a new tab. Complete minting then verify your token.');
         });

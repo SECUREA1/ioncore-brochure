@@ -2292,6 +2292,50 @@
       return null;
     };
 
+    const isMobileDevice = () => {
+      if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+        return navigator.userAgentData.mobile;
+      }
+      const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+      return /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini/.test(ua);
+    };
+
+    const openDeepLinkWindow = (url) => {
+      if (!url) {
+        return false;
+      }
+      const opened = window.open(url, '_blank', 'noopener');
+      if (!opened) {
+        window.location.href = url;
+      }
+      return true;
+    };
+
+    const triggerMobileWalletDeepLink = (wallet) => {
+      if (!isMobileDevice()) {
+        return false;
+      }
+
+      const currentUrl = window.location.href;
+      if (!currentUrl) {
+        return false;
+      }
+
+      if (wallet === 'metamask') {
+        const sanitized = currentUrl.replace(/^https?:\/\//i, '');
+        const deepLink = `https://metamask.app.link/dapp/${sanitized}`;
+        return openDeepLinkWindow(deepLink);
+      }
+
+      if (wallet === 'phantom') {
+        const encoded = encodeURIComponent(currentUrl);
+        const deepLink = `https://phantom.app/ul/v1/open-app?app_url=${encoded}`;
+        return openDeepLinkWindow(deepLink);
+      }
+
+      return false;
+    };
+
     const hexToBytes = (hex) => {
       if (typeof hex !== 'string') {
         throw new Error('Invalid Cardano balance payload.');
@@ -3095,7 +3139,19 @@
           metamaskButton.textContent = 'Connecting…';
 
           try {
-            const provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
+            let provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
+
+            if (!provider) {
+              const openedMobileLink = triggerMobileWalletDeepLink('metamask');
+              if (openedMobileLink) {
+                if (metamaskStatus) {
+                  metamaskStatus.textContent = 'Opening MetaMask app… return here after approving the session.';
+                }
+                updateStatus('Launching MetaMask. Approve the connection in-app, then return to the browser.');
+                provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 7200, interval: 260 });
+              }
+            }
+
             if (!provider) {
               throw new Error(
                 'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
@@ -3140,7 +3196,17 @@
           phantomButton.textContent = 'Connecting…';
 
           try {
-            const provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
+            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
+            if (!provider || !provider.isPhantom) {
+              const openedMobileLink = triggerMobileWalletDeepLink('phantom');
+              if (openedMobileLink) {
+                if (phantomStatus) {
+                  phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
+                }
+                updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
+                provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 7200, interval: 260 });
+              }
+            }
             if (!provider || !provider.isPhantom) {
               throw new Error(
                 'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'

@@ -397,7 +397,19 @@ function isPublicRoute(req) {
   }
 
   if (req.method === 'GET') {
-    const publicHtml = new Set(['/login', '/login.html', '/', '/webpage.html']);
+    const publicHtml = new Set([
+      '/login',
+      '/login.html',
+      '/',
+      '/webpage.html',
+      '/index',
+      '/index.html',
+      '/index/',
+      '/IONCORECHAT',
+      '/IONCORECHAT/',
+      '/IONCORECHAT/index',
+      '/IONCORECHAT/index.html'
+    ]);
     if (publicHtml.has(req.path)) {
       return true;
     }

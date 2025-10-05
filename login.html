@@ -2292,6 +2292,45 @@
       return null;
     };
 
+    const phantomDeepLinkStateKey = 'phantomDeepLinkRequestedAt';
+
+    const markPhantomDeepLinkRequest = () => {
+      try {
+        sessionStorage.setItem(phantomDeepLinkStateKey, String(Date.now()));
+      } catch (error) {
+        // Ignore storage errors (e.g., Safari private mode).
+      }
+    };
+
+    const wasRecentPhantomDeepLinkRequest = (maxAgeMs = 5 * 60 * 1000) => {
+      try {
+        const rawValue = sessionStorage.getItem(phantomDeepLinkStateKey);
+        if (!rawValue) {
+          return false;
+        }
+        const timestamp = Number.parseInt(rawValue, 10);
+        if (!Number.isFinite(timestamp)) {
+          return false;
+        }
+        return Date.now() - timestamp <= maxAgeMs;
+      } catch (error) {
+        return false;
+      }
+    };
+
+    const clearPhantomDeepLinkRequest = () => {
+      try {
+        sessionStorage.removeItem(phantomDeepLinkStateKey);
+      } catch (error) {
+        // Ignore storage errors.
+      }
+    };
+
+    const isPhantomInAppBrowser = () => {
+      const ua = (navigator.userAgent || '').toLowerCase();
+      return ua.includes('phantom');
+    };
+
     const isMobileDevice = () => {
       if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
         return navigator.userAgentData.mobile;
@@ -2374,17 +2413,55 @@
       }
 
       if (wallet === 'phantom') {
+        if (isPhantomInAppBrowser()) {
+          return false;
+        }
         const httpsUrl = normalizeForHttps(currentUrl);
         if (!httpsUrl) {
           return false;
         }
-        const encoded = encodeURIComponent(httpsUrl);
-        const deepLink = `https://phantom.app/ul/v1/open-app?app_url=${encoded}`;
-        return openDeepLinkWindow(deepLink);
+        const params = new URLSearchParams({
+          app_url: httpsUrl,
+          redirect_link: httpsUrl
+        });
+        const deepLink = `https://phantom.app/ul/v1/open-app?${params.toString()}`;
+        const opened = openDeepLinkWindow(deepLink);
+        if (opened) {
+          markPhantomDeepLinkRequest();
+        }
+        return opened;
       }
 
       return false;
     };
+
+    const handlePhantomReturnVisibility = () => {
+      if (!wasRecentPhantomDeepLinkRequest()) {
+        return;
+      }
+      const provider = detectPhantomProvider();
+      if (provider && provider.isPhantom) {
+        clearPhantomDeepLinkRequest();
+        return;
+      }
+      void waitForWalletInjection(detectPhantomProvider, { timeout: 2000, interval: 220 }).then(
+        (detected) => {
+          if (detected && detected.isPhantom) {
+            clearPhantomDeepLinkRequest();
+          }
+        }
+      );
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        handlePhantomReturnVisibility();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      handlePhantomReturnVisibility();
+    });
 
     const pickEvmAccount = (accounts) => {
       if (!accounts) {
@@ -3440,7 +3517,7 @@
           phantomButton.textContent = 'Connecting…';
 
           try {
-            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
+            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 3200, interval: 220 });
             if (!provider || !provider.isPhantom) {
               const openedMobileLink = triggerMobileWalletDeepLink('phantom');
               if (openedMobileLink) {
@@ -3448,7 +3525,11 @@
                   phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
                 }
                 updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
-                provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 7200, interval: 260 });
+                const mobileTimeout = isMobileDevice() ? 45000 : 7200;
+                provider = await waitForWalletInjection(detectPhantomProvider, {
+                  timeout: mobileTimeout,
+                  interval: 260
+                });
               }
             }
             if (!provider || !provider.isPhantom) {
@@ -3461,6 +3542,7 @@
             if (!publicKey) {
               throw new Error('No wallet account returned.');
             }
+            clearPhantomDeepLinkRequest();
             if (phantomStatus) {
               phantomStatus.textContent = 'Verifying IONC token…';
             }
@@ -3503,6 +3585,7 @@
             updateStatus(message, 'error');
             triggerFailureAnimation();
           } finally {
+            clearPhantomDeepLinkRequest();
             phantomButton.disabled = false;
             phantomButton.textContent = 'Connect Phantom';
           }

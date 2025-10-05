@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ioncore Secure Vault Access</title>
-  <meta name="description" content="Ioncore Energy secure access portal for confidential energy ecosystem dossiers.">
+  <title>Sharpe Secure Systems Access</title>
+  <meta name="description" content="Sharpe Secure Systems portal for classified clean-tech dossiers.">
   <link rel="icon" type="image/svg+xml" href="/battery.svg">
   <link rel="shortcut icon" href="/battery.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,12 +13,13 @@
   <style>
     :root {
       color-scheme: dark;
-      --ioncore-gold: #f5c978;
-      --ioncore-blue: #0f172a;
-      --ioncore-aqua: #48ffe2;
-      --ioncore-crimson: #ff4976;
-      --ioncore-ink: rgba(6, 12, 24, 0.82);
-      --ioncore-neon: #6aff3b;
+      --sharpe-midnight: #030712;
+      --sharpe-navy: #0b162d;
+      --sharpe-royal: #1e4ed8;
+      --sharpe-cyan: #23c4ff;
+      --sharpe-flare: #ff6b3b;
+      --sharpe-ink: rgba(7, 12, 23, 0.88);
+      --sharpe-ice: #f2f6ff;
     }
 
     * {
@@ -33,8 +34,8 @@
       margin: 0;
       min-height: 100vh;
       font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at top, rgba(12, 18, 48, 0.95) 0%, rgba(6, 10, 22, 0.98) 45%, #05070e 100%);
-      color: #f8fafc;
+      background: radial-gradient(circle at 20% -10%, rgba(32, 60, 130, 0.92) 0%, rgba(7, 13, 30, 0.98) 55%, #020510 100%);
+      color: var(--sharpe-ice);
       display: flex;
       align-items: flex-start;
       justify-content: center;
@@ -59,8 +60,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 45% 30%, rgba(106, 255, 59, 0.24), transparent 58%),
-        radial-gradient(circle at 60% 70%, rgba(72, 255, 226, 0.18), transparent 60%);
+      background: radial-gradient(circle at 45% 30%, rgba(35, 196, 255, 0.32), transparent 58%),
+        radial-gradient(circle at 60% 70%, rgba(255, 107, 59, 0.18), transparent 60%);
       mix-blend-mode: screen;
       opacity: 0.9;
     }
@@ -82,19 +83,19 @@
       width: clamp(96px, 24vw, 168px);
       height: clamp(96px, 24vw, 168px);
       animation: logo-spin 2.6s cubic-bezier(0.22, 0.68, 0, 1) forwards;
-      filter: drop-shadow(0 0 28px rgba(106, 255, 59, 0.45));
+      filter: drop-shadow(0 0 28px rgba(35, 196, 255, 0.45));
     }
 
     .intro-text {
       font-size: clamp(1.75rem, 6vw, 3.4rem);
       font-weight: 700;
-      color: var(--ioncore-neon);
-      text-shadow: 0 0 24px rgba(106, 255, 59, 0.35);
+      color: var(--sharpe-cyan);
+      text-shadow: 0 0 24px rgba(35, 196, 255, 0.35);
       animation: text-expand 2.1s ease forwards;
     }
 
     .intro-text span {
-      color: #f8fafc;
+      color: var(--sharpe-flare);
       display: block;
       letter-spacing: 0.32em;
       font-size: 0.78em;
@@ -105,14 +106,20 @@
       content: "";
       position: absolute;
       inset: -20%;
-      background: conic-gradient(from 180deg at 50% 50%, rgba(72, 255, 226, 0.12), rgba(245, 201, 120, 0.08), rgba(255, 73, 118, 0.1), rgba(72, 255, 226, 0.12));
+      background: conic-gradient(
+        from 210deg at 50% 50%,
+        rgba(35, 196, 255, 0.16),
+        rgba(30, 78, 216, 0.1),
+        rgba(255, 107, 59, 0.14),
+        rgba(35, 196, 255, 0.16)
+      );
       filter: blur(90px);
       opacity: 0.75;
       z-index: 0;
     }
 
     body::after {
-      content: "TOP SECRET";
+      content: "SHARPE SECURE";
       position: absolute;
       top: 5%;
       right: -12%;
@@ -120,7 +127,7 @@
       font-weight: 800;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: rgba(248, 250, 252, 0.06);
+      color: rgba(242, 246, 255, 0.06);
       transform: rotate(-18deg);
       z-index: 0;
       pointer-events: none;
@@ -203,15 +210,15 @@
     @keyframes crestPulse {
       0% {
         transform: scale(0.94) rotate(-2deg);
-        box-shadow: 0 0 14px rgba(106, 255, 59, 0.38), inset 0 0 0 1px rgba(106, 255, 59, 0.24);
+        box-shadow: 0 0 14px rgba(35, 196, 255, 0.38), inset 0 0 0 1px rgba(35, 196, 255, 0.24);
       }
       50% {
         transform: scale(1.02) rotate(1.5deg);
-        box-shadow: 0 0 20px rgba(106, 255, 59, 0.52), 0 0 0 10px rgba(106, 255, 59, 0.08), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
+        box-shadow: 0 0 20px rgba(35, 196, 255, 0.52), 0 0 0 10px rgba(35, 196, 255, 0.08), inset 0 0 0 1px rgba(255, 107, 59, 0.25);
       }
       100% {
         transform: scale(1) rotate(-1deg);
-        box-shadow: 0 0 16px rgba(106, 255, 59, 0.45), 0 0 0 6px rgba(106, 255, 59, 0.05), inset 0 0 0 1px rgba(106, 255, 59, 0.28);
+        box-shadow: 0 0 16px rgba(35, 196, 255, 0.45), 0 0 0 6px rgba(35, 196, 255, 0.06), inset 0 0 0 1px rgba(255, 107, 59, 0.2);
       }
     }
 
@@ -219,11 +226,11 @@
       position: relative;
       z-index: 2;
       width: min(480px, 100%);
-      background: linear-gradient(145deg, rgba(13, 21, 39, 0.88), rgba(9, 14, 26, 0.96));
-      border: 1px solid rgba(72, 255, 226, 0.25);
-      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(11, 22, 45, 0.92), rgba(5, 12, 26, 0.96));
+      border: 1px solid rgba(35, 196, 255, 0.28);
+      border-radius: 16px;
       padding: clamp(2rem, 4vw, 2.75rem);
-      box-shadow: 0 22px 60px rgba(6, 12, 24, 0.55);
+      box-shadow: 0 26px 68px rgba(2, 9, 19, 0.6);
       backdrop-filter: blur(18px);
       overflow: hidden;
       opacity: 0;
@@ -235,21 +242,21 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 20% -20%, rgba(245, 201, 120, 0.25), transparent 60%),
-        radial-gradient(circle at 80% 120%, rgba(72, 255, 226, 0.2), transparent 60%);
+      background: radial-gradient(circle at 20% -20%, rgba(35, 196, 255, 0.24), transparent 60%),
+        radial-gradient(circle at 80% 120%, rgba(255, 107, 59, 0.22), transparent 60%);
       opacity: 0.6;
       z-index: -1;
     }
 
     .vault-card::after {
-      content: "IONCORE EYES ONLY";
+      content: "SHARPE EYES ONLY";
       position: absolute;
       bottom: 1.25rem;
       right: -2.5rem;
       font-size: 0.85rem;
       font-weight: 700;
       letter-spacing: 0.4em;
-      color: rgba(255, 73, 118, 0.2);
+      color: rgba(35, 196, 255, 0.18);
       transform: rotate(-90deg);
       pointer-events: none;
     }
@@ -275,20 +282,21 @@
       display: inline-flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.65rem 1rem;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(72, 255, 226, 0.18);
+      padding: 0.65rem 1.1rem;
+      border-radius: 0;
+      background: rgba(11, 22, 45, 0.82);
+      border: 1px solid rgba(35, 196, 255, 0.24);
       margin-bottom: 1.75rem;
       text-transform: uppercase;
       letter-spacing: 0.3em;
       font-size: 0.75rem;
-      color: rgba(248, 250, 252, 0.85);
+      color: rgba(242, 246, 255, 0.82);
+      box-shadow: 0 12px 26px rgba(3, 9, 21, 0.45);
     }
 
     .logo-lockup span {
       font-weight: 700;
-      color: var(--ioncore-aqua);
+      color: var(--sharpe-flare);
     }
 
     h1 {
@@ -310,13 +318,15 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(255, 73, 118, 0.18);
-      color: rgba(255, 178, 200, 0.9);
-      border: 1px solid rgba(255, 73, 118, 0.35);
-      border-radius: 12px;
+      background: linear-gradient(90deg, rgba(30, 78, 216, 0.28), rgba(35, 196, 255, 0.22));
+      color: rgba(206, 222, 255, 0.92);
+      border: 1px solid rgba(35, 196, 255, 0.32);
+      border-radius: 0;
       padding: 0.65rem 1rem;
       font-weight: 600;
       margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
     }
 
     .intel-banner svg {
@@ -333,10 +343,10 @@
       gap: 1rem;
       margin: 0;
       padding: 0.85rem 1.25rem;
-      border-radius: 18px;
-      background: rgba(8, 14, 28, 0.82);
-      border: 1px solid rgba(72, 255, 226, 0.25);
-      box-shadow: 0 18px 40px rgba(5, 12, 24, 0.5);
+      border-radius: 8px;
+      background: rgba(7, 15, 30, 0.9);
+      border: 1px solid rgba(35, 196, 255, 0.32);
+      box-shadow: 0 18px 40px rgba(3, 9, 21, 0.55);
       position: fixed;
       top: clamp(1rem, 5vw, 1.75rem);
       left: 50%;
@@ -354,15 +364,15 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(72, 255, 226, 0.1), transparent 60%),
-        radial-gradient(circle at 70% 70%, rgba(255, 73, 118, 0.08), transparent 68%);
+      background: radial-gradient(circle at 30% 30%, rgba(35, 196, 255, 0.12), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(255, 107, 59, 0.1), transparent 68%);
       opacity: 0.6;
       pointer-events: none;
     }
 
     .health-bar.is-critical {
-      border-color: rgba(255, 73, 118, 0.45);
-      box-shadow: 0 20px 48px rgba(255, 73, 118, 0.28);
+      border-color: rgba(255, 107, 59, 0.55);
+      box-shadow: 0 20px 48px rgba(255, 107, 59, 0.32);
     }
 
     .health-label {
@@ -371,7 +381,7 @@
       font-size: 0.75rem;
       letter-spacing: 0.28em;
       text-transform: uppercase;
-      color: rgba(226, 232, 240, 0.82);
+      color: rgba(206, 222, 255, 0.82);
       white-space: nowrap;
     }
 
@@ -400,8 +410,8 @@
     }
 
     .health-heart::before {
-      color: var(--ioncore-crimson);
-      text-shadow: 0 0 16px rgba(255, 73, 118, 0.45);
+      color: var(--sharpe-flare);
+      text-shadow: 0 0 16px rgba(255, 107, 59, 0.45);
     }
 
     .health-heart::after {
@@ -461,22 +471,22 @@
       gap: 0.75rem;
       margin-bottom: 1.75rem;
       padding: 0.35rem;
-      background: rgba(14, 23, 43, 0.72);
-      border: 1px solid rgba(72, 255, 226, 0.18);
-      border-radius: 16px;
+      background: rgba(11, 22, 45, 0.72);
+      border: 1px solid rgba(35, 196, 255, 0.25);
+      border-radius: 8px;
     }
 
     .auth-mode {
       appearance: none;
       border: none;
-      border-radius: 12px;
+      border-radius: 0;
       padding: 0.9rem 1rem;
       font-family: inherit;
       font-size: 0.95rem;
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(226, 232, 240, 0.82);
+      color: rgba(188, 202, 226, 0.85);
       background: transparent;
       cursor: pointer;
       transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
@@ -485,14 +495,14 @@
     .auth-mode:hover,
     .auth-mode:focus-visible {
       outline: none;
-      color: #f8fafc;
-      box-shadow: 0 0 0 2px rgba(72, 255, 226, 0.18);
+      color: var(--sharpe-ice);
+      box-shadow: 0 0 0 2px rgba(35, 196, 255, 0.18);
     }
 
     .auth-mode.is-active {
-      color: #0f172a;
-      background: linear-gradient(135deg, rgba(72, 255, 226, 0.82), rgba(106, 255, 59, 0.72));
-      box-shadow: 0 16px 30px rgba(9, 16, 26, 0.45);
+      color: var(--sharpe-ice);
+      background: linear-gradient(96deg, rgba(30, 78, 216, 0.9), rgba(35, 196, 255, 0.82));
+      box-shadow: 0 18px 36px rgba(2, 9, 19, 0.5);
     }
 
     .mode-panel[hidden] {
@@ -526,17 +536,17 @@
       align-items: center;
       justify-content: center;
       gap: 0.85rem;
-      border: none;
-      border-radius: 999px;
-      padding: 0.85rem 1.6rem;
+      border: 1px solid rgba(35, 196, 255, 0.45);
+      border-radius: 0;
+      padding: 0.9rem 1.75rem;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: #0f172a;
-      background: linear-gradient(135deg, rgba(72, 255, 226, 0.92), rgba(106, 255, 59, 0.82));
-      box-shadow: 0 12px 28px rgba(9, 16, 26, 0.35);
+      color: var(--sharpe-ice);
+      background: linear-gradient(96deg, rgba(30, 78, 216, 0.95), rgba(35, 196, 255, 0.9));
+      box-shadow: 0 18px 34px rgba(2, 9, 19, 0.6);
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
       flex: 1 1 220px;
       min-width: 200px;
       overflow: hidden;
@@ -547,8 +557,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.26), transparent 55%);
-      opacity: 0.7;
+      background: linear-gradient(120deg, rgba(255, 107, 59, 0.28), transparent 55%);
+      opacity: 0.65;
       pointer-events: none;
       transition: opacity 0.18s ease;
     }
@@ -556,14 +566,14 @@
     .wallet-connect-button:hover:not(:disabled),
     .wallet-connect-button:focus-visible:not(:disabled) {
       outline: none;
-      transform: translateY(-1px);
-      box-shadow: 0 18px 34px rgba(11, 20, 36, 0.48);
-      filter: saturate(1.05);
+      transform: translateY(-2px);
+      box-shadow: 0 22px 42px rgba(2, 9, 19, 0.72);
+      border-color: rgba(35, 196, 255, 0.75);
     }
 
     .wallet-connect-button:hover:not(:disabled)::before,
     .wallet-connect-button:focus-visible:not(:disabled)::before {
-      opacity: 1;
+      opacity: 0.9;
     }
 
     .wallet-connect-button:disabled {
@@ -572,36 +582,33 @@
     }
 
     .wallet-connect-button--metamask {
-      background: linear-gradient(135deg, rgba(255, 198, 124, 0.96), rgba(255, 123, 0, 0.88));
-      color: #1b1206;
-      box-shadow: 0 14px 32px rgba(134, 66, 0, 0.45);
+      background: linear-gradient(96deg, rgba(30, 78, 216, 0.95), rgba(255, 107, 59, 0.92));
+      border-color: rgba(255, 107, 59, 0.55);
     }
 
     .wallet-connect-button--metamask:hover:not(:disabled),
     .wallet-connect-button--metamask:focus-visible:not(:disabled) {
-      box-shadow: 0 20px 36px rgba(134, 66, 0, 0.52);
+      border-color: rgba(255, 140, 92, 0.85);
     }
 
     .wallet-connect-button--phantom {
-      background: linear-gradient(135deg, rgba(116, 95, 255, 0.9), rgba(255, 73, 214, 0.78));
-      color: #0b1020;
-      box-shadow: 0 14px 32px rgba(66, 38, 163, 0.45);
+      background: linear-gradient(96deg, rgba(30, 78, 216, 0.95), rgba(123, 97, 255, 0.88));
+      border-color: rgba(123, 97, 255, 0.55);
     }
 
     .wallet-connect-button--phantom:hover:not(:disabled),
     .wallet-connect-button--phantom:focus-visible:not(:disabled) {
-      box-shadow: 0 20px 38px rgba(82, 48, 204, 0.5);
+      border-color: rgba(159, 133, 255, 0.85);
     }
 
     .wallet-connect-button--cardano {
-      background: linear-gradient(135deg, rgba(41, 173, 255, 0.85), rgba(0, 75, 173, 0.72));
-      color: #051021;
-      box-shadow: 0 14px 32px rgba(16, 70, 128, 0.45);
+      background: linear-gradient(96deg, rgba(30, 78, 216, 0.95), rgba(35, 196, 255, 0.9));
+      border-color: rgba(35, 196, 255, 0.65);
     }
 
     .wallet-connect-button--cardano:hover:not(:disabled),
     .wallet-connect-button--cardano:focus-visible:not(:disabled) {
-      box-shadow: 0 20px 38px rgba(21, 94, 170, 0.52);
+      border-color: rgba(88, 214, 255, 0.85);
     }
 
     .wallet-connect-button__icon,
@@ -647,20 +654,20 @@
     }
 
     .wallet-connect-button__crest {
-      background: rgba(255, 255, 255, 0.22);
-      box-shadow: 0 0 18px rgba(106, 255, 59, 0.45), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: 0 0 18px rgba(35, 196, 255, 0.45), inset 0 0 0 1px rgba(35, 196, 255, 0.32);
       animation: crestPulse 2.8s ease-in-out infinite;
     }
 
     .wallet-connect-button__crest img {
       width: 22px;
       height: 22px;
-      filter: drop-shadow(0 0 6px rgba(106, 255, 59, 0.45));
+      filter: drop-shadow(0 0 6px rgba(35, 196, 255, 0.45));
     }
 
     .wallet-status {
       font-size: 0.85rem;
-      color: rgba(148, 163, 184, 0.95);
+      color: rgba(188, 202, 226, 0.95);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       flex: 1 1 160px;
@@ -668,21 +675,21 @@
     }
 
     .wallet-status--connected {
-      color: rgba(165, 255, 214, 0.92);
+      color: rgba(35, 196, 255, 0.85);
     }
 
     .module-tag--cardano {
-      background: linear-gradient(135deg, rgba(41, 173, 255, 0.35), rgba(0, 75, 173, 0.58));
-      border-color: rgba(41, 173, 255, 0.65);
+      background: linear-gradient(135deg, rgba(35, 196, 255, 0.28), rgba(30, 78, 216, 0.32));
+      border-color: rgba(35, 196, 255, 0.5);
     }
 
     .access-module {
       display: grid;
       gap: 0.75rem;
       padding: 1.1rem 1.25rem;
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(72, 255, 226, 0.18);
+      border-radius: 8px;
+      background: rgba(11, 22, 45, 0.68);
+      border: 1px solid rgba(35, 196, 255, 0.2);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
@@ -705,20 +712,20 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.25rem 0.65rem;
-      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0;
       font-size: 0.68rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      background: rgba(72, 255, 226, 0.16);
-      color: rgba(148, 163, 184, 0.95);
-      border: 1px solid rgba(72, 255, 226, 0.28);
+      background: rgba(30, 78, 216, 0.24);
+      color: rgba(206, 222, 255, 0.88);
+      border: 1px solid rgba(35, 196, 255, 0.32);
     }
 
     .module-tag--solana {
-      background: linear-gradient(135deg, rgba(116, 95, 255, 0.2), rgba(255, 73, 214, 0.15));
-      border-color: rgba(144, 120, 255, 0.35);
-      color: rgba(221, 214, 255, 0.9);
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.24), rgba(35, 196, 255, 0.2));
+      border-color: rgba(123, 97, 255, 0.35);
+      color: rgba(222, 217, 255, 0.9);
     }
 
     .module-copy {
@@ -736,23 +743,31 @@
     }
 
     .action-button {
-      padding: 0.75rem 1.35rem;
+      padding: 0.85rem 1.5rem;
       font-size: 0.85rem;
       letter-spacing: 0.18em;
+      background: linear-gradient(96deg, rgba(255, 107, 59, 0.92), rgba(35, 196, 255, 0.88));
+      border-color: rgba(255, 107, 59, 0.55);
+    }
+
+    .action-button:hover,
+    .action-button:focus-visible {
+      border-color: rgba(255, 140, 92, 0.85);
     }
 
     .action-button--outline {
-      background: rgba(15, 23, 42, 0.8);
-      color: rgba(226, 232, 240, 0.92);
-      border: 1px solid rgba(72, 255, 226, 0.35);
+      background: transparent;
+      color: var(--sharpe-ice);
+      border-color: rgba(35, 196, 255, 0.45);
       box-shadow: none;
     }
 
     .action-button--outline:hover,
     .action-button--outline:focus-visible {
-      background: rgba(15, 23, 42, 0.95);
-      color: #f8fafc;
-      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.2);
+      background: rgba(35, 196, 255, 0.12);
+      color: var(--sharpe-ice);
+      border-color: rgba(35, 196, 255, 0.75);
+      box-shadow: 0 0 0 2px rgba(35, 196, 255, 0.25);
     }
 
     .inline-status {
@@ -763,7 +778,7 @@
     }
 
     .inline-status--success {
-      color: rgba(72, 255, 226, 0.92);
+      color: rgba(35, 196, 255, 0.92);
     }
 
     .inline-status--error {
@@ -785,46 +800,49 @@
     input,
     select {
       appearance: none;
-      border: 1px solid rgba(71, 85, 105, 0.65);
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.85);
-      color: #f8fafc;
+      border: 1px solid rgba(35, 196, 255, 0.25);
+      border-radius: 6px;
+      background: rgba(11, 22, 45, 0.88);
+      color: var(--sharpe-ice);
       font-size: 1rem;
       padding: 0.85rem 1rem;
-      transition: border 0.2s ease, box-shadow 0.2s ease;
+      transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
     input:focus,
     select:focus {
       outline: none;
-      border-color: rgba(72, 255, 226, 0.55);
-      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.22);
+      border-color: rgba(35, 196, 255, 0.65);
+      box-shadow: 0 0 0 3px rgba(35, 196, 255, 0.2);
+      background: rgba(8, 18, 36, 0.95);
     }
 
     button {
       appearance: none;
-      border: none;
-      border-radius: 16px;
-      padding: 0.95rem 1.25rem;
+      border: 1px solid rgba(35, 196, 255, 0.45);
+      border-radius: 0;
+      padding: 0.95rem 1.35rem;
       font-size: 1rem;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       cursor: pointer;
-      color: #05070e;
-      background: linear-gradient(135deg, var(--ioncore-aqua), var(--ioncore-gold));
-      box-shadow: 0 16px 32px rgba(72, 255, 226, 0.25);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      color: var(--sharpe-ice);
+      background: linear-gradient(96deg, rgba(30, 78, 216, 0.95), rgba(35, 196, 255, 0.88));
+      box-shadow: 0 18px 32px rgba(2, 9, 19, 0.55);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
 
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 24px 42px rgba(72, 255, 226, 0.32);
+      box-shadow: 0 24px 44px rgba(2, 9, 19, 0.68);
+      border-color: rgba(35, 196, 255, 0.78);
     }
 
     button:active {
       transform: translateY(0);
-      box-shadow: 0 12px 24px rgba(72, 255, 226, 0.22);
+      box-shadow: 0 14px 26px rgba(2, 9, 19, 0.5);
+      border-color: rgba(35, 196, 255, 0.6);
     }
 
     .status-message {
@@ -839,7 +857,7 @@
     }
 
     .status-message--success {
-      color: rgba(72, 255, 226, 0.92);
+      color: rgba(35, 196, 255, 0.92);
     }
 
     .camera-flash-overlay {
@@ -862,9 +880,9 @@
       gap: 1rem;
       margin-top: 1.5rem;
       padding: 1.25rem;
-      border-radius: 18px;
-      background: rgba(12, 20, 38, 0.78);
-      border: 1px solid rgba(72, 255, 226, 0.18);
+      border-radius: 8px;
+      background: rgba(11, 22, 45, 0.78);
+      border: 1px solid rgba(35, 196, 255, 0.2);
     }
 
     .meknx-access-grid h2 {
@@ -872,14 +890,14 @@
       font-size: 1rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: rgba(226, 232, 240, 0.88);
+      color: rgba(206, 222, 255, 0.88);
     }
 
     .meknx-description {
       margin: 0;
       font-size: 0.95rem;
       line-height: 1.6;
-      color: rgba(148, 163, 184, 0.92);
+      color: rgba(188, 202, 226, 0.92);
     }
 
     .meknx-actions {
@@ -1594,8 +1612,8 @@
     </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
       <div class="intro-content">
-        <img class="intro-logo" src="battery.svg" alt="">
-        <div class="intro-text" aria-hidden="true"><span>Ioncore</span>Energy</div>
+        <img class="intro-logo" src="battery.svg" alt="Sharpe Systems emblem">
+        <div class="intro-text" aria-hidden="true"><span>Sharpe</span> Systems</div>
       </div>
     </div>
     <div class="health-bar" role="status" aria-live="polite">
@@ -1611,15 +1629,15 @@
       <span id="health-status" class="sr-only">Security hearts remaining: 5 of 5.</span>
     </div>
     <main class="vault-card" role="main">
-      <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
-        <span>Ioncore</span> Energy // Clearance Gate
+      <div class="logo-lockup" aria-label="Sharpe Secure Systems">
+        <span>Sharpe</span> Systems // Clearance Gate
       </div>
       <div class="intel-banner" role="status">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
-        Confidential schematics. Quantum vault monitored 24/7.
+        Sharpe telemetry active. Quantum vault monitored 24/7.
       </div>
       <h1>Vault Access Protocol</h1>
-      <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <p class="tagline">Authenticate with your assigned access key and clearance code to review Sharpe Secure Systems' classified clean-tech dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
           <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
@@ -1646,7 +1664,7 @@
               </span>
               <span class="wallet-connect-button__label">Connect MetaMask</span>
               <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Ioncore Energy emblem">
+                <img src="battery.svg" alt="Sharpe Systems emblem">
               </span>
             </button>
             <div id="metamask-status" class="wallet-status">Not connected.</div>
@@ -1676,7 +1694,7 @@
               </span>
               <span class="wallet-connect-button__label">Connect Phantom</span>
               <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Ioncore Energy emblem">
+                <img src="battery.svg" alt="Sharpe Systems emblem">
               </span>
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
@@ -1696,7 +1714,7 @@
               </span>
               <span class="wallet-connect-button__label">Connect Cardano Wallet</span>
               <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Ioncore Energy emblem">
+                <img src="battery.svg" alt="Sharpe Systems emblem">
               </span>
             </button>
             <div id="cardano-status" class="wallet-status">Not connected.</div>
@@ -1735,7 +1753,7 @@
               <h3>Cardano Policy Gate</h3>
               <span class="module-tag module-tag--cardano">Cardano</span>
             </div>
-            <p class="module-copy">Cardano sessions must confirm holdings under the Ioncore policy ID before requesting entry.</p>
+            <p class="module-copy">Cardano sessions must confirm holdings under the Sharpe policy ID before requesting entry.</p>
             <div class="module-actions">
               <button type="button" id="cardano-verify-button" class="action-button action-button--outline">Verify Cardano Policy</button>
               <div id="cardano-inline-status" class="inline-status">Awaiting policy verification.</div>
@@ -1781,7 +1799,7 @@
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
-      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion. Wallet links are never stored on-chain.</p>
+      <p class="footnote">Classified Transmission. <strong>Sharpe Eyes Only.</strong> Proceed with discretion. Wallet links are never stored on-chain.</p>
     </main>
   <script>
     const bodyElement = document.body;
@@ -1998,7 +2016,7 @@
         return;
       }
 
-      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Ioncore policy';
+      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Sharpe policy';
 
       if (cardanoState.verified) {
         setInlineStatus(
@@ -2702,7 +2720,7 @@
 
       if (meknxMintButton) {
         meknxMintButton.addEventListener('click', () => {
-          const mintUrl = 'https://meknx.com/mint/ioncore-access';
+          const mintUrl = 'https://meknx.com/mint/sharpe-access';
           window.open(mintUrl, '_blank', 'noopener');
           updateStatus('MEKNX minting portal opened in a new tab. Complete minting then verify your token.');
         });
@@ -3180,7 +3198,7 @@
   </script>
 
   <footer class="legal-footer">
-    <p>Copyright © 2024 Ioncore Energy. Proprietary clean data and assets licensed for Ioncore Energy marketing use only.</p>
+    <p>Copyright © 2024 Sharpe Secure Systems. Proprietary clean data and assets licensed for Sharpe Secure Systems marketing use only.</p>
   </footer>
 </body>
 </html>

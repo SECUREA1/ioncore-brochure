@@ -2374,28 +2374,67 @@
 
     const phantomDeepLinkStateKey = 'phantomDeepLinkRequestedAt';
 
-    const markPhantomDeepLinkRequest = () => {
+    const readPhantomDeepLinkState = () => {
       try {
-        sessionStorage.setItem(phantomDeepLinkStateKey, String(Date.now()));
+        const rawValue = sessionStorage.getItem(phantomDeepLinkStateKey);
+        if (!rawValue) {
+          return null;
+        }
+
+        try {
+          const parsed = JSON.parse(rawValue);
+          const timestamp = Number.parseInt(parsed.timestamp, 10);
+          if (!Number.isFinite(timestamp)) {
+            return null;
+          }
+          return {
+            timestamp,
+            autoConnect: Boolean(parsed.autoConnect)
+          };
+        } catch (parseError) {
+          const timestamp = Number.parseInt(rawValue, 10);
+          if (!Number.isFinite(timestamp)) {
+            return null;
+          }
+          return {
+            timestamp,
+            autoConnect: false
+          };
+        }
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const markPhantomDeepLinkRequest = (options = {}) => {
+      try {
+        const state = {
+          timestamp: Date.now(),
+          autoConnect: Boolean(options.autoConnect)
+        };
+        sessionStorage.setItem(phantomDeepLinkStateKey, JSON.stringify(state));
       } catch (error) {
         // Ignore storage errors (e.g., Safari private mode).
       }
     };
 
     const wasRecentPhantomDeepLinkRequest = (maxAgeMs = 5 * 60 * 1000) => {
-      try {
-        const rawValue = sessionStorage.getItem(phantomDeepLinkStateKey);
-        if (!rawValue) {
-          return false;
-        }
-        const timestamp = Number.parseInt(rawValue, 10);
-        if (!Number.isFinite(timestamp)) {
-          return false;
-        }
-        return Date.now() - timestamp <= maxAgeMs;
-      } catch (error) {
+      const state = readPhantomDeepLinkState();
+      if (!state) {
         return false;
       }
+      return Date.now() - state.timestamp <= maxAgeMs;
+    };
+
+    const shouldAutoConnectPhantom = () => {
+      const state = readPhantomDeepLinkState();
+      if (!state) {
+        return false;
+      }
+      if (Date.now() - state.timestamp > 5 * 60 * 1000) {
+        return false;
+      }
+      return state.autoConnect;
     };
 
     const clearPhantomDeepLinkRequest = () => {
@@ -2473,7 +2512,7 @@
       }
     };
 
-    const triggerMobileWalletDeepLink = (wallet) => {
+    const triggerMobileWalletDeepLink = (wallet, options = {}) => {
       if (!isMobileDevice()) {
         return false;
       }
@@ -2504,15 +2543,159 @@
           app_url: httpsUrl,
           redirect_link: httpsUrl
         });
+        if (options.autoConnect) {
+          params.set('dapp_enforcement', 'true');
+          params.set('ref', 'ioncore-energy');
+          const deepLink = `https://phantom.app/ul/v1/connect?${params.toString()}`;
+          const opened = openDeepLinkWindow(deepLink);
+          if (opened) {
+            markPhantomDeepLinkRequest({ autoConnect: true });
+          }
+          return opened;
+        }
         const deepLink = `https://phantom.app/ul/v1/open-app?${params.toString()}`;
         const opened = openDeepLinkWindow(deepLink);
         if (opened) {
-          markPhantomDeepLinkRequest();
+          markPhantomDeepLinkRequest({ autoConnect: Boolean(options.autoConnect) });
         }
         return opened;
       }
 
       return false;
+    };
+
+    let phantomConnectionInProgress = false;
+
+    const attemptPhantomConnection = async ({ autoInitiated = false, skipDeepLink = false } = {}) => {
+      if (phantomConnectionInProgress) {
+        return;
+      }
+
+      phantomConnectionInProgress = true;
+
+      const originalButtonText = phantomButton ? phantomButton.textContent : '';
+      const initialStatusMessage = autoInitiated ? 'Restoring Phantom session…' : 'Requesting Phantom session…';
+
+      if (phantomButton && !autoInitiated) {
+        phantomButton.disabled = true;
+        phantomButton.textContent = 'Connecting…';
+      }
+
+      if (walletSessionIndicator) {
+        walletSessionIndicator.textContent = initialStatusMessage;
+        walletSessionIndicator.classList.remove('is-active');
+        walletSessionIndicator.setAttribute('data-provider', 'solana');
+      }
+
+      if (phantomStatus) {
+        phantomStatus.textContent = initialStatusMessage;
+      }
+
+      updateStatus(initialStatusMessage);
+
+      let lastConnectedPublicKey = '';
+
+      try {
+        let provider = detectPhantomProvider();
+
+        if (!provider || !provider.isPhantom) {
+          if (!skipDeepLink) {
+            const openedMobileLink = triggerMobileWalletDeepLink('phantom', { autoConnect: true });
+            if (openedMobileLink) {
+              if (phantomStatus) {
+                phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
+              }
+              updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
+            }
+            const mobileTimeout = isMobileDevice() ? 45000 : 7200;
+            provider = await waitForWalletInjection(detectPhantomProvider, {
+              timeout: mobileTimeout,
+              interval: 260
+            });
+          } else {
+            const autoTimeout = isMobileDevice() ? 12000 : 6000;
+            provider = await waitForWalletInjection(detectPhantomProvider, {
+              timeout: autoTimeout,
+              interval: 240
+            });
+          }
+        }
+
+        if (!provider || !provider.isPhantom) {
+          throw new Error(
+            'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'
+          );
+        }
+
+        if (autoInitiated && provider.isConnected && provider.publicKey) {
+          lastConnectedPublicKey = provider.publicKey.toString();
+        } else {
+          const connectOptions = autoInitiated ? { onlyIfTrusted: false } : undefined;
+          const response = connectOptions ? await provider.connect(connectOptions) : await provider.connect();
+          lastConnectedPublicKey = response?.publicKey?.toString() || '';
+          if (!lastConnectedPublicKey) {
+            throw new Error('No wallet account returned.');
+          }
+        }
+
+        const activePublicKey = provider.publicKey?.toString() || lastConnectedPublicKey;
+        if (!activePublicKey) {
+          throw new Error('No Solana account detected after connection.');
+        }
+
+        clearPhantomDeepLinkRequest();
+
+        if (phantomStatus) {
+          phantomStatus.textContent = 'Verifying IONC token…';
+        }
+        updateStatus('Verifying IONC token holdings…');
+
+        await enforceIoncRequirement(activePublicKey);
+        const solanaValueSnapshot = await ensureWalletUsdValue({
+          provider: 'solana',
+          address: activePublicKey,
+          statusElement: phantomStatus,
+          walletLabel: 'Solana'
+        });
+
+        if (walletAddressInput) {
+          walletAddressInput.value = activePublicKey;
+        }
+        if (walletProviderInput) {
+          walletProviderInput.value = 'solana';
+        }
+        resetMeknxState();
+        syncIoncModuleVisibility();
+        syncCardanoModuleVisibility();
+        indicateWalletConnection('solana', activePublicKey);
+        const solanaValueMessage = solanaValueSnapshot
+          ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
+          : '';
+        updateStatus(
+          `Phantom channel ready.${solanaValueMessage} Complete MEKNX and IONC verification to continue.`,
+          'success'
+        );
+        setInlineStatus(
+          ioncInlineStatus,
+          'IONC holdings confirmed. SOL balance meets the access requirement. Submit to enter the vault.',
+          'success'
+        );
+      } catch (error) {
+        resetWalletIndicators();
+        const message = error?.message || 'Phantom connection failed. Try again.';
+        if (phantomStatus) {
+          phantomStatus.textContent = message;
+        }
+        updateStatus(message, 'error');
+        triggerFailureAnimation();
+      } finally {
+        if (phantomButton) {
+          phantomButton.disabled = false;
+          phantomButton.textContent = originalButtonText || 'Connect Phantom';
+        }
+        phantomConnectionInProgress = false;
+        clearPhantomDeepLinkRequest();
+      }
     };
 
     const handlePhantomReturnVisibility = () => {
@@ -2521,13 +2704,21 @@
       }
       const provider = detectPhantomProvider();
       if (provider && provider.isPhantom) {
-        clearPhantomDeepLinkRequest();
+        if (shouldAutoConnectPhantom()) {
+          void attemptPhantomConnection({ autoInitiated: true, skipDeepLink: true });
+        } else {
+          clearPhantomDeepLinkRequest();
+        }
         return;
       }
       void waitForWalletInjection(detectPhantomProvider, { timeout: 2000, interval: 220 }).then(
         (detected) => {
           if (detected && detected.isPhantom) {
-            clearPhantomDeepLinkRequest();
+            if (shouldAutoConnectPhantom()) {
+              void attemptPhantomConnection({ autoInitiated: true, skipDeepLink: true });
+            } else {
+              clearPhantomDeepLinkRequest();
+            }
           }
         }
       );
@@ -3634,89 +3825,8 @@
       }
 
       if (phantomButton) {
-        phantomButton.addEventListener('click', async () => {
-          updateStatus('Requesting Phantom session…');
-          phantomButton.disabled = true;
-          phantomButton.textContent = 'Connecting…';
-          if (walletSessionIndicator) {
-            walletSessionIndicator.textContent = 'Requesting Phantom session…';
-            walletSessionIndicator.classList.remove('is-active');
-            walletSessionIndicator.setAttribute('data-provider', 'solana');
-          }
-
-          try {
-            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 3200, interval: 220 });
-            if (!provider || !provider.isPhantom) {
-              const openedMobileLink = triggerMobileWalletDeepLink('phantom');
-              if (openedMobileLink) {
-                if (phantomStatus) {
-                  phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
-                }
-                updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
-                const mobileTimeout = isMobileDevice() ? 45000 : 7200;
-                provider = await waitForWalletInjection(detectPhantomProvider, {
-                  timeout: mobileTimeout,
-                  interval: 260
-                });
-              }
-            }
-            if (!provider || !provider.isPhantom) {
-              throw new Error(
-                'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'
-              );
-            }
-            const response = await provider.connect();
-            const publicKey = response?.publicKey?.toString();
-            if (!publicKey) {
-              throw new Error('No wallet account returned.');
-            }
-            clearPhantomDeepLinkRequest();
-            if (phantomStatus) {
-              phantomStatus.textContent = 'Verifying IONC token…';
-            }
-            updateStatus('Verifying IONC token holdings…');
-            await enforceIoncRequirement(publicKey);
-            const solanaValueSnapshot = await ensureWalletUsdValue({
-              provider: 'solana',
-              address: publicKey,
-              statusElement: phantomStatus,
-              walletLabel: 'Solana'
-            });
-            if (walletAddressInput) {
-              walletAddressInput.value = publicKey;
-            }
-            if (walletProviderInput) {
-              walletProviderInput.value = 'solana';
-            }
-            resetMeknxState();
-            syncIoncModuleVisibility();
-            syncCardanoModuleVisibility();
-            indicateWalletConnection('solana', publicKey);
-            const solanaValueMessage = solanaValueSnapshot
-              ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
-              : '';
-            updateStatus(
-              `Phantom channel ready.${solanaValueMessage} Complete MEKNX and IONC verification to continue.`,
-              'success'
-            );
-            setInlineStatus(
-              ioncInlineStatus,
-              'IONC holdings confirmed. SOL balance meets the access requirement. Submit to enter the vault.',
-              'success'
-            );
-          } catch (error) {
-            resetWalletIndicators();
-            const message = error?.message || 'Phantom connection failed. Try again.';
-            if (phantomStatus) {
-              phantomStatus.textContent = message;
-            }
-            updateStatus(message, 'error');
-            triggerFailureAnimation();
-          } finally {
-            clearPhantomDeepLinkRequest();
-            phantomButton.disabled = false;
-            phantomButton.textContent = 'Connect Phantom';
-          }
+        phantomButton.addEventListener('click', () => {
+          void attemptPhantomConnection({ autoInitiated: false, skipDeepLink: false });
         });
       }
 
@@ -3962,6 +4072,25 @@
             cardanoVerifyButton.disabled = false;
           }
         });
+      }
+
+      const autoConnectPhantomOnLoad = () => {
+        if (!isMobileDevice()) {
+          return;
+        }
+        if (!isPhantomInAppBrowser()) {
+          return;
+        }
+        if (!shouldAutoConnectPhantom()) {
+          return;
+        }
+        void attemptPhantomConnection({ autoInitiated: true, skipDeepLink: true });
+      };
+
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        autoConnectPhantomOnLoad();
+      } else {
+        window.addEventListener('DOMContentLoaded', autoConnectPhantomOnLoad);
       }
 
       setMode('wallet', true);

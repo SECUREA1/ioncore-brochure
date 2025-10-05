@@ -42,6 +42,7 @@
   .downloads a{display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid var(--line);color:var(--ink)}
   .downloads a.primary{background:var(--brand);color:#111;border-color:transparent}
 </style>
+    <link rel="stylesheet" href="legal-footer.css">
 </head>
 <body>
   <header>
@@ -497,5 +498,9 @@
       aHtml.addEventListener('click',async e=>{e.preventDefault(); const url=await buildSelfContained(); aHtml.setAttribute('href',url); aHtml.setAttribute('download','forgelink_brochure.html'); aHtml.click(); setTimeout(()=>URL.revokeObjectURL(url),5000);});
     })();
   </script>
+
+  <footer class="legal-footer">
+    <p>Copyright © 2024 Ioncore Energy. Proprietary clean data and assets licensed for Ioncore Energy marketing use only.</p>
+  </footer>
 </body>
 </html>

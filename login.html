@@ -2336,6 +2336,188 @@
       return false;
     };
 
+    const pickEvmAccount = (accounts) => {
+      if (!accounts) {
+        return '';
+      }
+      if (typeof accounts === 'string') {
+        return accounts.trim();
+      }
+      if (Array.isArray(accounts) && accounts.length > 0) {
+        const candidate = accounts[0];
+        if (typeof candidate === 'string') {
+          return candidate.trim();
+        }
+        if (candidate && typeof candidate === 'object' && typeof candidate.address === 'string') {
+          return candidate.address.trim();
+        }
+      }
+      return '';
+    };
+
+    const readEvmAccountFromProvider = (provider) => {
+      if (!provider) {
+        return '';
+      }
+      const selected =
+        typeof provider.selectedAddress === 'string' ? provider.selectedAddress.trim() : '';
+      if (selected) {
+        return selected;
+      }
+      if (Array.isArray(provider.accounts) && provider.accounts.length > 0) {
+        const candidate = provider.accounts[0];
+        if (typeof candidate === 'string') {
+          return candidate.trim();
+        }
+        if (candidate && typeof candidate === 'object' && typeof candidate.address === 'string') {
+          return candidate.address.trim();
+        }
+      }
+      return '';
+    };
+
+    const waitForEvmAccount = async (
+      provider,
+      {
+        statusElement,
+        waitingMessage = 'Approve the connection in your wallet app, then return here.',
+        timeoutMessage =
+          'Wallet did not share an account. Approve the connection in the wallet app, then try again.',
+        walletLabel = 'wallet',
+        timeout = 16000,
+        onWaiting
+      } = {}
+    ) => {
+      if (!provider || typeof provider.request !== 'function') {
+        throw new Error(`${walletLabel} provider is unavailable.`);
+      }
+
+      const existingAccount = readEvmAccountFromProvider(provider);
+      if (existingAccount) {
+        return existingAccount;
+      }
+
+      let pendingError = null;
+
+      try {
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        const requestedAccount = pickEvmAccount(accounts);
+        if (requestedAccount) {
+          return requestedAccount;
+        }
+      } catch (error) {
+        if (error && error.code === 4001) {
+          throw error;
+        }
+        pendingError = error;
+      }
+
+      const fallbackAccount = readEvmAccountFromProvider(provider);
+      if (fallbackAccount) {
+        return fallbackAccount;
+      }
+
+      if (!isMobileDevice()) {
+        if (pendingError) {
+          throw pendingError;
+        }
+        throw new Error('No wallet account returned.');
+      }
+
+      if (typeof onWaiting === 'function') {
+        onWaiting();
+      }
+
+      if (statusElement && waitingMessage) {
+        statusElement.textContent = waitingMessage;
+      }
+
+      return await new Promise((resolve, reject) => {
+        let settled = false;
+        let timeoutId;
+
+        const finish = (value, isError = false) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          if (isError) {
+            reject(value);
+          } else {
+            resolve(value);
+          }
+        };
+
+        const cleanup = () => {
+          if (typeof provider.removeListener === 'function') {
+            provider.removeListener('accountsChanged', handleAccountsChanged);
+          }
+          document.removeEventListener('visibilitychange', handleVisibility);
+          window.removeEventListener('focus', handleFocus);
+          if (timeoutId) {
+            window.clearTimeout(timeoutId);
+          }
+        };
+
+        const handleAccountsChanged = (accounts) => {
+          if (settled) {
+            return;
+          }
+          const account = pickEvmAccount(accounts);
+          if (account) {
+            finish(account);
+          }
+        };
+
+        const pollAccounts = async () => {
+          if (settled) {
+            return;
+          }
+          const immediate = readEvmAccountFromProvider(provider);
+          if (immediate) {
+            finish(immediate);
+            return;
+          }
+          try {
+            const accounts = await provider.request({ method: 'eth_accounts' });
+            const account = pickEvmAccount(accounts);
+            if (account) {
+              finish(account);
+            }
+          } catch (error) {
+            // Ignore polling errors; rely on timeout for final failure messaging.
+          }
+        };
+
+        const handleVisibility = () => {
+          if (!document.hidden) {
+            void pollAccounts();
+          }
+        };
+
+        const handleFocus = () => {
+          void pollAccounts();
+        };
+
+        if (typeof provider.on === 'function') {
+          provider.on('accountsChanged', handleAccountsChanged);
+        }
+
+        document.addEventListener('visibilitychange', handleVisibility);
+        window.addEventListener('focus', handleFocus);
+
+        timeoutId = window.setTimeout(() => {
+          const message =
+            timeoutMessage ||
+            `No ${walletLabel || 'wallet'} account was shared. Approve the connection in the wallet app and try again.`;
+          finish(new Error(message), true);
+        }, typeof timeout === 'number' ? timeout : 16000);
+
+        void pollAccounts();
+      });
+    };
+
     const hexToBytes = (hex) => {
       if (typeof hex !== 'string') {
         throw new Error('Invalid Cardano balance payload.');
@@ -3157,13 +3339,25 @@
                 'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
               );
             }
-            const accounts = await provider.request({ method: 'eth_requestAccounts' });
-            const account = accounts && accounts[0];
-            if (!account) {
+            const walletAccount = await waitForEvmAccount(provider, {
+              statusElement: metamaskStatus,
+              waitingMessage:
+                'Awaiting MetaMask approval… return after confirming the connection.',
+              timeoutMessage:
+                'MetaMask did not share an account. Approve the session in the MetaMask app, then try again.',
+              walletLabel: 'MetaMask',
+              onWaiting: () => {
+                updateStatus(
+                  'Awaiting MetaMask approval. Confirm the connection in the MetaMask app, then return.',
+                  'neutral'
+                );
+              }
+            });
+            if (!walletAccount) {
               throw new Error('No wallet account returned.');
             }
             if (walletAddressInput) {
-              walletAddressInput.value = account;
+              walletAddressInput.value = walletAccount;
             }
             if (walletProviderInput) {
               walletProviderInput.value = 'evm';
@@ -3172,7 +3366,7 @@
             resetMeknxState();
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
-            indicateWalletConnection('evm', account);
+            indicateWalletConnection('evm', walletAccount);
             updateStatus('Wallet channel established. Run MEKNX clearance to continue.', 'success');
           } catch (error) {
             resetWalletIndicators();

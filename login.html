@@ -1854,6 +1854,8 @@
     const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
     const MIN_WALLET_VALUE_USD = 10;
     const MIN_LOGIN_VALUE_USD = 15;
+    const MOBILE_WALLET_RECHECK_TIMEOUT_MS = 20000;
+    const MOBILE_WALLET_VISIBLE_GRACE_MS = 12000;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
 
@@ -2241,21 +2243,42 @@
       });
     };
 
-    const waitForWalletInjection = async (detector, { interval = 200, timeout = 2200 } = {}) => {
+    const waitForWalletInjection = async (
+      detector,
+      { interval = 200, timeout = 2200, ignoreHidden = false, visibleGracePeriod = 1200 } = {}
+    ) => {
       let detected = detector();
       if (detected) {
         return detected;
       }
 
-      const start = Date.now();
+      const doc = typeof document !== 'undefined' ? document : null;
+      let deadline = Date.now() + timeout;
+      let hiddenStartedAt = 0;
 
-      while (Date.now() - start < timeout) {
+      while (Date.now() <= deadline) {
         await new Promise((resolve) => {
           window.setTimeout(resolve, interval);
         });
+
         detected = detector();
         if (detected) {
           return detected;
+        }
+
+        if (ignoreHidden && doc && typeof doc.visibilityState === 'string') {
+          const visibilityState = doc.visibilityState;
+          if (visibilityState === 'hidden') {
+            if (!hiddenStartedAt) {
+              hiddenStartedAt = Date.now();
+            }
+            deadline = Math.max(deadline, Date.now() + interval);
+          } else if (hiddenStartedAt) {
+            const hiddenDuration = Date.now() - hiddenStartedAt;
+            const grace = Math.max(visibleGracePeriod, hiddenDuration + interval);
+            deadline = Date.now() + grace;
+            hiddenStartedAt = 0;
+          }
         }
       }
 
@@ -2666,7 +2689,12 @@
       const originalLabel = button.textContent;
 
       button.addEventListener('click', async () => {
-        const wallet = await waitForWalletInjection(detectCardanoWallet, { timeout: 2800, interval: 220 });
+        const onMobile = isMobileDevice();
+        const wallet = await waitForWalletInjection(detectCardanoWallet, {
+          timeout: 2800,
+          interval: 220,
+          ...(onMobile ? { ignoreHidden: true, visibleGracePeriod: MOBILE_WALLET_VISIBLE_GRACE_MS } : {})
+        });
         const walletLabel = wallet ? wallet.label : 'Cardano';
         updateStatus(`Requesting ${walletLabel} session…`);
         button.disabled = true;
@@ -3139,20 +3167,33 @@
           metamaskButton.textContent = 'Connecting…';
 
           try {
-            let provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
+            const onMobile = isMobileDevice();
+            let provider = await waitForWalletInjection(detectMetaMaskProvider, {
+              timeout: 2800,
+              interval: 220,
+              ...(onMobile
+                ? { ignoreHidden: true, visibleGracePeriod: MOBILE_WALLET_VISIBLE_GRACE_MS }
+                : {})
+            });
 
-            if (!provider) {
+            if (!provider || !provider.isMetaMask) {
               const openedMobileLink = triggerMobileWalletDeepLink('metamask');
               if (openedMobileLink) {
                 if (metamaskStatus) {
                   metamaskStatus.textContent = 'Opening MetaMask app… return here after approving the session.';
                 }
                 updateStatus('Launching MetaMask. Approve the connection in-app, then return to the browser.');
-                provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 7200, interval: 260 });
+                provider = await waitForWalletInjection(detectMetaMaskProvider, {
+                  timeout: onMobile ? MOBILE_WALLET_RECHECK_TIMEOUT_MS : 7200,
+                  interval: 260,
+                  ...(onMobile
+                    ? { ignoreHidden: true, visibleGracePeriod: MOBILE_WALLET_VISIBLE_GRACE_MS }
+                    : {})
+                });
               }
             }
 
-            if (!provider) {
+            if (!provider || !provider.isMetaMask) {
               throw new Error(
                 'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
               );
@@ -3196,7 +3237,14 @@
           phantomButton.textContent = 'Connecting…';
 
           try {
-            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
+            const onMobile = isMobileDevice();
+            let provider = await waitForWalletInjection(detectPhantomProvider, {
+              timeout: 2800,
+              interval: 220,
+              ...(onMobile
+                ? { ignoreHidden: true, visibleGracePeriod: MOBILE_WALLET_VISIBLE_GRACE_MS }
+                : {})
+            });
             if (!provider || !provider.isPhantom) {
               const openedMobileLink = triggerMobileWalletDeepLink('phantom');
               if (openedMobileLink) {
@@ -3204,7 +3252,13 @@
                   phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
                 }
                 updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
-                provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 7200, interval: 260 });
+                provider = await waitForWalletInjection(detectPhantomProvider, {
+                  timeout: onMobile ? MOBILE_WALLET_RECHECK_TIMEOUT_MS : 7200,
+                  interval: 260,
+                  ...(onMobile
+                    ? { ignoreHidden: true, visibleGracePeriod: MOBILE_WALLET_VISIBLE_GRACE_MS }
+                    : {})
+                });
               }
             }
             if (!provider || !provider.isPhantom) {

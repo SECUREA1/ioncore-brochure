@@ -101,6 +101,19 @@
       margin-bottom: 0.4rem;
     }
 
+    .intro-subtext {
+      margin: 0;
+      font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.78);
+      text-shadow: 0 0 18px rgba(72, 255, 226, 0.25);
+      opacity: 0;
+      animation: intro-subtext-fade 2.6s ease forwards;
+      animation-delay: 0.45s;
+    }
+
     body::before {
       content: "";
       position: absolute;
@@ -183,6 +196,20 @@
       100% {
         transform: scale(1);
         letter-spacing: 0.18em;
+      }
+    }
+
+    @keyframes intro-subtext-fade {
+      0% {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      60% {
+        opacity: 0.85;
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
@@ -1596,6 +1623,7 @@
       <div class="intro-content">
         <img class="intro-logo" src="battery.svg" alt="">
         <div class="intro-text" aria-hidden="true"><span>Ioncore</span>Energy</div>
+        <p class="intro-subtext" aria-hidden="true">Secure Access Division // Clearance Gate</p>
       </div>
     </div>
     <div class="health-bar" role="status" aria-live="polite">
@@ -1619,7 +1647,7 @@
         Confidential schematics. Quantum vault monitored 24/7.
       </div>
       <h1>Vault Access Protocol</h1>
-      <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore's classified energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
           <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
@@ -1781,7 +1809,7 @@
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
-      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion. Wallet links are never stored on-chain.</p>
+      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion—sessions are logged for security, while wallet fingerprints remain off-chain.</p>
     </main>
   <script>
     const bodyElement = document.body;
@@ -2125,54 +2153,66 @@
 
     let audioContext;
 
-    const playFailureBoomSound = () => {
+    const getAudioContext = () => {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) {
-        return;
+        return null;
       }
       if (!audioContext) {
         audioContext = new AudioContextClass();
       }
-      const now = audioContext.currentTime;
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+      }
+      return audioContext;
+    };
+
+    const playFailureBoomSound = (startOffset = 0) => {
+      const context = getAudioContext();
+      if (!context) {
+        return;
+      }
+
+      const now = context.currentTime + Math.max(0, startOffset);
       const boomDuration = 0.85;
 
-      const masterGain = audioContext.createGain();
+      const masterGain = context.createGain();
       masterGain.gain.setValueAtTime(0.0001, now);
       masterGain.gain.exponentialRampToValueAtTime(1.1, now + 0.018);
       masterGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
-      masterGain.connect(audioContext.destination);
+      masterGain.connect(context.destination);
 
-      const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * boomDuration, audioContext.sampleRate);
+      const noiseBuffer = context.createBuffer(1, context.sampleRate * boomDuration, context.sampleRate);
       const noiseData = noiseBuffer.getChannelData(0);
       for (let i = 0; i < noiseData.length; i += 1) {
         noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length);
       }
 
-      const noiseSource = audioContext.createBufferSource();
+      const noiseSource = context.createBufferSource();
       noiseSource.buffer = noiseBuffer;
-      const noiseFilter = audioContext.createBiquadFilter();
+      const noiseFilter = context.createBiquadFilter();
       noiseFilter.type = 'lowpass';
       noiseFilter.frequency.setValueAtTime(1000, now);
       noiseFilter.Q.setValueAtTime(0.8, now);
       noiseSource.connect(noiseFilter);
       noiseFilter.connect(masterGain);
 
-      const thumpOscillator = audioContext.createOscillator();
+      const thumpOscillator = context.createOscillator();
       thumpOscillator.type = 'sine';
       thumpOscillator.frequency.setValueAtTime(90, now);
       thumpOscillator.frequency.exponentialRampToValueAtTime(32, now + boomDuration);
-      const thumpGain = audioContext.createGain();
+      const thumpGain = context.createGain();
       thumpGain.gain.setValueAtTime(0.0001, now);
       thumpGain.gain.exponentialRampToValueAtTime(0.9, now + 0.02);
       thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
       thumpOscillator.connect(thumpGain);
       thumpGain.connect(masterGain);
 
-      const snapOscillator = audioContext.createOscillator();
+      const snapOscillator = context.createOscillator();
       snapOscillator.type = 'triangle';
       snapOscillator.frequency.setValueAtTime(1800, now);
       snapOscillator.frequency.exponentialRampToValueAtTime(220, now + 0.18);
-      const snapGain = audioContext.createGain();
+      const snapGain = context.createGain();
       snapGain.gain.setValueAtTime(0.0001, now);
       snapGain.gain.exponentialRampToValueAtTime(0.7, now + 0.012);
       snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
@@ -2185,6 +2225,77 @@
       thumpOscillator.stop(now + boomDuration);
       snapOscillator.start(now);
       snapOscillator.stop(now + 0.25);
+    };
+
+    const playShotgunBlastSound = () => {
+      const context = getAudioContext();
+      if (!context) {
+        playFailureBoomSound();
+        return;
+      }
+
+      const now = context.currentTime;
+      const pumpDuration = 0.32;
+
+      const pumpBuffer = context.createBuffer(1, context.sampleRate * pumpDuration, context.sampleRate);
+      const pumpData = pumpBuffer.getChannelData(0);
+      for (let i = 0; i < pumpData.length; i += 1) {
+        const progress = i / pumpData.length;
+        pumpData[i] = (Math.random() * 2 - 1) * (1 - progress) * (0.55 + 0.45 * Math.sin(progress * Math.PI));
+      }
+
+      const pumpSource = context.createBufferSource();
+      pumpSource.buffer = pumpBuffer;
+      const pumpFilter = context.createBiquadFilter();
+      pumpFilter.type = 'bandpass';
+      pumpFilter.frequency.setValueAtTime(220, now);
+      pumpFilter.frequency.exponentialRampToValueAtTime(140, now + pumpDuration);
+      pumpFilter.Q.setValueAtTime(3, now);
+
+      const pumpGain = context.createGain();
+      pumpGain.gain.setValueAtTime(0.0001, now);
+      pumpGain.gain.exponentialRampToValueAtTime(0.8, now + 0.05);
+      pumpGain.gain.exponentialRampToValueAtTime(0.0001, now + pumpDuration);
+
+      pumpSource.connect(pumpFilter);
+      pumpFilter.connect(pumpGain);
+      pumpGain.connect(context.destination);
+
+      pumpSource.start(now);
+      pumpSource.stop(now + pumpDuration);
+
+      const clackOscillator = context.createOscillator();
+      clackOscillator.type = 'triangle';
+      clackOscillator.frequency.setValueAtTime(2600, now + 0.12);
+      clackOscillator.frequency.exponentialRampToValueAtTime(520, now + 0.26);
+
+      const clackGain = context.createGain();
+      clackGain.gain.setValueAtTime(0.0001, now + 0.12);
+      clackGain.gain.exponentialRampToValueAtTime(0.5, now + 0.16);
+      clackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+      clackOscillator.connect(clackGain);
+      clackGain.connect(context.destination);
+
+      clackOscillator.start(now + 0.12);
+      clackOscillator.stop(now + 0.34);
+
+      const shellSource = context.createBufferSource();
+      shellSource.buffer = pumpBuffer;
+      shellSource.playbackRate.setValueAtTime(2.2, now + 0.24);
+
+      const shellGain = context.createGain();
+      shellGain.gain.setValueAtTime(0.0001, now + 0.24);
+      shellGain.gain.exponentialRampToValueAtTime(0.35, now + 0.27);
+      shellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+      shellSource.connect(shellGain);
+      shellGain.connect(context.destination);
+
+      shellSource.start(now + 0.24);
+      shellSource.stop(now + 0.44);
+
+      playFailureBoomSound(0.24);
     };
 
     const shortenIdentifier = (value) => {
@@ -2993,7 +3104,7 @@
       void failureOverlay.offsetWidth;
       failureOverlay.classList.add('is-visible');
       triggerCameraFlashEffect();
-      playFailureBoomSound();
+      playShotgunBlastSound();
       registerFailureHeart();
       setTimeout(() => {
         failureOverlay.classList.remove('is-visible');

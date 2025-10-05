@@ -1877,6 +1877,43 @@
       api: null
     };
 
+    const CARDANO_WALLET_CANDIDATES = [
+      { key: 'lace', label: 'Lace' },
+      { key: 'daedalus', label: 'Daedalus' },
+      { key: 'eternl', label: 'Eternl' },
+      { key: 'nami', label: 'Nami' },
+      { key: 'flint', label: 'Flint' },
+      { key: 'yoroi', label: 'Yoroi' },
+      { key: 'gerowallet', label: 'GeroWallet' },
+      { key: 'nufi', label: 'NuFi' },
+      { key: 'typhoncip30', label: 'Typhon' }
+    ];
+
+    const detectCardanoWallet = () => {
+      const cardano = window.cardano;
+      if (!cardano) {
+        return null;
+      }
+
+      const orderedCandidates = CARDANO_WALLET_CANDIDATES.slice();
+      if (cardanoState.walletType) {
+        const preferredIndex = orderedCandidates.findIndex((candidate) => candidate.key === cardanoState.walletType);
+        if (preferredIndex > 0) {
+          const [preferred] = orderedCandidates.splice(preferredIndex, 1);
+          orderedCandidates.unshift(preferred);
+        }
+      }
+
+      for (const candidate of orderedCandidates) {
+        const provider = cardano[candidate.key];
+        if (provider && typeof provider.enable === 'function') {
+          return { ...candidate, provider };
+        }
+      }
+
+      return null;
+    };
+
     const walletValueState = {
       provider: '',
       tokenSymbol: '',
@@ -2202,6 +2239,57 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
+    };
+
+    const waitForWalletInjection = async (detector, { interval = 200, timeout = 2200 } = {}) => {
+      let detected = detector();
+      if (detected) {
+        return detected;
+      }
+
+      const start = Date.now();
+
+      while (Date.now() - start < timeout) {
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, interval);
+        });
+        detected = detector();
+        if (detected) {
+          return detected;
+        }
+      }
+
+      return null;
+    };
+
+    const detectMetaMaskProvider = () => {
+      const { ethereum } = window;
+      if (!ethereum) {
+        return null;
+      }
+
+      if (Array.isArray(ethereum.providers)) {
+        const metamaskProvider = ethereum.providers.find((provider) => provider && provider.isMetaMask);
+        if (metamaskProvider) {
+          return metamaskProvider;
+        }
+      }
+
+      if (ethereum.isMetaMask) {
+        return ethereum;
+      }
+
+      return typeof ethereum.request === 'function' ? ethereum : null;
+    };
+
+    const detectPhantomProvider = () => {
+      if (window.solana && window.solana.isPhantom) {
+        return window.solana;
+      }
+      if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
+        return window.phantom.solana;
+      }
+      return null;
     };
 
     const hexToBytes = (hex) => {
@@ -2533,29 +2621,8 @@
       if (!button) return;
       const originalLabel = button.textContent;
 
-      const getSupportedWallet = () => {
-        const cardano = window.cardano;
-        if (!cardano) {
-          return null;
-        }
-
-        const supported = [
-          { key: 'lace', label: 'Lace' },
-          { key: 'daedalus', label: 'Daedalus' }
-        ];
-
-        for (const candidate of supported) {
-          const provider = cardano[candidate.key];
-          if (provider && typeof provider.enable === 'function') {
-            return { ...candidate, provider };
-          }
-        }
-
-        return null;
-      };
-
       button.addEventListener('click', async () => {
-        const wallet = getSupportedWallet();
+        const wallet = await waitForWalletInjection(detectCardanoWallet, { timeout: 2800, interval: 220 });
         const walletLabel = wallet ? wallet.label : 'Cardano';
         updateStatus(`Requesting ${walletLabel} session…`);
         button.disabled = true;
@@ -2563,7 +2630,9 @@
 
         try {
           if (!wallet) {
-            throw new Error('No supported Cardano wallets detected. Open Lace or Daedalus and try again.');
+            throw new Error(
+              'No supported Cardano wallets detected on this device. Open Lace, Nami, Eternl, or another CIP-30 wallet and try again.'
+            );
           }
 
           const { key: walletKey, provider } = wallet;
@@ -3026,9 +3095,11 @@
           metamaskButton.textContent = 'Connecting…';
 
           try {
-            const provider = window.ethereum;
+            const provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
             if (!provider) {
-              throw new Error('MetaMask not detected. Install or unlock MetaMask.');
+              throw new Error(
+                'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
+              );
             }
             const accounts = await provider.request({ method: 'eth_requestAccounts' });
             const account = accounts && accounts[0];
@@ -3069,9 +3140,11 @@
           phantomButton.textContent = 'Connecting…';
 
           try {
-            const provider = window.solana;
+            const provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
             if (!provider || !provider.isPhantom) {
-              throw new Error('Phantom wallet not detected. Open Phantom and try again.');
+              throw new Error(
+                'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'
+              );
             }
             const response = await provider.connect();
             const publicKey = response?.publicKey?.toString();

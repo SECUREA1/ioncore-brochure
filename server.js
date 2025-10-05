@@ -57,9 +57,118 @@ function endSession(sessionId) {
   }
 }
 
+const SECURITY_SNIPPET = String.raw`
+<script>
+(() => {
+  const prevent = (event) => {
+    if (!event) return;
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    if (typeof event.stopPropagation === 'function') {
+      event.stopPropagation();
+    }
+    if (typeof event.stopImmediatePropagation === 'function') {
+      event.stopImmediatePropagation();
+    }
+  };
+
+  const blockedShortcutKeys = new Set(['a', 'c', 'p', 's', 'u', 'v', 'x']);
+  const blockEvents = ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'];
+
+  blockEvents.forEach((type) => {
+    document.addEventListener(type, prevent, { capture: true });
+  });
+
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      const key = (event.key || '').toLowerCase();
+      if (event.key === 'F12') {
+        prevent(event);
+        return;
+      }
+      if (event.ctrlKey || event.metaKey) {
+        if (blockedShortcutKeys.has(key)) {
+          prevent(event);
+          return;
+        }
+        if (event.shiftKey && ['i', 'p', 's', 'c'].includes(key)) {
+          prevent(event);
+          return;
+        }
+      }
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'mousedown',
+    (event) => {
+      const target = event.target;
+      if (target && target.nodeType === 1 && ['IMG', 'SVG', 'CANVAS', 'VIDEO'].includes(target.tagName)) {
+        prevent(event);
+      }
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (event.defaultPrevented) return;
+      const anchor = event.target && typeof event.target.closest === 'function' ? event.target.closest('a') : null;
+      if (!anchor) return;
+      const href = (anchor.getAttribute('href') || '').trim();
+      if (!href) return;
+      const blockedExt = /\.(?:png|jpe?g|gif|svg|webp|bmp|tiff?|ico|pdf|txt|csv|json|zip|rar|tar|gz|docx?|pptx?|xlsx?|mp4|mp3)$/i;
+      if (anchor.hasAttribute('download') || blockedExt.test(href) || href.startsWith('data:')) {
+        prevent(event);
+      }
+    },
+    { capture: true }
+  );
+
+  const markBlockedLink = (link) => {
+    if (!link || link.dataset.securityGuard === 'true') return;
+    link.dataset.securityGuard = 'true';
+    link.addEventListener('click', prevent, { capture: true });
+  };
+
+  document.querySelectorAll('a[download]').forEach(markBlockedLink);
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!node || node.nodeType !== 1) continue;
+        if (typeof node.matches === 'function' && node.matches('a[download]')) {
+          markBlockedLink(node);
+        }
+        if (typeof node.querySelectorAll === 'function') {
+          node.querySelectorAll('a[download]').forEach(markBlockedLink);
+        }
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>`;
+
+function injectSecurityControls(html) {
+  if (typeof html !== 'string') {
+    return html;
+  }
+  if (/<\/body>/i.test(html)) {
+    return html.replace(/<\/body>/i, (match) => `${SECURITY_SNIPPET}${match}`);
+  }
+  return `${html}${SECURITY_SNIPPET}`;
+}
+
 async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
+    html = injectSecurityControls(html);
     res.type('html').send(html);
   } catch {
     res.status(404).send('Not found');
@@ -484,7 +593,7 @@ app.get('/timepieces', async (req, res) => {
     }
     const buffer = await file.buffer();
     const html = buffer.toString('utf8');
-    res.type('html').send(html);
+    res.type('html').send(injectSecurityControls(html));
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);
     res.status(500).send('Failed to load timepieces brochure');
@@ -518,7 +627,7 @@ app.get('/admin', async (req, res) => {
       .map((i) => `<div class="card"><h2>${i.title}</h2><a class="btn" href="/view?f=${encodeURIComponent(i.rel)}">View</a></div>`)
       .join('');
     const html = `<!DOCTYPE html><html lang="en"><head>${buildHead('Brochures Dashboard')}</head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
-    res.send(html);
+    res.send(injectSecurityControls(html));
   } catch (err) {
     res.status(500).send('Failed to load index');
   }
@@ -533,7 +642,7 @@ app.get('/view', async (req, res) => {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
     const wrapped = `<!DOCTYPE html><html lang="en"><head>${buildHead(title)}</head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
-    res.send(wrapped);
+    res.send(injectSecurityControls(wrapped));
   } catch {
     res.status(404).send('Not found');
   }

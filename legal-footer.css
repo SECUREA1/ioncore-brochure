@@ -1,6 +1,18 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .legal-footer {
-  margin: 48px auto 0;
-  padding: 24px 12px;
+  margin-top: auto;
+  margin-inline: auto;
+  padding: 36px 12px 24px;
   text-align: center;
   font-size: 0.9rem;
   max-width: 960px;

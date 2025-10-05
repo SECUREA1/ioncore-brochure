@@ -522,6 +522,116 @@
       box-shadow: 0 16px 30px rgba(9, 16, 26, 0.45);
     }
 
+    .chat-access {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.25rem 1.4rem;
+      border-radius: 18px;
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      background: rgba(12, 21, 40, 0.78);
+      box-shadow: 0 24px 38px rgba(4, 10, 22, 0.45);
+    }
+
+    .chat-toggle {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 0.95rem 1.75rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.82), rgba(72, 255, 226, 0.82));
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .chat-toggle:hover,
+    .chat-toggle:focus-visible {
+      outline: none;
+      transform: translateY(-1px);
+      box-shadow: 0 18px 38px rgba(12, 24, 42, 0.5);
+    }
+
+    .chat-toggle::before {
+      content: '';
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #0f172a 0%, #0f172a 35%, transparent 65%);
+      box-shadow: 0 0 14px rgba(15, 23, 42, 0.45);
+    }
+
+    .chat-toggle.is-active {
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.95), rgba(106, 255, 59, 0.9));
+      box-shadow: 0 22px 44px rgba(9, 16, 26, 0.5);
+    }
+
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.15rem 1.2rem 1.25rem;
+      border-radius: 16px;
+      background: rgba(5, 12, 26, 0.82);
+      border: 1px solid rgba(72, 255, 226, 0.22);
+    }
+
+    .chat-panel__intro,
+    .chat-panel__hint {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: rgba(203, 213, 225, 0.88);
+    }
+
+    .chat-panel__hint {
+      font-size: 0.78rem;
+      color: rgba(148, 163, 184, 0.85);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .chat-panel__link {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: rgba(72, 255, 226, 0.95);
+      background: rgba(15, 23, 42, 0.82);
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.28);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .chat-panel__link:hover,
+    .chat-panel__link:focus-visible {
+      outline: none;
+      transform: translateY(-1px);
+      box-shadow: inset 0 0 0 1px rgba(106, 255, 59, 0.6), 0 10px 24px rgba(2, 12, 26, 0.45);
+    }
+
+    .chat-panel__frame {
+      width: 100%;
+      min-height: clamp(300px, 40vh, 460px);
+      border: none;
+      border-radius: 14px;
+      background: rgba(2, 6, 14, 0.9);
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.12);
+    }
+
     .mode-panel[hidden] {
       display: none;
     }
@@ -1654,6 +1764,24 @@
           <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
           <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Meknx Access</button>
         </div>
+        <div class="chat-access">
+          <button type="button" class="chat-toggle" id="chat-toggle" aria-expanded="false" aria-controls="chat-panel">
+            Enter Ioncore Live Chat
+          </button>
+          <div class="chat-panel" id="chat-panel" hidden tabindex="-1">
+            <p class="chat-panel__intro">Open the Ioncore live operations forum to coordinate with other teams before securing vault entry.</p>
+            <a class="chat-panel__link" href="IONCORECHAT/index.html" target="_blank" rel="noopener">Launch in new tab</a>
+            <iframe
+              class="chat-panel__frame"
+              id="chat-iframe"
+              title="Ioncore Live Chatroom"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              data-src="IONCORECHAT/index.html"
+            ></iframe>
+            <p class="chat-panel__hint">The chatroom loads directly from the IoncoreChat module. Toggle again to collapse when you are ready to authenticate.</p>
+          </div>
+        </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
           <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
           <div class="wallet-connect-row">
@@ -1848,6 +1976,9 @@
     const nextPath = query.get('next') || '/';
     const modeButtons = Array.from(document.querySelectorAll('.auth-mode'));
     const panels = Array.from(document.querySelectorAll('.mode-panel'));
+    const chatToggleButton = document.getElementById('chat-toggle');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatFrame = document.getElementById('chat-iframe');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const walletAddressInput = document.getElementById('wallet-address');
@@ -1884,6 +2015,29 @@
     const MIN_LOGIN_VALUE_USD = 15;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
+
+    if (chatToggleButton && chatPanel) {
+      chatToggleButton.addEventListener('click', () => {
+        const isExpanded = chatToggleButton.getAttribute('aria-expanded') === 'true';
+        const nextExpanded = !isExpanded;
+        chatToggleButton.setAttribute('aria-expanded', String(nextExpanded));
+        chatToggleButton.classList.toggle('is-active', nextExpanded);
+        chatPanel.hidden = !nextExpanded;
+
+        if (nextExpanded) {
+          if (chatFrame && chatFrame.dataset.src && !chatFrame.hasAttribute('src')) {
+            chatFrame.src = chatFrame.dataset.src;
+          }
+          if (typeof chatPanel.focus === 'function') {
+            try {
+              chatPanel.focus({ preventScroll: false });
+            } catch (error) {
+              chatPanel.focus();
+            }
+          }
+        }
+      });
+    }
 
     const meknxState = {
       status: 'pending',

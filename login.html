@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sharpe Secure Systems Access</title>
-  <meta name="description" content="Sharpe Secure Systems portal for classified clean-tech dossiers.">
+  <title>Ioncore Secure Vault Access</title>
+  <meta name="description" content="Ioncore Energy secure access portal for confidential energy ecosystem dossiers.">
   <link rel="icon" type="image/svg+xml" href="/battery.svg">
   <link rel="shortcut icon" href="/battery.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,7 +119,7 @@
     }
 
     body::after {
-      content: "SHARPE SECURE";
+      content: "IONCORE SECURE";
       position: absolute;
       top: 5%;
       right: -12%;
@@ -1612,8 +1612,8 @@
     </div>
     <div class="intro-screen" role="presentation" aria-hidden="true">
       <div class="intro-content">
-        <img class="intro-logo" src="battery.svg" alt="Sharpe Systems emblem">
-        <div class="intro-text" aria-hidden="true"><span>Sharpe</span> Systems</div>
+        <img class="intro-logo" src="battery.svg" alt="Ioncore Energy emblem">
+        <div class="intro-text" aria-hidden="true"><span>Ioncore</span> Energy</div>
       </div>
     </div>
     <div class="health-bar" role="status" aria-live="polite">
@@ -1629,15 +1629,15 @@
       <span id="health-status" class="sr-only">Security hearts remaining: 5 of 5.</span>
     </div>
     <main class="vault-card" role="main">
-      <div class="logo-lockup" aria-label="Sharpe Secure Systems">
-        <span>Sharpe</span> Systems // Clearance Gate
+      <div class="logo-lockup" aria-label="Ioncore Secure Vault">
+        <span>Ioncore</span> Energy // Clearance Gate
       </div>
       <div class="intel-banner" role="status">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
-        Sharpe telemetry active. Quantum vault monitored 24/7.
+        Ioncore telemetry active. Quantum vault monitored 24/7.
       </div>
       <h1>Vault Access Protocol</h1>
-      <p class="tagline">Authenticate with your assigned access key and clearance code to review Sharpe Secure Systems' classified clean-tech dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <p class="tagline">Authenticate with your assigned access key and clearance code to review Ioncore Energy's confidential energy dossiers. Unauthorized attempts trigger kinetic countermeasures.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
           <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
@@ -1664,7 +1664,7 @@
               </span>
               <span class="wallet-connect-button__label">Connect MetaMask</span>
               <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Sharpe Systems emblem">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
               </span>
             </button>
             <div id="metamask-status" class="wallet-status">Not connected.</div>
@@ -1694,7 +1694,7 @@
               </span>
               <span class="wallet-connect-button__label">Connect Phantom</span>
               <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Sharpe Systems emblem">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
               </span>
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
@@ -1714,7 +1714,7 @@
               </span>
               <span class="wallet-connect-button__label">Connect Cardano Wallet</span>
               <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Sharpe Systems emblem">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
               </span>
             </button>
             <div id="cardano-status" class="wallet-status">Not connected.</div>
@@ -1753,7 +1753,7 @@
               <h3>Cardano Policy Gate</h3>
               <span class="module-tag module-tag--cardano">Cardano</span>
             </div>
-            <p class="module-copy">Cardano sessions must confirm holdings under the Sharpe policy ID before requesting entry.</p>
+            <p class="module-copy">Cardano sessions must confirm holdings under the Ioncore policy ID before requesting entry.</p>
             <div class="module-actions">
               <button type="button" id="cardano-verify-button" class="action-button action-button--outline">Verify Cardano Policy</button>
               <div id="cardano-inline-status" class="inline-status">Awaiting policy verification.</div>
@@ -1799,7 +1799,7 @@
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
-      <p class="footnote">Classified Transmission. <strong>Sharpe Eyes Only.</strong> Proceed with discretion. Wallet links are never stored on-chain.</p>
+      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion. Wallet links are never stored on-chain.</p>
     </main>
   <script>
     const bodyElement = document.body;
@@ -2016,7 +2016,7 @@
         return;
       }
 
-      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Sharpe policy';
+      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Ioncore policy';
 
       if (cardanoState.verified) {
         setInlineStatus(
@@ -3198,7 +3198,7 @@
   </script>
 
   <footer class="legal-footer">
-    <p>Copyright © 2024 Sharpe Secure Systems. Proprietary clean data and assets licensed for Sharpe Secure Systems marketing use only.</p>
+    <p>Copyright © 2024 Ioncore Energy. Proprietary clean data and assets licensed for Ioncore Energy marketing use only.</p>
   </footer>
 </body>
 </html>

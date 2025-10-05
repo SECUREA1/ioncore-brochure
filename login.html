@@ -512,6 +512,82 @@
       color: rgba(203, 213, 225, 0.9);
     }
 
+    .wallet-session-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.7rem 1.1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(15, 23, 42, 0.58);
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+      color: rgba(226, 232, 240, 0.88);
+      transition: box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
+      max-width: 100%;
+      word-break: break-word;
+    }
+
+    .wallet-session-indicator::before {
+      content: '';
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 50%;
+      background: rgba(148, 163, 184, 0.55);
+      box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55);
+      flex: 0 0 auto;
+    }
+
+    .wallet-session-indicator.is-active {
+      background: rgba(72, 255, 226, 0.14);
+      color: #e0fff7;
+      box-shadow: 0 0 0 1px rgba(72, 255, 226, 0.32), 0 10px 24px rgba(7, 14, 26, 0.35);
+    }
+
+    .wallet-session-indicator.is-active::before {
+      background: var(--ioncore-aqua);
+      box-shadow: 0 0 0 2px rgba(6, 12, 24, 0.72), 0 0 12px rgba(106, 255, 59, 0.45);
+    }
+
+    .wallet-session-indicator[data-provider='solana'].is-active {
+      background: rgba(153, 69, 255, 0.14);
+      box-shadow: 0 0 0 1px rgba(153, 69, 255, 0.32), 0 10px 24px rgba(15, 10, 32, 0.42);
+      color: #f1e9ff;
+    }
+
+    .wallet-session-indicator[data-provider='solana'].is-active::before {
+      background: linear-gradient(135deg, #9945ff, #14f195);
+      box-shadow: 0 0 0 2px rgba(11, 16, 34, 0.82), 0 0 12px rgba(153, 69, 255, 0.5);
+    }
+
+    .wallet-session-indicator[data-provider='evm'].is-active {
+      background: rgba(255, 198, 124, 0.16);
+      box-shadow: 0 0 0 1px rgba(255, 198, 124, 0.32), 0 10px 24px rgba(32, 16, 6, 0.42);
+      color: #fff6eb;
+    }
+
+    .wallet-session-indicator[data-provider='evm'].is-active::before {
+      background: linear-gradient(135deg, #ffb347, #ff7300);
+      box-shadow: 0 0 0 2px rgba(32, 16, 6, 0.82), 0 0 12px rgba(255, 179, 71, 0.5);
+    }
+
+    .wallet-session-indicator[data-provider='cardano'].is-active {
+      background: rgba(41, 173, 255, 0.16);
+      box-shadow: 0 0 0 1px rgba(41, 173, 255, 0.3), 0 10px 24px rgba(6, 16, 32, 0.42);
+      color: #e0f4ff;
+    }
+
+    .wallet-session-indicator[data-provider='cardano'].is-active::before {
+      background: linear-gradient(135deg, #00a6ff, #266dff);
+      box-shadow: 0 0 0 2px rgba(6, 16, 32, 0.82), 0 0 12px rgba(38, 109, 255, 0.48);
+    }
+
+    .wallet-session-indicator__address {
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
     .wallet-connect-row {
       display: flex;
       flex-wrap: wrap;
@@ -1628,6 +1704,9 @@
         </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
           <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
+          <div id="wallet-session-indicator" class="wallet-session-indicator" role="status" aria-live="polite">
+            No wallet session active.
+          </div>
           <div class="wallet-connect-row">
             <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
               <span class="wallet-connect-button__icon" aria-hidden="true">
@@ -1833,6 +1912,7 @@
     const metamaskStatus = document.getElementById('metamask-status');
     const phantomStatus = document.getElementById('phantom-status');
     const cardanoStatus = document.getElementById('cardano-status');
+    const walletSessionIndicator = document.getElementById('wallet-session-indicator');
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
@@ -2899,6 +2979,12 @@
       if (walletProviderInput) {
         walletProviderInput.value = '';
       }
+      if (walletSessionIndicator) {
+        walletSessionIndicator.textContent = 'No wallet session active.';
+        walletSessionIndicator.classList.remove('is-active');
+        walletSessionIndicator.removeAttribute('data-provider');
+        walletSessionIndicator.removeAttribute('title');
+      }
       clearWalletValueState();
       resetMeknxState();
       syncIoncModuleVisibility();
@@ -2980,6 +3066,11 @@
         updateStatus(`Requesting ${walletLabel} session…`);
         button.disabled = true;
         button.textContent = 'Connecting…';
+        if (walletSessionIndicator) {
+          walletSessionIndicator.textContent = `Requesting ${walletLabel} session…`;
+          walletSessionIndicator.classList.remove('is-active');
+          walletSessionIndicator.setAttribute('data-provider', 'cardano');
+        }
 
         try {
           if (!wallet) {
@@ -3101,6 +3192,33 @@
               walletValueState.usdValue
             )})`
           : '';
+      const verificationSuffix =
+        providerLabel === 'solana' && ioncState.verified
+          ? ' • IONC verified'
+          : providerLabel.startsWith('cardano') && cardanoState.verified
+          ? ' • Policy verified'
+          : '';
+      const friendlyProviderLabel =
+        providerLabel === 'evm'
+          ? 'MetaMask'
+          : providerLabel === 'solana'
+          ? 'Phantom'
+          : cardanoLabel || 'Wallet';
+      if (walletSessionIndicator) {
+        const indicatorProvider = providerLabel.startsWith('cardano') ? 'cardano' : providerLabel;
+        walletSessionIndicator.textContent = `Active wallet (${friendlyProviderLabel}): `;
+        const addressBadge = document.createElement('span');
+        addressBadge.className = 'wallet-session-indicator__address';
+        addressBadge.textContent = formatted;
+        walletSessionIndicator.appendChild(addressBadge);
+        const detailSuffix = `${balanceSuffix}${verificationSuffix}`;
+        if (detailSuffix) {
+          walletSessionIndicator.appendChild(document.createTextNode(detailSuffix));
+        }
+        walletSessionIndicator.classList.add('is-active');
+        walletSessionIndicator.setAttribute('data-provider', indicatorProvider);
+        walletSessionIndicator.setAttribute('title', address);
+      }
       if (providerLabel === 'evm') {
         if (metamaskStatus) {
           metamaskStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
@@ -3446,6 +3564,11 @@
           updateStatus('Requesting MetaMask session…');
           metamaskButton.disabled = true;
           metamaskButton.textContent = 'Connecting…';
+          if (walletSessionIndicator) {
+            walletSessionIndicator.textContent = 'Requesting MetaMask session…';
+            walletSessionIndicator.classList.remove('is-active');
+            walletSessionIndicator.setAttribute('data-provider', 'evm');
+          }
 
           try {
             let provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
@@ -3515,6 +3638,11 @@
           updateStatus('Requesting Phantom session…');
           phantomButton.disabled = true;
           phantomButton.textContent = 'Connecting…';
+          if (walletSessionIndicator) {
+            walletSessionIndicator.textContent = 'Requesting Phantom session…';
+            walletSessionIndicator.classList.remove('is-active');
+            walletSessionIndicator.setAttribute('data-provider', 'solana');
+          }
 
           try {
             let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 3200, interval: 220 });

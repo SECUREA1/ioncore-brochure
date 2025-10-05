@@ -1,23 +1,11 @@
-html,
-body {
-  height: 100%;
-}
-
-body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
 .legal-footer {
-  margin-top: auto;
-  margin-inline: auto;
+  margin: clamp(3rem, 12vh, 6rem) auto 0;
   padding: 36px 12px 24px;
   text-align: center;
   font-size: 0.9rem;
   max-width: 960px;
   line-height: 1.5;
-  color: #4b5563;
+  color: rgba(148, 163, 184, 0.78);
   border-top: 1px solid rgba(148, 163, 184, 0.35);
 }
 

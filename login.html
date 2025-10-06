@@ -348,6 +348,49 @@
       line-height: 1.6;
     }
 
+    .vault-credential-card {
+      margin: 1.75rem 0 2.25rem;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(circle at 18% 12%, rgba(106, 255, 59, 0.12), transparent 60%),
+        rgba(6, 14, 26, 0.72);
+      border: 1px solid rgba(106, 255, 59, 0.22);
+      box-shadow: 0 28px 60px rgba(2, 8, 20, 0.45);
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .vault-credential-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 88% 0%, rgba(72, 255, 226, 0.18), transparent 55%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .vault-credential-card__image {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 227, 255, 0.22);
+      box-shadow: 0 18px 45px rgba(2, 10, 25, 0.48);
+    }
+
+    .vault-credential-card__caption {
+      margin: 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(177, 202, 236, 0.82);
+      position: relative;
+      z-index: 1;
+    }
+
     .intel-banner {
       display: inline-flex;
       align-items: center;
@@ -1606,6 +1649,16 @@
         padding: 2rem 1.5rem;
       }
 
+      .vault-credential-card {
+        margin: 1.5rem 0 2rem;
+        padding: 0.75rem;
+      }
+
+      .vault-credential-card__caption {
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+      }
+
       .logo-lockup {
         letter-spacing: 0.2em;
       }
@@ -1772,6 +1825,21 @@
       border: 1px solid rgba(106, 255, 59, 0.24);
       box-shadow: 0 34px 90px rgba(2, 8, 20, 0.48);
       backdrop-filter: blur(18px);
+    }
+
+    .vault-credential-card {
+      background: radial-gradient(circle at 18% 12%, rgba(106, 255, 59, 0.18), transparent 60%),
+        rgba(5, 14, 26, 0.72);
+      border: 1px solid rgba(106, 255, 59, 0.32);
+    }
+
+    .vault-credential-card__image {
+      border-radius: 18px;
+      border: 1px solid rgba(106, 255, 59, 0.28);
+    }
+
+    .vault-credential-card__caption {
+      color: rgba(214, 233, 255, 0.82);
     }
 
     .vault-card::after {
@@ -2056,6 +2124,10 @@
       </div>
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <figure class="vault-credential-card" aria-labelledby="vault-card-caption">
+        <img src="IMG_3143.jpeg" alt="Ioncore Energy secure client access card with QR credential" class="vault-credential-card__image" loading="lazy">
+        <figcaption id="vault-card-caption" class="vault-credential-card__caption">Ioncore currency credential required for vault and continuum access.</figcaption>
+      </figure>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-group">
           <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">

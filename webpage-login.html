@@ -322,10 +322,35 @@
       font-size: 1.3rem;
     }
 
+    .gateway__status .status-code {
+      display: none;
+      margin-left: auto;
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(0, 243, 179, 0.14);
+      color: #e6fff7;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .gateway__status .status-code.is-visible {
+      display: inline-flex;
+    }
+
     .gateway__error {
       color: #ff8c8c;
       font-size: 0.85rem;
       margin-top: 0.35rem;
+    }
+
+    .gateway__optional {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(226, 232, 240, 0.7);
+      margin-top: 0.25rem;
     }
 
     @media (max-width: 720px) {
@@ -394,12 +419,12 @@
           <div class="gateway__form-row">
             <div class="gateway__input">
               <label for="gateway-code">Access code</label>
-              <input type="password" id="gateway-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="6-digit code">
+              <input type="password" id="gateway-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code (leave blank if new)">
               <p class="gateway__error" data-error-for="gateway-code" role="alert"></p>
             </div>
             <div class="gateway__input">
-              <label for="gateway-intent">Engagement focus</label>
-              <textarea id="gateway-intent" name="intent" required placeholder="Outline the program or product line you are evaluating."></textarea>
+              <label for="gateway-intent">Engagement focus <span class="gateway__optional">Returning users may leave this blank</span></label>
+              <textarea id="gateway-intent" name="intent" placeholder="Outline the program or product line you are evaluating."></textarea>
               <p class="gateway__error" data-error-for="gateway-intent" role="alert"></p>
             </div>
           </div>
@@ -415,6 +440,7 @@
       <div class="gateway__status" id="gateway-status" role="status" aria-live="assertive" aria-atomic="true">
         <span class="status-icon" aria-hidden="true">✔</span>
         <span class="status-message">Access granted. Redirecting to brochure.</span>
+        <span class="status-code" id="gateway-status-code"></span>
       </div>
     </div>
   </div>
@@ -426,6 +452,7 @@
     const roleButtons = document.querySelectorAll('.gateway-role');
     const form = document.getElementById('gateway-form');
     const status = document.getElementById('gateway-status');
+    const statusCode = document.getElementById('gateway-status-code');
     const submitButton = document.querySelector('.gateway__submit');
     const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
     let selectedRole = '';
@@ -507,13 +534,23 @@
         hasError = true;
       }
 
-      if (!code.value.trim() || !/^\d{6}$/.test(code.value.trim())) {
-        setError('gateway-code', 'Enter the 6-digit access code provided by your Ioncore liaison.');
+      const codeValue = code.value.trim();
+      const intentValue = intent.value.trim();
+      const hasCode = codeValue.length > 0;
+      const codeIsValid = /^\d{6}$/.test(codeValue);
+
+      if (hasCode && !codeIsValid) {
+        setError('gateway-code', 'Access codes must be exactly 6 digits. Leave this blank if you are a new visitor.');
         hasError = true;
       }
 
-      if (!intent.value.trim() || intent.value.trim().length < 12) {
-        setError('gateway-intent', 'Share a brief summary of your engagement focus (12+ characters).');
+      if (!hasCode && intentValue.length < 12) {
+        setError('gateway-intent', 'First-time access requires a brief summary of your engagement focus (12+ characters).');
+        hasError = true;
+      }
+
+      if (hasCode && intentValue.length > 0 && intentValue.length < 12) {
+        setError('gateway-intent', 'Share at least 12 characters to update your engagement focus, or leave it blank.');
         hasError = true;
       }
 
@@ -528,8 +565,8 @@
         role: selectedRole,
         name: name.value.trim(),
         email: email.value.trim(),
-        code: code.value.trim(),
-        intent: intent.value.trim()
+        code: hasCode && codeIsValid ? codeValue : '',
+        intent: intentValue
       };
 
       const roleLabels = {
@@ -599,9 +636,20 @@
       const message = (responseData && responseData.message) || `${label} access granted. Redirecting to brochure.`;
       status.querySelector('.status-message').textContent = message;
 
+      if (statusCode) {
+        if (responseData && typeof responseData.assignedCode === 'string' && responseData.assignedCode.trim()) {
+          statusCode.textContent = `Access code: ${responseData.assignedCode}`;
+          statusCode.classList.add('is-visible');
+        } else {
+          statusCode.textContent = '';
+          statusCode.classList.remove('is-visible');
+        }
+      }
+
+      const redirectDelay = responseData && responseData.isNewUser ? 6000 : 900;
       setTimeout(() => {
         window.location.href = 'webpage.html';
-      }, 900);
+      }, redirectDelay);
     });
   </script>
 </body>

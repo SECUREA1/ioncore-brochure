@@ -420,6 +420,9 @@
   </div>
 
   <script>
+    const AUTH_STORAGE_KEY = 'ioncore-gateway';
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+
     const roleButtons = document.querySelectorAll('.gateway-role');
     const form = document.getElementById('gateway-form');
     const status = document.getElementById('gateway-status');
@@ -492,6 +495,21 @@
       if (hasError) {
         form.setAttribute('aria-describedby', 'gateway-general-error');
         return;
+      }
+
+      const now = Date.now();
+      const twelveHours = 12 * 60 * 60 * 1000;
+      const payload = {
+        role: selectedRole,
+        name: name.value.trim(),
+        grantedAt: now,
+        expires: now + twelveHours,
+      };
+
+      try {
+        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
+      } catch (error) {
+        console.error('Unable to persist gateway access token', error);
       }
 
       form.setAttribute('aria-hidden', 'true');

@@ -56,9 +56,24 @@ async function loadStore() {
 
 let store = await loadStore();
 
+let saveChain = Promise.resolve();
+
+function enqueueStoreSave() {
+  saveChain = saveChain
+    .catch(() => {
+      // Swallow prior errors so a single failure does not block future writes.
+    })
+    .then(async () => {
+      const snapshot = JSON.stringify(store, null, 2);
+      await fs.writeFile(STORE_PATH, snapshot, 'utf8');
+    });
+
+  return saveChain;
+}
+
 async function saveStore() {
   try {
-    await fs.writeFile(STORE_PATH, JSON.stringify(store, null, 2), 'utf8');
+    await enqueueStoreSave();
   } catch (error) {
     console.error('Failed to persist gateway store', error);
     throw error;

@@ -3,52 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Ioncore Cloud Chat</title>
-  <link rel="icon" href="../battery.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>CHAINeS Chat</title>
+  <link rel="icon" href="static/logo.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <meta name="color-scheme" content="dark light" />
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
       :root {
-        --bg: #030712;
-        --panel: rgba(9, 16, 29, 0.92);
-        --muted: #8aa0c7;
-        --fg: #f5f8ff;
-        --accent: #6aff3b;
-        --accent-2: #3cbf2a;
-        --danger: #ff5d6e;
-        --shadow: 0 18px 48px rgba(9, 16, 29, 0.42);
-        --radius: 18px;
-        --lining: rgba(106, 255, 59, 0.22);
-        --caption-font: 'Inter', 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        --caption-color: #f5f8ff;
-        --caption-bg: rgba(3, 7, 18, 0.72);
+        --bg: #0f172a;
+        --panel: #1e293b;
+        --muted: #94a3b8;
+        --fg: #f1f5f9;
+        --accent: #00c6ff;
+        --accent-2: #0072ff;
+        --danger: #ef4444;
+        --shadow: 0 0 12px rgba(0,114,255,.35);
+        --radius: 16px;
+        --lining: #334155;
+        --caption-font: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        --caption-color: #ffffff;
+        --caption-bg: rgba(0,0,0,0.6);
       }
       :root[data-theme='light']{
-        --bg:#f8fafc;
-        --panel:#ffffff;
-        --fg:#0b1220;
-        --muted:#4b5568;
-        --accent:#38a626;
-        --accent-2:#0f7a23;
-        --shadow: 0 18px 48px rgba(15, 122, 35, 0.18);
-        --lining: rgba(56, 166, 38, 0.32);
-        --caption-color:#0b1220;
-        --caption-bg: rgba(255,255,255,0.82);
+        --bg:#ffffff;
+        --panel:#f1f5f9;
+        --fg:#0f172a;
+        --muted:#64748b;
+        --accent:#ff5d6e;
+        --accent-2:#ff1f8b;
+        --shadow: 0 0 10px rgba(255,93,110,.25);
+        --lining:#cbd5e1;
+        --caption-color:#0f172a;
       }
     * { box-sizing: border-box; }
       html, body { height: 100%; width:100%; overflow-x:hidden; }
       body {
         margin:0;
-        background:
-          radial-gradient(1200px 1200px at -10% -20%, color-mix(in oklab, var(--accent), transparent 80%), transparent 60%),
-          radial-gradient(900px 900px at 110% 10%, color-mix(in oklab, var(--accent-2), transparent 80%), transparent 70%),
-          var(--bg);
-        color:var(--fg);
-        font: 15px/1.5 'Montserrat', 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      }
+      background:
+        radial-gradient(1200px 1200px at 20% -10%, color-mix(in oklab, var(--accent-2), transparent 85%), transparent 60%),
+        radial-gradient(1000px 1000px at 120% 20%, color-mix(in oklab, var(--accent), transparent 88%), transparent 60%),
+        var(--bg);
+      color:var(--fg);
+      font: 15px/1.45 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
 
       .wrap {
         display:flex;
@@ -59,55 +56,41 @@
         margin:0 auto;
       }
 
-    header { display:flex; align-items:center; gap:18px; padding:18px clamp(16px,4vw,32px); position: sticky; top: 0; z-index: 5; flex-wrap:wrap; backdrop-filter: blur(18px); background: linear-gradient(120deg, color-mix(in oklab, var(--panel), transparent 18%), color-mix(in oklab, var(--panel), transparent 4%)); border-bottom: 1px solid color-mix(in oklab, var(--lining), transparent 60%); box-shadow: 0 12px 30px rgba(3,7,18,0.22); }
-    .brand { display:flex; align-items:center; gap:14px; min-width:240px; }
-    .brand-copy { display:flex; flex-direction:column; }
-    .brand .logo { width:48px; height:48px; border-radius:16px; display:grid; place-items:center; background: color-mix(in oklab, var(--accent), transparent 70%); box-shadow: var(--shadow); border:1px solid var(--lining); }
-    .brand .logo img { width:28px; height:28px; display:block; }
-    .brand h1 { font-weight: 700; letter-spacing:.4px; font-size: 20px; margin:4px 0 0; }
-    .brand .eyebrow { display:block; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color: var(--accent); margin-bottom:2px; }
-    .status { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .status .chip { flex:1 1 auto; justify-content:center; min-width:120px; }
-    header .chip { padding:6px 12px; }
+    header { display:flex; align-items:center; gap:8px; padding:8px 12px; position: sticky; top: 0; z-index: 5; flex-wrap:wrap; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand .logo { width:28px; height:28px; border-radius:8px; background: url('static/logo.svg') no-repeat center/cover; box-shadow: var(--shadow); }
+    .brand h1 { font-weight: 800; letter-spacing:.4px; font-size: 16px; margin:0; }
+    .status { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .status .chip { flex:1 1 auto; justify-content:center; }
+    header .chip { padding:4px 8px; }
     header .status.top { margin-left:auto; justify-content:flex-end; }
     footer {
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:16px;
-      padding:18px clamp(16px,4vw,32px);
+      gap:14px;
+      padding:18px;
       position: sticky;
       bottom:0;
       z-index:5;
-      backdrop-filter: blur(16px);
-      background: linear-gradient(120deg, color-mix(in oklab, var(--panel), transparent 12%), color-mix(in oklab, var(--panel), transparent 2%));
-      border-top: 1px solid color-mix(in oklab, var(--lining), transparent 60%);
-      box-shadow: 0 -10px 28px rgba(3,7,18,0.2);
     }
     footer .status.bottom { justify-content:space-around; width:100%; }
     footer .status.bottom .chip { flex:1 1 25%; justify-content:center; }
     footer .legal { font-size:12px; color:var(--muted); text-align:center; }
-    .chip { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid color-mix(in oklab, var(--lining), transparent 30%);
-            border-radius:14px; background: color-mix(in oklab, var(--panel), transparent 12%); box-shadow: var(--shadow); color: var(--fg); font-weight:600; letter-spacing:0.01em; }
+    .chip { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--lining);
+            border-radius:12px; background: color-mix(in oklab, var(--panel), transparent 25%); box-shadow: var(--shadow); color: var(--fg); }
     #live-chip, #theme-toggle, #mode-toggle { cursor:pointer; }
-    #cc-settings, #theme-toggle {
-      width:38px;
-      height:38px;
+    #mode-toggle, #cc-settings, #theme-toggle {
+      width:36px;
+      height:36px;
       padding:0;
       justify-content:center;
       border-radius:12px;
     }
-    #mode-toggle {
-      min-width:150px;
-      height:38px;
-      padding:0 18px;
-      justify-content:center;
-      border-radius:12px;
-    }
     #cc-settings {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
       border:0;
-      color:#041306;
+      color:#05130e;
     }
     .dot { width:10px; height:10px; border-radius:999px; background:var(--muted); }
     .dot.ok { background: var(--accent); }
@@ -117,14 +100,14 @@
 
     main { display:flex; flex-direction:column; gap:0; padding:0; flex:1; }
 
-    .feed { list-style:none; margin:0 clamp(16px,4vw,32px) 24px; padding:24px; border-radius: var(--radius); background: color-mix(in oklab, var(--panel), transparent 8%); overflow-y: auto; flex:1; box-shadow: var(--shadow); border:1px solid color-mix(in oklab, var(--lining), transparent 45%); }
+    .feed { list-style:none; margin:0; padding:18px; border-radius: var(--radius); background: color-mix(in oklab, var(--panel), transparent 5%); overflow-y: auto; flex:1; box-shadow: var(--shadow); }
     .msg { display:flex; gap:10px; margin-bottom:14px; width:100%; }
     .msg.mine { flex-direction: row-reverse; }
-    .avatar { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; font-weight:700; background: color-mix(in oklab, var(--accent), transparent 75%); color:#ccebd0; border:1px solid color-mix(in oklab, var(--lining), transparent 40%); }
-    .msg.mine .avatar { background: color-mix(in oklab, var(--accent), black 60%); color: var(--accent); }
+    .avatar { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-weight:700; background: #222a39; color:#c2d2ea; border:1px solid var(--lining); }
+    .msg.mine .avatar { background: color-mix(in oklab, var(--accent), black 70%); color: var(--accent-2); }
 
-    .bubble { flex:1; position:relative; padding:16px 18px 14px; border-radius: 14px; background: color-mix(in oklab, var(--panel), transparent 6%); border:1px solid color-mix(in oklab, var(--lining), transparent 40%); box-shadow: var(--shadow); }
-    .msg.mine .bubble { background: color-mix(in oklab, var(--accent), var(--bg) 70%); border-color: color-mix(in oklab, var(--lining), transparent 10%); }
+    .bubble { flex:1; position:relative; padding:10px 12px 8px; border-radius: 12px; background: var(--panel); border:1px solid var(--lining); box-shadow: var(--shadow); }
+    .msg.mine .bubble { background: color-mix(in oklab, var(--accent), var(--bg) 80%); border-color: var(--lining); }
 
     .meta { display:flex; align-items:center; gap:10px; margin-bottom:4px; font-size:12px; color: var(--muted); }
     .who { font-weight:700; color: var(--fg); }
@@ -142,16 +125,16 @@
 
     .cc-panel {
       position:absolute;
-      top:70px;
-      right:24px;
-      background: color-mix(in oklab, var(--panel), transparent 6%);
-      border:1px solid color-mix(in oklab, var(--lining), transparent 40%);
-      border-radius:16px;
-      padding:14px;
+      top:60px;
+      right:20px;
+      background:var(--panel);
+      border:1px solid var(--lining);
+      border-radius:12px;
+      padding:10px;
       box-shadow:var(--shadow);
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:6px;
       z-index:10;
     }
 
@@ -163,58 +146,57 @@
     .comments { margin-top:6px; }
     .comments-list { margin-bottom:6px; }
     .comment { font-size:13px; margin-bottom:4px; }
-    .comment-form input { width:100%; padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, var(--lining), transparent 40%); background: color-mix(in oklab, var(--panel), transparent 12%); color: var(--fg); }
+    .comment-form input { width:100%; padding:4px; border-radius:8px; border:1px solid var(--lining); background: var(--panel); color: var(--fg); }
 
     .msg.collapsed .msg-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-height: 3.3em; }
     .min-btn { position:absolute; top:8px; right:8px; border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:8px; }
     .min-btn:hover { color:var(--fg); background: rgba(255,255,255,.06); }
 
-    .system { text-align:center; color: var(--accent); font-size: 13px; margin: 12px 0; letter-spacing:0.08em; text-transform:uppercase; }
+    .system { text-align:center; color: var(--muted); font-size: 13px; margin: 12px 0; }
 
-    .composer { display:grid; grid-template-columns: minmax(0,1fr) auto auto auto; gap:12px; margin:16px clamp(16px,4vw,32px) 24px; }
-    .input { display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius: 16px; background: color-mix(in oklab, var(--panel), transparent 10%); border:1px solid color-mix(in oklab, var(--lining), transparent 40%); box-shadow: var(--shadow); }
+    .composer { display:grid; grid-template-columns: minmax(0,1fr) auto auto auto; gap:10px; margin:10px 18px 12px; }
+    .input { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius: 12px; background: var(--panel); border:1px solid var(--lining); box-shadow: var(--shadow); }
     .input input { flex:1; font: inherit; color: var(--fg); background: transparent; border:0; outline:0; }
     .input input::placeholder { color: color-mix(in oklab, var(--muted), transparent 10%); }
-    .send { padding:10px 14px; border-radius:14px; border:0; font-weight:700; cursor:pointer; color:#041306; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: var(--shadow); }
+    .send { padding:10px 14px; border-radius:12px; border:0; font-weight:700; cursor:pointer; color:#05130e; background: linear-gradient(180deg, var(--accent), var(--accent-2)); box-shadow: var(--shadow); }
     .send:disabled { opacity:.6; cursor:not-allowed; }
 
     /* Auth screen */
     .auth { position: fixed; inset:0; display:grid; place-items:center; background: linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.65)); backdrop-filter: blur(4px); }
-    .card { width:min(520px, 92vw); padding:32px; border-radius: 22px; background: color-mix(in oklab, var(--panel), transparent 4%); border: 1px solid color-mix(in oklab, var(--lining), transparent 40%); box-shadow: var(--shadow); }
-    .card h2 { margin:0 0 12px; font-size: 24px; font-weight: 700; }
-    .card p { margin: 0 0 16px; color: var(--muted); }
+    .card { width:min(520px, 92vw); padding:22px; border-radius: 18px; background: var(--panel); border: 1px solid var(--lining); box-shadow: var(--shadow); }
+    .card h2 { margin:0 0 8px; font-size: 22px; }
+    .card p { margin: 0 0 14px; color: var(--muted); }
     .fields { display:grid; gap:10px; }
-    .fields input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid color-mix(in oklab, var(--lining), transparent 40%); background: color-mix(in oklab, var(--panel), transparent 12%); color: var(--fg); font: inherit; }
+    .fields input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--lining); background: var(--panel); color: var(--fg); font: inherit; }
     .actions { display:flex; gap:10px; margin-top:12px; }
-    .btn { padding:12px 16px; border-radius:14px; border:0; font-weight:700; cursor:pointer; }
-    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#041306; box-shadow: var(--shadow); }
-    .btn.ghost { background: color-mix(in oklab, var(--panel), transparent 14%); color: var(--fg); border:1px solid color-mix(in oklab, var(--lining), transparent 30%); }
+    .btn { padding:12px 14px; border-radius:12px; border:0; font-weight:700; cursor:pointer; }
+    .btn.primary { background: linear-gradient(180deg, var(--accent), var(--accent-2)); color:#05130e; }
+    .btn.ghost { background: color-mix(in oklab, var(--panel), transparent 10%); color: var(--fg); border:1px solid var(--lining); }
 
     .muted-link { color: var(--muted); text-decoration: underline; cursor: pointer; }
 
-    a { color: var(--accent); }
+    footer { padding: 8px 18px 16px; color: var(--muted); text-align:center; font-size: 12px; }
+    a { color: var(--accent-2); }
 
-    .users-panel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); padding:18px; border-radius:20px; background: color-mix(in oklab, var(--panel), transparent 8%); border:1px solid color-mix(in oklab, var(--lining), transparent 40%); box-shadow:var(--shadow); max-width:220px; max-height:60vh; overflow-y:auto; }
+    .users-panel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); padding:14px; border-radius:var(--radius); background:var(--panel); border:1px solid var(--lining); box-shadow:var(--shadow); max-width:200px; max-height:60vh; overflow-y:auto; }
     .users-panel h3 { margin:0 0 8px; font-size:14px; }
     .users-panel ul { list-style:none; margin:0; padding:0; }
-    .users-panel li { padding:6px 0; border-bottom:1px solid color-mix(in oklab, var(--lining), transparent 50%); }
+    .users-panel li { padding:4px 0; border-bottom:1px solid var(--lining); }
     .users-panel li:last-child { border-bottom:0; }
-    .users-panel li.mic-user { color:var(--accent); }
+    .users-panel li.mic-user { color:#22c55e; }
 
     .live-btn {
       margin-left:6px;
       display:inline-flex;
       align-items:center;
       gap:4px;
-      padding:6px 10px;
-      border:0;
-      border-radius:10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      padding:2px 6px;
+      border:1px solid var(--lining);
+      border-radius:8px;
+      background:color-mix(in oklab, var(--panel), transparent 10%);
       cursor:pointer;
-      color:#041306;
+      color:var(--fg);
       font-size:12px;
-      font-weight:600;
-      box-shadow: var(--shadow);
     }
     .live-dot {
       display:inline-block;
@@ -236,55 +218,44 @@
       color: var(--danger);
     }
 
-    #streams { display:flex; flex-wrap:wrap; gap:16px; padding:16px clamp(16px,4vw,32px); }
-    .stream { position:relative; width:180px; border:1px solid color-mix(in oklab, var(--lining), transparent 40%); border-radius:16px; padding:14px; background: color-mix(in oklab, var(--panel), transparent 10%); cursor:pointer; box-shadow: var(--shadow); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .stream:hover { transform: translateY(-4px); box-shadow: 0 24px 54px rgba(3,7,18,0.34); }
-    .stream.open { width:320px; }
-    .stream .title { font-weight:700; margin-bottom:10px; color: var(--fg); display:flex; justify-content:space-between; align-items:center; }
-    .stream .title .listener-count { color: var(--accent); font-variant-numeric: tabular-nums; }
-    .stream .thumb { width:100%; border-radius:12px; box-shadow: var(--shadow); }
+    #streams { display:flex; flex-wrap:wrap; gap:10px; padding:10px; }
+    .stream { position:relative; width:150px; border:1px solid var(--lining); border-radius:12px; padding:8px; background: var(--panel); cursor:pointer; }
+    .stream.open { width:300px; }
+    .stream .title { font-weight:700; margin-bottom:6px; }
+    .stream .thumb { width:100%; border-radius:8px; }
     .stream.open .thumb { display:none; }
     .stream .video { display:none; }
     .stream.open .video { display:block; }
-    .stream .video video { width:100%; border-radius:12px; }
-    .stream-feed { list-style:none; margin:12px 0 0; padding:0; max-height:140px; overflow-y:auto; display:none; }
+    .stream .video video { width:100%; border-radius:8px; }
+    .stream-feed { list-style:none; margin:8px 0 0; padding:0; max-height:120px; overflow-y:auto; display:none; }
     .stream.open .stream-feed { display:block; }
-    .stream-composer { display:none; margin-top:10px; gap:6px; }
+    .stream-composer { display:none; margin-top:4px; gap:4px; }
     .stream.open .stream-composer { display:flex; }
-    .stream-composer input { flex:1; padding:8px 10px; border-radius:10px; border:1px solid color-mix(in oklab, var(--lining), transparent 40%); background: color-mix(in oklab, var(--panel), transparent 14%); color: var(--fg); }
-    .request-btn,
-    .request-mic-btn {
-      margin-top:6px;
+    .stream-composer input { flex:1; }
+    .request-btn {
+      margin-top:4px;
       width:100%;
-      padding:10px 12px;
-      border:1px solid color-mix(in oklab, var(--lining), transparent 40%);
-      border-radius:12px;
-      background: color-mix(in oklab, var(--panel), transparent 14%);
+      padding:4px;
+      border:1px solid var(--lining);
+      border-radius:8px;
+      background:color-mix(in oklab, var(--panel), transparent 10%);
       color:var(--fg);
       cursor:pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
-    .request-btn:hover,
-    .request-mic-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(3,7,18,0.28); }
-    .request-btn:disabled,
-    .request-mic-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+    .request-btn:disabled { opacity:.5; cursor:not-allowed; }
     .tune-btn {
-      margin-top:6px;
+      margin-top:4px;
       width:100%;
-      padding:10px 12px;
-      border:0;
-      border-radius:12px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color:#041306;
+      padding:4px;
+      border:1px solid var(--lining);
+      border-radius:8px;
+      background:color-mix(in oklab, var(--panel), transparent 10%);
+      color:var(--fg);
       cursor:pointer;
-      font-weight:700;
-      box-shadow: var(--shadow);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
-    .tune-btn:hover { transform: translateY(-2px); box-shadow: 0 24px 48px rgba(6,20,38,0.34); }
-    .tune-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
-    #video-container { display:flex; flex-wrap:wrap; gap:16px; padding:16px clamp(16px,4vw,32px); }
-    #video-container video { max-width:260px; border-radius:16px; border:1px solid color-mix(in oklab, var(--lining), transparent 40%); box-shadow: var(--shadow); }
+    .tune-btn:disabled { opacity:.5; cursor:not-allowed; }
+    #video-container { display:flex; flex-wrap:wrap; gap:10px; padding:10px; }
+    #video-container video { max-width:240px; border-radius:12px; border:1px solid var(--lining); }
 
     /* Fullscreen broadcast layout */
     body.broadcast-mode header,
@@ -331,7 +302,6 @@
       align-items: center;
       justify-content: center;
       background: color-mix(in oklab, var(--panel), transparent 20%);
-      backdrop-filter: blur(12px);
       z-index: 1002;
     }
     #thumb-chooser .thumb-options {
@@ -340,26 +310,23 @@
     }
     #thumb-chooser button {
       font-size: 2rem;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      background: var(--panel);
       border: none;
-      padding: 12px 16px;
-      border-radius: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
       cursor: pointer;
-      box-shadow: var(--shadow);
-      color:#041306;
     }
 
     /* ✅ make hidden actually hide, even with .auth display rules */
     [hidden] { display: none !important; }
     .auth.is-hidden { display: none !important; }
     @media (max-width: 600px) {
-      header { flex-wrap: wrap; padding:14px; gap:10px; }
-      footer { padding:14px; gap:10px; }
+      header { flex-wrap: wrap; padding:12px; gap:8px; }
+      footer { padding:12px; gap:8px; }
       .status { margin-left:0; flex-wrap:wrap; width:100%; gap:8px; justify-content:center; }
-      .status .chip { flex:1 1 48%; justify-content:center; min-width:0; }
-      .feed { margin:0 12px 18px; padding:16px; }
-      .composer { margin:12px 12px 18px; grid-template-columns: minmax(0,1fr) auto auto; }
-      .composer #cmd-list { display:none; }
+      .status .chip { flex:1 1 45%; justify-content:center; }
+      .feed { padding:12px; }
+      .composer { margin:10px 10px 12px; }
     }
   </style>
 </head>
@@ -367,21 +334,18 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo" aria-hidden="true"><img src="../battery.svg" alt="" width="28" height="28"></div>
-        <div class="brand-copy">
-          <span class="eyebrow">Ioncore Energy</span>
-          <h1>Ioncore Cloud Chat</h1>
-        </div>
+        <div class="logo" aria-hidden="true"></div>
+        <h1>CHAINeS Chat</h1>
       </div>
       <div class="status top">
-        <span class="chip" id="conn-chip" title="Ioncore Cloud connection status">
+        <span class="chip" id="conn-chip" title="Connection status">
           <span class="dot off" id="conn-dot"></span>
-          <span id="conn-label">Awaiting Ioncore Cloud</span>
+          <span id="conn-label">Offline</span>
         </span>
-        <button class="chip" id="stream-code-btn" title="Copy Ioncore stream code">🔑 Stream Code</button>
+        <button class="chip" id="stream-code-btn" title="Copy stream code">🔑 Stream Code</button>
         <button class="chip" id="camera-flip-btn" title="Switch camera">🔁 Flip</button>
         <button class="chip" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
-        <button id="mode-toggle" class="chip" title="Switch between Ioncore Cloud or local relay"></button>
+        <button id="mode-toggle" class="chip" title="Switch between cloud or local modes"></button>
         <button id="cc-settings" class="chip" title="Caption settings">CC</button>
       </div>
     </header>
@@ -404,12 +368,12 @@
         <div id="streams" class="streams"></div>
         <form id="composer" class="composer" autocomplete="off">
           <label class="input" for="text">
-            <input id="text" name="text" placeholder="Share a mission update… (try /wave, /me dance or /clear)" />
+            <input id="text" name="text" placeholder="Type a message… (try /wave, /me dance or /clear)" />
           </label>
         <input id="file" type="file" hidden />
         <button class="send" id="attach" type="button" title="Attach file" aria-label="Attach file">📎</button>
-        <button class="send" id="send" type="submit" aria-label="Send message">🚀</button>
-        <button class="send" id="cmd-list" type="button" title="Show Ioncore command palette" aria-label="Show commands">📃</button>
+        <button class="send" id="send" type="submit" aria-label="Send message">🐒</button>
+        <button class="send" id="cmd-list" type="button" title="Show commands" aria-label="Show commands">📃</button>
       </form>
         <div id="video-container" hidden></div>
         <ul id="feed" class="feed" aria-live="polite" aria-busy="false"></ul>
@@ -417,17 +381,17 @@
 
     <footer>
       <div class="status bottom">
-        <button class="chip" id="broadcast-btn" title="Launch Ioncore live feed">🎥 Live</button>
-        <span class="chip" id="live-chip" title="Participants on deck">
-          <span id="live-count">0</span> connected
+        <button class="chip" id="broadcast-btn" title="Go live">🎥 Live</button>
+        <span class="chip" id="live-chip" title="Users online">
+          <span id="live-count">0</span> online
         </span>
         <button id="theme-toggle" class="chip" title="Toggle dark or light mode"></button>
-        <span class="chip" id="user-chip" title="Ioncore ID" style="display:none">
+        <span class="chip" id="user-chip" title="Logged in user" style="display:none">
           <span class="usr" id="user-name"></span>
           <button id="logout-btn" class="btn ghost" style="padding:6px 10px" type="button">Logout</button>
         </span>
       </div>
-      <div class="legal">© <span id="year"></span> Ioncore Energy • Powered by the Ioncore Cloud.</div>
+      <div class="legal">© <span id="year"></span> CHAINeS • Built for <a href="https://chaines.io" target="_blank" rel="noopener">chaines.io</a></div>
     </footer>
   </div>
 
@@ -439,18 +403,18 @@
   <!-- Auth overlay -->
   <section id="auth" class="auth" hidden>
     <div class="card">
-      <h2>Welcome to Ioncore Cloud Chat</h2>
-      <p>Claim a callsign to enter the command lounge.</p>
+      <h2>Welcome to CHAINeS Chat</h2>
+      <p>Pick a username to join the chatroom.</p>
       <div class="fields">
-        <input id="username" placeholder="Username (e.g., aurora.ops)" maxlength="24" />
+        <input id="username" placeholder="Username (e.g., jodel)" maxlength="24" />
       </div>
       <div class="actions">
-        <button class="btn primary" id="enter" type="button">Join Mission</button>
-        <button class="btn ghost" id="skip" type="button">Enter as Guest</button>
+        <button class="btn primary" id="enter" type="button">Enter Chat</button>
+        <button class="btn ghost" id="skip" type="button">Continue as Guest</button>
       </div>
-      <p style="margin-top:10px">Optional Ioncore Cloud socket: <span class="muted-link" id="ws-edit">configure</span></p>
+      <p style="margin-top:10px">Optional backend socket: <span class="muted-link" id="ws-edit">configure</span></p>
       <div id="ws-config" class="fields" style="display:none; margin-top:8px">
-        <input id="ws-url" placeholder="wss://chaines-chat-ws.onrender.com/ws (optional)" />
+        <input id="ws-url" placeholder="wss://chaines-io-chat.onrender.com/ws (optional)" />
         <button class="btn ghost" id="save-ws" type="button">Save Socket URL</button>
       </div>
     </div>
@@ -543,8 +507,8 @@
 
     el('#year').textContent = new Date().getFullYear();
 
-    ccFont.value = localStorage.getItem('ioncore_cc_font') || getComputedStyle(document.documentElement).getPropertyValue('--caption-font').trim();
-    ccColor.value = localStorage.getItem('ioncore_cc_color') || '#ffffff';
+    ccFont.value = localStorage.getItem('chaines_cc_font') || getComputedStyle(document.documentElement).getPropertyValue('--caption-font').trim();
+    ccColor.value = localStorage.getItem('chaines_cc_color') || '#ffffff';
     document.documentElement.style.setProperty('--caption-font', ccFont.value);
     document.documentElement.style.setProperty('--caption-color', ccColor.value);
     ccSettings.addEventListener('click', () => { ccPanel.hidden = !ccPanel.hidden; });
@@ -552,8 +516,8 @@
       document.documentElement.style.setProperty('--caption-font', ccFont.value);
       document.documentElement.style.setProperty('--caption-color', ccColor.value);
       try {
-        localStorage.setItem('ioncore_cc_font', ccFont.value);
-        localStorage.setItem('ioncore_cc_color', ccColor.value);
+        localStorage.setItem('chaines_cc_font', ccFont.value);
+        localStorage.setItem('chaines_cc_color', ccColor.value);
       } catch {}
       ccPanel.hidden = true;
     });
@@ -561,63 +525,57 @@
     // --- Basic state ---
     const store = {
       get user() {
-        try { return localStorage.getItem('ioncore_username') || ''; }
+        try { return localStorage.getItem('chaines_username') || ''; }
         catch { return ''; }
       },
       set user(v) {
-        try { v ? localStorage.setItem('ioncore_username', v) : localStorage.removeItem('ioncore_username'); }
+        try { v ? localStorage.setItem('chaines_username', v) : localStorage.removeItem('chaines_username'); }
         catch {}
       },
       get wsURL() {
-        try {
-          const saved = localStorage.getItem('ioncore_ws_url');
-          return saved || defaultWS();
-        } catch {
-          return defaultWS();
-        }
+        try { return localStorage.getItem('chaines_ws_url') || defaultWS(); }
+        catch { return defaultWS(); }
       },
       set wsURL(v) {
-        try {
-          if (v) localStorage.setItem('ioncore_ws_url', v);
-          else localStorage.removeItem('ioncore_ws_url');
-        } catch {}
+        try { v ? localStorage.setItem('chaines_ws_url', v) : localStorage.removeItem('chaines_ws_url'); }
+        catch {}
       },
       get theme() {
-        try { return localStorage.getItem('ioncore_theme') || ''; }
+        try { return localStorage.getItem('chaines_theme') || ''; }
         catch { return ''; }
       },
       set theme(v) {
-        try { v ? localStorage.setItem('ioncore_theme', v) : localStorage.removeItem('ioncore_theme'); }
+        try { v ? localStorage.setItem('chaines_theme', v) : localStorage.removeItem('chaines_theme'); }
         catch {}
       },
       get obsRPC() {
-        try { return localStorage.getItem('ioncore_obs_rpc') || ''; }
+        try { return localStorage.getItem('chaines_obs_rpc') || ''; }
         catch { return ''; }
       },
       set obsRPC(v) {
-        try { v ? localStorage.setItem('ioncore_obs_rpc', v) : localStorage.removeItem('ioncore_obs_rpc'); }
+        try { v ? localStorage.setItem('chaines_obs_rpc', v) : localStorage.removeItem('chaines_obs_rpc'); }
         catch {}
       },
       get obsKey() {
-        try { return localStorage.getItem('ioncore_obs_key') || ''; }
+        try { return localStorage.getItem('chaines_obs_key') || ''; }
         catch { return ''; }
       },
       set obsKey(v) {
-        try { v ? localStorage.setItem('ioncore_obs_key', v) : localStorage.removeItem('ioncore_obs_key'); }
+        try { v ? localStorage.setItem('chaines_obs_key', v) : localStorage.removeItem('chaines_obs_key'); }
         catch {}
       },
       pushMsg(m) {
         try {
-          const items = JSON.parse(localStorage.getItem('ioncore_messages') || '[]');
+          const items = JSON.parse(localStorage.getItem('chaines_messages') || '[]');
           items.push(m); while (items.length > 200) items.shift();
-          localStorage.setItem('ioncore_messages', JSON.stringify(items));
+          localStorage.setItem('chaines_messages', JSON.stringify(items));
         } catch {}
       },
       loadMsgs() {
-        try { return JSON.parse(localStorage.getItem('ioncore_messages') || '[]'); } catch { return []; }
+        try { return JSON.parse(localStorage.getItem('chaines_messages') || '[]'); } catch { return []; }
       },
       clearMsgs() {
-        try { localStorage.removeItem('ioncore_messages'); } catch {}
+        try { localStorage.removeItem('chaines_messages'); } catch {}
       }
     };
 
@@ -625,7 +583,7 @@
       document.documentElement.dataset.theme = t;
       themeToggle.textContent = t === 'light' ? '🌙' : '☀️';
     }
-    const initialTheme = store.theme || 'dark';
+    const initialTheme = store.theme || 'light';
     applyTheme(initialTheme);
     themeToggle.addEventListener('click', () => {
       const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
@@ -633,17 +591,14 @@
       applyTheme(next);
     });
     liveChip.addEventListener('click', () => { userList.hidden = !userList.hidden; });
-    modeToggle.textContent = 'Use Local Relay';
+    modeToggle.textContent = 'Go Cloud';
     modeToggle.addEventListener('click', () => {
       if (onlineMode === 'cloud') {
-        manualDisconnect = true;
         try { socket && socket.close(); } catch {}
         socket = null;
         setStatus(bc ? 'local' : 'off');
-        systemNote('Local relay engaged. Ioncore Cloud paused.');
       } else {
-        systemNote('Reconnecting to Ioncore Cloud…');
-        connectWS(true);
+        connectWS();
       }
     });
     broadcastBtn.addEventListener('click', async () => {
@@ -670,7 +625,7 @@
           const stream = await streamPromise;
           startBroadcast(stream);
         } catch {
-          alert('Ioncore Cloud could not access camera/microphone');
+          alert('Unable to access camera/microphone');
         }
       }
     });
@@ -688,16 +643,16 @@
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard
             .writeText(feedUrl)
-            .then(() => alert('Ioncore OBS feed URL copied'));
+            .then(() => alert('OBS feed URL copied'));
         } else {
-          prompt('Ioncore OBS feed URL:', feedUrl);
+          prompt('OBS feed URL:', feedUrl);
         }
       }
 
       if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(code).then(() => alert('Ioncore stream code copied'));
+        navigator.clipboard.writeText(code).then(() => alert('Stream code copied'));
       } else {
-        prompt('Ioncore stream code:', code);
+        prompt('Your stream code:', code);
       }
     });
     cameraFlipBtn.addEventListener('click', switchCamera);
@@ -726,7 +681,6 @@
     let onlineMode = 'off'; // 'cloud' | 'local' | 'off'
     const seen = new Set();
     const seenComments = new Set();
-    let manualDisconnect = false;
 
     // --- WebRTC state ---
       const peerConnections = {};
@@ -911,83 +865,32 @@
     }
 
     function defaultWS(){
-      const host = (location.hostname || '').toLowerCase();
-      const isLocal = !host || /localhost|127\\.0\\.0\\.1/.test(host);
-      if(isLocal){
-        const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-        return proto + (location.host || 'localhost:10000') + '/ws';
-      }
-      const remoteHost = 'chaines-chat-ws.onrender.com';
-      if(host === remoteHost){
-        const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-        return proto + location.host + '/ws';
-      }
-      return 'wss://' + remoteHost + '/ws';
+      const host = (location.hostname && !/localhost|127\\.0\\.0\\.1/.test(location.hostname))
+        ? 'chaines-io-chat.onrender.com'
+        : location.host;
+      const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      return proto + host + '/ws';
     }
 
     function setStatus(mode){
       onlineMode = mode;
       connDot.classList.remove('ok','local','off');
-      if(mode === 'cloud'){ connDot.classList.add('ok'); connLabel.textContent = 'Connected • Ioncore Cloud'; }
-      else if(mode === 'local'){ connDot.classList.add('local'); connLabel.textContent = 'Connected • Local Relay'; updateUsers([]); }
-      else { connDot.classList.add('off'); connLabel.textContent = 'Ioncore Cloud offline'; updateUsers([]); }
-      modeToggle.textContent = mode === 'cloud' ? 'Use Local Relay' : 'Return to Cloud';
+      if(mode === 'cloud'){ connDot.classList.add('ok'); connLabel.textContent = 'Online (Cloud)'; }
+      else if(mode === 'local'){ connDot.classList.add('local'); connLabel.textContent = 'Online (Local)'; updateUsers([]); }
+      else { connDot.classList.add('off'); connLabel.textContent = 'Offline'; updateUsers([]); }
+      modeToggle.textContent = mode === 'cloud' ? 'Go Local' : 'Go Cloud';
     }
 
-    function connectWS(forceDefault=false){
-      if(!('WebSocket' in window)) { setStatus('off'); return; }
-      const desired = forceDefault ? defaultWS() : (store.wsURL || defaultWS());
-      const target = desired || defaultWS();
-      if(forceDefault && target) store.wsURL = target;
-      if(socket && socket.readyState <= 1){
-        try { socket.close(); } catch {}
-      }
-      let attemptedFallback = forceDefault || !target || target === defaultWS();
-      let url = target;
+    function connectWS(){
+      const url = store.wsURL;
+      if(!('WebSocket' in window)) return setStatus('off');
       try {
         socket = new WebSocket(url);
-      } catch (err) {
-        if(!attemptedFallback){
-          attemptedFallback = true;
-          const fallback = defaultWS();
-          if(fallback && fallback !== url){
-            store.wsURL = fallback;
-            connectWS(true);
-            return;
-          }
-        }
-        setStatus(bc ? 'local' : 'off');
-        systemNote('Ioncore Cloud unavailable. Staying on local relay.');
-        return;
-      }
+      } catch { setStatus('off'); return; }
 
-      const handleFailure = () => {
-        if (manualDisconnect) {
-          manualDisconnect = false;
-          return;
-        }
-        if(!attemptedFallback){
-          attemptedFallback = true;
-          const fallback = defaultWS();
-          if(fallback && fallback !== url){
-            store.wsURL = fallback;
-            connectWS(true);
-            return;
-          }
-        }
-        setStatus(bc ? 'local' : 'off');
-        systemNote('Ioncore Cloud link lost. Operating on local relay.');
-      };
-
-      socket.addEventListener('open', () => {
-        manualDisconnect = false;
-        store.wsURL = url;
-        setStatus('cloud');
-        systemNote('Ioncore Cloud connected.');
-        sendJoin();
-      });
-      socket.addEventListener('close', handleFailure);
-      socket.addEventListener('error', handleFailure);
+      socket.addEventListener('open', () => { setStatus('cloud'); sendJoin(); });
+      socket.addEventListener('close', () => { setStatus(bc? 'local' : 'off'); });
+      socket.addEventListener('error', () => { setStatus(bc? 'local' : 'off'); });
       socket.addEventListener('message', ev => {
         try {
           const data = JSON.parse(ev.data);
@@ -1023,7 +926,7 @@
 
     function setupLocal(){
       if(!('BroadcastChannel' in window)) { setStatus('off'); return; }
-      bc = new BroadcastChannel('ioncore_chat');
+      bc = new BroadcastChannel('chaines_chat');
       bc.onmessage = (ev) => {
         const m = ev.data; if(m && m.type === 'chat') receive(m);
       };
@@ -1058,7 +961,7 @@
       else sendJoin();
       if (!bc) setupLocal();
       input && input.focus();
-      systemNote(`Ioncore Cloud ready — operating as @${store.user}.`);
+      systemNote(`You are signed in as @${store.user}.`);
     }
 
     enterBtn.addEventListener('click', (e) => {
@@ -1086,7 +989,7 @@
     el('#save-ws').addEventListener('click', (e) => {
       e.preventDefault();
       store.wsURL = wsUrlInput.value.trim();
-      alert('Ioncore Cloud socket saved.');
+      alert('Saved WebSocket URL.');
     });
 
     // --- Messaging ---
@@ -1098,7 +1001,7 @@
 
       if(raw){
         // Commands
-        if(raw === '/clear'){ store.clearMsgs(); feed.innerHTML=''; input.value=''; input.placeholder = defaultPlaceholder; pendingFile=null; systemNote('Cleared local lounge history.'); return; }
+        if(raw === '/clear'){ store.clearMsgs(); feed.innerHTML=''; input.value=''; input.placeholder = defaultPlaceholder; pendingFile=null; systemNote('Cleared local chat history.'); return; }
         if(/^\s*\/me\s+/.test(raw)){
           const act = raw.replace(/^\s*\/me\s+/, '');
           postMessage({ text: `*${act}*`, isAction:true });
@@ -1137,7 +1040,7 @@
     });
 
     cmdListBtn.addEventListener('click', () => {
-      alert('Ioncore command palette:\n' + Object.keys(actionCommands).map(c => '/' + c).join('\n'));
+      alert('Available commands:\n' + Object.keys(actionCommands).map(c => '/' + c).join('\n'));
     });
     attachBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => {
@@ -1232,7 +1135,7 @@
           }
           broadcasting = true;
           broadcastBtn.textContent = '⏹ End';
-          broadcastBtn.title = 'End Ioncore live feed';
+          broadcastBtn.title = 'End live broadcast';
           broadcastBtn.classList.add('live');
           updateHeaderButtons();
           fullscreenBtn.textContent = '⛶ Fullscreen';
@@ -1274,8 +1177,8 @@
           if(start && start.catch){ start.catch(() => {}); }
           broadcastVideo = el;
           sendSignal({ type: audioOnly ? 'mic-broadcaster' : 'broadcaster' });
-          postMessage({ text: '🔴 Ioncore broadcast live', broadcast: true });
-        }).catch(() => alert('Ioncore Cloud could not access camera/microphone'));
+          postMessage({ text: '🔴 Broadcast started', broadcast: true });
+        }).catch(() => alert('Unable to access camera/microphone'));
       }
 
       function switchCamera(){
@@ -1293,7 +1196,7 @@
               const sender = peerConnections[id].getSenders().find(s => s.track && s.track.kind === 'video');
               if(sender) sender.replaceTrack(newVideoTrack);
             }
-          }).catch(() => alert('Ioncore Cloud could not switch camera'));
+          }).catch(() => alert('Unable to switch camera'));
       }
 
     function endBroadcast(forced=false){
@@ -1312,7 +1215,7 @@
       pendingMicHost = null;
       broadcastBtn.disabled = false;
       broadcastBtn.textContent = '🎥 Live';
-      broadcastBtn.title = 'Launch Ioncore live feed';
+      broadcastBtn.title = 'Go live';
         broadcastBtn.classList.remove('live');
         broadcastVideo = null;
         const share = forced ? true :
@@ -1321,7 +1224,7 @@
           (prompt('Broadcast end comment?') || '').trim() : '');
 
       const vidCount = videoContainer.querySelectorAll('video').length;
-      const baseText = `⏹ Ioncore broadcast ended${note ? ': '+note : ''}`;
+      const baseText = `⏹ Broadcast ended${note ? ': '+note : ''}`;
       const msgText = vidCount > 1 ? `${baseText} (multi-cam)` : baseText;
       const hadRecorder = !!mediaRecorder;
       if(mediaRecorder){

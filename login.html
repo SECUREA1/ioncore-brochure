@@ -2006,29 +2006,73 @@
     const introScreen = document.querySelector('.intro-screen');
 
     if (introScreen) {
-      window.addEventListener('load', () => {
-        const markIntroComplete = () => {
-          bodyElement.classList.add('intro-complete');
-        };
+      let introCompleted = false;
+      let introCompletionTimeoutId = null;
+      let introRemovalTimeoutId = null;
+      let introSafetyTimeoutId = null;
 
-        setTimeout(markIntroComplete, 2400);
+      const removeIntroScreen = () => {
+        introScreen.removeEventListener('transitionend', handleTransitionEnd);
+        if (introScreen.parentNode) {
+          introScreen.parentNode.removeChild(introScreen);
+        }
+      };
 
-        const handleTransitionEnd = (event) => {
-          if (event.propertyName === 'opacity' && bodyElement.classList.contains('intro-complete')) {
-            introScreen.removeEventListener('transitionend', handleTransitionEnd);
-            introScreen.remove();
-          }
-        };
+      const handleTransitionEnd = (event) => {
+        if (event.propertyName === 'opacity' && introCompleted) {
+          window.clearTimeout(introRemovalTimeoutId);
+          removeIntroScreen();
+        }
+      };
 
-        introScreen.addEventListener('transitionend', handleTransitionEnd);
-        setTimeout(() => {
-          markIntroComplete();
-          introScreen.removeEventListener('transitionend', handleTransitionEnd);
-          if (introScreen.parentNode) {
-            introScreen.remove();
-          }
-        }, 4000);
-      });
+      introScreen.addEventListener('transitionend', handleTransitionEnd);
+
+      const completeIntro = () => {
+        if (introCompleted) {
+          return;
+        }
+        introCompleted = true;
+        if (introSafetyTimeoutId !== null) {
+          window.clearTimeout(introSafetyTimeoutId);
+          introSafetyTimeoutId = null;
+        }
+        bodyElement.classList.add('intro-complete');
+        window.clearTimeout(introRemovalTimeoutId);
+        introRemovalTimeoutId = window.setTimeout(removeIntroScreen, 900);
+      };
+
+      const scheduleIntroCompletion = (delay = 0) => {
+        if (introCompleted) {
+          return;
+        }
+        window.clearTimeout(introCompletionTimeoutId);
+        introCompletionTimeoutId = window.setTimeout(completeIntro, delay);
+      };
+
+      const readyStates = ['interactive', 'complete'];
+      if (readyStates.includes(document.readyState)) {
+        scheduleIntroCompletion(650);
+      } else {
+        document.addEventListener(
+          'DOMContentLoaded',
+          () => {
+            scheduleIntroCompletion(650);
+          },
+          { once: true }
+        );
+      }
+
+      window.addEventListener(
+        'load',
+        () => {
+          scheduleIntroCompletion(120);
+        },
+        { once: true }
+      );
+
+      introSafetyTimeoutId = window.setTimeout(() => {
+        scheduleIntroCompletion(120);
+      }, 4000);
     }
 
     const healthBar = document.querySelector('.health-bar');

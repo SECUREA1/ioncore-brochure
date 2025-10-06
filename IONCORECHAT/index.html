@@ -450,7 +450,7 @@
       </div>
       <p style="margin-top:10px">Optional Ioncore Cloud socket: <span class="muted-link" id="ws-edit">configure</span></p>
       <div id="ws-config" class="fields" style="display:none; margin-top:8px">
-        <input id="ws-url" placeholder="wss://ioncoreenergy.com/IONCORECHAT/ws (optional)" />
+        <input id="ws-url" placeholder="wss://chaines-chat-ws.onrender.com/ws (optional)" />
         <button class="btn ghost" id="save-ws" type="button">Save Socket URL</button>
       </div>
     </div>
@@ -903,11 +903,18 @@
     }
 
     function defaultWS(){
-      const isProd = location.hostname && !/localhost|127\\.0\\.0\\.1/.test(location.hostname);
-      const host = isProd ? 'ioncoreenergy.com' : location.host;
-      const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-      const path = isProd ? '/IONCORECHAT/ws' : '/ws';
-      return proto + host + path;
+      const host = (location.hostname || '').toLowerCase();
+      const isLocal = !host || /localhost|127\\.0\\.0\\.1/.test(host);
+      if(isLocal){
+        const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        return proto + (location.host || 'localhost:10000') + '/ws';
+      }
+      const remoteHost = 'chaines-chat-ws.onrender.com';
+      if(host === remoteHost){
+        const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        return proto + location.host + '/ws';
+      }
+      return 'wss://' + remoteHost + '/ws';
     }
 
     function setStatus(mode){

@@ -4,7 +4,6 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import unzipper from 'unzipper';
 import { randomUUID } from 'crypto';
-import Database from 'better-sqlite3';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,85 +23,47 @@ const BRAND = {
 
 const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
-const DATABASE_PATH = path.join(DATA_DIR, 'ioncore.db');
 
-const db = new Database(DATABASE_PATH);
-db.pragma('journal_mode = WAL');
+const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS login_events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    method TEXT NOT NULL,
-    username TEXT,
-    wallet_address TEXT,
-    wallet_provider TEXT,
-    meknx_pass_id TEXT,
-    success INTEGER NOT NULL DEFAULT 0,
-    metadata TEXT
-  );
+const defaultStore = {
+  loginEvents: [],
+  contactSubmissions: [],
+  gatewaySubmissions: [],
+  gatewayUsers: {}
+};
 
-  CREATE TABLE IF NOT EXISTS contact_submissions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    name TEXT,
-    email TEXT NOT NULL,
-    message TEXT,
-    source TEXT
-  );
+async function loadStore() {
+  try {
+    const raw = await fs.readFile(STORE_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return {
+      loginEvents: Array.isArray(parsed.loginEvents) ? parsed.loginEvents : [],
+      contactSubmissions: Array.isArray(parsed.contactSubmissions) ? parsed.contactSubmissions : [],
+      gatewaySubmissions: Array.isArray(parsed.gatewaySubmissions) ? parsed.gatewaySubmissions : [],
+      gatewayUsers:
+        parsed.gatewayUsers && typeof parsed.gatewayUsers === 'object' && !Array.isArray(parsed.gatewayUsers)
+          ? parsed.gatewayUsers
+          : {}
+    };
+  } catch (error) {
+    if (error && error.code !== 'ENOENT') {
+      console.error('Failed to read gateway store. Using defaults.', error);
+    }
+    return JSON.parse(JSON.stringify(defaultStore));
+  }
+}
 
-  CREATE TABLE IF NOT EXISTS gateway_submissions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    role TEXT NOT NULL,
-    name TEXT,
-    email TEXT NOT NULL,
-    access_code TEXT NOT NULL,
-    engagement_focus TEXT NOT NULL,
-    user_agent TEXT,
-    referer TEXT,
-    ip_address TEXT
-  );
-`);
+let store = await loadStore();
 
-const insertLoginEventStmt = db.prepare(`
-  INSERT INTO login_events (
-    method,
-    username,
-    wallet_address,
-    wallet_provider,
-    meknx_pass_id,
-    success,
-    metadata
-  ) VALUES (@method, @username, @walletAddress, @walletProvider, @meknxPassId, @success, @metadata)
-`);
-
-const insertContactSubmissionStmt = db.prepare(`
-  INSERT INTO contact_submissions (name, email, message, source)
-  VALUES (@name, @email, @message, @source)
-`);
-
-const insertGatewaySubmissionStmt = db.prepare(`
-  INSERT INTO gateway_submissions (
-    role,
-    name,
-    email,
-    access_code,
-    engagement_focus,
-    user_agent,
-    referer,
-    ip_address
-  ) VALUES (
-    @role,
-    @name,
-    @email,
-    @accessCode,
-    @engagementFocus,
-    @userAgent,
-    @referer,
-    @ipAddress
-  )
-`);
+async function saveStore() {
+  try {
+    await fs.writeFile(STORE_PATH, JSON.stringify(store, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Failed to persist gateway store', error);
+    throw error;
+  }
+}
 
 function normalizeForStorage(value) {
   if (typeof value !== 'string') {
@@ -124,9 +85,10 @@ function serializeMetadata(value) {
   }
 }
 
-function recordLoginEvent(event) {
+async function recordLoginEvent(event) {
   try {
-    insertLoginEventStmt.run({
+    store.loginEvents.push({
+      createdAt: new Date().toISOString(),
       method: normalizeForStorage(event.method) || 'credentials',
       username: normalizeForStorage(event.username),
       walletAddress: normalizeForStorage(event.walletAddress),
@@ -135,19 +97,22 @@ function recordLoginEvent(event) {
       success: event.success ? 1 : 0,
       metadata: normalizeForStorage(event.metadata)
     });
+    await saveStore();
   } catch (err) {
     console.error('Failed to record login event', err);
   }
 }
 
-function recordContactSubmission(submission) {
+async function recordContactSubmission(submission) {
   try {
-    insertContactSubmissionStmt.run({
+    store.contactSubmissions.push({
+      createdAt: new Date().toISOString(),
       name: normalizeForStorage(submission.name),
       email: normalizeForStorage(submission.email),
       message: normalizeForStorage(submission.message),
       source: normalizeForStorage(submission.source)
     });
+    await saveStore();
     return true;
   } catch (err) {
     console.error('Failed to record contact submission', err);
@@ -155,9 +120,10 @@ function recordContactSubmission(submission) {
   }
 }
 
-function recordGatewaySubmission(submission) {
+async function recordGatewaySubmission(submission) {
   try {
-    insertGatewaySubmissionStmt.run({
+    store.gatewaySubmissions.push({
+      createdAt: new Date().toISOString(),
       role: normalizeForStorage(submission.role),
       name: normalizeForStorage(submission.name),
       email: normalizeForStorage(submission.email),
@@ -167,6 +133,7 @@ function recordGatewaySubmission(submission) {
       referer: normalizeForStorage(submission.referer),
       ipAddress: normalizeForStorage(submission.ipAddress)
     });
+    await saveStore();
     return true;
   } catch (err) {
     console.error('Failed to record gateway submission', err);
@@ -336,6 +303,10 @@ function generateMeknxPassId() {
   return `MEKNX-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
 }
 
+function generateAccessCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 app.get('/login', async (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
   if (validateAuthSession(sessionId)) {
@@ -347,7 +318,7 @@ app.get('/login', async (req, res) => {
   await sendHtml(res, path.join(__dirname, 'login.html'));
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const username = typeof body.username === 'string' ? body.username.trim() : '';
   const password = typeof body.password === 'string' ? body.password : '';
@@ -376,8 +347,8 @@ app.post('/login', (req, res) => {
     cardanoPolicyId: body.cardanoPolicyId
   });
 
-  const recordFailure = (message) => {
-    recordLoginEvent({
+  const recordFailure = async (message) => {
+    await recordLoginEvent({
       method,
       username,
       walletAddress,
@@ -392,7 +363,7 @@ app.post('/login', (req, res) => {
 
   if (method === 'credentials') {
     if (username === AUTH_USER && password === AUTH_PASS) {
-      recordLoginEvent({
+      await recordLoginEvent({
         method,
         username,
         walletAddress,
@@ -405,17 +376,18 @@ app.post('/login', (req, res) => {
       setSessionCookie(res, sessionId);
       return res.json({ redirect: nextPath });
     }
-    return recordFailure();
+    await recordFailure();
+    return;
   }
 
-  recordFailure(
+  await recordFailure(
     method === 'wallet'
       ? 'Wallet verification not yet provisioned for automated vault entry.'
       : 'MEKNX verification not yet provisioned for automated vault entry.'
   );
 });
 
-app.post('/contact', (req, res) => {
+app.post('/contact', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const email = typeof body.email === 'string' ? body.email.trim() : '';
@@ -426,7 +398,7 @@ app.post('/contact', (req, res) => {
     return res.status(400).json({ message: 'Provide a valid email address before submitting.' });
   }
 
-  const stored = recordContactSubmission({
+  const stored = await recordContactSubmission({
     name,
     email,
     message,
@@ -440,17 +412,19 @@ app.post('/contact', (req, res) => {
   res.json({ message: 'Submission received. Our advisors will reach out shortly.' });
 });
 
-app.post('/gateway', (req, res) => {
+app.post('/gateway', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const role = typeof body.role === 'string' ? body.role.trim().toLowerCase() : '';
   const name = typeof body.name === 'string' ? body.name.trim() : '';
-  const email = typeof body.email === 'string' ? body.email.trim() : '';
+  const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
   const code = typeof body.code === 'string' ? body.code.trim() : '';
   const intent = typeof body.intent === 'string' ? body.intent.trim() : '';
 
   const allowedRoles = new Set(['investor', 'buyer', 'team']);
   if (!allowedRoles.has(role)) {
-    return res.status(400).json({ message: 'Select the access profile that best represents your relationship with Ioncore Energy.' });
+    return res
+      .status(400)
+      .json({ message: 'Select the access profile that best represents your relationship with Ioncore Energy.' });
   }
 
   if (!name) {
@@ -458,35 +432,145 @@ app.post('/gateway', (req, res) => {
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailPattern.test(email)) {
+  if (!emailRaw || !emailPattern.test(emailRaw)) {
     return res.status(400).json({ message: 'Provide a valid work email address.' });
   }
 
-  if (!/^\d{6}$/.test(code)) {
-    return res.status(400).json({ message: 'Enter the 6-digit access code provided by your Ioncore liaison.' });
+  const email = emailRaw.toLowerCase();
+  const existingUser = store.gatewayUsers[email] || null;
+  const isExistingUser = !!existingUser;
+
+  if (isExistingUser) {
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({ message: 'Enter the 6-digit access code issued on your first login.' });
+    }
+    if (code !== existingUser.accessCode) {
+      return res.status(401).json({ message: 'Incorrect access code. Use the 6-digit code provided on your initial login.' });
+    }
+    if (intent && intent.length > 0 && intent.length < 12) {
+      return res
+        .status(400)
+        .json({ message: 'Share at least 12 characters if you would like to update your engagement focus, or leave it blank to keep the previous entry.' });
+    }
+  } else if (code) {
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({ message: 'Access codes must be 6 digits. Leave this field blank for first-time access.' });
+    }
   }
 
-  if (!intent || intent.length < 12) {
-    return res.status(400).json({ message: 'Share a brief summary of your engagement focus (12+ characters).' });
+  if (!isExistingUser) {
+    if (!intent || intent.length < 12) {
+      return res
+        .status(400)
+        .json({ message: 'Share a brief summary of your engagement focus (12+ characters).' });
+    }
+
+    const accessCode = generateAccessCode();
+    if (store.gatewayUsers[email]) {
+      return res
+        .status(409)
+        .json({ message: 'An access code has already been issued for this email. Enter your 6-digit code to continue.' });
+    }
+
+    const nowIso = new Date().toISOString();
+    store.gatewayUsers[email] = {
+      role,
+      name,
+      email,
+      engagementFocus: intent,
+      accessCode,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      lastLogin: nowIso
+    };
+
+    try {
+      await saveStore();
+    } catch (error) {
+      console.error('Failed to create gateway user', error);
+      delete store.gatewayUsers[email];
+      return res.status(500).json({ message: 'We were unable to record your access request. Please try again shortly.' });
+    }
+
+    const stored = await recordGatewaySubmission({
+      role,
+      name,
+      email,
+      accessCode,
+      engagementFocus: intent,
+      userAgent: req.get('user-agent'),
+      referer: req.get('referer'),
+      ipAddress: req.ip
+    });
+
+    if (!stored) {
+      return res
+        .status(500)
+        .json({ message: 'We were unable to record your access request. Please try again shortly.' });
+    }
+
+    const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
+    return res.status(201).json({
+      message: 'Access granted. Your personal 6-digit code has been issued. Save it for your next visit.',
+      assignedCode: accessCode,
+      isNewUser: true,
+      expiresAt
+    });
   }
 
-  const stored = recordGatewaySubmission({
+  const engagementFocusUpdate = intent && intent.length >= 12 ? intent : null;
+  const resolvedEngagementFocus = engagementFocusUpdate || existingUser.engagementFocus || 'Existing engagement focus retained';
+
+  const nowIso = new Date().toISOString();
+  try {
+    const updatedUser = {
+      ...existingUser,
+      role,
+      name,
+      lastLogin: nowIso,
+      updatedAt: nowIso
+    };
+    if (engagementFocusUpdate) {
+      updatedUser.engagementFocus = engagementFocusUpdate;
+    }
+    store.gatewayUsers[email] = updatedUser;
+    await saveStore();
+  } catch (error) {
+    console.error('Failed to update gateway user', error);
+    store.gatewayUsers[email] = existingUser;
+    return res.status(500).json({ message: 'We were unable to refresh your access. Please try again shortly.' });
+  }
+
+  const refreshedUser = store.gatewayUsers[email];
+  if (!refreshedUser) {
+    console.error('Gateway user missing after update for email:', email);
+    return res.status(500).json({ message: 'We were unable to refresh your access. Please try again shortly.' });
+  }
+
+  const stored = await recordGatewaySubmission({
     role,
     name,
     email,
-    accessCode: code,
-    engagementFocus: intent,
+    accessCode: refreshedUser.accessCode,
+    engagementFocus: resolvedEngagementFocus,
     userAgent: req.get('user-agent'),
     referer: req.get('referer'),
     ipAddress: req.ip
   });
 
   if (!stored) {
-    return res.status(500).json({ message: 'We were unable to record your access request. Please try again shortly.' });
+    return res
+      .status(500)
+      .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
 
   const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
-  res.json({ message: 'Access granted. Redirecting to brochure.', expiresAt });
+  res.json({
+    message: 'Access verified. Redirecting to brochure.',
+    assignedCode: refreshedUser.accessCode,
+    isNewUser: false,
+    expiresAt
+  });
 });
 
 app.post('/logout', (req, res) => {

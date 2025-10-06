@@ -10,7 +10,6 @@
     "build-index": "node scripts/build-index.js"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1",
     "express": "^5.1.0",
     "unzipper": "^0.11.4"
   }

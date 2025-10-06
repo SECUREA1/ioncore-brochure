@@ -605,6 +605,7 @@ function isPublicRoute(req) {
       '/login.html',
       '/',
       '/webpage.html',
+      '/webpage-login.html',
       '/index',
       '/index.html',
       '/index/',

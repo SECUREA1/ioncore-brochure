@@ -242,6 +242,20 @@
       }
     }
 
+    @keyframes panelReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     .vault-card {
       position: relative;
       z-index: 2;
@@ -331,14 +345,6 @@
       color: rgba(226, 232, 240, 0.72);
       font-size: 0.95rem;
       line-height: 1.6;
-    }
-
-    .direct-access-note {
-      margin: -0.5rem 0 2rem;
-      color: rgba(148, 163, 184, 0.85);
-      font-size: 0.85rem;
-      line-height: 1.7;
-      max-width: 44ch;
     }
 
     .intel-banner {
@@ -530,61 +536,114 @@
       box-shadow: 0 16px 30px rgba(9, 16, 26, 0.45);
     }
 
-    .chat-panel {
-      display: grid;
+    .chat-access {
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
-      padding: 1.35rem 1.5rem;
+      padding: 1.25rem 1.4rem;
       border-radius: 18px;
       border: 1px solid rgba(72, 255, 226, 0.18);
       background: rgba(12, 21, 40, 0.78);
       box-shadow: 0 24px 38px rgba(4, 10, 22, 0.45);
     }
 
-    .chat-panel__title {
-      margin: 0;
-      font-size: 1.2rem;
-      letter-spacing: 0.12em;
+    .chat-toggle {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 0.95rem 1.75rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(248, 250, 252, 0.92);
-    }
-
-    .chat-panel__copy {
-      margin: 0;
-      font-size: 0.92rem;
-      line-height: 1.6;
-      color: rgba(203, 213, 225, 0.88);
-    }
-
-    .chat-panel__copy--hint {
-      font-size: 0.78rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.82);
-    }
-
-    .chat-launch-button {
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.82), rgba(72, 255, 226, 0.82));
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.6rem;
-      padding: 0.85rem 1.75rem;
-      border-radius: 999px;
-      font-size: 0.86rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: #0f172a;
-      background: linear-gradient(135deg, rgba(106, 255, 59, 0.82), rgba(72, 255, 226, 0.82));
-      box-shadow: 0 18px 32px rgba(9, 16, 26, 0.45);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .chat-launch-button:hover,
-    .chat-launch-button:focus-visible {
+    .chat-toggle:hover,
+    .chat-toggle:focus-visible {
       outline: none;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 38px rgba(12, 24, 42, 0.5);
+    }
+
+    .chat-toggle::before {
+      content: '';
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #0f172a 0%, #0f172a 35%, transparent 65%);
+      box-shadow: 0 0 14px rgba(15, 23, 42, 0.45);
+    }
+
+    .chat-toggle.is-active {
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.95), rgba(106, 255, 59, 0.9));
       box-shadow: 0 22px 44px rgba(9, 16, 26, 0.5);
+    }
+
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.15rem 1.2rem 1.25rem;
+      border-radius: 16px;
+      background: rgba(5, 12, 26, 0.82);
+      border: 1px solid rgba(72, 255, 226, 0.22);
+    }
+
+    .chat-panel__intro,
+    .chat-panel__hint {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: rgba(203, 213, 225, 0.88);
+    }
+
+    .chat-panel__hint {
+      font-size: 0.78rem;
+      color: rgba(148, 163, 184, 0.85);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .chat-panel__link {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: rgba(72, 255, 226, 0.95);
+      background: rgba(15, 23, 42, 0.82);
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.28);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .chat-panel__link:hover,
+    .chat-panel__link:focus-visible {
+      outline: none;
+      transform: translateY(-1px);
+      box-shadow: inset 0 0 0 1px rgba(106, 255, 59, 0.6), 0 10px 24px rgba(2, 12, 26, 0.45);
+    }
+
+    .chat-panel__frame {
+      width: 100%;
+      min-height: clamp(300px, 40vh, 460px);
+      border: none;
+      border-radius: 14px;
+      background: rgba(2, 6, 14, 0.9);
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.12);
     }
 
     .mode-panel[hidden] {
@@ -694,6 +753,71 @@
     .wallet-connect-button--cardano:hover:not(:disabled),
     .wallet-connect-button--cardano:focus-visible:not(:disabled) {
       box-shadow: 0 20px 38px rgba(21, 94, 170, 0.52);
+    }
+
+    .wallet-connect-row--chat {
+      align-items: stretch;
+      margin-top: 1.35rem;
+    }
+
+    .wallet-connect-row--chat .wallet-status {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .wallet-connect-button--chat {
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.95), rgba(106, 255, 59, 0.9));
+      color: #030712;
+      box-shadow: 0 16px 36px rgba(18, 37, 62, 0.48);
+    }
+
+    .wallet-connect-button--chat:hover:not(:disabled),
+    .wallet-connect-button--chat:focus-visible:not(:disabled) {
+      box-shadow: 0 22px 40px rgba(21, 43, 72, 0.58);
+    }
+
+    .wallet-connect-button--chat .wallet-connect-button__icon {
+      background: rgba(15, 23, 42, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.35);
+    }
+
+    .wallet-connect-button--chat[aria-expanded="true"] {
+      filter: saturate(1.08);
+    }
+
+    .wallet-connect-button--chat[aria-expanded="true"]::before {
+      opacity: 1;
+    }
+
+    .wallet-connect-button--chat[aria-expanded="true"] .wallet-connect-button__label {
+      color: #021b10;
+    }
+
+    .live-chat-panel {
+      display: grid;
+      gap: 0.85rem;
+      padding: 1.25rem;
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(72, 255, 226, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 42px rgba(8, 15, 24, 0.45);
+      animation: panelReveal 0.35s ease;
+    }
+
+    .live-chat-panel iframe {
+      width: 100%;
+      min-height: 420px;
+      border: none;
+      border-radius: 14px;
+      background: #020617;
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.18);
+    }
+
+    @media (max-width: 640px) {
+      .live-chat-panel iframe {
+        min-height: 360px;
+      }
     }
 
     .wallet-connect-button__icon,
@@ -1713,13 +1837,31 @@
       </div>
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
-      <p class="direct-access-note">Direct portal logins route you into the <strong>Ioncore Collaboration Cloud</strong>—the fully branded control center hosted on our CHAINeS relay so every investor session opens with the correct Ioncore visual identity.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
           <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
           <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
           <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Meknx Access</button>
-          <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="chat-panel" data-mode="chat" id="tab-chat">Enter Chat</button>
+        </div>
+        <div class="chat-access">
+          <button type="button" class="chat-toggle" id="chat-toggle" aria-expanded="false" aria-controls="chat-panel">
+            Enter Ioncore Live Chat
+          </button>
+          <div class="chat-panel" id="chat-panel" hidden tabindex="-1">
+            <p class="chat-panel__intro">Open the Ioncore live operations forum to coordinate with other teams before securing vault entry.</p>
+            <a class="chat-panel__link" href="IONCORECHAT/index.html" target="_blank" rel="noopener">Launch in new tab</a>
+            <iframe
+              class="chat-panel__frame"
+              id="chat-iframe"
+              title="Ioncore Live Chatroom"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              allow="camera; microphone; display-capture; autoplay; clipboard-read; clipboard-write; fullscreen"
+              allowfullscreen
+              data-src="IONCORECHAT/index.html"
+            ></iframe>
+            <p class="chat-panel__hint">The chatroom loads directly from the IoncoreChat module. Toggle again to collapse when you are ready to authenticate.</p>
+          </div>
         </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
           <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
@@ -1796,6 +1938,49 @@
             </button>
             <div id="cardano-status" class="wallet-status">Not connected.</div>
           </div>
+          <div class="wallet-connect-row wallet-connect-row--chat">
+            <button
+              type="button"
+              id="open-live-chat"
+              class="wallet-connect-button wallet-connect-button--chat"
+              aria-expanded="false"
+              aria-controls="live-chat-panel"
+            >
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Ioncore live chat">
+                  <defs>
+                    <linearGradient id="chat-gradient-a" x1="4" y1="6" x2="28" y2="26" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#48ffe2" />
+                      <stop offset="1" stop-color="#6aff3b" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    fill="url(#chat-gradient-a)"
+                    d="M6 6h20a2 2 0 0 1 2 2v11.5a2 2 0 0 1-2 2h-6.8l-4.2 4.8a.8.8 0 0 1-1.4-.52V21.5H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"
+                  />
+                  <circle cx="12" cy="13" r="1.6" fill="#05070e" />
+                  <circle cx="16" cy="13" r="1.6" fill="#05070e" />
+                  <circle cx="20" cy="13" r="1.6" fill="#05070e" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label" id="open-live-chat-label">Open Ioncore Live Chat</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="live-chat-status" class="wallet-status">Chat closed.</div>
+          </div>
+          <section id="live-chat-panel" class="live-chat-panel" hidden>
+            <h2 class="sr-only" id="live-chat-panel-title">Ioncore Live Chatroom</h2>
+            <iframe
+              src="IONCORECHAT/index.html"
+              title="Ioncore Live Chatroom"
+              aria-describedby="live-chat-panel-title"
+              loading="lazy"
+              allow="camera; microphone; display-capture; autoplay; clipboard-read; clipboard-write; fullscreen"
+              allowfullscreen
+            ></iframe>
+          </section>
           <div class="access-module" id="meknx-module">
             <div class="module-header">
               <h3>MEKNX Clearance</h3>
@@ -1873,14 +2058,6 @@
             <input type="hidden" name="meknxPassId" id="meknx-pass-id">
           </div>
         </div>
-        <div class="mode-panel" id="chat-panel" data-mode="chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
-          <div class="chat-panel">
-            <h2 class="chat-panel__title">Ioncore Live Operations Chat</h2>
-            <p class="chat-panel__copy">Coordinate with fellow agents in real time on the Ioncore Collaboration Cloud. Launch the branded console in a new tab while this clearance session stays active.</p>
-            <a class="chat-launch-button" href="IONCORECHAT/index.html" target="_blank" rel="noopener">Launch Cloud Console</a>
-            <p class="chat-panel__copy chat-panel__copy--hint">The module connects to our CHAINeS-hosted cloud relay in a separate window so the vault login remains protected.</p>
-          </div>
-        </div>
         <button type="submit">Enter the Vault</button>
         <p id="status" class="status-message" role="status" aria-live="polite"></p>
       </form>
@@ -1920,9 +2097,12 @@
     const status = document.getElementById('status');
     const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
-    const nextPath = query.get('next') || '/IONCORECHAT/index.html';
+    const nextPath = query.get('next') || '/';
     const modeButtons = Array.from(document.querySelectorAll('.auth-mode'));
     const panels = Array.from(document.querySelectorAll('.mode-panel'));
+    const chatToggleButton = document.getElementById('chat-toggle');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatFrame = document.getElementById('chat-iframe');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const walletAddressInput = document.getElementById('wallet-address');
@@ -1950,6 +2130,10 @@
     const meknxStatus = document.getElementById('meknx-status');
     const meknxPasscodeInput = document.getElementById('meknx-passcode');
     const meknxPassIdInput = document.getElementById('meknx-pass-id');
+    const liveChatButton = document.getElementById('open-live-chat');
+    const liveChatPanel = document.getElementById('live-chat-panel');
+    const liveChatStatus = document.getElementById('live-chat-status');
+    const liveChatLabel = document.getElementById('open-live-chat-label');
 
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
     const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
@@ -1959,6 +2143,29 @@
     const MIN_LOGIN_VALUE_USD = 15;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
+
+    if (chatToggleButton && chatPanel) {
+      chatToggleButton.addEventListener('click', () => {
+        const isExpanded = chatToggleButton.getAttribute('aria-expanded') === 'true';
+        const nextExpanded = !isExpanded;
+        chatToggleButton.setAttribute('aria-expanded', String(nextExpanded));
+        chatToggleButton.classList.toggle('is-active', nextExpanded);
+        chatPanel.hidden = !nextExpanded;
+
+        if (nextExpanded) {
+          if (chatFrame && chatFrame.dataset.src && !chatFrame.hasAttribute('src')) {
+            chatFrame.src = chatFrame.dataset.src;
+          }
+          if (typeof chatPanel.focus === 'function') {
+            try {
+              chatPanel.focus({ preventScroll: false });
+            } catch (error) {
+              chatPanel.focus();
+            }
+          }
+        }
+      });
+    }
 
     const meknxState = {
       status: 'pending',
@@ -1972,6 +2179,30 @@
       verified: false,
       tokens: 0
     };
+
+    if (liveChatButton && liveChatPanel && liveChatLabel) {
+      const setChatState = (isOpen) => {
+        liveChatLabel.textContent = isOpen ? 'Close Ioncore Live Chat' : 'Open Ioncore Live Chat';
+        if (liveChatStatus) {
+          liveChatStatus.textContent = isOpen ? 'Chat open.' : 'Chat closed.';
+          liveChatStatus.classList.toggle('wallet-status--connected', isOpen);
+        }
+      };
+
+      setChatState(false);
+
+      liveChatButton.addEventListener('click', () => {
+        const expanded = liveChatButton.getAttribute('aria-expanded') === 'true';
+        const nextExpanded = !expanded;
+        liveChatButton.setAttribute('aria-expanded', String(nextExpanded));
+        liveChatPanel.hidden = !nextExpanded;
+        setChatState(nextExpanded);
+
+        if (nextExpanded) {
+          liveChatPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
 
     const cardanoState = {
       verified: false,
@@ -3259,8 +3490,6 @@
             updateStatus('Authenticate with your assigned access key.');
           } else if (activeMode === 'meknx') {
             updateStatus('Verify your MEKNX credential or mint a new one to continue.');
-          } else if (activeMode === 'chat') {
-            updateStatus('Launch the Ioncore chat in a new tab to coordinate before logging in.');
           }
         }
       };

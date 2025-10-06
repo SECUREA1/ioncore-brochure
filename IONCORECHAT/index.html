@@ -3,48 +3,63 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>IonCore Command Chat</title>
-  <link rel="icon" href="static/logo.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Ioncore Energy | Live Forum & Studio</title>
+  <link rel="icon" href="../battery.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <meta name="color-scheme" content="dark light" />
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
       :root {
-        --bg: #0f172a;
-        --panel: #1e293b;
-        --muted: #94a3b8;
-        --fg: #f1f5f9;
-        --accent: #06d6a0;
-        --accent-2: #118ab2;
+        --bg: #030712;
+        --bg-veil: radial-gradient(circle at 20% 20%, rgba(53, 142, 69, 0.35) 0%, rgba(3, 7, 18, 0.45) 48%, rgba(3, 7, 18, 0.92) 100%);
+        --panel: rgba(9, 16, 29, 0.82);
+        --panel-strong: rgba(13, 24, 46, 0.88);
+        --muted: #95a7c8;
+        --fg: #f5f8ff;
+        --accent: #6aff3b;
+        --accent-2: #3cbf2a;
         --danger: #ef4444;
-        --shadow: 0 0 12px rgba(0,114,255,.35);
+        --shadow: 0 32px 60px rgba(6, 16, 38, 0.55);
         --radius: 16px;
-        --lining: #334155;
-        --caption-font: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        --caption-color: #ffffff;
-        --caption-bg: rgba(0,0,0,0.6);
+        --lining: rgba(255, 255, 255, 0.1);
+        --caption-font: 'Montserrat', 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        --caption-color: #f5f8ff;
+        --caption-bg: rgba(0, 0, 0, 0.55);
       }
       :root[data-theme='light']{
-        --bg:#ffffff;
-        --panel:#f8fafc;
-        --fg:#0f172a;
-        --muted:#64748b;
-        --accent:#0fa3b1;
-        --accent-2:#3a86ff;
-        --shadow: 0 0 10px rgba(58,134,255,.2);
-        --lining:#cbd5e1;
-        --caption-color:#0f172a;
+        --bg:#f5f8ff;
+        --bg-veil: radial-gradient(circle at 18% -10%, rgba(106, 255, 59, 0.24) 0%, rgba(255,255,255,0) 55%), linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+        --panel:#ffffff;
+        --panel-strong:#f0f4ff;
+        --fg:#030712;
+        --muted:#5c6478;
+        --accent:#18a72f;
+        --accent-2:#127e27;
+        --shadow: 0 24px 50px rgba(12, 46, 20, 0.22);
+        --lining: rgba(12, 18, 31, 0.12);
+        --caption-color:#030712;
       }
     * { box-sizing: border-box; }
       html, body { height: 100%; width:100%; overflow-x:hidden; }
       body {
         margin:0;
       background:
-        radial-gradient(1200px 1200px at 20% -10%, color-mix(in oklab, var(--accent-2), transparent 85%), transparent 60%),
-        radial-gradient(1000px 1000px at 120% 20%, color-mix(in oklab, var(--accent), transparent 88%), transparent 60%),
+        var(--bg-veil),
         var(--bg);
       color:var(--fg);
-      font: 15px/1.45 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font: 15px/1.5 'Montserrat', 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      position:relative;
+    }
+
+    body::before {
+      content:"";
+      position:fixed;
+      inset:-180px auto auto -220px;
+      width:420px;
+      height:420px;
+      background:radial-gradient(circle, rgba(106,255,59,0.28) 0%, rgba(3,7,18,0) 70%);
+      z-index:-1;
+      pointer-events:none;
     }
 
       .wrap {
@@ -56,13 +71,13 @@
         margin:0 auto;
       }
 
-    header { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; position: sticky; top: 0; z-index: 5; flex-wrap:wrap; backdrop-filter: blur(12px); background: color-mix(in oklab, var(--bg), transparent 35%); border-bottom: 1px solid color-mix(in oklab, var(--lining), transparent 30%); }
-    .brand { display:flex; align-items:center; gap:12px; min-width:240px; }
-    .brand .logo { width:40px; height:40px; border-radius:12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display:grid; place-items:center; color:#041214; font-weight:800; font-size:18px; box-shadow: var(--shadow); }
-    .brand .logo::after { content:'IC'; }
-    .brand-copy { display:flex; flex-direction:column; gap:2px; }
-    .brand-copy h1 { font-weight: 800; letter-spacing:.6px; font-size: 18px; margin:0; text-transform:uppercase; }
-    .brand-copy p { margin:0; font-size:12px; color:var(--muted); }
+    header { display:flex; align-items:flex-start; gap:16px; padding:18px 22px; position: sticky; top: 0; z-index: 5; flex-wrap:wrap; backdrop-filter: blur(14px); background: color-mix(in oklab, var(--panel-strong), transparent 15%); border-bottom: 1px solid color-mix(in oklab, var(--lining), transparent 15%); box-shadow: 0 18px 38px rgba(6,14,26,0.35); }
+    .brand { display:flex; align-items:center; gap:14px; min-width:260px; }
+    .brand .logo { width:48px; height:48px; border-radius:14px; display:grid; place-items:center; background: radial-gradient(circle at 30% 20%, rgba(106,255,59,0.45) 0%, rgba(18,36,24,0.85) 65%); box-shadow: 0 0 0 1px rgba(106,255,59,0.36), 0 18px 36px rgba(3,9,18,0.6); }
+    .brand .logo img { width:28px; height:28px; display:block; }
+    .brand-copy { display:flex; flex-direction:column; gap:4px; }
+    .brand-copy h1 { font-weight: 800; letter-spacing:.12em; font-size: 16px; margin:0; text-transform:uppercase; }
+    .brand-copy p { margin:0; font-size:12px; color:var(--muted); letter-spacing:.01em; }
     .header-controls { display:flex; flex-direction:column; gap:8px; flex:1; min-width:220px; }
     .status { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .status .chip { flex:1 1 auto; justify-content:center; }
@@ -80,8 +95,8 @@
       z-index:5;
     }
     footer .legal { font-size:12px; color:var(--muted); text-align:center; }
-    .chip { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--lining);
-            border-radius:12px; background: color-mix(in oklab, var(--panel), transparent 25%); box-shadow: var(--shadow); color: var(--fg); }
+    .chip { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border:1px solid var(--lining);
+            border-radius:12px; background: color-mix(in oklab, var(--panel), transparent 12%); box-shadow: 0 14px 24px rgba(5,12,25,0.32); color: var(--fg); }
     #live-chip, #theme-toggle, #mode-toggle { cursor:pointer; }
     #mode-toggle, #cc-settings, #theme-toggle {
       width:36px;
@@ -93,7 +108,7 @@
     #cc-settings {
       background: linear-gradient(180deg, var(--accent), var(--accent-2));
       border:0;
-      color:#05130e;
+      color:#021203;
     }
     .dot { width:10px; height:10px; border-radius:999px; background:var(--muted); }
     .dot.ok { background: var(--accent); }
@@ -106,11 +121,13 @@
     .feed { list-style:none; margin:0; padding:18px; border-radius: var(--radius); background: color-mix(in oklab, var(--panel), transparent 5%); overflow-y: auto; flex:1; box-shadow: var(--shadow); }
     .msg { display:flex; gap:10px; margin-bottom:14px; width:100%; }
     .msg.mine { flex-direction: row-reverse; }
-    .avatar { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-weight:700; background: #222a39; color:#c2d2ea; border:1px solid var(--lining); }
-    .msg.mine .avatar { background: color-mix(in oklab, var(--accent), black 70%); color: var(--accent-2); }
+    .avatar { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-weight:700; background: color-mix(in oklab, var(--panel), transparent 10%); color:#c2d2ea; border:1px solid var(--lining); box-shadow: 0 12px 28px rgba(5,12,26,0.4); }
+    .msg.mine .avatar { background: color-mix(in oklab, var(--accent), var(--panel) 65%); color: #041204; }
 
-    .bubble { flex:1; position:relative; padding:10px 12px 8px; border-radius: 12px; background: var(--panel); border:1px solid var(--lining); box-shadow: var(--shadow); }
-    .msg.mine .bubble { background: color-mix(in oklab, var(--accent), var(--bg) 80%); border-color: var(--lining); }
+    .bubble { flex:1; position:relative; padding:12px 14px 10px; border-radius: 14px; background: color-mix(in oklab, var(--panel), transparent 6%); border:1px solid var(--lining); box-shadow: var(--shadow); }
+    .msg.mine .bubble { background: color-mix(in oklab, var(--accent), var(--panel) 70%); border-color: color-mix(in oklab, var(--accent), transparent 70%); color:#041204; }
+    .msg.mine .bubble .meta { color: color-mix(in oklab, var(--accent-2), #000 35%); }
+    .msg.mine .bubble .who { color:#041204; }
 
     .meta { display:flex; align-items:center; gap:10px; margin-bottom:4px; font-size:12px; color: var(--muted); }
     .who { font-weight:700; color: var(--fg); }
@@ -161,7 +178,7 @@
     .input { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius: 12px; background: var(--panel); border:1px solid var(--lining); box-shadow: var(--shadow); }
     .input input { flex:1; font: inherit; color: var(--fg); background: transparent; border:0; outline:0; }
     .input input::placeholder { color: color-mix(in oklab, var(--muted), transparent 10%); }
-    .send { padding:10px 14px; border-radius:12px; border:0; font-weight:700; cursor:pointer; color:#05130e; background: linear-gradient(180deg, var(--accent), var(--accent-2)); box-shadow: var(--shadow); }
+    .send { padding:10px 14px; border-radius:12px; border:0; font-weight:700; cursor:pointer; color:#021203; background: linear-gradient(180deg, var(--accent), var(--accent-2)); box-shadow: var(--shadow); text-transform:uppercase; letter-spacing:.08em; }
     .send:disabled { opacity:.6; cursor:not-allowed; }
 
     /* Auth screen */
@@ -173,12 +190,12 @@
     .fields input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--lining); background: var(--panel); color: var(--fg); font: inherit; }
     .actions { display:flex; gap:10px; margin-top:12px; }
     .btn { padding:12px 14px; border-radius:12px; border:0; font-weight:700; cursor:pointer; }
-    .btn.primary { background: linear-gradient(180deg, var(--accent), var(--accent-2)); color:#05130e; }
-    .btn.ghost { background: color-mix(in oklab, var(--panel), transparent 10%); color: var(--fg); border:1px solid var(--lining); }
+    .btn.primary { background: linear-gradient(180deg, var(--accent), var(--accent-2)); color:#021203; }
+    .btn.ghost { background: color-mix(in oklab, var(--panel), transparent 14%); color: var(--fg); border:1px solid var(--lining); }
 
     .muted-link { color: var(--muted); text-decoration: underline; cursor: pointer; }
 
-    footer { padding: 8px 18px 16px; color: var(--muted); text-align:center; font-size: 12px; }
+    footer { padding: 8px 18px 16px; color: var(--muted); text-align:center; font-size: 12px; background: color-mix(in oklab, var(--panel-strong), transparent 10%); border-top:1px solid color-mix(in oklab, var(--lining), transparent 20%); }
     a { color: var(--accent-2); }
 
     .users-panel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); padding:14px; border-radius:var(--radius); background:var(--panel); border:1px solid var(--lining); box-shadow:var(--shadow); max-width:200px; max-height:60vh; overflow-y:auto; }
@@ -339,10 +356,12 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
+        <div class="logo" aria-hidden="true">
+          <img src="../battery.svg" alt="" />
+        </div>
         <div class="brand-copy">
-          <h1>IonCore Command Chat</h1>
-          <p>Coordinating live intelligence across cloud and edge nodes</p>
+          <h1>Ioncore Energy</h1>
+          <p>Premier partner forum and live studio for the Ioncore ecosystem</p>
         </div>
       </div>
       <div class="header-controls">
@@ -401,7 +420,7 @@
       </main>
 
     <footer>
-      <div class="legal">© <span id="year"></span> IonCore Energy • Unified communications across <a href="https://ioncore.energy" target="_blank" rel="noopener">ioncore.energy</a></div>
+      <div class="legal">© <span id="year"></span> Ioncore Energy • Access the innovation feed at <a href="https://ioncore.energy" target="_blank" rel="noopener">ioncore.energy</a></div>
     </footer>
   </div>
 
@@ -413,8 +432,8 @@
   <!-- Auth overlay -->
   <section id="auth" class="auth" hidden>
     <div class="card">
-      <h2>Welcome to IonCore Command Chat</h2>
-      <p>Claim a callsign to sync with the fleet.</p>
+      <h2>Welcome to the Ioncore Live Forum</h2>
+      <p>Claim a callsign to enter the flagship forum and broadcast stage.</p>
       <div class="fields">
         <input id="username" placeholder="Callsign (e.g., aurora-7)" maxlength="24" />
       </div>

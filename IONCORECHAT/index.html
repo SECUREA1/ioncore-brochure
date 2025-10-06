@@ -569,12 +569,18 @@
         catch {}
       },
       get wsURL() {
-        try { return localStorage.getItem('ioncore_ws_url') || defaultWS(); }
-        catch { return defaultWS(); }
+        try {
+          const saved = localStorage.getItem('ioncore_ws_url');
+          return saved || defaultWS();
+        } catch {
+          return defaultWS();
+        }
       },
       set wsURL(v) {
-        try { v ? localStorage.setItem('ioncore_ws_url', v) : localStorage.removeItem('ioncore_ws_url'); }
-        catch {}
+        try {
+          if (v) localStorage.setItem('ioncore_ws_url', v);
+          else localStorage.removeItem('ioncore_ws_url');
+        } catch {}
       },
       get theme() {
         try { return localStorage.getItem('ioncore_theme') || ''; }
@@ -630,13 +636,14 @@
     modeToggle.textContent = 'Use Local Relay';
     modeToggle.addEventListener('click', () => {
       if (onlineMode === 'cloud') {
+        manualDisconnect = true;
         try { socket && socket.close(); } catch {}
         socket = null;
         setStatus(bc ? 'local' : 'off');
         systemNote('Local relay engaged. Ioncore Cloud paused.');
       } else {
         systemNote('Reconnecting to Ioncore Cloud…');
-        connectWS();
+        connectWS(true);
       }
     });
     broadcastBtn.addEventListener('click', async () => {
@@ -719,6 +726,7 @@
     let onlineMode = 'off'; // 'cloud' | 'local' | 'off'
     const seen = new Set();
     const seenComments = new Set();
+    let manualDisconnect = false;
 
     // --- WebRTC state ---
       const peerConnections = {};
@@ -926,16 +934,60 @@
       modeToggle.textContent = mode === 'cloud' ? 'Use Local Relay' : 'Return to Cloud';
     }
 
-    function connectWS(){
-      const url = store.wsURL;
-      if(!('WebSocket' in window)) return setStatus('off');
+    function connectWS(forceDefault=false){
+      if(!('WebSocket' in window)) { setStatus('off'); return; }
+      const desired = forceDefault ? defaultWS() : (store.wsURL || defaultWS());
+      const target = desired || defaultWS();
+      if(forceDefault && target) store.wsURL = target;
+      if(socket && socket.readyState <= 1){
+        try { socket.close(); } catch {}
+      }
+      let attemptedFallback = forceDefault || !target || target === defaultWS();
+      let url = target;
       try {
         socket = new WebSocket(url);
-      } catch { setStatus('off'); return; }
+      } catch (err) {
+        if(!attemptedFallback){
+          attemptedFallback = true;
+          const fallback = defaultWS();
+          if(fallback && fallback !== url){
+            store.wsURL = fallback;
+            connectWS(true);
+            return;
+          }
+        }
+        setStatus(bc ? 'local' : 'off');
+        systemNote('Ioncore Cloud unavailable. Staying on local relay.');
+        return;
+      }
 
-      socket.addEventListener('open', () => { setStatus('cloud'); sendJoin(); });
-      socket.addEventListener('close', () => { setStatus(bc? 'local' : 'off'); });
-      socket.addEventListener('error', () => { setStatus(bc? 'local' : 'off'); });
+      const handleFailure = () => {
+        if (manualDisconnect) {
+          manualDisconnect = false;
+          return;
+        }
+        if(!attemptedFallback){
+          attemptedFallback = true;
+          const fallback = defaultWS();
+          if(fallback && fallback !== url){
+            store.wsURL = fallback;
+            connectWS(true);
+            return;
+          }
+        }
+        setStatus(bc ? 'local' : 'off');
+        systemNote('Ioncore Cloud link lost. Operating on local relay.');
+      };
+
+      socket.addEventListener('open', () => {
+        manualDisconnect = false;
+        store.wsURL = url;
+        setStatus('cloud');
+        systemNote('Ioncore Cloud connected.');
+        sendJoin();
+      });
+      socket.addEventListener('close', handleFailure);
+      socket.addEventListener('error', handleFailure);
       socket.addEventListener('message', ev => {
         try {
           const data = JSON.parse(ev.data);

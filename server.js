@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import unzipper from 'unzipper';
 import { randomUUID } from 'crypto';
+import Database from 'better-sqlite3';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,104 @@ const BRAND = {
   themeColor: '#6aff3b',
   icon: '/battery.svg'
 };
+
+const DATA_DIR = path.join(__dirname, 'data');
+await fs.mkdir(DATA_DIR, { recursive: true });
+const DATABASE_PATH = path.join(DATA_DIR, 'ioncore.db');
+
+const db = new Database(DATABASE_PATH);
+db.pragma('journal_mode = WAL');
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS login_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    method TEXT NOT NULL,
+    username TEXT,
+    wallet_address TEXT,
+    wallet_provider TEXT,
+    meknx_pass_id TEXT,
+    success INTEGER NOT NULL DEFAULT 0,
+    metadata TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS contact_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    name TEXT,
+    email TEXT NOT NULL,
+    message TEXT,
+    source TEXT
+  );
+`);
+
+const insertLoginEventStmt = db.prepare(`
+  INSERT INTO login_events (
+    method,
+    username,
+    wallet_address,
+    wallet_provider,
+    meknx_pass_id,
+    success,
+    metadata
+  ) VALUES (@method, @username, @walletAddress, @walletProvider, @meknxPassId, @success, @metadata)
+`);
+
+const insertContactSubmissionStmt = db.prepare(`
+  INSERT INTO contact_submissions (name, email, message, source)
+  VALUES (@name, @email, @message, @source)
+`);
+
+function normalizeForStorage(value) {
+  if (typeof value !== 'string') {
+    return value == null ? null : String(value);
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function serializeMetadata(value) {
+  if (value == null) {
+    return null;
+  }
+  try {
+    return JSON.stringify(value);
+  } catch (err) {
+    console.error('Failed to serialize metadata for storage', err);
+    return null;
+  }
+}
+
+function recordLoginEvent(event) {
+  try {
+    insertLoginEventStmt.run({
+      method: normalizeForStorage(event.method) || 'credentials',
+      username: normalizeForStorage(event.username),
+      walletAddress: normalizeForStorage(event.walletAddress),
+      walletProvider: normalizeForStorage(event.walletProvider),
+      meknxPassId: normalizeForStorage(event.meknxPassId),
+      success: event.success ? 1 : 0,
+      metadata: normalizeForStorage(event.metadata)
+    });
+  } catch (err) {
+    console.error('Failed to record login event', err);
+  }
+}
+
+function recordContactSubmission(submission) {
+  try {
+    insertContactSubmissionStmt.run({
+      name: normalizeForStorage(submission.name),
+      email: normalizeForStorage(submission.email),
+      message: normalizeForStorage(submission.message),
+      source: normalizeForStorage(submission.source)
+    });
+    return true;
+  } catch (err) {
+    console.error('Failed to record contact submission', err);
+    return false;
+  }
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -195,22 +294,96 @@ app.get('/login', async (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const username = (req.body && typeof req.body.username === 'string' && req.body.username) || '';
-  const password = (req.body && typeof req.body.password === 'string' && req.body.password) || '';
-  let nextPath = (req.body && typeof req.body.next === 'string' && req.body.next) || '/';
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const username = typeof body.username === 'string' ? body.username.trim() : '';
+  const password = typeof body.password === 'string' ? body.password : '';
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
+  const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
+  let nextPath = typeof body.next === 'string' ? body.next : '/';
 
   if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
     nextPath = '/';
   }
 
-  if (username === AUTH_USER && password === AUTH_PASS) {
-    const sessionId = createAuthSession();
-    setSessionCookie(res, sessionId);
-    return res.json({ redirect: nextPath });
+  const method = walletAddress
+    ? 'wallet'
+    : !username && meknxPassId && !password
+      ? 'meknx'
+      : 'credentials';
+
+  const metadata = serializeMetadata({
+    nextPath,
+    meknxStatus: body.meknxStatus,
+    meknxMintedAt: body.meknxMintedAt,
+    ioncTokens: body.ioncTokens,
+    ioncVerified: body.ioncVerified,
+    cardanoPolicyVerified: body.cardanoPolicyVerified,
+    cardanoPolicyId: body.cardanoPolicyId
+  });
+
+  const recordFailure = (message) => {
+    recordLoginEvent({
+      method,
+      username,
+      walletAddress,
+      walletProvider,
+      meknxPassId,
+      success: false,
+      metadata
+    });
+    clearSessionCookie(res);
+    res.status(401).json({ message: message || 'Access denied. Invalid clearance credentials.' });
+  };
+
+  if (method === 'credentials') {
+    if (username === AUTH_USER && password === AUTH_PASS) {
+      recordLoginEvent({
+        method,
+        username,
+        walletAddress,
+        walletProvider,
+        meknxPassId,
+        success: true,
+        metadata
+      });
+      const sessionId = createAuthSession();
+      setSessionCookie(res, sessionId);
+      return res.json({ redirect: nextPath });
+    }
+    return recordFailure();
   }
 
-  clearSessionCookie(res);
-  res.status(401).json({ message: 'Access denied. Invalid clearance credentials.' });
+  recordFailure(
+    method === 'wallet'
+      ? 'Wallet verification not yet provisioned for automated vault entry.'
+      : 'MEKNX verification not yet provisioned for automated vault entry.'
+  );
+});
+
+app.post('/contact', (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  const email = typeof body.email === 'string' ? body.email.trim() : '';
+  const message = typeof body.message === 'string' ? body.message.trim() : '';
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailPattern.test(email)) {
+    return res.status(400).json({ message: 'Provide a valid email address before submitting.' });
+  }
+
+  const stored = recordContactSubmission({
+    name,
+    email,
+    message,
+    source: 'webpage.html'
+  });
+
+  if (!stored) {
+    return res.status(500).json({ message: 'Unable to record your request right now. Please try again shortly.' });
+  }
+
+  res.json({ message: 'Submission received. Our advisors will reach out shortly.' });
 });
 
 app.post('/logout', (req, res) => {
@@ -421,7 +594,7 @@ app.post('/access/cardano', (req, res) => {
 function isPublicRoute(req) {
   if (
     req.method === 'POST' &&
-    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano'].includes(req.path)
+    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano', '/contact'].includes(req.path)
   ) {
     return true;
   }

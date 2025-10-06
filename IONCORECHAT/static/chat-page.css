@@ -201,6 +201,37 @@ p {
   letter-spacing: 0.08em;
 }
 
+.brand-context {
+  margin: 0 auto 18px;
+  width: calc(100% - clamp(32px, 6vw, 96px));
+  max-width: 960px;
+  padding: 18px 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--surface-strong) 88%, var(--accent-soft) 20%);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  letter-spacing: 0.02em;
+}
+
+.brand-context strong {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.brand-context span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.brand-context[hidden] {
+  display: none;
+}
+
 .chat-header__status {
   margin-left: auto;
   display: flex;

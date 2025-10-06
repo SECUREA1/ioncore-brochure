@@ -1912,6 +1912,7 @@
     const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
     const nextPath = query.get('next') || '/';
+    const isDirectVault = !nextPath || nextPath === '/' || nextPath === '/index.html';
     const modeButtons = Array.from(document.querySelectorAll('.auth-mode'));
     const panels = Array.from(document.querySelectorAll('.mode-panel'));
     const usernameInput = document.getElementById('username');
@@ -3820,6 +3821,21 @@
 
           if (response.ok) {
             const data = await response.json();
+            if (isDirectVault) {
+              try {
+                const context = {
+                  heading: 'Ioncore Cloud Command',
+                  message: 'Vault access confirmed. Your Ioncore cloud relay has been opened in a new window.'
+                };
+                localStorage.setItem('chaines_brand_context', JSON.stringify(context));
+                localStorage.setItem('chaines_force_cloud', 'true');
+                localStorage.setItem('chaines_ws_url', 'wss://chaines-io-chat.onrender.com/ws');
+              } catch {}
+              const chatUrl = new URL('/IONCORECHAT/index.html', window.location.origin);
+              chatUrl.searchParams.set('mode', 'cloud');
+              chatUrl.searchParams.set('brand', 'ioncore');
+              window.open(chatUrl.toString(), '_blank', 'noopener,noreferrer');
+            }
             updateStatus('Access granted. Opening vault…', 'success');
             setTimeout(() => {
               window.location.href = data.redirect || nextPath || '/';

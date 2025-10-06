@@ -38,6 +38,7 @@
         </div>
       </div>
     </header>
+    <section id="brand-context" class="brand-context" hidden aria-live="polite"></section>
     <div id="cc-panel" class="cc-panel" hidden>
       <label>Font
         <select id="cc-font">
@@ -152,6 +153,18 @@
 
   <script>
   ;(() => {
+    const params = new URLSearchParams(window.location.search);
+    const CLOUD_WS_URL = 'wss://chaines-io-chat.onrender.com/ws';
+    let enforceCloud = params.get('mode') === 'cloud';
+    try {
+      if (!enforceCloud && localStorage.getItem('chaines_force_cloud') === 'true') {
+        enforceCloud = true;
+      }
+      if (enforceCloud) {
+        localStorage.setItem('chaines_force_cloud', 'true');
+        localStorage.setItem('chaines_ws_url', CLOUD_WS_URL);
+      }
+    } catch {}
     const el = (q, parent=document) => parent.querySelector(q);
     const feed = el('#feed');
     const form = el('#composer');
@@ -187,6 +200,7 @@
     const liveChip = el('#live-chip');
     const themeToggle = el('#theme-toggle');
     const modeToggle = el('#mode-toggle');
+    const brandContextBanner = el('#brand-context');
     const userList = el('#user-list');
     const usersEl = el('#users');
     const broadcastBtn = el('#broadcast-btn');
@@ -312,13 +326,17 @@
       applyTheme(next);
     });
     liveChip.addEventListener('click', () => { userList.hidden = !userList.hidden; });
-    modeToggle.textContent = 'Go Cloud';
+    modeToggle.textContent = enforceCloud ? 'Go Local' : 'Go Cloud';
     modeToggle.addEventListener('click', () => {
       if (onlineMode === 'cloud') {
+        enforceCloud = false;
+        try { localStorage.removeItem('chaines_force_cloud'); } catch {}
         try { socket && socket.close(); } catch {}
         socket = null;
         setStatus(bc ? 'local' : 'off');
       } else {
+        enforceCloud = true;
+        try { localStorage.setItem('chaines_force_cloud', 'true'); } catch {}
         connectWS();
       }
     });
@@ -603,7 +621,11 @@
     }
 
     function connectWS(){
-      const url = store.wsURL;
+      let url = store.wsURL;
+      if (enforceCloud && url !== CLOUD_WS_URL) {
+        store.wsURL = CLOUD_WS_URL;
+        url = CLOUD_WS_URL;
+      }
       if(!('WebSocket' in window)) return setStatus('off');
       try {
         socket = new WebSocket(url);
@@ -1387,7 +1409,46 @@
       return isAction ? `<em>${withLinks}</em>` : withLinks;
     }
 
+    function renderBrandContext(){
+      if (!brandContextBanner) return;
+      let context = null;
+      const contextParam = params.get('context');
+      if (contextParam) {
+        try {
+          context = JSON.parse(decodeURIComponent(contextParam));
+        } catch {}
+      }
+      if (!context) {
+        try {
+          const stored = localStorage.getItem('chaines_brand_context');
+          if (stored) {
+            context = JSON.parse(stored);
+            localStorage.removeItem('chaines_brand_context');
+          }
+        } catch {}
+      }
+      if (!context && (params.get('brand') === 'ioncore' || enforceCloud)) {
+        context = {
+          heading: 'Ioncore Cloud Command',
+          message: 'Vault access confirmed. You are connected to the Ioncore cloud operations relay.'
+        };
+      }
+      if (!context) return;
+
+      const heading = escapeHTML(context.heading || 'Ioncore Cloud Command');
+      const message = escapeHTML(
+        context.message || 'Vault access confirmed. You are connected to the Ioncore cloud operations relay.'
+      );
+
+      brandContextBanner.innerHTML = `<strong>${heading}</strong><span>${message}</span>`;
+      brandContextBanner.hidden = false;
+    }
+
     // Boot
+    if (enforceCloud) {
+      connectWS();
+    }
+    renderBrandContext();
     requireAuth();
   })();
   </script>

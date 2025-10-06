@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Ioncore Energy | Collaboration Studio</title>
-  <meta name="description" content="Host Ioncore Energy live sessions, stream updates, and manage collaboration across deployments with a branded console." />
+  <title>Ioncore Energy | Customer Care Lounge</title>
+  <meta name="description" content="Connect with Ioncore Energy specialists, explore product guidance, and manage your home experience inside a branded customer care lounge." />
   <link rel="icon" href="../battery.svg" />
   <link rel="apple-touch-icon" href="../battery.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,20 +22,10 @@
           <img src="../battery.svg" alt="Ioncore Energy mark" width="48" height="48">
           <span class="chat-header__brand-label">
             <span class="chat-header__brand-name">Ioncore Energy</span>
-            <span class="chat-header__brand-tagline">Collaboration Studio</span>
+            <span class="chat-header__brand-tagline">Customer Care Lounge</span>
           </span>
         </a>
-        <div class="chat-header__status status top">
-          <span class="chip" id="conn-chip" title="Connection status">
-            <span class="dot off" id="conn-dot"></span>
-            <span id="conn-label">Offline</span>
-          </span>
-          <button class="chip" id="stream-code-btn" title="Copy stream code">🔑 Stream Code</button>
-          <button class="chip" id="camera-flip-btn" title="Switch camera">🔁 Flip</button>
-          <button class="chip" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
-          <button id="mode-toggle" class="chip" title="Switch between cloud or local modes"></button>
-          <button id="cc-settings" class="chip" title="Caption settings">CC</button>
-        </div>
+        <p class="chat-header__intro">Premium concierge access for Ioncore households. Connect with a specialist, share live video, and keep your energy system performing at its best.</p>
       </div>
     </header>
     <div id="cc-panel" class="cc-panel" hidden>
@@ -57,12 +47,12 @@
         <section class="chat-hero">
           <div class="container chat-hero__inner">
             <div class="chat-hero__copy">
-              <span class="eyebrow">Live collaboration</span>
-              <h1 class="section-title">Command Ioncore operations in real time.</h1>
-              <p class="section-subtitle">Deploy updates, orchestrate remote teams, and deliver magnetic inertia support with a branded environment that mirrors the Ioncore Energy flagship experience.</p>
+              <span class="eyebrow">Personalized assistance</span>
+              <h1 class="section-title">Your Ioncore system, fully supported.</h1>
+              <p class="section-subtitle">Chat with Ioncore Energy experts, troubleshoot hardware in minutes, and unlock tips tailored to your home&apos;s magnetic inertia setup—all inside a lounge designed for customers.</p>
               <div class="chat-hero__actions">
-                <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Book a strategy session</a>
-                <a class="btn btn-outline" href="../fullexperience.html">Return to main experience</a>
+                <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com?subject=Ioncore%20Customer%20Care">Email customer care</a>
+                <a class="btn btn-outline" href="../fullexperience.html">Explore the Ioncore experience</a>
               </div>
             </div>
             <div class="chat-hero__media" aria-hidden="true">
@@ -75,17 +65,17 @@
           <div class="container">
             <div class="chat-interface__shell">
               <div class="chat-interface__header">
-                <h2 class="chat-interface__title">Ioncore Broadcast Console</h2>
+                <h2 class="chat-interface__title">Ioncore Support Lounge</h2>
                 <div class="chat-interface__meta">
-                  <span>Secure WebRTC relay</span>
-                  <span>Live captioning ready</span>
+                  <span>Private customer channel</span>
+                  <span>Instant video-ready</span>
                 </div>
               </div>
               <div class="chat-interface__body">
                 <div id="streams" class="streams"></div>
                 <form id="composer" class="composer" autocomplete="off">
                   <label class="input" for="text">
-                    <input id="text" name="text" placeholder="Type a message… (try /wave, /me dance or /clear)" />
+                    <input id="text" name="text" placeholder="Ask a question… (try /wave, /me smile or /clear)" />
                   </label>
                   <input id="file" type="file" hidden />
                   <button class="send" id="attach" type="button" title="Attach file" aria-label="Attach file">📎</button>
@@ -100,17 +90,30 @@
         </section>
       </main>
 
-    <footer>
-      <div class="status bottom">
-        <button class="chip" id="broadcast-btn" title="Go live">🎥 Live</button>
-        <span class="chip" id="live-chip" title="Users online">
-          <span id="live-count">0</span> online
-        </span>
-        <button id="theme-toggle" class="chip" title="Toggle dark or light mode"></button>
-        <span class="chip" id="user-chip" title="Logged in user" style="display:none">
-          <span class="usr" id="user-name"></span>
-          <button id="logout-btn" class="btn ghost" style="padding:6px 10px" type="button">Logout</button>
-        </span>
+    <footer class="chat-footer">
+      <div class="container chat-footer__inner">
+        <div class="chat-footer__group">
+          <span class="chip" id="conn-chip" title="Connection status">
+            <span class="dot off" id="conn-dot"></span>
+            <span id="conn-label">Offline</span>
+          </span>
+          <button class="chip" id="broadcast-btn" title="Go live">🎥 Go Live</button>
+          <span class="chip" id="live-chip" title="Guests online">
+            <span id="live-count">0</span> guests
+          </span>
+          <span class="chip" id="user-chip" title="Signed in guest" style="display:none">
+            <span class="usr" id="user-name"></span>
+            <button id="logout-btn" class="btn ghost" style="padding:6px 10px" type="button">Logout</button>
+          </span>
+        </div>
+        <div class="chat-footer__group">
+          <button class="chip" id="stream-code-btn" title="Copy stream code">🔑 Stream Code</button>
+          <button class="chip" id="camera-flip-btn" title="Switch camera">🔁 Flip</button>
+          <button class="chip" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
+          <button id="mode-toggle" class="chip" title="Switch between cloud or local modes"></button>
+          <button id="cc-settings" class="chip" title="Caption settings">CC</button>
+          <button id="theme-toggle" class="chip" title="Toggle dark or light mode"></button>
+        </div>
       </div>
       <div class="legal">© <span id="year"></span> Ioncore Energy • Powered by the CHAINeS relay infrastructure</div>
     </footer>
@@ -124,16 +127,16 @@
   <!-- Auth overlay -->
   <section id="auth" class="auth" hidden>
     <div class="card">
-      <h2>Welcome to the Ioncore Collaboration Studio</h2>
-      <p>Pick a username to join the live console.</p>
+      <h2>Welcome to the Ioncore Support Lounge</h2>
+      <p>Choose a display name to enter the customer chat.</p>
       <div class="fields">
-        <input id="username" placeholder="Username (e.g., jodel)" maxlength="24" />
+        <input id="username" placeholder="Display name (e.g., aurora)" maxlength="24" />
       </div>
       <div class="actions">
-        <button class="btn primary" id="enter" type="button">Enter Console</button>
-        <button class="btn ghost" id="skip" type="button">Continue as Guest</button>
+        <button class="btn primary" id="enter" type="button">Enter Lounge</button>
+        <button class="btn ghost" id="skip" type="button">Browse Quietly</button>
       </div>
-      <p style="margin-top:10px">Optional backend socket: <span class="muted-link" id="ws-edit">configure</span></p>
+      <p style="margin-top:10px">Need a direct relay? <span class="muted-link" id="ws-edit">configure</span></p>
       <div id="ws-config" class="fields" style="display:none; margin-top:8px">
         <input id="ws-url" placeholder="wss://chaines-io-chat.onrender.com/ws (optional)" />
         <button class="btn ghost" id="save-ws" type="button">Save Socket URL</button>
@@ -312,7 +315,7 @@
       applyTheme(next);
     });
     liveChip.addEventListener('click', () => { userList.hidden = !userList.hidden; });
-    modeToggle.textContent = 'Go Cloud';
+    modeToggle.textContent = 'Use Cloud Relay';
     modeToggle.addEventListener('click', () => {
       if (onlineMode === 'cloud') {
         try { socket && socket.close(); } catch {}
@@ -596,10 +599,10 @@
     function setStatus(mode){
       onlineMode = mode;
       connDot.classList.remove('ok','local','off');
-      if(mode === 'cloud'){ connDot.classList.add('ok'); connLabel.textContent = 'Online (Cloud)'; }
-      else if(mode === 'local'){ connDot.classList.add('local'); connLabel.textContent = 'Online (Local)'; updateUsers([]); }
-      else { connDot.classList.add('off'); connLabel.textContent = 'Offline'; updateUsers([]); }
-      modeToggle.textContent = mode === 'cloud' ? 'Go Local' : 'Go Cloud';
+      if(mode === 'cloud'){ connDot.classList.add('ok'); connLabel.textContent = 'Connected • Cloud Relay'; }
+      else if(mode === 'local'){ connDot.classList.add('local'); connLabel.textContent = 'Connected • Local Relay'; updateUsers([]); }
+      else { connDot.classList.add('off'); connLabel.textContent = 'Standby'; updateUsers([]); }
+      modeToggle.textContent = mode === 'cloud' ? 'Use Local Relay' : 'Use Cloud Relay';
     }
 
     function connectWS(){
@@ -935,7 +938,7 @@
       pendingJoinHost = null;
       pendingMicHost = null;
       broadcastBtn.disabled = false;
-      broadcastBtn.textContent = '🎥 Live';
+      broadcastBtn.textContent = '🎥 Go Live';
       broadcastBtn.title = 'Go live';
         broadcastBtn.classList.remove('live');
         broadcastVideo = null;
@@ -1113,7 +1116,7 @@
       if(stream && stream.requestBtn) stream.requestBtn.disabled = false;
       pendingJoinHost = null;
       broadcastBtn.disabled = false;
-      broadcastBtn.textContent = '🎥 Live';
+      broadcastBtn.textContent = '🎥 Go Live';
       alert('Join request denied or busy.');
     }
 

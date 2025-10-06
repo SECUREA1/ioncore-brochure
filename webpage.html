@@ -457,6 +457,7 @@
 
       let sessionId = null;
       let refreshTimer = null;
+      let registerPromise = null;
 
       const updateCounters = (data) => {
         if (!data || typeof data !== 'object') return;
@@ -470,32 +471,55 @@
 
       const refresh = async () => {
         try {
-          const res = await fetch('/metrics', { credentials: 'same-origin' });
+          const endpoint = sessionId
+            ? `/metrics?sessionId=${encodeURIComponent(sessionId)}`
+            : '/metrics';
+          const res = await fetch(endpoint, { credentials: 'same-origin' });
           if (!res.ok) return;
           const payload = await res.json();
           updateCounters(payload);
+          if (sessionId && payload && payload.sessionActive === false) {
+            sessionId = null;
+            register();
+          }
         } catch (err) {
           console.warn('Unable to refresh metrics', err);
         }
       };
 
       const register = async () => {
-        try {
-          const res = await fetch('/metrics/view', {
-            method: 'POST',
-            credentials: 'same-origin'
-          });
-          if (!res.ok) return;
-          const payload = await res.json();
-          sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : null;
-          updateCounters(payload);
-        } catch (err) {
-          console.warn('Unable to register metrics view', err);
+        if (registerPromise) {
+          return registerPromise;
+        }
+        registerPromise = (async () => {
+          try {
+            const res = await fetch('/metrics/view', {
+              method: 'POST',
+              credentials: 'same-origin'
+            });
+            if (!res.ok) return;
+            const payload = await res.json();
+            sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : null;
+            updateCounters(payload);
+          } catch (err) {
+            console.warn('Unable to register metrics view', err);
+          } finally {
+            registerPromise = null;
+          }
+        })();
+        return registerPromise;
+      };
+
+      const ensureActiveSession = () => {
+        if (!sessionId) {
+          register();
         }
       };
 
       const startRefresh = () => {
-        refreshTimer = window.setInterval(refresh, 15000);
+        if (!refreshTimer) {
+          refreshTimer = window.setInterval(refresh, 15000);
+        }
       };
 
       const stopRefresh = () => {
@@ -507,6 +531,7 @@
 
       window.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
+          ensureActiveSession();
           refresh();
           if (!refreshTimer) startRefresh();
         } else {
@@ -531,7 +556,12 @@
         }
       });
 
-      register().then(startRefresh);
+      register()
+        .catch(() => {})
+        .finally(() => {
+          startRefresh();
+          refresh();
+        });
     })();
 
     (() => {

@@ -30,6 +30,22 @@ const metrics = {
 };
 
 const activeSessions = new Map();
+const SESSION_TIMEOUT_MS = 1000 * 60; // 1 minute tolerance for inactive sessions
+
+function pruneSessions() {
+  const now = Date.now();
+  let changed = false;
+  for (const [sessionId, lastSeen] of activeSessions.entries()) {
+    if (typeof lastSeen !== 'number' || now - lastSeen > SESSION_TIMEOUT_MS) {
+      activeSessions.delete(sessionId);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    metrics.live = activeSessions.size;
+  }
+}
 
 const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
 const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'burrito';
@@ -41,6 +57,7 @@ const authSessions = new Map();
 const meknxRegistry = new Map();
 
 function registerSession() {
+  pruneSessions();
   const sessionId = randomUUID();
   activeSessions.set(sessionId, Date.now());
   metrics.live = activeSessions.size;
@@ -52,9 +69,22 @@ function endSession(sessionId) {
   if (typeof sessionId !== 'string' || !sessionId) {
     return;
   }
+  pruneSessions();
   if (activeSessions.delete(sessionId)) {
     metrics.live = activeSessions.size;
   }
+}
+
+function touchSession(sessionId) {
+  if (typeof sessionId !== 'string' || !sessionId) {
+    return false;
+  }
+  pruneSessions();
+  if (!activeSessions.has(sessionId)) {
+    return false;
+  }
+  activeSessions.set(sessionId, Date.now());
+  return true;
 }
 
 async function sendHtml(res, filePath) {
@@ -541,7 +571,7 @@ app.get('/view', async (req, res) => {
 
 app.post('/metrics/view', (req, res) => {
   const sessionId = registerSession();
-  res.json({ sessionId, live: metrics.live, viewed: metrics.viewed });
+  res.json({ sessionId, live: metrics.live, viewed: metrics.viewed, sessionActive: true });
 });
 
 app.post('/metrics/leave', (req, res) => {
@@ -550,11 +580,14 @@ app.post('/metrics/leave', (req, res) => {
     (req.query && typeof req.query.sessionId === 'string' && req.query.sessionId) ||
     '';
   endSession(sessionId);
-  res.json({ live: metrics.live, viewed: metrics.viewed });
+  res.json({ live: metrics.live, viewed: metrics.viewed, sessionActive: false });
 });
 
 app.get('/metrics', (req, res) => {
-  res.json({ live: metrics.live, viewed: metrics.viewed });
+  pruneSessions();
+  const sessionId = typeof req.query.sessionId === 'string' ? req.query.sessionId : '';
+  const sessionActive = sessionId ? touchSession(sessionId) : false;
+  res.json({ live: metrics.live, viewed: metrics.viewed, sessionActive });
 });
 
 app.listen(PORT, () => {

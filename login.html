@@ -1743,10 +1743,24 @@
       line-height: 1.5;
     }
 
-    .login-overview__cta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
+    .login-overview__badge {
+      margin: 0;
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(214, 233, 255, 0.8);
+    }
+
+    .login-overview__badge::before {
+      content: '';
+      width: 32px;
+      height: 1px;
+      background: rgba(106, 255, 59, 0.45);
+      transform: translateY(0.5px);
     }
 
     .vault-card {
@@ -1923,11 +1937,6 @@
         padding: 1.5rem;
       }
 
-      .login-overview__cta {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
       .login-header__actions {
         width: 100%;
         justify-content: flex-start;
@@ -1951,7 +1960,11 @@
         </ul>
       </nav>
       <div class="login-header__actions">
+
         <a class="btn btn-outline" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Connect</a>
+
+        <a class="btn btn-outline" href="IONCORECHAT/index.html">Connect</a>
+
         <a class="btn btn-primary" href="index.html">Brochure library</a>
       </div>
     </header>
@@ -2015,7 +2028,6 @@
     </div>
     <div class="login-shell container">
       <section class="login-overview" aria-labelledby="login-overview-title">
-        <span class="eyebrow">Secure client access</span>
         <h1 id="login-overview-title">A refined portal for strategic energy partners.</h1>
         <p>Ioncore&apos;s clearance gate mirrors the premium experience of our flagship launch site. Align credentials, confirm custody, and step into the full portfolio of magnetic inertia intelligence curated for enterprise deployments.</p>
         <ul class="login-highlights">
@@ -2032,10 +2044,7 @@
             <span class="login-highlights__value">Ioncore integration advisors on call</span>
           </li>
         </ul>
-        <div class="login-overview__cta">
-          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule an onboarding session</a>
-          <a class="btn btn-outline" href="fullexperience.html">Return to main experience</a>
-        </div>
+        <p class="login-overview__badge">Ioncore Secure Client Access Card</p>
       </section>
       <main class="vault-card" role="main">
       <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">

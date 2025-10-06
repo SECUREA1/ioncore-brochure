@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Ioncore LiveOps Console</title>
+  <title>Ioncore Synapse Console</title>
   <link rel="icon" href="../battery.svg" />
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -103,7 +103,8 @@
       }
       .header-inner {
         display:flex;
-        align-items:center;
+        flex-wrap:wrap;
+        align-items:flex-start;
         justify-content:space-between;
         gap: clamp(16px, 3vw, 32px);
         padding-block: 18px;
@@ -112,6 +113,7 @@
         display:flex;
         align-items:center;
         gap:18px;
+        flex:1 1 320px;
       }
       .brand-mark {
         width:48px;
@@ -153,8 +155,17 @@
         gap:10px;
         flex-wrap:wrap;
       }
-      .status .chip { flex:1 1 auto; }
-      header .status { max-width:min(100%, 540px); }
+      .header-status {
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        align-items:flex-end;
+        flex:1 1 320px;
+      }
+      .status.primary { justify-content:flex-end; }
+      .status.secondary { justify-content:flex-end; }
+      .status .chip { flex:0 1 auto; }
+      header .status { max-width:none; }
       header .chip { padding-inline:12px; }
 
       .chip {
@@ -506,13 +517,6 @@
         background: rgba(7, 12, 26, 0.6);
         backdrop-filter: blur(14px);
       }
-      footer .status.bottom {
-        justify-content:center;
-        gap:12px;
-        width:100%;
-        margin-bottom:18px;
-      }
-      footer .status.bottom .chip { flex:0 1 auto; }
       footer .legal { font-size:12px; color: var(--muted); margin-top:10px; }
       footer a { color: var(--accent); }
       footer a:hover { color: var(--accent-2); }
@@ -705,11 +709,13 @@
         .hero-grid { grid-template-columns: 1fr; }
         .hero-card { order: -1; }
         .header-inner { flex-direction: column; align-items: flex-start; }
+        .header-status { width:100%; align-items:flex-start; }
         header .status { width: 100%; }
       }
       @media (max-width: 600px) {
         header { padding-inline: 0; }
         .header-inner { padding-block: 16px; }
+        .header-status { align-items:center; }
         footer { padding-inline: 16px; }
         .status { justify-content:center; }
         .status .chip { flex:1 1 45%; justify-content:center; }
@@ -725,32 +731,45 @@
     <header>
       <div class="container header-inner">
         <div class="brand">
-          <img class="brand-mark" src="../battery.svg" alt="Ioncore Energy mark">
+          <img class="brand-mark" src="../battery.svg" alt="Ioncore Synapse mark">
           <div class="brand-copy">
-            <span class="brand-eyebrow">Ioncore Energy</span>
-            <h1>LiveOps Command Chat</h1>
-            <p class="brand-tagline">Coordinate field intelligence, partner updates, and investor conversations through a single mission-ready console.</p>
+            <span class="brand-eyebrow">Ioncore Synapse</span>
+            <h1>Synapse Operations Console</h1>
+            <p class="brand-tagline">Orchestrate mission-critical updates, partner briefings, and investor communications inside a unified Ioncore environment.</p>
           </div>
         </div>
-        <div class="status top">
-          <span class="chip" id="conn-chip" title="Connection status">
-            <span class="dot off" id="conn-dot"></span>
-            <span id="conn-label">Offline</span>
-          </span>
-          <button class="chip" id="stream-code-btn" title="Copy stream code">🔑 Stream Code</button>
-          <button class="chip" id="camera-flip-btn" title="Switch camera">🔁 Flip</button>
-          <button class="chip" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
-          <button id="mode-toggle" class="chip" title="Switch between cloud or local modes"></button>
-          <button id="cc-settings" class="chip" title="Caption settings">CC</button>
+        <div class="header-status">
+          <div class="status primary">
+            <span class="chip" id="conn-chip" title="Connection status">
+              <span class="dot off" id="conn-dot"></span>
+              <span id="conn-label">Offline</span>
+            </span>
+            <button class="chip" id="broadcast-btn" title="Go live">🎥 Live</button>
+            <span class="chip" id="live-chip" title="Users online">
+              <span id="live-count">0</span> online
+            </span>
+            <button id="mode-toggle" class="chip" title="Switch between cloud or local modes"></button>
+            <button id="theme-toggle" class="chip" title="Toggle dark or light mode"></button>
+          </div>
+          <div class="status secondary">
+            <button class="chip" id="stream-code-btn" title="Copy stream code">🔑 Stream Code</button>
+            <button class="chip" id="camera-flip-btn" title="Switch camera">🔁 Flip</button>
+            <button class="chip" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
+            <button id="cc-settings" class="chip" title="Caption settings">CC</button>
+            <span class="chip" id="user-chip" title="Logged in user" style="display:none">
+              <span class="usr" id="user-name"></span>
+              <button id="logout-btn" class="btn ghost" style="padding:6px 10px" type="button">Logout</button>
+            </span>
+          </div>
         </div>
       </div>
     </header>
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <span class="hero-eyebrow">Mission control</span>
-          <h2 class="hero-title">Operational intelligence for every Ioncore stakeholder.</h2>
-          <p class="hero-subtitle">Streamline launches, coordinate field technicians, and keep investors informed through a unified, secure conversation hub aligned with the Ioncore Energy experience.</p>
+          <span class="hero-eyebrow">Synapse platform</span>
+          <h2 class="hero-title">Command every Ioncore conversation from a single console.</h2>
+          <p class="hero-subtitle">Coordinate field deployments, investor briefings, and customer success workflows with live telemetry and secure streaming baked into the Ioncore Synapse environment.</p>
           <div class="hero-actions">
             <a class="btn primary" href="../fullexperience.html">Explore the immersive tour</a>
             <a class="btn ghost" href="../index.html">Browse the brochure library</a>
@@ -804,18 +823,7 @@
 
     <footer>
       <div class="container">
-        <div class="status bottom">
-          <button class="chip" id="broadcast-btn" title="Go live">🎥 Live</button>
-          <span class="chip" id="live-chip" title="Users online">
-            <span id="live-count">0</span> online
-          </span>
-          <button id="theme-toggle" class="chip" title="Toggle dark or light mode"></button>
-          <span class="chip" id="user-chip" title="Logged in user" style="display:none">
-            <span class="usr" id="user-name"></span>
-            <button id="logout-btn" class="btn ghost" style="padding:6px 10px" type="button">Logout</button>
-          </span>
-        </div>
-        <div class="legal">© <span id="year"></span> Ioncore Energy • Integrated communications for <a href="../fullexperience.html">Ioncore partners</a></div>
+        <div class="legal">© <span id="year"></span> Ioncore Synapse • Integrated communications for <a href="../fullexperience.html">Ioncore partners</a></div>
       </div>
     </footer>
   </div>
@@ -828,8 +836,8 @@
   <!-- Auth overlay -->
   <section id="auth" class="auth" hidden>
     <div class="card">
-      <h2>Welcome to Ioncore LiveOps</h2>
-      <p>Choose a callsign to join the Ioncore operations channel.</p>
+      <h2>Welcome to Ioncore Synapse</h2>
+      <p>Choose a callsign to join the Synapse operations channel.</p>
       <div class="fields">
         <input id="username" placeholder="Username (e.g., jodel)" maxlength="24" />
       </div>

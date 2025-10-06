@@ -1483,8 +1483,6 @@ main {
   box-shadow: var(--shadow-soft), var(--highlight-glow);
   align-items: center;
   grid-template-columns: minmax(0, 1fr);
-  width: min(100%, 920px);
-  margin-inline: auto;
 }
 
 .index-hero__content {
@@ -1521,8 +1519,6 @@ main {
   border-radius: 24px;
   padding: clamp(24px, 5vw, 40px);
   box-shadow: var(--shadow-soft), var(--highlight-glow);
-  width: min(100%, 920px);
-  margin-inline: auto;
 }
 
 .index-table {
@@ -1539,8 +1535,6 @@ main {
   padding: clamp(24px, 5vw, 40px);
   box-shadow: var(--shadow-soft), var(--highlight-glow);
   overflow-x: auto;
-  width: min(100%, 920px);
-  margin-inline: auto;
 }
 
 .data-table {

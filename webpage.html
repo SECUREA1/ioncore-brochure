@@ -442,6 +442,40 @@
         </div>
       </div>
     </section>
+    <section id="contact" class="contact-panel">
+      <div class="container contact-panel__content">
+        <div class="contact-panel__intro">
+          <h2>Secure a private Ioncore briefing</h2>
+          <p>
+            Share your mission profile and a direct email. Our enterprise team will log your request in our secure SQL vault,
+            pair it with your login history, and deliver a tailored energy dossier.
+          </p>
+        </div>
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="contact-form__field">
+            <label for="contact-name">Name</label>
+            <input id="contact-name" name="name" type="text" placeholder="Avery Callahan" autocomplete="name">
+          </div>
+          <div class="contact-form__field">
+            <label for="contact-email">Email<span aria-hidden="true">*</span></label>
+            <input id="contact-email" name="email" type="email" placeholder="you@enterprise.io" autocomplete="email" required>
+          </div>
+          <div class="contact-form__field contact-form__field--full">
+            <label for="contact-message">Mission details</label>
+            <textarea
+              id="contact-message"
+              name="message"
+              rows="4"
+              placeholder="Outline your deployment goals, timeline, and regions of interest."
+            ></textarea>
+          </div>
+          <div class="contact-form__actions">
+            <button type="submit" class="btn btn-primary">Transmit request</button>
+            <p class="contact-form__status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -627,6 +661,71 @@
           link.setAttribute('href', `/login?next=${encodeURIComponent(destination)}`);
         } catch (err) {
           console.warn('Unable to secure link', err);
+        }
+      });
+    })();
+
+    (() => {
+      const form = document.getElementById('contact-form');
+      if (!form || typeof fetch !== 'function') {
+        return;
+      }
+
+      const statusEl = form.querySelector('.contact-form__status');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const nameInput = form.querySelector('input[name="name"]');
+      const emailInput = form.querySelector('input[name="email"]');
+      const messageInput = form.querySelector('textarea[name="message"]');
+
+      const setStatus = (message, state) => {
+        if (!statusEl) return;
+        statusEl.textContent = message || '';
+        statusEl.dataset.state = state || '';
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const payload = {
+          name: nameInput && typeof nameInput.value === 'string' ? nameInput.value.trim() : '',
+          email: emailInput && typeof emailInput.value === 'string' ? emailInput.value.trim() : '',
+          message: messageInput && typeof messageInput.value === 'string' ? messageInput.value.trim() : ''
+        };
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Transmitting…';
+        }
+        setStatus('Transmitting to Ioncore command…', 'pending');
+
+        try {
+          const response = await fetch('/contact', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (response.ok) {
+            setStatus(data.message || 'Request received. Stand by for a direct response.', 'success');
+            form.reset();
+          } else {
+            setStatus(
+              (data && data.message) || 'We could not log your request. Please verify your email and try again.',
+              'error'
+            );
+          }
+        } catch (err) {
+          console.warn('Unable to submit contact form', err);
+          setStatus('Signal disrupted. Please try again in a moment.', 'error');
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Transmit request';
+          }
         }
       });
     })();

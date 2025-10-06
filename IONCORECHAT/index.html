@@ -582,15 +582,18 @@
         if(streams[id]) streams[id].count.textContent = n;
       }
     function sendJoin(){
-      try { socket && socket.readyState === 1 && socket.send(JSON.stringify({ type:'join', user: store.user })); } catch {}
+      const name = (store.user || '').trim();
+      if(!name) return;
+      try { socket && socket.readyState === 1 && socket.send(JSON.stringify({ type:'join', user: name })); } catch {}
     }
 
     function defaultWS(){
-      const host = (location.hostname && !/localhost|127\\.0\\.0\\.1/.test(location.hostname))
-        ? 'chaines-io-chat.onrender.com'
-        : location.host;
-      const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-      return proto + host + '/ws';
+      const remoteHost = 'chaines-io-chat.onrender.com';
+      if(location.hostname && location.hostname.toLowerCase() === remoteHost){
+        const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        return proto + location.host + '/ws';
+      }
+      return 'wss://' + remoteHost + '/ws';
     }
 
     function setStatus(mode){
@@ -603,6 +606,10 @@
     }
 
     function connectWS(){
+      if(socket && (socket.readyState === 0 || socket.readyState === 1)){
+        sendJoin();
+        return;
+      }
       const url = store.wsURL;
       if(!('WebSocket' in window)) return setStatus('off');
       try {
@@ -1388,6 +1395,7 @@
     }
 
     // Boot
+    connectWS();
     requireAuth();
   })();
   </script>

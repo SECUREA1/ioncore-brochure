@@ -333,6 +333,14 @@
       line-height: 1.6;
     }
 
+    .direct-access-note {
+      margin: -0.5rem 0 2rem;
+      color: rgba(148, 163, 184, 0.85);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      max-width: 44ch;
+    }
+
     .intel-banner {
       display: inline-flex;
       align-items: center;
@@ -1705,6 +1713,7 @@
       </div>
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <p class="direct-access-note">Direct portal logins route you into the <strong>Ioncore Collaboration Cloud</strong>—the fully branded control center hosted on our CHAINeS relay so every investor session opens with the correct Ioncore visual identity.</p>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
           <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
@@ -1867,9 +1876,9 @@
         <div class="mode-panel" id="chat-panel" data-mode="chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
           <div class="chat-panel">
             <h2 class="chat-panel__title">Ioncore Live Operations Chat</h2>
-            <p class="chat-panel__copy">Coordinate with fellow agents in real time without leaving the clearance gate. Launch the secure chat in a new tab to keep this session ready for authentication.</p>
-            <a class="chat-launch-button" href="IONCORECHAT/index.html" target="_blank" rel="noopener">Launch Chat Module</a>
-            <p class="chat-panel__copy chat-panel__copy--hint">Chat opens in a separate window so the vault login remains protected.</p>
+            <p class="chat-panel__copy">Coordinate with fellow agents in real time on the Ioncore Collaboration Cloud. Launch the branded console in a new tab while this clearance session stays active.</p>
+            <a class="chat-launch-button" href="IONCORECHAT/index.html" target="_blank" rel="noopener">Launch Cloud Console</a>
+            <p class="chat-panel__copy chat-panel__copy--hint">The module connects to our CHAINeS-hosted cloud relay in a separate window so the vault login remains protected.</p>
           </div>
         </div>
         <button type="submit">Enter the Vault</button>
@@ -1911,7 +1920,7 @@
     const status = document.getElementById('status');
     const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
-    const nextPath = query.get('next') || '/';
+    const nextPath = query.get('next') || '/IONCORECHAT/index.html';
     const modeButtons = Array.from(document.querySelectorAll('.auth-mode'));
     const panels = Array.from(document.querySelectorAll('.mode-panel'));
     const usernameInput = document.getElementById('username');

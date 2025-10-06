@@ -50,6 +50,19 @@ db.exec(`
     message TEXT,
     source TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS gateway_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    role TEXT NOT NULL,
+    name TEXT,
+    email TEXT NOT NULL,
+    access_code TEXT NOT NULL,
+    engagement_focus TEXT NOT NULL,
+    user_agent TEXT,
+    referer TEXT,
+    ip_address TEXT
+  );
 `);
 
 const insertLoginEventStmt = db.prepare(`
@@ -67,6 +80,28 @@ const insertLoginEventStmt = db.prepare(`
 const insertContactSubmissionStmt = db.prepare(`
   INSERT INTO contact_submissions (name, email, message, source)
   VALUES (@name, @email, @message, @source)
+`);
+
+const insertGatewaySubmissionStmt = db.prepare(`
+  INSERT INTO gateway_submissions (
+    role,
+    name,
+    email,
+    access_code,
+    engagement_focus,
+    user_agent,
+    referer,
+    ip_address
+  ) VALUES (
+    @role,
+    @name,
+    @email,
+    @accessCode,
+    @engagementFocus,
+    @userAgent,
+    @referer,
+    @ipAddress
+  )
 `);
 
 function normalizeForStorage(value) {
@@ -116,6 +151,25 @@ function recordContactSubmission(submission) {
     return true;
   } catch (err) {
     console.error('Failed to record contact submission', err);
+    return false;
+  }
+}
+
+function recordGatewaySubmission(submission) {
+  try {
+    insertGatewaySubmissionStmt.run({
+      role: normalizeForStorage(submission.role),
+      name: normalizeForStorage(submission.name),
+      email: normalizeForStorage(submission.email),
+      accessCode: normalizeForStorage(submission.accessCode),
+      engagementFocus: normalizeForStorage(submission.engagementFocus),
+      userAgent: normalizeForStorage(submission.userAgent),
+      referer: normalizeForStorage(submission.referer),
+      ipAddress: normalizeForStorage(submission.ipAddress)
+    });
+    return true;
+  } catch (err) {
+    console.error('Failed to record gateway submission', err);
     return false;
   }
 }
@@ -386,6 +440,55 @@ app.post('/contact', (req, res) => {
   res.json({ message: 'Submission received. Our advisors will reach out shortly.' });
 });
 
+app.post('/gateway', (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const role = typeof body.role === 'string' ? body.role.trim().toLowerCase() : '';
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  const email = typeof body.email === 'string' ? body.email.trim() : '';
+  const code = typeof body.code === 'string' ? body.code.trim() : '';
+  const intent = typeof body.intent === 'string' ? body.intent.trim() : '';
+
+  const allowedRoles = new Set(['investor', 'buyer', 'team']);
+  if (!allowedRoles.has(role)) {
+    return res.status(400).json({ message: 'Select the access profile that best represents your relationship with Ioncore Energy.' });
+  }
+
+  if (!name) {
+    return res.status(400).json({ message: 'Enter your full name to continue.' });
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailPattern.test(email)) {
+    return res.status(400).json({ message: 'Provide a valid work email address.' });
+  }
+
+  if (!/^\d{6}$/.test(code)) {
+    return res.status(400).json({ message: 'Enter the 6-digit access code provided by your Ioncore liaison.' });
+  }
+
+  if (!intent || intent.length < 12) {
+    return res.status(400).json({ message: 'Share a brief summary of your engagement focus (12+ characters).' });
+  }
+
+  const stored = recordGatewaySubmission({
+    role,
+    name,
+    email,
+    accessCode: code,
+    engagementFocus: intent,
+    userAgent: req.get('user-agent'),
+    referer: req.get('referer'),
+    ipAddress: req.ip
+  });
+
+  if (!stored) {
+    return res.status(500).json({ message: 'We were unable to record your access request. Please try again shortly.' });
+  }
+
+  const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
+  res.json({ message: 'Access granted. Redirecting to brochure.', expiresAt });
+});
+
 app.post('/logout', (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
   destroyAuthSession(sessionId);
@@ -594,7 +697,7 @@ app.post('/access/cardano', (req, res) => {
 function isPublicRoute(req) {
   if (
     req.method === 'POST' &&
-    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano', '/contact'].includes(req.path)
+    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano', '/contact', '/gateway'].includes(req.path)
   ) {
     return true;
   }
@@ -674,7 +777,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
 });
 
 app.get('/timepieces', async (req, res) => {

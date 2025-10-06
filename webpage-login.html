@@ -407,7 +407,7 @@
         <div class="gateway__actions">
           <p class="gateway__privacy">By continuing you acknowledge Ioncore Energy's confidentiality policy. Shared intelligence is proprietary and intended only for approved stakeholders.</p>
           <button class="gateway__submit" type="submit">
-            Proceed <i class="fa-solid fa-arrow-right"></i>
+            PROCEED <i class="fa-solid fa-arrow-right"></i>
           </button>
         </div>
       </form>
@@ -426,6 +426,8 @@
     const roleButtons = document.querySelectorAll('.gateway-role');
     const form = document.getElementById('gateway-form');
     const status = document.getElementById('gateway-status');
+    const submitButton = document.querySelector('.gateway__submit');
+    const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
     let selectedRole = '';
 
     roleButtons.forEach((button) => {
@@ -449,9 +451,37 @@
       ['gateway-name', 'gateway-email', 'gateway-code', 'gateway-intent'].forEach((id) => setError(id, ''));
       const generalError = document.getElementById('gateway-general-error');
       if (generalError) generalError.remove();
+      form?.removeAttribute('aria-describedby');
     }
 
-    form.addEventListener('submit', (event) => {
+    function showGeneralError(message) {
+      if (!form) return;
+      let general = document.getElementById('gateway-general-error');
+      if (!general) {
+        general = document.createElement('p');
+        general.id = 'gateway-general-error';
+        general.className = 'gateway__error';
+        general.setAttribute('role', 'alert');
+        form.prepend(general);
+      }
+      general.textContent = message;
+      form.setAttribute('aria-describedby', 'gateway-general-error');
+    }
+
+    function setSubmitting(isSubmitting) {
+      if (!submitButton) return;
+      if (isSubmitting) {
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.innerHTML = 'PROCESSING…';
+      } else {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+        submitButton.innerHTML = defaultSubmitLabel;
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
       clearErrors();
 
@@ -459,12 +489,7 @@
 
       if (!selectedRole) {
         hasError = true;
-        const general = document.createElement('p');
-        general.id = 'gateway-general-error';
-        general.className = 'gateway__error';
-        general.setAttribute('role', 'alert');
-        general.textContent = 'Please choose the profile that best describes your relationship with Ioncore Energy.';
-        form.prepend(general);
+        showGeneralError('Please choose the profile that best describes your relationship with Ioncore Energy.');
       }
 
       const name = form.elements.namedItem('name');
@@ -493,7 +518,55 @@
       }
 
       if (hasError) {
-        form.setAttribute('aria-describedby', 'gateway-general-error');
+        return;
+      }
+
+      setSubmitting(true);
+      form.setAttribute('aria-busy', 'true');
+
+      const requestPayload = {
+        role: selectedRole,
+        name: name.value.trim(),
+        email: email.value.trim(),
+        code: code.value.trim(),
+        intent: intent.value.trim()
+      };
+
+      const roleLabels = {
+        investor: 'Investor',
+        buyer: 'Buyer',
+        team: 'Ioncore team'
+      };
+
+      let responseData;
+      try {
+        const response = await fetch('/gateway', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify(requestPayload)
+        });
+
+        if (!response.ok) {
+          let message = 'We were unable to verify your details. Please try again.';
+          try {
+            const data = await response.json();
+            if (data && data.message) {
+              message = data.message;
+            }
+          } catch (error) {
+            // ignore JSON parse errors
+          }
+          throw new Error(message);
+        }
+
+        responseData = await response.json();
+      } catch (error) {
+        showGeneralError(error?.message || 'We were unable to verify your details. Please try again.');
+        setSubmitting(false);
+        form.removeAttribute('aria-busy');
         return;
       }
 
@@ -503,8 +576,15 @@
         role: selectedRole,
         name: name.value.trim(),
         grantedAt: now,
-        expires: now + twelveHours,
+        expires: now + twelveHours
       };
+
+      if (responseData && typeof responseData.expiresAt === 'string') {
+        const expires = Date.parse(responseData.expiresAt);
+        if (!Number.isNaN(expires)) {
+          payload.expires = expires;
+        }
+      }
 
       try {
         sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
@@ -515,11 +595,13 @@
       form.setAttribute('aria-hidden', 'true');
       form.style.display = 'none';
       status.setAttribute('aria-live', 'assertive');
-      status.querySelector('.status-message').textContent = `${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} access granted. Redirecting to brochure.`;
+      const label = roleLabels[selectedRole] || 'Stakeholder';
+      const message = (responseData && responseData.message) || `${label} access granted. Redirecting to brochure.`;
+      status.querySelector('.status-message').textContent = message;
 
       setTimeout(() => {
         window.location.href = 'webpage.html';
-      }, 800);
+      }, 900);
     });
   </script>
 </body>

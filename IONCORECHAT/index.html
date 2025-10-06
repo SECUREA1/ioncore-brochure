@@ -378,6 +378,7 @@
         </div>
         <div class="status session">
           <button class="chip" id="broadcast-btn" title="Go live">🎥 Live</button>
+          <button class="chip" id="screen-share-btn" title="Share screen or window" hidden>🖥️ Share</button>
           <span class="chip" id="live-chip" title="Users online">
             <span id="live-count">0</span> online
           </span>
@@ -501,6 +502,7 @@
     const streamCodeBtn = el('#stream-code-btn');
     const cameraFlipBtn = el('#camera-flip-btn');
     const fullscreenBtn = el('#fullscreen-btn');
+    const screenShareBtn = el('#screen-share-btn');
     const headerBar = el('header');
     const footerBar = el('footer');
     const thumbChooser = el('#thumb-chooser');
@@ -685,6 +687,24 @@
       }
     });
     cameraFlipBtn.addEventListener('click', switchCamera);
+    screenShareBtn.addEventListener('click', async () => {
+      if(!broadcasting || !localStream) return;
+      if(screenShareActive){
+        stopScreenShare();
+        return;
+      }
+      const choice = prompt('Share display type:\nEnter "screen" for full display or "window" for a specific application.\nPress Cancel to abort.', 'screen');
+      if(choice === null) return;
+      const mode = (choice || '').trim().toLowerCase();
+      let displayPref = null;
+      if(mode.startsWith('w')) displayPref = 'window';
+      else if(mode.startsWith('s') || mode.startsWith('f') || mode.startsWith('m')) displayPref = 'monitor';
+      if(!displayPref){
+        alert('Screen share cancelled: choose "screen" or "window" next time.');
+        return;
+      }
+      await startScreenShare(displayPref);
+    });
     fullscreenBtn.addEventListener('click', () => {
       if(document.fullscreenElement){
         document.exitFullscreen().catch(() => {});
@@ -720,6 +740,10 @@
     let captionTrack = null;
     let speechRec = null;
     let usingFrontCamera = true;
+    let cameraVideoTrack = null;
+    let screenShareActive = false;
+    let screenShareStream = null;
+    let screenShareVideoTrack = null;
     let mediaRecorder = null;
     let recordedChunks = [];
     let recordCanvas = null;
@@ -729,9 +753,14 @@
 
     function updateHeaderButtons(){
       const show = broadcasting;
-      [streamCodeBtn, cameraFlipBtn, fullscreenBtn, ccSettings].forEach(btn => {
+      [streamCodeBtn, cameraFlipBtn, fullscreenBtn, ccSettings, screenShareBtn].forEach(btn => {
         if(btn) btn.hidden = !show;
       });
+      if(cameraFlipBtn) cameraFlipBtn.disabled = screenShareActive;
+      if(screenShareBtn && !show){
+        screenShareBtn.textContent = '🖥️ Share';
+        screenShareBtn.title = 'Share screen or window';
+      }
     }
     updateHeaderButtons();
 
@@ -1133,6 +1162,7 @@
         const getStream = stream ? Promise.resolve(stream) : navigator.mediaDevices.getUserMedia(audioOnly ? { audio: true } : { video: { facingMode: usingFrontCamera ? 'user' : 'environment' }, audio: true });
         getStream.then(stream => {
           localStream = stream;
+          cameraVideoTrack = stream.getVideoTracks()[0] || null;
           recordedChunks = [];
           if(!audioOnly){
             recordCanvas = document.createElement('canvas');
@@ -1211,7 +1241,10 @@
       }
 
       function switchCamera(){
-        if(!localStream) return;
+        if(!localStream || screenShareActive){
+          if(screenShareActive) alert('Stop screen sharing before switching camera.');
+          return;
+        }
         usingFrontCamera = !usingFrontCamera;
         const videoTrack = localStream.getVideoTracks()[0];
         const audioTracks = localStream.getAudioTracks();
@@ -1225,11 +1258,104 @@
               const sender = peerConnections[id].getSenders().find(s => s.track && s.track.kind === 'video');
               if(sender) sender.replaceTrack(newVideoTrack);
             }
+            cameraVideoTrack = newVideoTrack;
           }).catch(() => alert('Unable to switch camera'));
       }
 
+    async function startScreenShare(mode){
+      if(screenShareActive || !localStream) return;
+      const displayOpts = { video: true, audio: false };
+      if(mode === 'window' || mode === 'monitor'){
+        displayOpts.video = { displaySurface: mode };
+      }
+      let displayStream = null;
+      try {
+        displayStream = await navigator.mediaDevices.getDisplayMedia(displayOpts);
+      } catch (err) {
+        if(displayOpts.video !== true){
+          try {
+            displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          } catch {
+            alert('Screen share cancelled.');
+            return;
+          }
+        } else {
+          alert('Screen share cancelled.');
+          return;
+        }
+      }
+      const track = displayStream.getVideoTracks()[0];
+      if(!track){
+        displayStream.getTracks().forEach(t => t.stop());
+        alert('Unable to capture the selected screen.');
+        return;
+      }
+      screenShareStream = displayStream;
+      screenShareVideoTrack = track;
+      screenShareActive = true;
+      screenShareBtn.textContent = '🛑 Stop Share';
+      screenShareBtn.title = 'Stop sharing screen';
+      if(cameraFlipBtn) cameraFlipBtn.disabled = true;
+      const currentVideo = localStream.getVideoTracks()[0];
+      if(currentVideo && currentVideo !== track){
+        localStream.removeTrack(currentVideo);
+      }
+      if(cameraVideoTrack && cameraVideoTrack !== currentVideo){
+        const idx = localStream.getVideoTracks().indexOf(cameraVideoTrack);
+        if(idx !== -1){
+          localStream.removeTrack(cameraVideoTrack);
+        }
+      }
+      localStream.addTrack(track);
+      if(broadcastVideo) broadcastVideo.srcObject = localStream;
+      for(const id in peerConnections){
+        const sender = peerConnections[id].getSenders().find(s => s.track && s.track.kind === 'video');
+        if(sender){
+          sender.replaceTrack(track);
+        } else {
+          peerConnections[id].addTrack(track, localStream);
+        }
+      }
+      track.addEventListener('ended', () => {
+        stopScreenShare();
+      });
+    }
+
+    function stopScreenShare(){
+      if(!screenShareActive) return;
+      screenShareActive = false;
+      if(screenShareStream){
+        screenShareStream.getTracks().forEach(t => {
+          try { t.stop(); } catch {}
+        });
+      }
+      screenShareStream = null;
+      const currentVideo = localStream && localStream.getVideoTracks()[0];
+      if(localStream && currentVideo && currentVideo === screenShareVideoTrack){
+        localStream.removeTrack(currentVideo);
+      }
+      screenShareVideoTrack = null;
+      if(localStream && cameraVideoTrack){
+        const hasCamera = localStream.getVideoTracks().includes(cameraVideoTrack);
+        if(!hasCamera){
+          localStream.addTrack(cameraVideoTrack);
+        }
+        if(broadcastVideo) broadcastVideo.srcObject = localStream;
+        for(const id in peerConnections){
+          const sender = peerConnections[id].getSenders().find(s => s.track && s.track.kind === 'video');
+          if(sender){
+            sender.replaceTrack(cameraVideoTrack);
+          }
+        }
+      }
+      screenShareBtn.textContent = '🖥️ Share';
+      screenShareBtn.title = 'Share screen or window';
+      if(cameraFlipBtn) cameraFlipBtn.disabled = false;
+    }
+
     function endBroadcast(forced=false){
       if(!broadcasting) return;
+      stopScreenShare();
       broadcasting = false;
       updateHeaderButtons();
       joinApproved = false;
@@ -1284,6 +1410,7 @@
       if(localStream){
         localStream.getTracks().forEach(t => t.stop());
         localStream = null;
+        cameraVideoTrack = null;
       }
       for(const id in peerConnections){
         try{ peerConnections[id].close(); }catch{}

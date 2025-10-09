@@ -54,3 +54,22 @@ dialog. When the user connects MetaMask the bridge captures their address and ve
 required contract through Alchemy's `getNFTs` endpoint. If Phantom is connected the script checks
 the configured Solana mint via `getTokenAccountsByOwner`. If verification fails, the program exits
 after displaying an error message.
+
+## MEKNX contract verification
+
+The clearance gate now executes a Thirdweb-powered contract read before granting MEKNX
+logins. Configure the following environment variables to enable the integration:
+
+| Variable | Purpose |
+| --- | --- |
+| `THIRDWEB_CLIENT_ID` | Client identifier issued by Thirdweb (use `THIRDWEB_SECRET_KEY` on servers). |
+| `THIRDWEB_SECRET_KEY` | Server-side secret for the Thirdweb SDK (takes precedence over `THIRDWEB_CLIENT_ID`). |
+| `MEKNX_CONTRACT_ADDRESS` | (Optional) Override the default MEKNX gate contract address. |
+| `MEKNX_CONTRACT_CHAIN_ID` | (Optional) Chain ID for the gate contract (defaults to Ethereum mainnet). |
+| `MEKNX_CONTRACT_GATE_METHOD` | (Optional) Contract function name to call when verifying access (defaults to `verifyAccess`). |
+| `MEKNX_CONTRACT_GATE_SIGNATURE` | (Optional) Full solidity signature to call instead of resolving by name. |
+| `MEKNX_GATE_PARAM_ORDER` | (Optional) Comma-separated list describing argument order (`pass` and/or `wallet`). |
+
+If both client ID and secret key are absent the MEKNX login flow returns a 503 response
+informing users that verification is temporarily offline. When configured, the gate reads
+the contract and stores the raw result alongside the login record for auditing.

@@ -2013,7 +2013,7 @@
   </style>
     <link rel="stylesheet" href="legal-footer.css">
 </head>
-  <body>
+  <body data-thirdweb-mint-url="https://thirdweb.com/solana/IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1?tab=claim">
     <header class="site-header container login-header">
       <a class="logo" href="fullexperience.html" aria-label="Ioncore Energy main experience">
         <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
@@ -2359,6 +2359,9 @@
     const meknxStatus = document.getElementById('meknx-status');
     const meknxPasscodeInput = document.getElementById('meknx-passcode');
     const meknxPassIdInput = document.getElementById('meknx-pass-id');
+    const THIRDWEB_MINT_URL =
+      (bodyElement && bodyElement.dataset.thirdwebMintUrl) ||
+      'https://thirdweb.com/solana/IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1?tab=claim';
 
     const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
     const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
@@ -2366,8 +2369,11 @@
     const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
     const MIN_WALLET_VALUE_USD = 10;
     const MIN_LOGIN_VALUE_USD = 15;
+    const THIRDWEB_POPUP_FEATURES = 'noopener,noreferrer,width=480,height=720';
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
+
+    let thirdwebMintWindowRef = null;
 
     const meknxState = {
       status: 'pending',
@@ -2469,6 +2475,58 @@
       } else if (tone === 'success') {
         element.classList.add('inline-status--success');
       }
+    };
+
+    const openThirdwebMintWindow = () => {
+      if (!THIRDWEB_MINT_URL) {
+        return null;
+      }
+
+      if (thirdwebMintWindowRef && !thirdwebMintWindowRef.closed) {
+        try {
+          thirdwebMintWindowRef.focus();
+          return thirdwebMintWindowRef;
+        } catch (error) {
+          thirdwebMintWindowRef = null;
+        }
+      }
+
+      try {
+        const mintWindow = window.open(THIRDWEB_MINT_URL, 'ioncore-thirdweb-mint', THIRDWEB_POPUP_FEATURES);
+        if (mintWindow) {
+          thirdwebMintWindowRef = mintWindow;
+          try {
+            mintWindow.focus();
+          } catch (error) {
+            // Ignore focus errors caused by browser restrictions.
+          }
+          return mintWindow;
+        }
+      } catch (error) {
+        // Pop-up blocked or disallowed. Fall back to returning null so callers can inform the user.
+      }
+
+      return null;
+    };
+
+    const adviseThirdwebMint = () => {
+      const opened = openThirdwebMintWindow();
+      let mintMessage;
+
+      if (!THIRDWEB_MINT_URL) {
+        mintMessage = 'Acquire the required IONC access token before continuing.';
+      } else if (opened) {
+        mintMessage =
+          'A Thirdweb mint window has been opened. Acquire the IONC access token there, then retry verification.';
+      } else {
+        mintMessage = `Open the Thirdweb mint link to acquire the IONC access token: ${THIRDWEB_MINT_URL}`;
+      }
+
+      if (ioncInlineStatus) {
+        setInlineStatus(ioncInlineStatus, mintMessage, 'error');
+      }
+
+      return mintMessage;
     };
 
     const resetIoncState = (options = {}) => {
@@ -3253,7 +3311,8 @@
         if (ioncVerifiedInput) {
           ioncVerifiedInput.value = '';
         }
-        throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
+        const mintPrompt = adviseThirdwebMint();
+        throw new Error(`No IONC token holdings detected. ${mintPrompt}`);
       }
 
       if (ioncVerifiedInput) {
@@ -3855,6 +3914,9 @@
           } catch (error) {
             resetWalletIndicators();
             const message = error?.message || 'Phantom connection failed. Try again.';
+            if (ioncInlineStatus && /ionc/i.test(message)) {
+              setInlineStatus(ioncInlineStatus, message, 'error');
+            }
             if (phantomStatus) {
               phantomStatus.textContent = message;
             }
@@ -4017,6 +4079,7 @@
 
             if (!response.ok) {
               let errorMessage = 'IONC verification failed. Ensure your Solana wallet holds the access token.';
+              let mintPrompt = '';
               try {
                 const data = await response.json();
                 if (data && data.message) {
@@ -4025,7 +4088,12 @@
               } catch (err) {
                 // ignore JSON parsing errors
               }
-              setInlineStatus(ioncInlineStatus, errorMessage, 'error');
+              if (/ionc/i.test(errorMessage)) {
+                mintPrompt = adviseThirdwebMint();
+                errorMessage = `${errorMessage} ${mintPrompt}`.trim();
+              } else {
+                setInlineStatus(ioncInlineStatus, errorMessage, 'error');
+              }
               updateStatus(errorMessage, 'error');
               triggerFailureAnimation();
               return;

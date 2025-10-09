@@ -2585,6 +2585,13 @@
       meknxState.walletProvider = data.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
       meknxState.ioncTokens = typeof data.ioncTokens === 'number' ? data.ioncTokens : meknxState.ioncTokens;
 
+      if (meknxPassIdInput) {
+        meknxPassIdInput.value = meknxState.passId;
+      }
+      if (meknxPasscodeInput && meknxState.passId && !meknxPasscodeInput.value) {
+        meknxPasscodeInput.value = meknxState.passId;
+      }
+
       const statusLabel =
         normalizedStatus === 'verified' ? 'MEKNX verification confirmed.' : 'MEKNX pass minted successfully.';
       const passSuffix = meknxState.passId ? ` Pass ID: ${meknxState.passId}.` : '';
@@ -3866,6 +3873,10 @@
         meknxActionButton.addEventListener('click', async () => {
           const action = (meknxActionSelect && meknxActionSelect.value) || 'verify';
           const provider = walletProviderInput ? walletProviderInput.value : '';
+          const passTokenRaw =
+            (meknxPassIdInput && meknxPassIdInput.value) || (meknxPasscodeInput && meknxPasscodeInput.value) || '';
+          const passToken = normaliseMeknxToken(passTokenRaw);
+
           if (!walletAddressInput || !walletAddressInput.value) {
             setInlineStatus(
               meknxInlineStatus,
@@ -3875,6 +3886,26 @@
             updateStatus('Connect a wallet before starting MEKNX clearance.', 'error');
             triggerFailureAnimation();
             return;
+          }
+
+          if (!passToken) {
+            setInlineStatus(
+              meknxInlineStatus,
+              action === 'mint'
+                ? 'Enter the MEKNX pass token you minted before continuing.'
+                : 'Enter your MEKNX pass token before verifying.',
+              'error'
+            );
+            updateStatus('Provide your MEKNX pass token to continue.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (meknxPassIdInput) {
+            meknxPassIdInput.value = passToken;
+          }
+          if (meknxPasscodeInput) {
+            meknxPasscodeInput.value = passToken;
           }
 
           const progressLabel =
@@ -3892,7 +3923,8 @@
               body: JSON.stringify({
                 action,
                 walletAddress: walletAddressInput.value,
-                walletProvider: provider
+                walletProvider: provider,
+                passId: passToken
               })
             });
 
@@ -3936,7 +3968,10 @@
               : ' Submit to enter the vault.';
             updateStatus(`${successMessage}${continuation}`, 'success');
           } catch (error) {
-            const fallbackMessage = 'MEKNX clearance request failed. Try again shortly.';
+            const fallbackMessage =
+              error && typeof error.message === 'string'
+                ? error.message
+                : 'MEKNX clearance request failed. Try again shortly.';
             setInlineStatus(meknxInlineStatus, fallbackMessage, 'error');
             updateStatus(fallbackMessage, 'error');
             triggerFailureAnimation();

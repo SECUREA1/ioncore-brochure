@@ -315,10 +315,6 @@ function normalizeProvider(provider) {
   return 'evm';
 }
 
-function generateMeknxPassId() {
-  return `MEKNX-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
-}
-
 function generateAccessCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -788,7 +784,7 @@ app.post('/logout', (req, res) => {
   res.json({ message: 'Logged out' });
 });
 
-app.post('/access/meknx', (req, res) => {
+app.post('/access/meknx', async (req, res) => {
   const body = req.body || {};
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const actionRaw = typeof body.action === 'string' ? body.action.trim().toLowerCase() : 'verify';
@@ -796,13 +792,30 @@ app.post('/access/meknx', (req, res) => {
     typeof body.walletProvider === 'string' && body.walletProvider.trim()
       ? normalizeProvider(body.walletProvider.trim())
       : '';
+  const passIdRaw =
+    typeof body.passId === 'string'
+      ? body.passId
+      : typeof body.meknxPassId === 'string'
+        ? body.meknxPassId
+        : '';
+  const passId = passIdRaw.trim();
 
   if (!walletAddress) {
     return res.status(400).json({ message: 'Wallet address required for MEKNX clearance.' });
   }
 
+  if (!passId) {
+    return res.status(400).json({ message: 'Provide your MEKNX pass token before continuing.' });
+  }
+
   if (actionRaw !== 'verify' && actionRaw !== 'mint') {
     return res.status(400).json({ message: 'Unsupported MEKNX clearance action.' });
+  }
+
+  if (!isThirdwebConfigured()) {
+    return res
+      .status(503)
+      .json({ message: 'MEKNX verification is temporarily offline. Contact support for clearance assistance.' });
   }
 
   const nowIso = new Date().toISOString();
@@ -810,79 +823,75 @@ app.post('/access/meknx', (req, res) => {
   const fallbackProvider = existing ? normalizeProvider(existing.walletProvider) : 'evm';
   const walletProvider = requestedProvider || fallbackProvider;
 
-  if (actionRaw === 'verify') {
-    if (!existing) {
-      return res.status(404).json({ message: 'No MEKNX pass found for this wallet. Mint a clearance token first.' });
-    }
-
-    existing.walletProvider = walletProvider;
-    existing.lastVerifiedAt = nowIso;
-    if (existing.walletProvider === 'cardano' && !existing.cardanoPolicyId) {
-      existing.cardanoPolicyId = CARDANO_POLICY_ID;
-    }
-    meknxRegistry.set(walletAddress, existing);
-    return res.json({
-      status: 'verified',
-      passId: existing.passId,
-      mintedAt: existing.mintedAt,
-      walletProvider: existing.walletProvider,
-      ioncTokens: existing.ioncTokens || 0,
-      cardanoPolicyId: existing.cardanoPolicyId || '',
-      cardanoPolicyVerified: !!existing.cardanoPolicyVerified,
-      message: 'MEKNX verification confirmed.'
-    });
+  let verification;
+  try {
+    verification = await executeMeknxGate({ passId, walletAddress });
+  } catch (error) {
+    const fallbackMessage =
+      error && typeof error.message === 'string'
+        ? error.message
+        : 'MEKNX contract verification failed. Try again shortly.';
+    return res.status(502).json({ message: fallbackMessage });
   }
 
-  if (existing) {
-    existing.walletProvider = walletProvider;
-    if (existing.walletProvider === 'solana' && (!existing.ioncTokens || existing.ioncTokens < 1)) {
-      existing.ioncTokens = 1;
-    }
-    if (existing.walletProvider === 'cardano') {
-      existing.cardanoPolicyId = existing.cardanoPolicyId || CARDANO_POLICY_ID;
-      existing.cardanoPolicyVerified = existing.cardanoPolicyVerified === true;
-    } else if (existing.cardanoPolicyVerified) {
-      existing.cardanoPolicyVerified = false;
-    }
-    existing.lastVerifiedAt = nowIso;
-    meknxRegistry.set(walletAddress, existing);
-    return res.json({
-      status: 'minted',
-      passId: existing.passId,
-      mintedAt: existing.mintedAt,
-      walletProvider: existing.walletProvider,
-      ioncTokens: existing.ioncTokens || 0,
-      cardanoPolicyId: existing.cardanoPolicyId || '',
-      cardanoPolicyVerified: !!existing.cardanoPolicyVerified,
-      message: 'Existing MEKNX pass located. Verification refreshed.'
-    });
+  if (!verification.authorized) {
+    const failureMessage =
+      verification.message ||
+      (actionRaw === 'mint'
+        ? 'No MEKNX credential detected for this wallet. Mint a pass in the official portal and retry.'
+        : 'MEKNX pass not recognised. Mint a clearance token or double-check the token ID.');
+    return res.status(403).json({ message: failureMessage });
   }
 
-  const passId = generateMeknxPassId();
-  const mintedAt = nowIso;
-  const ioncTokens = walletProvider === 'solana' ? 1 : 0;
-  const record = {
-    walletAddress,
-    walletProvider,
-    passId,
-    mintedAt,
-    lastVerifiedAt: nowIso,
-    ioncTokens,
-    cardanoPolicyId: walletProvider === 'cardano' ? CARDANO_POLICY_ID : '',
-    cardanoPolicyVerified: false
-  };
+  const passChanged = existing && existing.passId && existing.passId !== passId;
+  const isNewRecord = !existing || passChanged;
+  const record = existing ? { ...existing } : {};
+
+  record.walletAddress = walletAddress;
+  record.walletProvider = walletProvider;
+  record.passId = passId;
+  record.lastVerifiedAt = nowIso;
+
+  if (isNewRecord || !record.mintedAt) {
+    record.mintedAt = nowIso;
+  }
+
+  if (walletProvider === 'solana') {
+    const existingTokens = Number.isFinite(record.ioncTokens) ? Number(record.ioncTokens) : 0;
+    record.ioncTokens = existingTokens > 0 ? existingTokens : 1;
+  } else if (!Number.isFinite(record.ioncTokens)) {
+    record.ioncTokens = 0;
+  }
+
+  if (walletProvider === 'cardano') {
+    record.cardanoPolicyId = CARDANO_POLICY_ID;
+    record.cardanoPolicyVerified = record.cardanoPolicyVerified === true;
+  } else if (isNewRecord) {
+    record.cardanoPolicyVerified = false;
+    if (record.cardanoPolicyId && walletProvider !== 'cardano') {
+      record.cardanoPolicyId = '';
+    }
+  }
+
   meknxRegistry.set(walletAddress, record);
 
-  return res.status(201).json({
-    status: 'minted',
-    passId,
-    mintedAt,
-    walletProvider,
-    ioncTokens,
-    cardanoPolicyId: record.cardanoPolicyId,
-    cardanoPolicyVerified: record.cardanoPolicyVerified,
-    message: 'MEKNX pass minted successfully.'
-  });
+  const status = actionRaw === 'mint' || isNewRecord ? 'minted' : 'verified';
+  const message =
+    verification.message ||
+    (status === 'minted' ? 'MEKNX pass minted and verified.' : 'MEKNX clearance verified.');
+
+  const responsePayload = {
+    status,
+    passId: record.passId,
+    mintedAt: record.mintedAt,
+    walletProvider: record.walletProvider,
+    ioncTokens: Number.isFinite(record.ioncTokens) ? record.ioncTokens : 0,
+    cardanoPolicyId: record.cardanoPolicyId || '',
+    cardanoPolicyVerified: Boolean(record.cardanoPolicyVerified),
+    message
+  };
+
+  return res.status(status === 'minted' && isNewRecord ? 201 : 200).json(responsePayload);
 });
 
 app.post('/access/ionc', (req, res) => {

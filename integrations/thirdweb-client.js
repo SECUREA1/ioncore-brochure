@@ -1,5 +1,14 @@
-import { createThirdwebClient, getContract, readContract, resolveMethod } from 'thirdweb';
+import {
+  createThirdwebClient,
+  getContract,
+  prepareContractCall,
+  readContract,
+  resolveMethod,
+  sendTransaction,
+  waitForReceipt
+} from 'thirdweb';
 import { defineChain } from 'thirdweb/chains';
+import { privateKeyToAccount } from 'thirdweb/wallets';
 
 const DEFAULT_MEKNX_CONTRACT_ADDRESS = '0x809A9457670A382506F30241dD18b91aaDC9c03c';
 const DEFAULT_CHAIN_ID = 1;
@@ -7,6 +16,8 @@ const DEFAULT_CHAIN_ID = 1;
 let cachedClient;
 let cachedContract;
 let cachedGateMethod;
+let cachedMintMethod;
+let cachedMinterAccount;
 
 function getThirdwebCredentials() {
   const clientId = (process.env.THIRDWEB_CLIENT_ID || '').trim();
@@ -85,10 +96,47 @@ function resolveGateMethod() {
   return cachedGateMethod;
 }
 
+function resolveMintMethod() {
+  if (cachedMintMethod) {
+    return cachedMintMethod;
+  }
+
+  const signature = (process.env.MEKNX_CONTRACT_MINT_SIGNATURE || '').trim();
+  if (signature) {
+    cachedMintMethod = signature;
+    return cachedMintMethod;
+  }
+
+  const methodName = (process.env.MEKNX_CONTRACT_MINT_METHOD || '').trim() || 'mintPass';
+  cachedMintMethod = resolveMethod(methodName);
+  return cachedMintMethod;
+}
+
 function parseParamOrder(walletAddressProvided) {
   const rawOrder = (process.env.MEKNX_GATE_PARAM_ORDER || '').trim();
   if (!rawOrder) {
     return walletAddressProvided ? ['wallet', 'pass'] : ['pass'];
+  }
+
+  return rawOrder
+    .split(',')
+    .map((part) => part.trim().toLowerCase())
+    .filter((part) => part === 'wallet' || part === 'pass');
+}
+
+function parseMintParamOrder(hasWallet, hasPass) {
+  const rawOrder = (process.env.MEKNX_MINT_PARAM_ORDER || '').trim();
+  if (!rawOrder) {
+    if (hasWallet && hasPass) {
+      return ['wallet', 'pass'];
+    }
+    if (hasWallet) {
+      return ['wallet'];
+    }
+    if (hasPass) {
+      return ['pass'];
+    }
+    return [];
   }
 
   return rawOrder
@@ -108,6 +156,80 @@ function buildMethodParams(passId, walletAddress) {
     }
     return passId;
   });
+}
+
+function buildMintParams(passId, walletAddress) {
+  const hasWallet = Boolean(walletAddress);
+  const hasPass = Boolean(passId);
+  const order = parseMintParamOrder(hasWallet, hasPass);
+  return order.map((token) => {
+    if (token === 'wallet') {
+      if (!walletAddress) {
+        throw new Error('Wallet address required by MEKNX_MINT_PARAM_ORDER but missing in request.');
+      }
+      return walletAddress;
+    }
+    if (token === 'pass') {
+      if (!passId) {
+        throw new Error('MEKNX pass ID required by MEKNX_MINT_PARAM_ORDER but missing in request.');
+      }
+      return passId;
+    }
+    throw new Error(`Unsupported parameter token in MEKNX_MINT_PARAM_ORDER: ${token}`);
+  });
+}
+
+const MINTER_KEY_ENV_VARS = [
+  'MEKNX_MINTER_PRIVATE_KEY',
+  'MEKNX_CONTRACT_MINTER_PRIVATE_KEY',
+  'MEKNX_CONTRACT_SIGNER_KEY',
+  'THIRDWEB_MINTER_PRIVATE_KEY',
+  'THIRDWEB_ADMIN_PRIVATE_KEY'
+];
+
+function resolveMinterPrivateKey() {
+  for (const key of MINTER_KEY_ENV_VARS) {
+    const value = (process.env[key] || '').trim();
+    if (value) {
+      return value;
+    }
+  }
+  return '';
+}
+
+function ensureMinterAccount() {
+  if (cachedMinterAccount) {
+    return cachedMinterAccount;
+  }
+
+  const privateKey = resolveMinterPrivateKey();
+  if (!privateKey) {
+    throw new Error(
+      'MEKNX minting is not configured. Set MEKNX_MINTER_PRIVATE_KEY (or compatible env variable) with an authorised signer.'
+    );
+  }
+
+  const client = ensureThirdwebClient();
+  cachedMinterAccount = privateKeyToAccount({
+    client,
+    privateKey
+  });
+
+  return cachedMinterAccount;
+}
+
+function resolveMintWaitBlocks() {
+  const raw = (process.env.MEKNX_MINT_MAX_BLOCKS_WAIT || process.env.MEKNX_MINT_WAIT_BLOCKS || '').trim();
+  if (!raw) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return undefined;
 }
 
 function coerceBoolean(value) {
@@ -244,8 +366,64 @@ export async function executeMeknxGate({ passId, walletAddress }) {
   }
 }
 
+export async function executeMeknxMint({ passId, walletAddress }) {
+  const normalizedPass = typeof passId === 'string' ? passId.trim() : passId?.toString() || '';
+  const normalizedWallet = typeof walletAddress === 'string' ? walletAddress.trim() : '';
+
+  const contract = ensureContract();
+  const method = resolveMintMethod();
+  const params = buildMintParams(normalizedPass || null, normalizedWallet || null);
+  const account = ensureMinterAccount();
+
+  try {
+    const transaction = prepareContractCall({
+      contract,
+      method,
+      params
+    });
+
+    const result = await sendTransaction({
+      account,
+      transaction
+    });
+
+    const waitOptions = {
+      client: result.client,
+      chain: result.chain,
+      transactionHash: result.transactionHash
+    };
+    const maxBlocks = resolveMintWaitBlocks();
+    if (maxBlocks) {
+      waitOptions.maxBlocksWaitTime = maxBlocks;
+    }
+
+    const receipt = await waitForReceipt(waitOptions);
+
+    return {
+      passId: normalizedPass,
+      walletAddress: normalizedWallet || null,
+      transactionHash: result.transactionHash,
+      receipt,
+      contractAddress: contract.address,
+      method: typeof method === 'string' ? method : undefined,
+      params,
+      signerAddress: account.address,
+      message: 'MEKNX mint transaction confirmed on-chain.'
+    };
+  } catch (error) {
+    const contractAddress = contract.address;
+    const methodLabel = typeof method === 'string' ? method : 'resolved';
+    const errorMessage = error && typeof error.message === 'string' ? error.message : String(error);
+    throw new Error(`Failed to execute MEKNX mint (${methodLabel} @ ${contractAddress}): ${errorMessage}`, {
+      cause: error
+    });
+  }
+}
+
 export function resetThirdwebCache() {
   cachedClient = undefined;
   cachedContract = undefined;
   cachedGateMethod = undefined;
+  cachedMintMethod = undefined;
+  cachedMinterAccount = undefined;
 }

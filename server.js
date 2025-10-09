@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import unzipper from 'unzipper';
 import { randomUUID } from 'crypto';
-import { executeMeknxGate, isThirdwebConfigured } from './integrations/thirdweb-client.js';
+import { executeMeknxGate, executeMeknxMint, isThirdwebConfigured } from './integrations/thirdweb-client.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -798,7 +798,7 @@ app.post('/access/meknx', async (req, res) => {
       : typeof body.meknxPassId === 'string'
         ? body.meknxPassId
         : '';
-  const passId = passIdRaw.trim();
+  let passId = passIdRaw.trim();
 
   if (!walletAddress) {
     return res.status(400).json({ message: 'Wallet address required for MEKNX clearance.' });
@@ -822,6 +822,26 @@ app.post('/access/meknx', async (req, res) => {
   const existing = meknxRegistry.get(walletAddress);
   const fallbackProvider = existing ? normalizeProvider(existing.walletProvider) : 'evm';
   const walletProvider = requestedProvider || fallbackProvider;
+
+  let mintResult;
+  if (actionRaw === 'mint') {
+    try {
+      mintResult = await executeMeknxMint({
+        passId,
+        walletAddress
+      });
+
+      if (mintResult && typeof mintResult.passId === 'string' && mintResult.passId.trim().length > 0) {
+        passId = mintResult.passId.trim();
+      }
+    } catch (error) {
+      const fallbackMessage =
+        error && typeof error.message === 'string'
+          ? error.message
+          : 'MEKNX mint transaction failed. Try again shortly.';
+      return res.status(502).json({ message: fallbackMessage });
+    }
+  }
 
   let verification;
   try {
@@ -878,7 +898,32 @@ app.post('/access/meknx', async (req, res) => {
   const status = actionRaw === 'mint' || isNewRecord ? 'minted' : 'verified';
   const message =
     verification.message ||
+    (mintResult && mintResult.message) ||
     (status === 'minted' ? 'MEKNX pass minted and verified.' : 'MEKNX clearance verified.');
+
+  const contractDetails = {
+    gate: {
+      authorized: verification.authorized,
+      message: verification.message,
+      contractAddress: verification.contractAddress,
+      method: verification.method,
+      params: verification.params,
+      rawResult: verification.rawResult
+    }
+  };
+
+  if (mintResult) {
+    contractDetails.mint = {
+      contractAddress: mintResult.contractAddress,
+      method: mintResult.method,
+      params: mintResult.params,
+      transactionHash: mintResult.transactionHash,
+      receipt: mintResult.receipt,
+      signerAddress: mintResult.signerAddress,
+      passId: mintResult.passId,
+      message: mintResult.message
+    };
+  }
 
   const responsePayload = {
     status,
@@ -888,7 +933,8 @@ app.post('/access/meknx', async (req, res) => {
     ioncTokens: Number.isFinite(record.ioncTokens) ? record.ioncTokens : 0,
     cardanoPolicyId: record.cardanoPolicyId || '',
     cardanoPolicyVerified: Boolean(record.cardanoPolicyVerified),
-    message
+    message,
+    contract: contractDetails
   };
 
   return res.status(status === 'minted' && isNewRecord ? 201 : 200).json(responsePayload);

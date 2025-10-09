@@ -121,11 +121,17 @@ class _WalletConnectServer:
         <h1>Ioncore Wallet Connect</h1>
         <p>Select your wallet provider to continue. Once connected your address will be securely relayed back to the Sentinel desktop.</p>
         <button onclick=\"connectEvm()\">Connect MetaMask / EVM Wallet</button>
+        <button id=\"metamask-mobile\" onclick=\"connectMetaMaskMobile()\">Open in MetaMask Mobile</button>
         <button onclick=\"connectPhantom()\">Connect Phantom (Solana)</button>
         <div id=\"status\" class=\"status\">Awaiting wallet connection…</div>
     </div>
     <script>
     const stateToken = "{parent.state_token}";
+    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const metaMaskMobileButton = document.getElementById('metamask-mobile');
+    if (metaMaskMobileButton && !isMobileDevice) {{
+        metaMaskMobileButton.style.display = 'none';
+    }}
 
     async function postWallet(address, chain) {{
         const payload = {{ address, chain, state: stateToken }};
@@ -145,6 +151,29 @@ class _WalletConnectServer:
         status.textContent = message;
         status.classList.remove('success', 'error');
         if (tone) {{ status.classList.add(tone); }}
+    }}
+
+    function buildMetaMaskDeepLink() {{
+        const {{ host, pathname, search, hash }} = window.location;
+        const cleanPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+        const fullPath = cleanPath ? `${{host}}/${{cleanPath}}` : host;
+        return `https://metamask.app.link/dapp/${{fullPath}}${{search || ''}}{{hash || ''}}`;
+    }}
+
+    function connectMetaMaskMobile() {{
+        if (window.ethereum && window.ethereum.isMetaMask) {{
+            return connectEvm();
+        }}
+        if (!isMobileDevice) {{
+            updateStatus('MetaMask mobile deep link is intended for mobile browsers only.', 'error');
+            return;
+        }}
+        const deepLink = buildMetaMaskDeepLink();
+        updateStatus('Opening MetaMask mobile… If nothing happens, copy or open this link manually: ' + deepLink, 'success');
+        const opened = window.open(deepLink, '_blank', 'noopener,noreferrer');
+        if (!opened) {{
+            window.location.href = deepLink;
+        }}
     }}
 
     async function connectEvm() {{

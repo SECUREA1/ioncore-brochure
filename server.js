@@ -398,6 +398,132 @@ app.post('/login', async (req, res) => {
     return recordFailure();
   }
 
+  if (method === 'wallet') {
+    if (!walletAddress) {
+      return recordFailure('Wallet session required for clearance validation. Connect a wallet and retry.');
+    }
+
+    if (!meknxPassId) {
+      return recordFailure('MEKNX clearance token required for wallet entry. Verify your pass before continuing.');
+    }
+
+    const meknxRecord = meknxRegistry.get(walletAddress);
+    const normalizedProvider = walletProvider
+      ? normalizeProvider(walletProvider)
+      : normalizeProvider(meknxRecord?.walletProvider || '');
+
+    if (!meknxRecord) {
+      return recordFailure(
+        'No MEKNX clearance found for this wallet. Mint or verify a MEKNX pass before requesting entry.',
+        403
+      );
+    }
+
+    if (meknxRecord.passId && meknxRecord.passId !== meknxPassId) {
+      return recordFailure('MEKNX pass mismatch detected. Re-verify your clearance token and try again.', 409);
+    }
+
+    if (!meknxRecord.passId) {
+      return recordFailure('MEKNX clearance token not yet minted for this wallet. Complete minting first.', 403);
+    }
+
+    const meknxStatusRaw = typeof body.meknxStatus === 'string' ? body.meknxStatus.trim().toLowerCase() : '';
+    const meknxStatus =
+      meknxStatusRaw === 'verified' || meknxStatusRaw === 'minted'
+        ? meknxStatusRaw
+        : meknxRecord.lastVerifiedAt
+        ? 'verified'
+        : 'minted';
+
+    const hasRecentVerification = Boolean(meknxRecord.lastVerifiedAt || meknxRecord.mintedAt);
+    if (!hasRecentVerification) {
+      return recordFailure('MEKNX clearance has not been verified recently. Re-run the MEKNX gate.', 403);
+    }
+
+    if (normalizedProvider === 'solana') {
+      const ioncVerified =
+        body.ioncVerified === true ||
+        body.ioncVerified === 'true' ||
+        body.ioncVerified === 1 ||
+        body.ioncVerified === '1';
+      const ioncTokens = Number.isFinite(body.ioncTokens) ? body.ioncTokens : Number(body.ioncTokens || 0);
+      const recordedTokens = Number.isFinite(meknxRecord.ioncTokens) ? meknxRecord.ioncTokens : 0;
+      if (!ioncVerified && (!ioncTokens || ioncTokens < 1)) {
+        return recordFailure('IONC verification required for Solana sessions. Confirm token holdings before entry.', 403);
+      }
+      if (!recordedTokens || recordedTokens < 1) {
+        return recordFailure('IONC access tokens not detected for this wallet. Mint or refresh MEKNX clearance first.', 403);
+      }
+    }
+
+    if (normalizedProvider === 'cardano') {
+      const policyVerified =
+        body.cardanoPolicyVerified === true ||
+        body.cardanoPolicyVerified === 'true' ||
+        body.cardanoPolicyVerified === 1 ||
+        body.cardanoPolicyVerified === '1';
+      if (!policyVerified) {
+        return recordFailure('Cardano policy verification required before entry. Confirm the policy and retry.', 403);
+      }
+      if (!meknxRecord.cardanoPolicyVerified || !meknxRecord.cardanoPolicyId) {
+        return recordFailure('Cardano policy not confirmed for this wallet. Complete policy verification and try again.', 403);
+      }
+      if (CARDANO_POLICY_ID && meknxRecord.cardanoPolicyId) {
+        const expectedPolicy = CARDANO_POLICY_ID.toLowerCase();
+        const recordedPolicy = meknxRecord.cardanoPolicyId.toLowerCase();
+        if (expectedPolicy && recordedPolicy !== expectedPolicy) {
+          return recordFailure('Recorded Cardano policy does not match the required asset. Re-verify the policy.', 403);
+        }
+      }
+    }
+
+    meknxRecord.walletProvider = normalizedProvider;
+    meknxRecord.lastLoginAt = new Date().toISOString();
+    meknxRegistry.set(walletAddress, meknxRecord);
+
+    const walletMetadata = serializeMetadata({
+      ...metadataBase,
+      walletLogin: {
+        provider: normalizedProvider,
+        meknxStatus,
+        meknxPassId,
+        meknxLastVerifiedAt: meknxRecord.lastVerifiedAt || null,
+        meknxMintedAt: meknxRecord.mintedAt || null,
+        ioncTokens: meknxRecord.ioncTokens || 0,
+        cardanoPolicyVerified: Boolean(meknxRecord.cardanoPolicyVerified),
+        cardanoPolicyId: meknxRecord.cardanoPolicyId || null
+      }
+    });
+
+    await recordLoginEvent({
+      method,
+      username,
+      walletAddress,
+      walletProvider: normalizedProvider,
+      meknxPassId,
+      success: true,
+      metadata: walletMetadata
+    });
+
+    const sessionId = createAuthSession();
+    setSessionCookie(res, sessionId);
+
+    return res.json({
+      redirect: nextPath,
+      wallet: {
+        address: walletAddress,
+        provider: normalizedProvider,
+        meknxPassId: meknxRecord.passId,
+        meknxStatus,
+        mintedAt: meknxRecord.mintedAt || null,
+        lastVerifiedAt: meknxRecord.lastVerifiedAt || null,
+        ioncTokens: meknxRecord.ioncTokens || 0,
+        cardanoPolicyVerified: Boolean(meknxRecord.cardanoPolicyVerified),
+        cardanoPolicyId: meknxRecord.cardanoPolicyId || null
+      }
+    });
+  }
+
   if (method === 'meknx') {
     if (!isThirdwebConfigured()) {
       return recordFailure(

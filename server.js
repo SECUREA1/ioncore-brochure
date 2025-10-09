@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import unzipper from 'unzipper';
 import { randomUUID } from 'crypto';
+import { executeMeknxGate, isThirdwebConfigured } from './integrations/thirdweb-client.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -352,7 +353,7 @@ app.post('/login', async (req, res) => {
       ? 'meknx'
       : 'credentials';
 
-  const metadata = serializeMetadata({
+  const metadataBase = {
     nextPath,
     meknxStatus: body.meknxStatus,
     meknxMintedAt: body.meknxMintedAt,
@@ -360,9 +361,10 @@ app.post('/login', async (req, res) => {
     ioncVerified: body.ioncVerified,
     cardanoPolicyVerified: body.cardanoPolicyVerified,
     cardanoPolicyId: body.cardanoPolicyId
-  });
+  };
+  const metadata = serializeMetadata(metadataBase);
 
-  const recordFailure = async (message) => {
+  const recordFailure = async (message, statusCode = 401) => {
     await recordLoginEvent({
       method,
       username,
@@ -373,7 +375,9 @@ app.post('/login', async (req, res) => {
       metadata
     });
     clearSessionCookie(res);
-    res.status(401).json({ message: message || 'Access denied. Invalid clearance credentials.' });
+    return res
+      .status(statusCode)
+      .json({ message: message || 'Access denied. Invalid clearance credentials.' });
   };
 
   if (method === 'credentials') {
@@ -391,11 +395,74 @@ app.post('/login', async (req, res) => {
       setSessionCookie(res, sessionId);
       return res.json({ redirect: nextPath });
     }
-    await recordFailure();
-    return;
+    return recordFailure();
   }
 
-  await recordFailure(
+  if (method === 'meknx') {
+    if (!isThirdwebConfigured()) {
+      return recordFailure(
+        'MEKNX verification temporarily offline. Contact support for clearance.',
+        503
+      );
+    }
+
+    try {
+      const verification = await executeMeknxGate({
+        passId: meknxPassId,
+        walletAddress
+      });
+
+      if (!verification.authorized) {
+        const failureMessage =
+          verification.message || 'MEKNX contract denied this clearance request.';
+        return recordFailure(failureMessage, 403);
+      }
+
+      const enrichedMetadata = serializeMetadata({
+        ...metadataBase,
+        meknxContract: {
+          authorized: verification.authorized,
+          message: verification.message,
+          contractAddress: verification.contractAddress,
+          method: verification.method,
+          params: verification.params,
+          rawResult: verification.rawResult
+        }
+      });
+
+      await recordLoginEvent({
+        method,
+        username,
+        walletAddress,
+        walletProvider,
+        meknxPassId,
+        success: true,
+        metadata: enrichedMetadata
+      });
+
+      const sessionId = createAuthSession();
+      setSessionCookie(res, sessionId);
+
+      return res.json({
+        redirect: nextPath,
+        meknx: {
+          authorized: verification.authorized,
+          message: verification.message,
+          contractAddress: verification.contractAddress,
+          method: verification.method,
+          params: verification.params
+        }
+      });
+    } catch (error) {
+      const failureMessage =
+        error && typeof error.message === 'string'
+          ? error.message
+          : 'MEKNX contract verification failed. Try again shortly.';
+      return recordFailure(failureMessage, 502);
+    }
+  }
+
+  return recordFailure(
     method === 'wallet'
       ? 'Wallet verification not yet provisioned for automated vault entry.'
       : 'MEKNX verification not yet provisioned for automated vault entry.'

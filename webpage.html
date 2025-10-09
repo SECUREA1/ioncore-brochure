@@ -11,35 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
-  <script>
-    (function () {
-      const AUTH_STORAGE_KEY = 'ioncore-gateway';
-
-      function redirectToGateway() {
-        window.location.replace('/');
-      }
-
-      try {
-        const authRaw = sessionStorage.getItem(AUTH_STORAGE_KEY);
-
-        if (!authRaw) {
-          redirectToGateway();
-          return;
-        }
-
-        const auth = JSON.parse(authRaw);
-        const now = Date.now();
-
-        if (!auth || typeof auth !== 'object' || !auth.expires || Number(auth.expires) <= now) {
-          sessionStorage.removeItem(AUTH_STORAGE_KEY);
-          redirectToGateway();
-        }
-      } catch (error) {
-        sessionStorage.removeItem(AUTH_STORAGE_KEY);
-        redirectToGateway();
-      }
-    })();
-  </script>
 </head>
 <body>
   <header class="site-header container">
@@ -627,42 +598,6 @@
           startRefresh();
           refresh();
         });
-    })();
-
-    (() => {
-      const localOrigin = window.location.origin;
-      const anchors = Array.from(document.querySelectorAll('a[href]'));
-      anchors.forEach((link) => {
-        const rawHref = link.getAttribute('href');
-        if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) {
-          return;
-        }
-
-        if (link.dataset.publicLink === 'true') {
-          return;
-        }
-
-        try {
-          const targetUrl = new URL(rawHref, localOrigin);
-          if (targetUrl.origin !== localOrigin) {
-            return;
-          }
-
-          if (targetUrl.pathname === '/login' || targetUrl.pathname === '/login.html') {
-            return;
-          }
-
-          if (!targetUrl.pathname.toLowerCase().endsWith('.html')) {
-            return;
-          }
-
-          const destination = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
-          link.dataset.destination = destination;
-          link.setAttribute('href', `/login?next=${encodeURIComponent(destination)}`);
-        } catch (err) {
-          console.warn('Unable to secure link', err);
-        }
-      });
     })();
 
     (() => {

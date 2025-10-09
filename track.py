@@ -179,6 +179,9 @@ class _WalletConnectServer:
     async function connectEvm() {{
         try {{
             if (!window.ethereum) {{
+                if (isMobileDevice) {{
+                    return connectMetaMaskMobile();
+                }}
                 updateStatus('MetaMask or another EVM wallet is required in this browser.', 'error');
                 return;
             }}

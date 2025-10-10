@@ -4,7 +4,6 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import unzipper from 'unzipper';
 import { randomUUID } from 'crypto';
-import { executeMeknxGate, executeMeknxMint, isThirdwebConfigured } from './integrations/thirdweb-client.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +27,7 @@ await fs.mkdir(DATA_DIR, { recursive: true });
 const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
 
 const defaultStore = {
+  loginEvents: [],
   contactSubmissions: [],
   gatewaySubmissions: [],
   gatewayUsers: {}
@@ -38,6 +38,7 @@ async function loadStore() {
     const raw = await fs.readFile(STORE_PATH, 'utf8');
     const parsed = JSON.parse(raw);
     return {
+      loginEvents: Array.isArray(parsed.loginEvents) ? parsed.loginEvents : [],
       contactSubmissions: Array.isArray(parsed.contactSubmissions) ? parsed.contactSubmissions : [],
       gatewaySubmissions: Array.isArray(parsed.gatewaySubmissions) ? parsed.gatewaySubmissions : [],
       gatewayUsers:
@@ -55,24 +56,9 @@ async function loadStore() {
 
 let store = await loadStore();
 
-let saveChain = Promise.resolve();
-
-function enqueueStoreSave() {
-  saveChain = saveChain
-    .catch(() => {
-      // Swallow prior errors so a single failure does not block future writes.
-    })
-    .then(async () => {
-      const snapshot = JSON.stringify(store, null, 2);
-      await fs.writeFile(STORE_PATH, snapshot, 'utf8');
-    });
-
-  return saveChain;
-}
-
 async function saveStore() {
   try {
-    await enqueueStoreSave();
+    await fs.writeFile(STORE_PATH, JSON.stringify(store, null, 2), 'utf8');
   } catch (error) {
     console.error('Failed to persist gateway store', error);
     throw error;
@@ -96,6 +82,24 @@ function serializeMetadata(value) {
   } catch (err) {
     console.error('Failed to serialize metadata for storage', err);
     return null;
+  }
+}
+
+async function recordLoginEvent(event) {
+  try {
+    store.loginEvents.push({
+      createdAt: new Date().toISOString(),
+      method: normalizeForStorage(event.method) || 'credentials',
+      username: normalizeForStorage(event.username),
+      walletAddress: normalizeForStorage(event.walletAddress),
+      walletProvider: normalizeForStorage(event.walletProvider),
+      meknxPassId: normalizeForStorage(event.meknxPassId),
+      success: event.success ? 1 : 0,
+      metadata: normalizeForStorage(event.metadata)
+    });
+    await saveStore();
+  } catch (err) {
+    console.error('Failed to record login event', err);
   }
 }
 
@@ -163,8 +167,13 @@ function pruneSessions() {
   }
 }
 
+const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
+const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'burrito';
+
+const COOKIE_NAME = 'ioncore_session';
 const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
 
+const authSessions = new Map();
 const meknxRegistry = new Map();
 
 function registerSession() {
@@ -207,6 +216,28 @@ async function sendHtml(res, filePath) {
   }
 }
 
+function createAuthSession() {
+  const sessionId = randomUUID();
+  authSessions.set(sessionId, Date.now());
+  return sessionId;
+}
+
+function validateAuthSession(sessionId) {
+  if (typeof sessionId !== 'string' || !sessionId) {
+    return false;
+  }
+  const lastSeen = authSessions.get(sessionId);
+  if (!lastSeen) {
+    return false;
+  }
+  if (Date.now() - lastSeen > COOKIE_MAX_AGE_MS) {
+    authSessions.delete(sessionId);
+    return false;
+  }
+  authSessions.set(sessionId, Date.now());
+  return true;
+}
+
 function buildHead(pageTitle) {
   const brandName = BRAND.name;
   const fullTitle = pageTitle.toLowerCase().includes(brandName.toLowerCase())
@@ -215,6 +246,40 @@ function buildHead(pageTitle) {
   const ogImage = BRAND.icon;
   const themeColor = BRAND.themeColor;
   return `<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="application-name" content="${brandName}"><meta name="apple-mobile-web-app-title" content="${brandName}"><meta name="theme-color" content="${themeColor}"><meta property="og:site_name" content="${brandName}"><meta property="og:title" content="${fullTitle}"><meta property="og:image" content="${ogImage}"><title>${fullTitle}</title><link rel="icon" type="image/svg+xml" href="${BRAND.icon}"><link rel="apple-touch-icon" href="${BRAND.icon}"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">`;
+}
+
+function destroyAuthSession(sessionId) {
+  if (typeof sessionId !== 'string' || !sessionId) {
+    return;
+  }
+  authSessions.delete(sessionId);
+}
+
+function getSessionIdFromCookies(req) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return '';
+  }
+  const cookies = cookieHeader.split(';');
+  for (const cookie of cookies) {
+    const [rawName, ...rest] = cookie.trim().split('=');
+    if (rawName === COOKIE_NAME) {
+      return rest.join('=');
+    }
+  }
+  return '';
+}
+
+function setSessionCookie(res, sessionId) {
+  const maxAgeSeconds = Math.floor(COOKIE_MAX_AGE_MS / 1000);
+  res.setHeader(
+    'Set-Cookie',
+    `${COOKIE_NAME}=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAgeSeconds}`
+  );
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
 }
 
 function normalizeProvider(provider) {
@@ -234,9 +299,93 @@ function normalizeProvider(provider) {
   return 'evm';
 }
 
+function generateMeknxPassId() {
+  return `MEKNX-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
+}
+
 function generateAccessCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+app.get('/login', async (req, res) => {
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
+    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
+    return res.redirect(safeNext);
+  }
+  await sendHtml(res, path.join(__dirname, 'login.html'));
+});
+
+app.post('/login', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const username = typeof body.username === 'string' ? body.username.trim() : '';
+  const password = typeof body.password === 'string' ? body.password : '';
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
+  const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
+  let nextPath = typeof body.next === 'string' ? body.next : '/';
+
+  if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
+    nextPath = '/';
+  }
+
+  const method = walletAddress
+    ? 'wallet'
+    : !username && meknxPassId && !password
+      ? 'meknx'
+      : 'credentials';
+
+  const metadata = serializeMetadata({
+    nextPath,
+    meknxStatus: body.meknxStatus,
+    meknxMintedAt: body.meknxMintedAt,
+    ioncTokens: body.ioncTokens,
+    ioncVerified: body.ioncVerified,
+    cardanoPolicyVerified: body.cardanoPolicyVerified,
+    cardanoPolicyId: body.cardanoPolicyId
+  });
+
+  const recordFailure = async (message) => {
+    await recordLoginEvent({
+      method,
+      username,
+      walletAddress,
+      walletProvider,
+      meknxPassId,
+      success: false,
+      metadata
+    });
+    clearSessionCookie(res);
+    res.status(401).json({ message: message || 'Access denied. Invalid clearance credentials.' });
+  };
+
+  if (method === 'credentials') {
+    if (username === AUTH_USER && password === AUTH_PASS) {
+      await recordLoginEvent({
+        method,
+        username,
+        walletAddress,
+        walletProvider,
+        meknxPassId,
+        success: true,
+        metadata
+      });
+      const sessionId = createAuthSession();
+      setSessionCookie(res, sessionId);
+      return res.json({ redirect: nextPath });
+    }
+    await recordFailure();
+    return;
+  }
+
+  await recordFailure(
+    method === 'wallet'
+      ? 'Wallet verification not yet provisioned for automated vault entry.'
+      : 'MEKNX verification not yet provisioned for automated vault entry.'
+  );
+});
 
 app.post('/contact', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -424,7 +573,14 @@ app.post('/gateway', async (req, res) => {
   });
 });
 
-app.post('/access/meknx', async (req, res) => {
+app.post('/logout', (req, res) => {
+  const sessionId = getSessionIdFromCookies(req);
+  destroyAuthSession(sessionId);
+  clearSessionCookie(res);
+  res.json({ message: 'Logged out' });
+});
+
+app.post('/access/meknx', (req, res) => {
   const body = req.body || {};
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const actionRaw = typeof body.action === 'string' ? body.action.trim().toLowerCase() : 'verify';
@@ -432,30 +588,13 @@ app.post('/access/meknx', async (req, res) => {
     typeof body.walletProvider === 'string' && body.walletProvider.trim()
       ? normalizeProvider(body.walletProvider.trim())
       : '';
-  const passIdRaw =
-    typeof body.passId === 'string'
-      ? body.passId
-      : typeof body.meknxPassId === 'string'
-        ? body.meknxPassId
-        : '';
-  let passId = passIdRaw.trim();
 
   if (!walletAddress) {
     return res.status(400).json({ message: 'Wallet address required for MEKNX clearance.' });
   }
 
-  if (!passId) {
-    return res.status(400).json({ message: 'Provide your MEKNX pass token before continuing.' });
-  }
-
   if (actionRaw !== 'verify' && actionRaw !== 'mint') {
     return res.status(400).json({ message: 'Unsupported MEKNX clearance action.' });
-  }
-
-  if (!isThirdwebConfigured()) {
-    return res
-      .status(503)
-      .json({ message: 'MEKNX verification is temporarily offline. Contact support for clearance assistance.' });
   }
 
   const nowIso = new Date().toISOString();
@@ -463,121 +602,79 @@ app.post('/access/meknx', async (req, res) => {
   const fallbackProvider = existing ? normalizeProvider(existing.walletProvider) : 'evm';
   const walletProvider = requestedProvider || fallbackProvider;
 
-  let mintResult;
-  if (actionRaw === 'mint') {
-    try {
-      mintResult = await executeMeknxMint({
-        passId,
-        walletAddress
-      });
-
-      if (mintResult && typeof mintResult.passId === 'string' && mintResult.passId.trim().length > 0) {
-        passId = mintResult.passId.trim();
-      }
-    } catch (error) {
-      const fallbackMessage =
-        error && typeof error.message === 'string'
-          ? error.message
-          : 'MEKNX mint transaction failed. Try again shortly.';
-      return res.status(502).json({ message: fallbackMessage });
+  if (actionRaw === 'verify') {
+    if (!existing) {
+      return res.status(404).json({ message: 'No MEKNX pass found for this wallet. Mint a clearance token first.' });
     }
-  }
 
-  let verification;
-  try {
-    verification = await executeMeknxGate({ passId, walletAddress });
-  } catch (error) {
-    const fallbackMessage =
-      error && typeof error.message === 'string'
-        ? error.message
-        : 'MEKNX contract verification failed. Try again shortly.';
-    return res.status(502).json({ message: fallbackMessage });
-  }
-
-  if (!verification.authorized) {
-    const failureMessage =
-      verification.message ||
-      (actionRaw === 'mint'
-        ? 'No MEKNX credential detected for this wallet. Mint a pass in the official portal and retry.'
-        : 'MEKNX pass not recognised. Mint a clearance token or double-check the token ID.');
-    return res.status(403).json({ message: failureMessage });
-  }
-
-  const passChanged = existing && existing.passId && existing.passId !== passId;
-  const isNewRecord = !existing || passChanged;
-  const record = existing ? { ...existing } : {};
-
-  record.walletAddress = walletAddress;
-  record.walletProvider = walletProvider;
-  record.passId = passId;
-  record.lastVerifiedAt = nowIso;
-
-  if (isNewRecord || !record.mintedAt) {
-    record.mintedAt = nowIso;
-  }
-
-  if (walletProvider === 'solana') {
-    const existingTokens = Number.isFinite(record.ioncTokens) ? Number(record.ioncTokens) : 0;
-    record.ioncTokens = existingTokens > 0 ? existingTokens : 1;
-  } else if (!Number.isFinite(record.ioncTokens)) {
-    record.ioncTokens = 0;
-  }
-
-  if (walletProvider === 'cardano') {
-    record.cardanoPolicyId = CARDANO_POLICY_ID;
-    record.cardanoPolicyVerified = record.cardanoPolicyVerified === true;
-  } else if (isNewRecord) {
-    record.cardanoPolicyVerified = false;
-    if (record.cardanoPolicyId && walletProvider !== 'cardano') {
-      record.cardanoPolicyId = '';
+    existing.walletProvider = walletProvider;
+    existing.lastVerifiedAt = nowIso;
+    if (existing.walletProvider === 'cardano' && !existing.cardanoPolicyId) {
+      existing.cardanoPolicyId = CARDANO_POLICY_ID;
     }
+    meknxRegistry.set(walletAddress, existing);
+    return res.json({
+      status: 'verified',
+      passId: existing.passId,
+      mintedAt: existing.mintedAt,
+      walletProvider: existing.walletProvider,
+      ioncTokens: existing.ioncTokens || 0,
+      cardanoPolicyId: existing.cardanoPolicyId || '',
+      cardanoPolicyVerified: !!existing.cardanoPolicyVerified,
+      message: 'MEKNX verification confirmed.'
+    });
   }
 
+  if (existing) {
+    existing.walletProvider = walletProvider;
+    if (existing.walletProvider === 'solana' && (!existing.ioncTokens || existing.ioncTokens < 1)) {
+      existing.ioncTokens = 1;
+    }
+    if (existing.walletProvider === 'cardano') {
+      existing.cardanoPolicyId = existing.cardanoPolicyId || CARDANO_POLICY_ID;
+      existing.cardanoPolicyVerified = existing.cardanoPolicyVerified === true;
+    } else if (existing.cardanoPolicyVerified) {
+      existing.cardanoPolicyVerified = false;
+    }
+    existing.lastVerifiedAt = nowIso;
+    meknxRegistry.set(walletAddress, existing);
+    return res.json({
+      status: 'minted',
+      passId: existing.passId,
+      mintedAt: existing.mintedAt,
+      walletProvider: existing.walletProvider,
+      ioncTokens: existing.ioncTokens || 0,
+      cardanoPolicyId: existing.cardanoPolicyId || '',
+      cardanoPolicyVerified: !!existing.cardanoPolicyVerified,
+      message: 'Existing MEKNX pass located. Verification refreshed.'
+    });
+  }
+
+  const passId = generateMeknxPassId();
+  const mintedAt = nowIso;
+  const ioncTokens = walletProvider === 'solana' ? 1 : 0;
+  const record = {
+    walletAddress,
+    walletProvider,
+    passId,
+    mintedAt,
+    lastVerifiedAt: nowIso,
+    ioncTokens,
+    cardanoPolicyId: walletProvider === 'cardano' ? CARDANO_POLICY_ID : '',
+    cardanoPolicyVerified: false
+  };
   meknxRegistry.set(walletAddress, record);
 
-  const status = actionRaw === 'mint' || isNewRecord ? 'minted' : 'verified';
-  const message =
-    verification.message ||
-    (mintResult && mintResult.message) ||
-    (status === 'minted' ? 'MEKNX pass minted and verified.' : 'MEKNX clearance verified.');
-
-  const contractDetails = {
-    gate: {
-      authorized: verification.authorized,
-      message: verification.message,
-      contractAddress: verification.contractAddress,
-      method: verification.method,
-      params: verification.params,
-      rawResult: verification.rawResult
-    }
-  };
-
-  if (mintResult) {
-    contractDetails.mint = {
-      contractAddress: mintResult.contractAddress,
-      method: mintResult.method,
-      params: mintResult.params,
-      transactionHash: mintResult.transactionHash,
-      receipt: mintResult.receipt,
-      signerAddress: mintResult.signerAddress,
-      passId: mintResult.passId,
-      message: mintResult.message
-    };
-  }
-
-  const responsePayload = {
-    status,
-    passId: record.passId,
-    mintedAt: record.mintedAt,
-    walletProvider: record.walletProvider,
-    ioncTokens: Number.isFinite(record.ioncTokens) ? record.ioncTokens : 0,
-    cardanoPolicyId: record.cardanoPolicyId || '',
-    cardanoPolicyVerified: Boolean(record.cardanoPolicyVerified),
-    message,
-    contract: contractDetails
-  };
-
-  return res.status(status === 'minted' && isNewRecord ? 201 : 200).json(responsePayload);
+  return res.status(201).json({
+    status: 'minted',
+    passId,
+    mintedAt,
+    walletProvider,
+    ioncTokens,
+    cardanoPolicyId: record.cardanoPolicyId,
+    cardanoPolicyVerified: record.cardanoPolicyVerified,
+    message: 'MEKNX pass minted successfully.'
+  });
 });
 
 app.post('/access/ionc', (req, res) => {
@@ -681,6 +778,63 @@ app.post('/access/cardano', (req, res) => {
   });
 });
 
+function isPublicRoute(req) {
+  if (
+    req.method === 'POST' &&
+    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano', '/contact', '/gateway'].includes(req.path)
+  ) {
+    return true;
+  }
+
+  if (req.method === 'GET') {
+    const publicHtml = new Set([
+      '/login',
+      '/login.html',
+      '/',
+      '/webpage.html',
+      '/index',
+      '/index.html',
+      '/index/',
+      '/IONCORECHAT',
+      '/IONCORECHAT/',
+      '/IONCORECHAT/index',
+      '/IONCORECHAT/index.html'
+    ]);
+    if (publicHtml.has(req.path)) {
+      return true;
+    }
+
+    const publicAssets = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.json', '.txt']);
+    const extension = path.extname(req.path).toLowerCase();
+    if (publicAssets.has(extension)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function requireAuth(req, res, next) {
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    return next();
+  }
+
+  clearSessionCookie(res);
+
+  const expectsHtml = req.method === 'GET' && req.accepts('html');
+  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
+  if (expectsHtml) {
+    return res.redirect(`/login?next=${nextPath}`);
+  }
+  res.status(401).json({ message: 'Authentication required' });
+}
+
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   let files = [];
@@ -703,9 +857,11 @@ async function getTitle(filePath) {
   return match ? match[1].trim() : path.basename(filePath);
 }
 
+app.use(requireAuth);
+
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
 });
 
 app.get('/timepieces', async (req, res) => {

@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "thirdweb": "^5.108.10",
     "unzipper": "^0.11.4"
   }
 }

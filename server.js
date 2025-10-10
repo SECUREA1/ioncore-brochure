@@ -307,84 +307,46 @@ function generateAccessCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-app.get('/login', async (req, res) => {
+app.get(['/login', '/login.html'], (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
   if (validateAuthSession(sessionId)) {
     setSessionCookie(res, sessionId);
-    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
-    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
-    return res.redirect(safeNext);
+  } else if (sessionId) {
+    clearSessionCookie(res);
   }
-  await sendHtml(res, path.join(__dirname, 'login.html'));
+
+  let redirectTarget = '/';
+  if (typeof req.query.next === 'string') {
+    const candidate = req.query.next;
+    if (candidate.startsWith('/') && !candidate.startsWith('//')) {
+      redirectTarget = candidate;
+    }
+  }
+
+  if (redirectTarget === '/login' || redirectTarget === '/login.html') {
+    redirectTarget = '/';
+  }
+
+  res.redirect(redirectTarget);
 });
 
 app.post('/login', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const username = typeof body.username === 'string' ? body.username.trim() : '';
-  const password = typeof body.password === 'string' ? body.password : '';
-  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
-  const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
-  const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
-  let nextPath = typeof body.next === 'string' ? body.next : '/';
 
-  if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
-    nextPath = '/';
-  }
-
-  const method = walletAddress
-    ? 'wallet'
-    : !username && meknxPassId && !password
-      ? 'meknx'
-      : 'credentials';
-
-  const metadata = serializeMetadata({
-    nextPath,
-    meknxStatus: body.meknxStatus,
-    meknxMintedAt: body.meknxMintedAt,
-    ioncTokens: body.ioncTokens,
-    ioncVerified: body.ioncVerified,
-    cardanoPolicyVerified: body.cardanoPolicyVerified,
-    cardanoPolicyId: body.cardanoPolicyId
+  await recordLoginEvent({
+    method: 'retired',
+    username: normalizeForStorage(body.username),
+    walletAddress: normalizeForStorage(body.walletAddress),
+    walletProvider: normalizeForStorage(body.walletProvider),
+    meknxPassId: normalizeForStorage(body.meknxPassId),
+    success: false,
+    metadata: serializeMetadata({ reason: 'Login portal disabled' })
   });
 
-  const recordFailure = async (message) => {
-    await recordLoginEvent({
-      method,
-      username,
-      walletAddress,
-      walletProvider,
-      meknxPassId,
-      success: false,
-      metadata
-    });
-    clearSessionCookie(res);
-    res.status(401).json({ message: message || 'Access denied. Invalid clearance credentials.' });
-  };
-
-  if (method === 'credentials') {
-    if (username === AUTH_USER && password === AUTH_PASS) {
-      await recordLoginEvent({
-        method,
-        username,
-        walletAddress,
-        walletProvider,
-        meknxPassId,
-        success: true,
-        metadata
-      });
-      const sessionId = createAuthSession();
-      setSessionCookie(res, sessionId);
-      return res.json({ redirect: nextPath });
-    }
-    await recordFailure();
-    return;
-  }
-
-  await recordFailure(
-    method === 'wallet'
-      ? 'Wallet verification not yet provisioned for automated vault entry.'
-      : 'MEKNX verification not yet provisioned for automated vault entry.'
-  );
+  clearSessionCookie(res);
+  res.status(410).json({
+    message: 'The login portal has been retired. Access the brochure directly from the homepage.'
+  });
 });
 
 app.post('/contact', async (req, res) => {
@@ -815,24 +777,7 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  if (isPublicRoute(req)) {
-    return next();
-  }
-
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    return next();
-  }
-
-  clearSessionCookie(res);
-
-  const expectsHtml = req.method === 'GET' && req.accepts('html');
-  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
-  if (expectsHtml) {
-    return res.redirect(`/login?next=${nextPath}`);
-  }
-  res.status(401).json({ message: 'Authentication required' });
+  return next();
 }
 
 async function getHtmlFiles(dir) {

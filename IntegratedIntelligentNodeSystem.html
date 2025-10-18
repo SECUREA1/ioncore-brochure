@@ -1,275 +1,549 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>RedNode.ai — Integrated Intelligent Node System</title>
-  <meta name="description" content="RedNode.ai unifies multi‑modal sensing, AI automation, and verifiable data to orchestrate smarter workflows across industrial, security, and enterprise environments." />
-  <link rel="icon" href="/static/excavator.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet" />
-  <meta name="color-scheme" content="dark light" />
-  <meta property="og:title" content="RedNode.ai — Integrated Intelligent Node System" />
-  <meta property="og:description" content="Automation that learns, adapts, and scales with your operation." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="/static/og-rednode.jpg" />
-  <meta name="theme-color" content="#0b0f22" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ioncore Energy | Integrated Intelligent Node System</title>
+  <meta name="description" content="Ioncore's Integrated Intelligent Node System synchronizes sensing, automation, and verifiable data streams for elite infrastructure portfolios.">
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    :root{
-      /* Brand palette */
-      --bg: #050814;
-      --bg-grad: radial-gradient(160% 120% at 20% -10%, rgba(255, 115, 179, 0.38), transparent 60%),
-                 radial-gradient(120% 120% at 120% 20%, rgba(65, 140, 255, 0.35), transparent 60%),
-                 linear-gradient(180deg, #040815 0%, #070b1a 62%, #02030a 100%);
-      --panel: rgba(16, 23, 45, 0.86);
-      --panel-2: rgba(24, 32, 64, 0.62);
-      --glass: rgba(122, 161, 255, 0.28);
-      --text: #f5f7ff;
-      --muted: #9aa3c8;
-      --accent: #ff4d8d;   /* Pink */
-      --accent-2: #7b9dff; /* Indigo */
-      --accent-strong: #ff7a5c;
-      --ok: #1bd19c;
-      --warn: #ffb020;
-      --danger: #ff5d6e;
-      --radius-xl: 28px; --radius-lg: 18px; --radius: 14px;
-      color-scheme: dark;
+    :root {
+      --bg: #040912;
+      --bg-alt: #0c1726;
+      --panel: rgba(9, 22, 34, 0.78);
+      --panel-soft: rgba(11, 27, 41, 0.58);
+      --border: rgba(91, 248, 179, 0.18);
+      --border-strong: rgba(91, 248, 179, 0.48);
+      --accent: #5bf8b3;
+      --accent-strong: #28dea0;
+      --text: #f4f8ff;
+      --muted: #9eb5d0;
+      --shadow: 0 34px 120px rgba(2, 10, 24, 0.68);
+      --radius: 24px;
     }
-    :root[data-theme='light']{
-      --bg:#f6f7ff; --bg-grad: linear-gradient(180deg,#f6f7ff 0%,#eef1ff 60%,#f7f8ff 100%);
-      --panel:#ffffff; --panel-2:#f2f5ff;
-      --text:#0b1020; --muted:#586084;
-      --glass: rgba(75, 99, 255, 0.28);
-      color-scheme: light;
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    *,*::before,*::after{box-sizing:border-box}
-    html,body{height:100%;}
-    body{margin:0;background:var(--bg-grad);color:var(--text);font: 15px/1.6 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
-    img{max-width:100%;display:block}
-    a{color:inherit}
 
-    /* Header */
-    nav{position:sticky;top:0;z-index:40;backdrop-filter: blur(16px);background:linear-gradient(120deg, rgba(12, 16, 33, .88), rgba(12, 16, 33, .6));border-bottom:1px solid var(--glass)}
-    .nav-wrap{max-width:1160px;margin:0 auto;padding:14px clamp(16px,3vw,24px);display:flex;align-items:center;gap:16px}
-    .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk', sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-    .brand .logo{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(140deg, rgba(255,77,141,.14), rgba(75,118,255,.22));border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 24px rgba(8,12,30,.45)}
-    .brand .logo img{width:20px;height:20px;filter: drop-shadow(0 0 6px rgba(255,112,168,.8))}
-    .links{margin-left:auto;display:flex;flex-wrap:wrap;gap:14px}
-    .links a{position:relative;text-decoration:none;color:var(--muted);font-weight:600;padding-bottom:6px;font-size:.96rem}
-    .links a::after{content:'';position:absolute;inset:auto 0 -4px;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-strong));transform:scaleX(0);transform-origin:right;transition:transform .25s ease}
-    .links a:hover,.links a:focus{color:var(--text)}
-    .links a:hover::after,.links a:focus::after{transform:scaleX(1);transform-origin:left}
-    .nav-cta{display:flex;gap:10px;flex-wrap:wrap;margin-left:10px}
-    .btn{display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.2rem;border-radius:999px;border:1px solid transparent;font-weight:700;letter-spacing:.02em;text-decoration:none;cursor:pointer;transition:transform .2s ease, box-shadow .25s ease}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-strong));color:#070912;box-shadow:0 18px 35px rgba(255,87,136,.38)}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 24px 44px rgba(255,110,143,.5)}
-    .btn-ghost{background:rgba(16,24,46,.45);border-color:var(--glass);color:var(--text);box-shadow:0 16px 32px rgba(9,12,25,.45)}
-    .btn-ghost:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.6)}
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(120% 140% at 12% -6%, rgba(91, 248, 179, 0.18), transparent 60%),
+        radial-gradient(80% 100% at 92% 6%, rgba(40, 222, 160, 0.12), transparent 65%),
+        linear-gradient(140deg, #02070d, #071425 55%, #050912 100%);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
 
-    main{padding: clamp(32px, 5vw, 56px) clamp(16px, 4vw, 28px)}
-    .max{max-width:1160px;margin:0 auto}
+    a {
+      color: inherit;
+    }
 
-    /* Hero */
-    .hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(24px,4vw,40px);align-items:center;margin:0 auto clamp(48px,7vw,72px)}
-    .eyebrow{font-size:.9rem;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,255,255,.6)}
-    h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.4rem,5vw,3.5rem);line-height:1.07;margin:6px 0 10px;color:#fff}
-    .lead{font-size:1.05rem;color:var(--muted);max-width:560px}
-    .hero-visual{position:relative;padding:clamp(18px,3vw,28px);border:1px solid var(--glass);border-radius:var(--radius-xl);background:linear-gradient(140deg, rgba(27,36,67,.9), rgba(24,30,55,.62));box-shadow:0 30px 60px rgba(8,12,30,.45);overflow:hidden}
-    .hero-visual::before{content:'';position:absolute;inset:-40% -30% 30% -30%;background:radial-gradient(ellipse at top, rgba(255, 77, 141, .38), transparent 60%);filter:blur(12px)}
-    .hero-visual img{position:relative;width:clamp(200px,60%,320px);margin:0 auto;filter:drop-shadow(0 18px 38px rgba(255,105,180,.45));animation:float 8s ease-in-out infinite}
-    .hero-metrics{position:absolute;bottom:14px;left:18px;right:18px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:.92rem;color:rgba(255,255,255,.88)}
-    .hero-metrics strong{display:block;font-size:1.3rem;color:#fff}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(4, 9, 18, 0.82);
+      border-bottom: 1px solid rgba(91, 248, 179, 0.18);
+    }
 
-    /* Sections */
-    .section{margin:0 auto clamp(44px,6vw,64px)}
-    .section-header{display:grid;gap:6px;margin-bottom:18px}
-    .section-header h2{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(1.8rem,3.5vw,2.4rem)}
-    .section-header p{max-width:640px;color:var(--muted)}
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px clamp(16px, 4vw, 32px);
+    }
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:clamp(16px,3vw,24px)}
-    .card{background:var(--panel);border:1px solid var(--glass);border-radius:var(--radius-lg);padding:clamp(18px,3vw,22px);box-shadow:0 24px 42px rgba(5,9,22,.35);position:relative;overflow:hidden}
-    .card::after{content:'';position:absolute;inset:0;background:linear-gradient(140deg, rgba(255,77,141,.08), transparent 60%);opacity:0;transition:opacity .25s ease}
-    .card:hover{transform:translateY(-4px);box-shadow:0 36px 60px rgba(9,12,25,.55);border-color:rgba(255,255,255,.25)}
-    .card:hover::after{opacity:1}
-    .card h3{margin:0 0 8px;font-size:1.12rem;color:#fff}
-    .card p{margin:0;color:rgba(227,233,255,.9)}
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
 
-    .panel{background:var(--panel-2);border:1px solid var(--glass);border-radius:var(--radius-xl);padding:clamp(22px,4vw,28px);box-shadow:0 32px 52px rgba(6,9,22,.48)}
+    .logo img {
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 0 12px rgba(91, 248, 179, 0.6));
+    }
 
-    .cta-block{text-align:center;background:rgba(18,25,48,.76);border-radius:var(--radius-xl);padding:clamp(28px,6vw,40px);border:1px solid rgba(255,77,141,.28);box-shadow:0 32px 52px rgba(6,9,22,.5);display:grid;gap:12px}
-    .cta-block h2{margin:0;font-size:clamp(1.9rem,4vw,2.6rem)}
+    nav ul {
+      display: flex;
+      gap: clamp(14px, 2vw, 24px);
+      list-style: none;
+      font-size: 0.95rem;
+    }
 
-    /* Footer */
-    footer{padding:24px 16px 36px;text-align:center;color:var(--muted);font-size:.92rem}
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: border 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
 
-    /* Utilities */
-    .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(16,24,46,.6);border:1px solid var(--glass);box-shadow:0 14px 28px rgba(6,9,22,.45);font-weight:600}
-    .dot{width:8px;height:8px;border-radius:999px;background:var(--muted)}
-    .dot.ok{background:var(--ok)}
+    nav a:hover,
+    nav a:focus {
+      color: var(--text);
+      border-color: rgba(91, 248, 179, 0.35);
+      background: rgba(91, 248, 179, 0.08);
+    }
 
-    /* Responsive tweeks */
-    @media (max-width:720px){
-      .nav-wrap{flex-wrap:wrap}
-      .links{order:3;width:100%;justify-content:flex-start}
-      .nav-cta{order:2;margin-left:auto}
+    .nav-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #021015;
+      box-shadow: 0 20px 44px rgba(40, 222, 160, 0.38);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 26px 54px rgba(40, 222, 160, 0.48);
+    }
+
+    .btn-outline {
+      border-color: rgba(91, 248, 179, 0.4);
+      color: var(--accent);
+      background: rgba(91, 248, 179, 0.06);
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(91, 248, 179, 0.6);
+      background: rgba(91, 248, 179, 0.12);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: clamp(48px, 6vw, 80px) clamp(18px, 5vw, 36px) 120px;
+      display: grid;
+      gap: clamp(56px, 8vw, 80px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: clamp(32px, 6vw, 64px);
+      align-items: center;
+    }
+
+    .hero__tag {
+      font-size: 0.8rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(91, 248, 179, 0.62);
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.6rem, 5vw, 3.6rem);
+      margin-bottom: 24px;
+      line-height: 1.1;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: clamp(1.04rem, 2vw, 1.2rem);
+      margin-bottom: 26px;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+      list-style: none;
+      padding: 0;
+    }
+
+    .chip-row li {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      background: rgba(91, 248, 179, 0.1);
+      border: 1px solid rgba(91, 248, 179, 0.24);
+      color: var(--accent);
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hero__visual {
+      position: relative;
+      padding: clamp(18px, 4vw, 32px);
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero__visual::before {
+      content: '';
+      position: absolute;
+      inset: -40% -20% 20% -20%;
+      background: radial-gradient(circle at top, rgba(91, 248, 179, 0.18), transparent 65%);
+      opacity: 0.9;
+    }
+
+    .hero__visual img {
+      position: relative;
+      width: clamp(220px, 60%, 320px);
+      margin: 0 auto;
+      filter: drop-shadow(0 20px 40px rgba(20, 40, 60, 0.65));
+    }
+
+    .metrics {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 18px;
+    }
+
+    .metric-card {
+      background: var(--panel-soft);
+      border: 1px solid rgba(91, 248, 179, 0.18);
+      border-radius: 18px;
+      padding: 16px 18px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .metric-card span:first-child {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    section {
+      display: grid;
+      gap: 24px;
+    }
+
+    .section-eyebrow {
+      color: rgba(91, 248, 179, 0.62);
+      letter-spacing: 0.32em;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 3.4vw, 2.6rem);
+      max-width: 720px;
+    }
+
+    .section-copy {
+      color: var(--muted);
+      max-width: 720px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: clamp(20px, 4vw, 28px);
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: clamp(20px, 3vw, 26px);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(91, 248, 179, 0.12), transparent 65%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .card:hover::after {
+      opacity: 1;
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+    }
+
+    .process-panel {
+      background: var(--panel-soft);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: clamp(24px, 4vw, 32px);
+      box-shadow: var(--shadow);
+    }
+
+    .cta-block {
+      background: linear-gradient(140deg, rgba(91, 248, 179, 0.12), rgba(10, 32, 40, 0.82));
+      border-radius: var(--radius);
+      border: 1px solid var(--border-strong);
+      padding: clamp(32px, 6vw, 48px);
+      text-align: center;
+      display: grid;
+      gap: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    footer {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 960px) {
+      nav ul {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <nav>
-    <div class="nav-wrap">
-      <div class="brand">
-        <span class="logo"><img src="/static/excavator.svg" alt="RedNode logo" loading="lazy" /></span>
-        <span>RedNode.ai</span>
-      </div>
-      <div class="links">
-        <a href="#home">Home</a>
-        <a href="#features">Features</a>
-        <a href="#tech">Technology</a>
-        <a href="#nodes">Nodes</a>
-        <a href="#process">How It Works</a>
-        <a href="#marketplace">Marketplace</a>
-        <a href="#contact">Contact</a>
-      </div>
-      <div class="nav-cta">
-        <a class="btn btn-ghost" href="/home.html">Product Overview</a>
-        <a class="btn btn-ghost" href="/dashboard.html">Operations Dashboard</a>
-        <a class="btn btn-primary" href="/CHAINES.IO-CHAT-codex-fix-footer-not-staying-active-on-scroll/index.html">Enter Chat Stream</a>
+  <header>
+    <div class="nav-container">
+      <a class="logo" href="/">
+        <img src="battery.svg" alt="Ioncore Energy mark" width="44" height="44">
+        Ioncore Energy
+      </a>
+      <nav aria-label="Secondary">
+        <ul>
+          <li><a href="#capabilities">Capabilities</a></li>
+          <li><a href="#technology">Technology</a></li>
+          <li><a href="#nodes">Node suites</a></li>
+          <li><a href="#process">Process</a></li>
+          <li><a href="#marketplace">Marketplace</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn btn-outline" href="webpage.html">Portfolio</a>
+        <a class="btn btn-primary" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Connect</a>
       </div>
     </div>
-  </nav>
+  </header>
 
-  <main class="max">
-    <!-- Hero -->
-    <section id="home" class="hero">
+  <main>
+    <section class="hero" id="home">
       <div>
-        <span class="eyebrow">Integrated Intelligent Node System</span>
-        <h1>Automation that learns, adapts, and scales with your operation.</h1>
-        <p class="lead">RedNode.ai unifies multi‑modal sensing, AI‑powered automation, and trusted verification to orchestrate smarter workflows across industrial, security, and enterprise environments.</p>
-        <div class="chips" style="margin-top:12px">
-          <span class="chip"><span class="dot ok"></span> 24/7 Adaptive monitoring</span>
-          <span class="chip"><strong>+38%</strong> Workflow efficiency</span>
-          <span class="chip">Tier IV Security assurance</span>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
-          <a class="btn btn-primary" href="/start.html">Launch Control Centre</a>
-          <a class="btn btn-ghost" href="#contact">Connect with our team</a>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <img src="/static/excavator.svg" alt="RedNode excavation control" loading="lazy" />
-        <div class="hero-metrics">
-          <span><strong>Edge‑first</strong>Latency‑safe</span>
-          <span><strong>Verified</strong>Chain‑ready logs</span>
-          <span><strong>Modular</strong>Node kits</span>
+        <p class="hero__tag">Integrated Intelligent Node System</p>
+        <h1>Autonomous orchestration for <span>mission-critical</span> environments.</h1>
+        <p>Ioncore's Integrated Intelligent Node System combines multi-modal sensing, adaptive automation, and verifiable data pathways to keep luxury estates, industrial campuses, and secure districts synchronized in real time.</p>
+        <ul class="chip-row">
+          <li><i class="fa-solid fa-wave-square"></i>Adaptive analytics</li>
+          <li><i class="fa-solid fa-shield"></i>Tier IV assurance</li>
+          <li><i class="fa-solid fa-signal"></i>Edge-first design</li>
+        </ul>
+        <div class="nav-actions">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a strategy session</a>
+          <a class="btn btn-outline" href="#contact">Request a briefing</a>
         </div>
       </div>
-    </section>
-
-    <!-- Features -->
-    <section id="features" class="section">
-      <div class="section-header">
-        <span class="eyebrow">Capabilities</span>
-        <h2>Designed for operators who need intelligence at every node.</h2>
-        <p>From jobsites to smart facilities, RedNode.ai learns how your teams move, coordinate, and deliver—unlocking automation that feels tailored to each environment.</p>
-      </div>
-      <div class="grid">
-        <article class="card"><h3>Personal Node Growth</h3><p>Your RedNode learns from your home, office, or industrial setup to optimize workflows and automation.</p></article>
-        <article class="card"><h3>Multi‑Modal Data Collection</h3><p>Captures human movement, machine telemetry, and real‑time sensor readings to build actionable intelligence.</p></article>
-        <article class="card"><h3>AI‑Powered Automation</h3><p>Leverages deep learning to recognize tasks, improve efficiency, and orchestrate consistent execution.</p></article>
-        <article class="card"><h3>Rewards for Quality Data</h3><p>Earn payouts by uploading high‑quality data, tokenized for network growth, model refinement, and AI training.</p></article>
-      </div>
-    </section>
-
-    <!-- Technology -->
-    <section id="tech" class="section">
-      <div class="section-header">
-        <span class="eyebrow">Technology stack</span>
-        <h2>Built on signal intelligence, machine learning, and trusted distribution.</h2>
-        <p>Our architecture combines human‑in‑the‑loop feedback with ruggedized edge computing and verifiable data paths.</p>
-      </div>
-      <div class="grid">
-        <article class="card"><h3>Omconsole Technology</h3><p>EEG, EMG, retina, and gesture‑controlled remote systems with AI‑assisted verification and distribution.</p></article>
-        <article class="card"><h3>AI &amp; Machine Learning</h3><p>YOLO, DeepFace, and custom models deliver real‑time recognition, planning, and task execution in the field.</p></article>
-        <article class="card"><h3>Edge Computing</h3><p>Local processing drives low‑latency reactions while prioritizing safety, privacy, and operational uptime.</p></article>
-        <article class="card"><h3>Blockchain Integrity</h3><p>Secure, immutable logging and verification of events with chain‑ready data for auditors and partners.</p></article>
-      </div>
-    </section>
-
-    <!-- Nodes -->
-    <section id="nodes" class="section">
-      <div class="section-header">
-        <span class="eyebrow">Node experiences</span>
-        <h2>Deploy the right node for each environment and evolve it over time.</h2>
-        <p>Modular hardware and software experiences keep crews focused on delivery while RedNode quietly handles orchestration.</p>
-      </div>
-      <div class="grid">
-        <article class="card"><h3>Residential Nodes</h3><p>Automate secure access, energy efficiency, and lifestyle routines with privacy‑first sensing and local inference.</p></article>
-        <article class="card"><h3>Industrial Nodes</h3><p>Coordinate fleets, oversee compliance, and trigger preventative maintenance across heavy machinery and robotics.</p></article>
-        <article class="card"><h3>Security Nodes</h3><p>Fuse surveillance, identity, and anomaly detection into a single command interface with automated alerting.</p></article>
-        <article class="card"><h3>Object Tracking Node</h3><p>Real‑time tracking for logistics and site safety across dynamic environments.</p></article>
-      </div>
-    </section>
-
-    <!-- How it works -->
-    <section id="process" class="section">
-      <div class="section-header">
-        <span class="eyebrow">How it works</span>
-        <h2>A clear path to intelligent autonomy.</h2>
-        <p>RedNode.ai deploys in structured phases so your teams can onboard quickly and see measurable returns.</p>
-      </div>
-      <div class="panel">
-        <div class="grid" style="--cols:3">
-          <article class="card"><h3>01. Data Onboarding</h3><p>Calibrate nodes with your existing sensors, import historical data, and define operational priorities.</p></article>
-          <article class="card"><h3>02. AI Optimization</h3><p>RedNode learns patterns, tags insights, and proposes automations across workflows and compliance tasks.</p></article>
-          <article class="card"><h3>03. Deployment &amp; Scaling</h3><p>Roll out verified automations across locations with governance, version control, and transparent reporting.</p></article>
+      <div class="hero__visual" aria-hidden="true">
+        <img src="setinalex.png" alt="Ioncore intelligent node visualization" loading="lazy">
+        <div class="metrics">
+          <div class="metric-card">
+            <span>+38%</span>
+            <span>Average workflow efficiency uplift across pilot deployments.</span>
+          </div>
+          <div class="metric-card">
+            <span>&lt;90s</span>
+            <span>Automated incident response orchestration time.</span>
+          </div>
+          <div class="metric-card">
+            <span>Chain-ready</span>
+            <span>Immutable activity ledger for auditors and partners.</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Marketplace -->
-    <section id="marketplace" class="section">
-      <div class="section-header">
-        <span class="eyebrow">Marketplace</span>
-        <h2>Contribute, monetize, and accelerate RedNode innovation.</h2>
-        <p>Creators, integrators, and contractors can publish verified automations, data sets, and AI extensions to the RedNode marketplace.</p>
-      </div>
-      <div class="grid">
-        <article class="card"><h3>Automation Blueprints</h3><p>Share or subscribe to modular sequences that keep projects moving and crews aligned.</p></article>
-        <article class="card"><h3>Telemetry Packs</h3><p>License anonymized, high‑quality data to accelerate model training and validation.</p></article>
-        <article class="card"><h3>Partner Integrations</h3><p>Connect RedNode.ai with ERP, BIM, and compliance suites to complete your digital operations stack.</p></article>
-        <article class="card"><h3>Coming Soon</h3><p>Use RedNode tokens to operate and trade tasks, experiences, and extensions built by contributors.</p></article>
+    <section id="capabilities">
+      <span class="section-eyebrow">Capabilities</span>
+      <h2 class="section-title">Designed for decision-makers who demand intelligence at every node.</h2>
+      <p class="section-copy">From private estates and resorts to industrial facilities, Ioncore calibrates sensing, automation, and experiential interfaces to the signature requirements of each environment.</p>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Personalized Node Evolution</h3>
+          <p>Nodes continuously learn from occupant patterns, concierge directives, and mission workflows to orchestrate anticipatory service.</p>
+        </article>
+        <article class="card">
+          <h3>Multi-Modal Data Fusion</h3>
+          <p>Ingests kinetic telemetry, environmental metrics, biometric prompts, and device intelligence into a unified command stream.</p>
+        </article>
+        <article class="card">
+          <h3>AI-Curated Automation</h3>
+          <p>Deploys AI to detect anomalies, trigger maintenance, and stage concierge-grade experiences without manual intervention.</p>
+        </article>
+        <article class="card">
+          <h3>Data Dividend Programs</h3>
+          <p>Tokenize verified data contributions to accelerate network learning while rewarding participating partners.</p>
+        </article>
       </div>
     </section>
 
-    <!-- CTA -->
-    <section id="contact" class="section">
+    <section id="technology">
+      <span class="section-eyebrow">Technology Stack</span>
+      <h2 class="section-title">A layered architecture uniting signal intelligence, AI orchestration, and trusted distribution.</h2>
+      <p class="section-copy">Ioncore combines human-in-the-loop oversight with ruggedized edge computing and cryptographically verified data trails to deliver uncompromised situational awareness.</p>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Omconsole Interface Suite</h3>
+          <p>Gesture, retina, and EMG controls blend with concierge dashboards for intuitive command across every asset.</p>
+        </article>
+        <article class="card">
+          <h3>Real-Time Intelligence</h3>
+          <p>YOLO, DeepFace, and bespoke Ioncore models execute in milliseconds to prioritize safety, comfort, and operational efficiency.</p>
+        </article>
+        <article class="card">
+          <h3>Edge Compute Fabric</h3>
+          <p>Localizes processing for ultra-low latency response while preserving privacy and uptime across distributed estates.</p>
+        </article>
+        <article class="card">
+          <h3>Ledgered Assurance</h3>
+          <p>Immutable logs and zero-trust credentialing guarantee every action is authenticated, auditable, and export-ready.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="nodes">
+      <span class="section-eyebrow">Node Suites</span>
+      <h2 class="section-title">Deploy bespoke node configurations tuned to each environment.</h2>
+      <p class="section-copy">Modular hardware and software packages integrate into Ioncore's magnetic inertia power backbone, ensuring every node has the energy resilience and intelligence to exceed expectations.</p>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Residential Signature Nodes</h3>
+          <p>Automate estate access, personalized climate rituals, and immersive entertainment with privacy-first sensing.</p>
+        </article>
+        <article class="card">
+          <h3>Industrial Coordination Nodes</h3>
+          <p>Synchronize fleets, govern compliance, and automate safety protocols across production, maritime, and aerospace assets.</p>
+        </article>
+        <article class="card">
+          <h3>Security Command Nodes</h3>
+          <p>Fuse surveillance, biometric recognition, and anomaly detection to empower executive protection teams.</p>
+        </article>
+        <article class="card">
+          <h3>Logistics Tracking Nodes</h3>
+          <p>Deliver real-time object tracking and asset provenance for high-value supply chains and remote deployments.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="process">
+      <span class="section-eyebrow">Deployment Process</span>
+      <h2 class="section-title">A clear path to intelligent autonomy with concierge-level delivery.</h2>
+      <div class="process-panel">
+        <div class="card-grid">
+          <article class="card">
+            <h3>01. Signal Onboarding</h3>
+            <p>Calibrate nodes with existing sensors, ingest historical telemetry, and prioritize objectives with your Ioncore concierge team.</p>
+          </article>
+          <article class="card">
+            <h3>02. Intelligence Optimization</h3>
+            <p>Train models on bespoke datasets, simulate automations, and validate results with human-in-the-loop oversight.</p>
+          </article>
+          <article class="card">
+            <h3>03. Global Rollout</h3>
+            <p>Launch verified automations with governance, version control, and white-glove support across every location.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="marketplace">
+      <span class="section-eyebrow">Marketplace</span>
+      <h2 class="section-title">Contribute, monetize, and accelerate the Ioncore node ecosystem.</h2>
+      <p class="section-copy">Ioncore's forthcoming marketplace empowers creators, integrators, and contractors to publish verified automations, data sets, and AI extensions.</p>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Automation Blueprints</h3>
+          <p>Access or share modular sequences that choreograph concierge services, industrial protocols, and emergency responses.</p>
+        </article>
+        <article class="card">
+          <h3>Telemetry Capsules</h3>
+          <p>License anonymized, high-fidelity datasets to fast-track AI training for emerging environments.</p>
+        </article>
+        <article class="card">
+          <h3>Partner Integrations</h3>
+          <p>Connect Ioncore nodes with ERP, BIM, and compliance suites to complete your digital operations stack.</p>
+        </article>
+        <article class="card">
+          <h3>Ioncore Tokens</h3>
+          <p>Operate and trade curated experiences, automations, and services within the Ioncore partner network.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="contact">
       <div class="cta-block">
-        <span class="eyebrow">Ready to begin?</span>
-        <h2>Deploy RedNode.ai and orchestrate your next evolution.</h2>
-        <p>Schedule a session with our integration specialists to design the node network that meets your objectives.</p>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-          <a class="btn btn-primary" href="mailto:hello@rednode.ai">Start the conversation</a>
-          <a class="btn btn-ghost" href="/start.html">Open RedNode Start</a>
+        <span class="section-eyebrow">Ready to begin?</span>
+        <h2 class="section-title">Deploy the Integrated Intelligent Node System and orchestrate your next evolution.</h2>
+        <p class="section-copy" style="margin: 0 auto;">
+          Engage Ioncore's integration specialists to design a node network that mirrors your brand signature and operational ambitions.
+        </p>
+        <div class="nav-actions" style="justify-content: center;">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Start the conversation</a>
+          <a class="btn btn-outline" href="fullexperience.html">Explore the full experience</a>
         </div>
       </div>
     </section>
   </main>
 
   <footer>
-    © <span id="year"></span> RedNode.ai. Built for intelligent operations.
+    © <span id="year"></span> Ioncore Energy. All rights reserved.
   </footer>
 
   <script>
-    // Year + theme toggle (optional: hook to a UI control if you add one)
     document.getElementById('year').textContent = new Date().getFullYear();
-    // Example theme API
-    window.RedNodeTheme = {
-      set: (mode) => { document.documentElement.dataset.theme = mode === 'light' ? 'light' : 'dark'; }
-    };
   </script>
 </body>
 </html>

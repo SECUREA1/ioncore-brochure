@@ -50,7 +50,7 @@ def _fatal_messagebox(title: str, message: str) -> None:
 ############################
 # NFT Gating Configuration
 ############################
-NFT_GATE_ENABLED = os.getenv("NFT_GATE_ENABLED", "true").lower() not in {"0", "false", "no"}
+NFT_GATE_ENABLED = os.getenv("NFT_GATE_ENABLED", "false").lower() not in {"0", "false", "no"}
 NFT_GATE_CONTRACT = os.getenv("NFT_GATE_CONTRACT_ADDRESS")
 NFT_GATE_API_KEY = os.getenv("NFT_GATE_ALCHEMY_API_KEY")
 NFT_GATE_NETWORK = os.getenv("NFT_GATE_NETWORK", "eth-mainnet")
@@ -656,7 +656,7 @@ def enforce_nft_gate(
 ############################
 # Login Gate Configuration
 ############################
-LOGIN_GATE_ENABLED = os.getenv("SENTINEL_LOGIN_ENABLED", "true").lower() not in {"0", "false", "no"}
+LOGIN_GATE_ENABLED = os.getenv("SENTINEL_LOGIN_ENABLED", "false").lower() not in {"0", "false", "no"}
 LOGIN_USERNAME = os.getenv("BASIC_AUTH_USER", "investor")
 LOGIN_PASSWORD = os.getenv("BASIC_AUTH_PASS", "burrito")
 
@@ -1157,8 +1157,12 @@ def run_login_gate() -> None:
 
 if LOGIN_GATE_ENABLED:
     run_login_gate()
-else:
+elif NFT_GATE_ENABLED:
     enforce_nft_gate()
+else:
+    logger.info(
+        "Access gating disabled via defaults/environment. Launching without login or NFT checks."
+    )
 
 ############################
 # Configuration (defaults)

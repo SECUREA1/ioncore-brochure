@@ -11,35 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
-  <script>
-    (function () {
-      const AUTH_STORAGE_KEY = 'ioncore-gateway';
-
-      function redirectToGateway() {
-        window.location.replace('/');
-      }
-
-      try {
-        const authRaw = sessionStorage.getItem(AUTH_STORAGE_KEY);
-
-        if (!authRaw) {
-          redirectToGateway();
-          return;
-        }
-
-        const auth = JSON.parse(authRaw);
-        const now = Date.now();
-
-        if (!auth || typeof auth !== 'object' || !auth.expires || Number(auth.expires) <= now) {
-          sessionStorage.removeItem(AUTH_STORAGE_KEY);
-          redirectToGateway();
-        }
-      } catch (error) {
-        sessionStorage.removeItem(AUTH_STORAGE_KEY);
-        redirectToGateway();
-      }
-    })();
-  </script>
 </head>
 <body>
   <header class="site-header container">
@@ -294,7 +265,7 @@
             <img src="hotel21.jpeg" alt="Hybrid hospitality, residential, and camper energy systems">
           </div>
           <h3>Hybrid Hospitality &amp; Adventure Systems</h3>
-          <div class="product-card__price">$2,999 – $65,000<span>Configured</span></div>
+          <div class="product-card__price">$3,599 – $78,000<span>Configured</span></div>
           <p>Flywheel + LFP packages engineered for hotels, estates, RV fleets, and trail deployments.</p>
           <ul>
             <li>Delivers 2–20&nbsp;kW continuous output with up to 40&nbsp;kW surge support for peak loads.</li>
@@ -309,7 +280,7 @@
             <img src="50mm.png" alt="50mm magnetic inertia system render">
           </div>
           <h3>50&nbsp;mm Magnetic Inertia System</h3>
-          <div class="product-card__price">$31,100<span>Turn-key</span></div>
+          <div class="product-card__price">$37,320<span>Turn-key</span></div>
           <p>Compact magnetic inertia array that unlocks multi-sector energy independence.</p>
           <ul>
             <li>Annual production of ~68,766&nbsp;kWh with ROI under 2.3&nbsp;years at $0.20/kWh tariffs.</li>
@@ -324,7 +295,7 @@
             <img src="industrial.png" alt="Industrial power plant concept render">
           </div>
           <h3>Industrial Power Plants Brochure</h3>
-          <div class="product-card__price">$229k – $29M<span>Installed tiers</span></div>
+          <div class="product-card__price">$274.8k – $34.8M<span>Installed tiers</span></div>
           <p>Ioncore C/X/F campus platforms covering condo, commercial, and factory-scale deployments.</p>
           <ul>
             <li>Condos start with ~300&nbsp;kWh storage and 10 magnetic bearings for urban microgrids.</li>
@@ -339,12 +310,12 @@
             <img src="IMG_2714.jpeg" alt="Magnetic inertia jet engine concept">
           </div>
           <h3>Magnetic Inertia Jet Engine Platform</h3>
-          <div class="product-card__price">$1.8M – $5.2M<span>Program</span></div>
+          <div class="product-card__price">$2.16M – $6.24M<span>Program</span></div>
           <p>Superconducting propulsion stack delivering supersonic thrust with regenerative energy recovery.</p>
           <ul>
             <li>Targets Mach&nbsp;3.2+ envelopes with magnetically suspended rotors producing up to 12,000&nbsp;lbf.</li>
             <li>Regenerative conversion feeds onboard systems while cryogenic loops stabilise superconductors.</li>
-            <li>Total program outlook ranges from $1.4M–$4.0M with suggested market price at $1.8M–$5.2M.</li>
+            <li>Total program outlook ranges from $1.68M–$4.8M with suggested market price at $2.16M–$6.24M.</li>
           </ul>
           <a class="btn btn-outline" href="Magnetic%20Inertia%20Jet%20Engine.html">Open propulsion brief</a>
         </article>
@@ -354,7 +325,7 @@
             <img src="Peak501.png" alt="Peak Series portable module">
           </div>
           <h3>Peak Series Portable Modules</h3>
-          <div class="product-card__price">$1,299<span>Prototype MSRP</span></div>
+          <div class="product-card__price">$1,559<span>Prototype MSRP</span></div>
           <p>Lightweight kinetic-lithium hybrids tuned for research, broadcast, and tactical teams.</p>
           <ul>
             <li>Peak&nbsp;50 prototype delivers 50&nbsp;W continuous with 120&nbsp;W surge via pure-sine 120&nbsp;VAC.</li>
@@ -369,7 +340,7 @@
             <img src="flywheel.png" alt="Flywheel self-charging unit render">
           </div>
           <h3>Rotational Gyrating Flywheel Power Unit</h3>
-          <div class="product-card__price">$699 – $2,499<span>Models</span></div>
+          <div class="product-card__price">$839 – $2,999<span>Models</span></div>
           <p>Precision FSCU lineup providing silent, wireless, and USB‑C power delivery for premium spaces.</p>
           <ul>
             <li>Rapid charge to 80% in ≤15&nbsp;minutes with 24/7 remote diagnostics and 99.2% inverter efficiency.</li>
@@ -384,13 +355,13 @@
             <img src="setinaldrone.png" alt="Sentinel Multi-Cam AI autonomous drone patrol covering a facility">
           </div>
           <h3>Sentinel Multi‑Cam AI Surveillance Platform</h3>
-          <div class="product-card__price">$18,900 – $189,000<span>Packages</span></div>
+          <div class="product-card__price">$22,680 – $226,800<span>Packages</span></div>
           <p>Edge-first vision command with autonomous drone sweeps, hardened analytics, and lifecycle assurance.</p>
           <ul>
-            <li><strong>Edge Essential ($18,900):</strong> 4x 4K HDR cameras, 8&nbsp;TOPS edge hub, and coverage for 12 feeds.</li>
-            <li><strong>Command Campus ($54,500):</strong> 12 adaptive units with dual GPU fabric (40&nbsp;TOPS) scaling to 48 streams.</li>
-            <li><strong>Sentinel Sovereign ($189,000):</strong> 30 multi-spectrum cameras with patrol drones and air-gapped analytics.</li>
-            <li>Guardian Care ($1,950/mo) and Vanguard Response ($4,800/mo) deliver 24/7 monitoring, incident bridges, and compliance ops.</li>
+            <li><strong>Edge Essential ($22,680):</strong> 4x 4K HDR cameras, 8&nbsp;TOPS edge hub, and coverage for 12 feeds.</li>
+            <li><strong>Command Campus ($65,400):</strong> 12 adaptive units with dual GPU fabric (40&nbsp;TOPS) scaling to 48 streams.</li>
+            <li><strong>Sentinel Sovereign ($226,800):</strong> 30 multi-spectrum cameras with patrol drones and air-gapped analytics.</li>
+            <li>Guardian Care ($2,340/mo) and Vanguard Response ($5,760/mo) deliver 24/7 monitoring, incident bridges, and compliance ops.</li>
           </ul>
           <a class="btn btn-outline" href="Sentinel%20Multi%E2%80%91Cam%20AI%20Surveillance%20Platform1.html">Explore pricing &amp; packages</a>
 
@@ -400,12 +371,12 @@
             <img src="seintinalai.png" alt="Sentinel Multi-Cam AI software console showcasing live security monitoring tiers">
           </div>
           <h3>Sentinel Multi‑Cam AI Software Licences</h3>
-          <div class="product-card__price">$29/mo – $9,000/mo<span>Licensing</span></div>
+          <div class="product-card__price">$35/mo – $10,800/mo<span>Licensing</span></div>
           <p>Subscription bundles that flex from pilot programmes to enterprise-wide surveillance orchestration.</p>
           <ul>
-            <li><strong>Starter ($29/mo):</strong> Operate up to 3 cameras per host with local storage and export tooling.</li>
-            <li><strong>Pro ($79/mo):</strong> Scale to 8 cameras, unlock MMS/Telegram alerts, and premium notification channels.</li>
-            <li><strong>Enterprise (to ~$9,000/mo):</strong> Multi-site governance with SSO, audit exports, and dedicated success SLAs.</li>
+            <li><strong>Starter ($35/mo):</strong> Operate up to 3 cameras per host with local storage and export tooling.</li>
+            <li><strong>Pro ($95/mo):</strong> Scale to 8 cameras, unlock MMS/Telegram alerts, and premium notification channels.</li>
+            <li><strong>Enterprise (to ~$10,800/mo):</strong> Multi-site governance with SSO, audit exports, and dedicated success SLAs.</li>
           </ul>
           <a class="btn btn-outline" href="Sentinel%20Multi%E2%80%91cam%20Ai.html">Review software plans</a>
         </article>
@@ -414,7 +385,7 @@
             <img src="setinalex1.png" alt="Integrated Intelligent Node System command suite with layered surveillance and concierge dashboards">
           </div>
           <h3>Integrated Intelligent Node System</h3>
-          <div class="product-card__price">$145k+<span>Commissioned fabric</span></div>
+          <div class="product-card__price">$174k+<span>Commissioned fabric</span></div>
           <p>Luxury-branded node mesh harmonising perimeter security, concierge intelligence, and executive command.</p>
           <ul>
             <li>GPU-accelerated edge nodes with encrypted mesh failover to secure estates, resorts, and campuses.</li>
@@ -460,7 +431,7 @@
           <h2>Secure a private Ioncore briefing</h2>
           <p>
             Share your mission profile and a direct email. Our enterprise team will log your request in our secure SQL vault,
-            pair it with your login history, and deliver a tailored energy dossier.
+            align it with your engagement history, and deliver a tailored energy dossier.
           </p>
         </div>
         <form id="contact-form" class="contact-form" novalidate>
@@ -639,42 +610,6 @@
           startRefresh();
           refresh();
         });
-    })();
-
-    (() => {
-      const localOrigin = window.location.origin;
-      const anchors = Array.from(document.querySelectorAll('a[href]'));
-      anchors.forEach((link) => {
-        const rawHref = link.getAttribute('href');
-        if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) {
-          return;
-        }
-
-        if (link.dataset.publicLink === 'true') {
-          return;
-        }
-
-        try {
-          const targetUrl = new URL(rawHref, localOrigin);
-          if (targetUrl.origin !== localOrigin) {
-            return;
-          }
-
-          if (targetUrl.pathname === '/login' || targetUrl.pathname === '/login.html') {
-            return;
-          }
-
-          if (!targetUrl.pathname.toLowerCase().endsWith('.html')) {
-            return;
-          }
-
-          const destination = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
-          link.dataset.destination = destination;
-          link.setAttribute('href', `/login?next=${encodeURIComponent(destination)}`);
-        } catch (err) {
-          console.warn('Unable to secure link', err);
-        }
-      });
     })();
 
     (() => {

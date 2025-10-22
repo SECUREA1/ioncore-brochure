@@ -1,0 +1,4272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ioncore Secure Vault Access</title>
+  <meta name="description" content="Ioncore Energy secure access portal for confidential energy ecosystem dossiers.">
+  <link rel="icon" type="image/svg+xml" href="/battery.svg">
+  <link rel="shortcut icon" href="/battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ioncore-gold: #f5c978;
+      --ioncore-blue: #0f172a;
+      --ioncore-aqua: #48ffe2;
+      --ioncore-crimson: #ff4976;
+      --ioncore-ink: rgba(6, 12, 24, 0.82);
+      --ioncore-neon: #6aff3b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top, rgba(12, 18, 48, 0.95) 0%, rgba(6, 10, 22, 0.98) 45%, #05070e 100%);
+      color: #f8fafc;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: clamp(6rem, 12vh, 7.5rem) 1.25rem clamp(3.5rem, 8vh, 5rem);
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .intro-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(6, 14, 36, 0.94) 0%, rgba(5, 8, 18, 0.96) 40%, rgba(1, 2, 6, 0.98) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: opacity 0.85s ease, transform 0.85s ease;
+    }
+
+    .intro-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 45% 30%, rgba(106, 255, 59, 0.24), transparent 58%),
+        radial-gradient(circle at 60% 70%, rgba(72, 255, 226, 0.18), transparent 60%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+
+    .intro-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.35rem;
+      text-align: center;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+
+    .intro-logo {
+      width: clamp(96px, 24vw, 168px);
+      height: clamp(96px, 24vw, 168px);
+      animation: logo-spin 2.6s cubic-bezier(0.22, 0.68, 0, 1) forwards;
+      filter: drop-shadow(0 0 28px rgba(106, 255, 59, 0.45));
+    }
+
+    .intro-text {
+      font-size: clamp(1.75rem, 6vw, 3.4rem);
+      font-weight: 700;
+      color: var(--ioncore-neon);
+      text-shadow: 0 0 24px rgba(106, 255, 59, 0.35);
+      animation: text-expand 2.1s ease forwards;
+    }
+
+    .intro-text span {
+      color: #f8fafc;
+      display: block;
+      letter-spacing: 0.32em;
+      font-size: 0.78em;
+      margin-bottom: 0.4rem;
+    }
+
+    .intro-subtext {
+      margin: 0;
+      font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.78);
+      text-shadow: 0 0 18px rgba(72, 255, 226, 0.25);
+      opacity: 0;
+      animation: intro-subtext-fade 2.6s ease forwards;
+      animation-delay: 0.45s;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: conic-gradient(from 180deg at 50% 50%, rgba(72, 255, 226, 0.12), rgba(245, 201, 120, 0.08), rgba(255, 73, 118, 0.1), rgba(72, 255, 226, 0.12));
+      filter: blur(90px);
+      opacity: 0.75;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "TOP SECRET";
+      position: absolute;
+      top: 5%;
+      right: -12%;
+      font-size: clamp(3.5rem, 12vw, 7rem);
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(248, 250, 252, 0.06);
+      transform: rotate(-18deg);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.09) 0,
+        rgba(255, 255, 255, 0.09) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      mix-blend-mode: overlay;
+      opacity: 0.25;
+      animation: scan 6s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes scan {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(6px);
+      }
+    }
+
+    @keyframes logo-spin {
+      0% {
+        transform: scale(0.75) rotate(-90deg);
+        opacity: 0;
+      }
+      35% {
+        opacity: 1;
+      }
+      65% {
+        transform: scale(1.15) rotate(390deg);
+      }
+      100% {
+        transform: scale(1) rotate(360deg);
+      }
+    }
+
+    @keyframes text-expand {
+      0% {
+        letter-spacing: 1em;
+        transform: scale(0.85);
+        opacity: 0;
+      }
+      45% {
+        opacity: 1;
+      }
+      70% {
+        transform: scale(1.12);
+      }
+      100% {
+        transform: scale(1);
+        letter-spacing: 0.18em;
+      }
+    }
+
+    @keyframes intro-subtext-fade {
+      0% {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      60% {
+        opacity: 0.85;
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes heart-pop {
+      0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+      45% {
+        transform: scale(1.35) translateY(-8px);
+      }
+      100% {
+        transform: scale(0) translateY(10px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes crestPulse {
+      0% {
+        transform: scale(0.94) rotate(-2deg);
+        box-shadow: 0 0 14px rgba(106, 255, 59, 0.38), inset 0 0 0 1px rgba(106, 255, 59, 0.24);
+      }
+      50% {
+        transform: scale(1.02) rotate(1.5deg);
+        box-shadow: 0 0 20px rgba(106, 255, 59, 0.52), 0 0 0 10px rgba(106, 255, 59, 0.08), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
+      }
+      100% {
+        transform: scale(1) rotate(-1deg);
+        box-shadow: 0 0 16px rgba(106, 255, 59, 0.45), 0 0 0 6px rgba(106, 255, 59, 0.05), inset 0 0 0 1px rgba(106, 255, 59, 0.28);
+      }
+    }
+
+    @keyframes panelReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .vault-card {
+      position: relative;
+      z-index: 2;
+      width: min(480px, 100%);
+      background: linear-gradient(145deg, rgba(13, 21, 39, 0.88), rgba(9, 14, 26, 0.96));
+      border: 1px solid rgba(72, 255, 226, 0.25);
+      border-radius: 24px;
+      padding: clamp(2rem, 4vw, 2.75rem);
+      box-shadow: 0 22px 60px rgba(6, 12, 24, 0.55);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.85s ease, transform 0.85s ease;
+    }
+
+    .vault-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% -20%, rgba(245, 201, 120, 0.25), transparent 60%),
+        radial-gradient(circle at 80% 120%, rgba(72, 255, 226, 0.2), transparent 60%);
+      opacity: 0.6;
+      z-index: -1;
+    }
+
+    .vault-card::after {
+      content: "IONCORE EYES ONLY";
+      position: absolute;
+      bottom: 1.25rem;
+      right: -2.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.4em;
+      color: rgba(255, 73, 118, 0.2);
+      transform: rotate(-90deg);
+      pointer-events: none;
+    }
+
+    body.intro-complete .intro-screen {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+
+    body.intro-complete .vault-card {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0.12s;
+    }
+
+    body.intro-complete .health-bar {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .logo-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      margin-bottom: 1.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      font-size: 0.75rem;
+      color: rgba(248, 250, 252, 0.85);
+    }
+
+    .logo-lockup span {
+      font-weight: 700;
+      color: var(--ioncore-aqua);
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+    }
+
+    .tagline {
+      margin: 0 0 1.75rem;
+      color: rgba(226, 232, 240, 0.72);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .vault-credential-card {
+      margin: 1.75rem 0 2.25rem;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(circle at 18% 12%, rgba(106, 255, 59, 0.12), transparent 60%),
+        rgba(6, 14, 26, 0.72);
+      border: 1px solid rgba(106, 255, 59, 0.22);
+      box-shadow: 0 28px 60px rgba(2, 8, 20, 0.45);
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .vault-credential-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 88% 0%, rgba(72, 255, 226, 0.18), transparent 55%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .vault-credential-card__image {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 227, 255, 0.22);
+      box-shadow: 0 18px 45px rgba(2, 10, 25, 0.48);
+    }
+
+    .vault-credential-card__caption {
+      margin: 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(177, 202, 236, 0.82);
+      position: relative;
+      z-index: 1;
+    }
+
+    .intel-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 73, 118, 0.18);
+      color: rgba(255, 178, 200, 0.9);
+      border: 1px solid rgba(255, 73, 118, 0.35);
+      border-radius: 12px;
+      padding: 0.65rem 1rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .intel-banner svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      flex: none;
+      fill: currentColor;
+    }
+
+    .health-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 0;
+      padding: 0.85rem 1.25rem;
+      border-radius: 18px;
+      background: rgba(8, 14, 28, 0.82);
+      border: 1px solid rgba(72, 255, 226, 0.25);
+      box-shadow: 0 18px 40px rgba(5, 12, 24, 0.5);
+      position: fixed;
+      top: clamp(1rem, 5vw, 1.75rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(480px, calc(100vw - 2.5rem));
+      z-index: 7;
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+    }
+
+    .health-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(72, 255, 226, 0.1), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(255, 73, 118, 0.08), transparent 68%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .health-bar.is-critical {
+      border-color: rgba(255, 73, 118, 0.45);
+      box-shadow: 0 20px 48px rgba(255, 73, 118, 0.28);
+    }
+
+    .health-label {
+      position: relative;
+      z-index: 1;
+      font-size: 0.75rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.82);
+      white-space: nowrap;
+    }
+
+    .health-hearts {
+      display: inline-flex;
+      gap: 0.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .health-heart {
+      position: relative;
+      width: 32px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .health-heart::before,
+    .health-heart::after {
+      content: "❤";
+      font-size: 1.6rem;
+      line-height: 1;
+      transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+    }
+
+    .health-heart::before {
+      color: var(--ioncore-crimson);
+      text-shadow: 0 0 16px rgba(255, 73, 118, 0.45);
+    }
+
+    .health-heart::after {
+      position: absolute;
+      inset: 0;
+      color: rgba(148, 163, 184, 0.4);
+      opacity: 0;
+      transform: scale(0.82);
+    }
+
+    .health-heart.is-depleted::before {
+      opacity: 0;
+    }
+
+    .health-heart.is-depleted::after {
+      opacity: 1;
+      transform: scale(0.72);
+    }
+
+    .health-heart.is-popped::before {
+      animation: heart-pop 0.52s cubic-bezier(0.38, 1.5, 0.6, 1) forwards;
+    }
+
+    .health-bar.is-critical .health-count {
+      color: rgba(255, 178, 200, 0.92);
+    }
+
+    .health-count {
+      position: relative;
+      z-index: 1;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .access-form {
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    .auth-mode-switch {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      padding: 0.35rem;
+      background: rgba(14, 23, 43, 0.72);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      border-radius: 16px;
+    }
+
+    .auth-mode {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.82);
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .auth-mode:hover,
+    .auth-mode:focus-visible {
+      outline: none;
+      color: #f8fafc;
+      box-shadow: 0 0 0 2px rgba(72, 255, 226, 0.18);
+      text-decoration: none;
+    }
+
+    .auth-mode.is-active {
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.82), rgba(106, 255, 59, 0.72));
+      box-shadow: 0 16px 30px rgba(9, 16, 26, 0.45);
+    }
+
+    .auth-mode--chat {
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.82), rgba(72, 255, 226, 0.82));
+      box-shadow: 0 18px 38px rgba(12, 24, 42, 0.5);
+    }
+
+    .auth-mode--chat:hover,
+    .auth-mode--chat:focus-visible {
+      box-shadow: 0 22px 44px rgba(9, 16, 26, 0.5);
+    }
+
+    .mode-panel[hidden] {
+      display: none;
+    }
+
+    #wallet-panel:not([hidden]) {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .wallet-intro {
+      margin: 0 0 1.1rem 0;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(203, 213, 225, 0.9);
+    }
+
+    .wallet-connect-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1.15rem;
+    }
+
+    .wallet-connect-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.85rem;
+      border: none;
+      border-radius: 999px;
+      padding: 0.85rem 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.92), rgba(106, 255, 59, 0.82));
+      box-shadow: 0 12px 28px rgba(9, 16, 26, 0.35);
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      flex: 1 1 220px;
+      min-width: 200px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .wallet-connect-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.26), transparent 55%);
+      opacity: 0.7;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+
+    .wallet-connect-button:hover:not(:disabled),
+    .wallet-connect-button:focus-visible:not(:disabled) {
+      outline: none;
+      transform: translateY(-1px);
+      box-shadow: 0 18px 34px rgba(11, 20, 36, 0.48);
+      filter: saturate(1.05);
+    }
+
+    .wallet-connect-button:hover:not(:disabled)::before,
+    .wallet-connect-button:focus-visible:not(:disabled)::before {
+      opacity: 1;
+    }
+
+    .wallet-connect-button:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+
+    .wallet-connect-button--metamask {
+      background: linear-gradient(135deg, rgba(255, 198, 124, 0.96), rgba(255, 123, 0, 0.88));
+      color: #1b1206;
+      box-shadow: 0 14px 32px rgba(134, 66, 0, 0.45);
+    }
+
+    .wallet-connect-button--metamask:hover:not(:disabled),
+    .wallet-connect-button--metamask:focus-visible:not(:disabled) {
+      box-shadow: 0 20px 36px rgba(134, 66, 0, 0.52);
+    }
+
+    .wallet-connect-button--phantom {
+      background: linear-gradient(135deg, rgba(116, 95, 255, 0.9), rgba(255, 73, 214, 0.78));
+      color: #0b1020;
+      box-shadow: 0 14px 32px rgba(66, 38, 163, 0.45);
+    }
+
+    .wallet-connect-button--phantom:hover:not(:disabled),
+    .wallet-connect-button--phantom:focus-visible:not(:disabled) {
+      box-shadow: 0 20px 38px rgba(82, 48, 204, 0.5);
+    }
+
+    .wallet-connect-button--cardano {
+      background: linear-gradient(135deg, rgba(41, 173, 255, 0.85), rgba(0, 75, 173, 0.72));
+      color: #051021;
+      box-shadow: 0 14px 32px rgba(16, 70, 128, 0.45);
+    }
+
+    .wallet-connect-button--cardano:hover:not(:disabled),
+    .wallet-connect-button--cardano:focus-visible:not(:disabled) {
+      box-shadow: 0 20px 38px rgba(21, 94, 170, 0.52);
+    }
+
+    .auth-mode-group {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 720px) {
+      .auth-mode-group {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-items: stretch;
+      }
+
+      .auth-mode-switch {
+        grid-column: span 3;
+      }
+    }
+
+    .wallet-connect-button__icon,
+    .wallet-connect-button__crest {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+    }
+
+    .wallet-connect-button__icon {
+      background: rgba(15, 23, 42, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18);
+    }
+
+    .wallet-connect-button__icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .wallet-connect-button--metamask .wallet-connect-button__icon {
+      background: rgba(255, 255, 255, 0.24);
+      box-shadow: inset 0 0 0 1px rgba(27, 17, 6, 0.18);
+    }
+
+    .wallet-connect-button--phantom .wallet-connect-button__icon {
+      background: rgba(13, 10, 38, 0.42);
+      box-shadow: inset 0 0 0 1px rgba(83, 59, 220, 0.35);
+    }
+
+    .wallet-connect-button--cardano .wallet-connect-button__icon {
+      background: rgba(5, 16, 33, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(64, 145, 255, 0.35);
+    }
+
+    .wallet-connect-button__label {
+      flex: 1 1 auto;
+      text-align: center;
+      letter-spacing: 0.16em;
+    }
+
+    .wallet-connect-button__crest {
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 18px rgba(106, 255, 59, 0.45), inset 0 0 0 1px rgba(106, 255, 59, 0.32);
+      animation: crestPulse 2.8s ease-in-out infinite;
+    }
+
+    .wallet-connect-button__crest img {
+      width: 22px;
+      height: 22px;
+      filter: drop-shadow(0 0 6px rgba(106, 255, 59, 0.45));
+    }
+
+    .wallet-status {
+      font-size: 0.85rem;
+      color: rgba(148, 163, 184, 0.95);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex: 1 1 160px;
+      min-width: 160px;
+    }
+
+    .wallet-status--connected {
+      color: rgba(165, 255, 214, 0.92);
+    }
+
+    .module-tag--cardano {
+      background: linear-gradient(135deg, rgba(41, 173, 255, 0.35), rgba(0, 75, 173, 0.58));
+      border-color: rgba(41, 173, 255, 0.65);
+    }
+
+    .access-module {
+      display: grid;
+      gap: 0.75rem;
+      padding: 1.1rem 1.25rem;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .module-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.92);
+    }
+
+    .module-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      background: rgba(72, 255, 226, 0.16);
+      color: rgba(148, 163, 184, 0.95);
+      border: 1px solid rgba(72, 255, 226, 0.28);
+    }
+
+    .module-tag--solana {
+      background: linear-gradient(135deg, rgba(116, 95, 255, 0.2), rgba(255, 73, 214, 0.15));
+      border-color: rgba(144, 120, 255, 0.35);
+      color: rgba(221, 214, 255, 0.9);
+    }
+
+    .module-copy {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: rgba(203, 213, 225, 0.92);
+    }
+
+    .module-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .action-button {
+      padding: 0.75rem 1.35rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+    }
+
+    .action-button--outline {
+      background: rgba(15, 23, 42, 0.8);
+      color: rgba(226, 232, 240, 0.92);
+      border: 1px solid rgba(72, 255, 226, 0.35);
+      box-shadow: none;
+    }
+
+    .action-button--outline:hover,
+    .action-button--outline:focus-visible {
+      background: rgba(15, 23, 42, 0.95);
+      color: #f8fafc;
+      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.2);
+    }
+
+    .inline-status {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.88);
+    }
+
+    .inline-status--success {
+      color: rgba(72, 255, 226, 0.92);
+    }
+
+    .inline-status--error {
+      color: rgba(255, 178, 200, 0.92);
+    }
+
+    .field {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    label {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.85);
+    }
+
+    input,
+    select {
+      appearance: none;
+      border: 1px solid rgba(71, 85, 105, 0.65);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
+      font-size: 1rem;
+      padding: 0.85rem 1rem;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(72, 255, 226, 0.55);
+      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.22);
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 16px;
+      padding: 0.95rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: #05070e;
+      background: linear-gradient(135deg, var(--ioncore-aqua), var(--ioncore-gold));
+      box-shadow: 0 16px 32px rgba(72, 255, 226, 0.25);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 42px rgba(72, 255, 226, 0.32);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 12px 24px rgba(72, 255, 226, 0.22);
+    }
+
+    .status-message {
+      min-height: 1.2rem;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .status-message--error {
+      color: rgba(255, 178, 200, 0.92);
+    }
+
+    .status-message--success {
+      color: rgba(72, 255, 226, 0.92);
+    }
+
+    .camera-flash-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.2));
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 12;
+    }
+
+    .camera-flash-overlay.is-active {
+      opacity: 1;
+    }
+
+    .meknx-access-grid {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: 18px;
+      background: rgba(12, 20, 38, 0.78);
+      border: 1px solid rgba(72, 255, 226, 0.18);
+    }
+
+    .meknx-access-grid h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.88);
+    }
+
+    .meknx-description {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: rgba(148, 163, 184, 0.92);
+    }
+
+    .meknx-actions {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .meknx-actions .wallet-connect-row {
+      align-items: stretch;
+    }
+
+    .meknx-actions button {
+      width: 100%;
+    }
+
+    .meknx-token-inputs {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .meknx-token-inputs input {
+      text-transform: uppercase;
+    }
+
+    .failure-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .failure-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0));
+      opacity: 0.9;
+    }
+
+    .failure-overlay.is-visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .lockdown-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 14;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .lockdown-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255, 115, 100, 0.32), rgba(15, 23, 42, 0.88));
+      mix-blend-mode: screen;
+      opacity: 0.85;
+    }
+
+    .lockdown-overlay.is-active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .lockdown-fire {
+      position: relative;
+      width: min(360px, 80vw);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 2.5rem 2rem 1.5rem;
+      border-radius: 50%;
+      overflow: visible;
+    }
+
+    .fire-glow {
+      position: absolute;
+      inset: 12% 10% 28% 10%;
+      background: radial-gradient(circle at 50% 20%, rgba(255, 192, 120, 0.6), rgba(255, 90, 0, 0.45), rgba(15, 23, 42, 0));
+      filter: blur(10px);
+      animation: fire-glow-pulse 2.4s ease-in-out infinite;
+    }
+
+    .flame {
+      position: absolute;
+      bottom: 22%;
+      width: 42%;
+      height: 46%;
+      background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.92), rgba(255, 205, 110, 0.85), rgba(255, 94, 58, 0.92));
+      border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+      filter: drop-shadow(0 0 24px rgba(255, 150, 80, 0.75));
+      animation: flame-flicker 1.15s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    .flame--2 {
+      width: 55%;
+      height: 56%;
+      background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.7), rgba(255, 160, 64, 0.85), rgba(255, 60, 0, 0.9));
+      animation-duration: 1.35s;
+      animation-delay: 0.18s;
+      opacity: 0.85;
+    }
+
+    .flame--3 {
+      width: 32%;
+      height: 36%;
+      background: radial-gradient(circle at 50% 20%, rgba(255, 250, 210, 0.9), rgba(255, 189, 86, 0.8), rgba(255, 109, 50, 0.85));
+      animation-duration: 0.95s;
+      animation-delay: 0.3s;
+      opacity: 0.75;
+    }
+
+    .ember {
+      position: absolute;
+      bottom: 18%;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 189, 96, 0.9), rgba(255, 94, 58, 0.6));
+      filter: blur(0.5px);
+      animation: ember-rise 2.6s linear infinite;
+      opacity: 0;
+    }
+
+    .ember--1 {
+      left: 32%;
+      animation-delay: 0.2s;
+    }
+
+    .ember--2 {
+      left: 48%;
+      animation-delay: 0.9s;
+    }
+
+    .ember--3 {
+      left: 62%;
+      animation-delay: 1.6s;
+    }
+
+    .lockdown-message {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      padding-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 223, 207, 0.92);
+      text-shadow: 0 0 18px rgba(255, 148, 80, 0.75);
+    }
+
+    .failure-stage {
+      position: relative;
+      width: min(420px, 92vw);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bomb-scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .bomb {
+      position: absolute;
+      top: -26%;
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #3b82f6 0%, #0f172a 65%, #05070e 100%);
+      border: 4px solid rgba(4, 10, 24, 0.85);
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.65);
+      transform: translateY(-180%) scale(0.85);
+      opacity: 0;
+    }
+
+    .bomb::after {
+      content: "";
+      position: absolute;
+      inset: 20% 18% auto 18%;
+      height: 34%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), transparent 68%);
+      filter: blur(1px);
+    }
+
+    .bomb-fuse {
+      position: absolute;
+      top: -38px;
+      right: 32px;
+      width: 12px;
+      height: 46px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f97316 0%, #a855f7 100%);
+      transform: rotate(18deg);
+      box-shadow: 0 0 0 2px rgba(5, 7, 14, 0.32);
+    }
+
+    .bomb-spark {
+      position: absolute;
+      top: -54px;
+      right: 18px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff7b2 0%, #ffb347 45%, #ff4976 100%);
+      box-shadow: 0 0 18px rgba(255, 184, 108, 0.85);
+      opacity: 0;
+      transform: scale(0.3);
+    }
+
+    .bomb-shadow {
+      position: absolute;
+      bottom: 18%;
+      width: 32%;
+      height: 12%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(5, 7, 14, 0.58) 0%, rgba(5, 7, 14, 0) 70%);
+      transform: scale(0.35);
+      opacity: 0;
+      filter: blur(1px);
+    }
+
+    .face-silhouette {
+      position: relative;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      filter: drop-shadow(0 18px 30px rgba(15, 23, 42, 0.55));
+      display: block;
+    }
+
+    .face-piece {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 40%, #fff4cc 0%, #ffd27d 55%, #ffb347 100%);
+      border: 2px solid rgba(255, 185, 120, 0.35);
+      transform: translate(0, 0) rotate(0deg) scale(1);
+      opacity: 1;
+      --dx: 0px;
+      --dy: 0px;
+      --rot: 0deg;
+      --delay: 0.18s;
+      clip-path: circle(50% at 50% 50%);
+    }
+
+    .face-piece--1 {
+      clip-path: polygon(0% 0%, 55% 0%, 45% 45%, 0% 55%);
+      --dx: -70px;
+      --dy: -34px;
+      --rot: -18deg;
+      --delay: 0.24s;
+    }
+
+    .face-piece--2 {
+      clip-path: polygon(45% 0%, 100% 0%, 100% 55%, 55% 45%);
+      --dx: 68px;
+      --dy: -36px;
+      --rot: 16deg;
+      --delay: 0.26s;
+    }
+
+    .face-piece--3 {
+      clip-path: polygon(0% 45%, 45% 50%, 35% 100%, 0% 100%);
+      --dx: -60px;
+      --dy: 64px;
+      --rot: -14deg;
+      --delay: 0.3s;
+    }
+
+    .face-piece--4 {
+      clip-path: polygon(55% 50%, 100% 45%, 100% 100%, 35% 100%);
+      --dx: 62px;
+      --dy: 62px;
+      --rot: 22deg;
+      --delay: 0.32s;
+    }
+
+    .face-piece--5 {
+      clip-path: polygon(25% 55%, 75% 55%, 70% 100%, 30% 100%);
+      --dx: 0px;
+      --dy: 78px;
+      --rot: 10deg;
+      --delay: 0.34s;
+    }
+
+    .face-piece--6 {
+      clip-path: polygon(30% 0%, 70% 0%, 60% 45%, 40% 45%);
+      --dx: 0px;
+      --dy: -74px;
+      --rot: -10deg;
+      --delay: 0.22s;
+    }
+
+    .face-feature {
+      position: absolute;
+      background: #0f172a;
+      border-radius: 50%;
+      transform: translate(0, 0) rotate(0deg);
+      --dx: 0px;
+      --dy: 0px;
+      --rot: 0deg;
+      --delay: 0.26s;
+    }
+
+    .face-feature::after {
+      content: "";
+      position: absolute;
+      inset: 18% 24% 32% 24%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      filter: blur(1px);
+    }
+
+    .face-feature--eye-left {
+      top: 34%;
+      left: 30%;
+      width: 16%;
+      height: 16%;
+      --dx: -64px;
+      --dy: -28px;
+      --rot: -16deg;
+      --delay: 0.28s;
+    }
+
+    .face-feature--eye-right {
+      top: 34%;
+      right: 30%;
+      width: 16%;
+      height: 16%;
+      --dx: 64px;
+      --dy: -28px;
+      --rot: 18deg;
+      --delay: 0.3s;
+    }
+
+    .face-feature--mouth {
+      top: 58%;
+      left: 36%;
+      width: 28%;
+      height: 18%;
+      border-radius: 0 0 120px 120px;
+      background: transparent;
+      border: 6px solid #ff4976;
+      border-top: 0;
+      --dx: 0px;
+      --dy: 72px;
+      --rot: 12deg;
+      --delay: 0.36s;
+    }
+
+    .face-feature--mouth::after {
+      display: none;
+    }
+
+    .face-feature--brow {
+      top: 26%;
+      left: 28%;
+      width: 44%;
+      height: 12%;
+      border-radius: 60% 60% 20% 20%;
+      background: linear-gradient(90deg, rgba(255, 180, 124, 0), rgba(255, 180, 124, 0.6), rgba(255, 180, 124, 0));
+      --dx: 0px;
+      --dy: -68px;
+      --rot: -12deg;
+      --delay: 0.25s;
+    }
+
+    .face-feature--brow::after {
+      display: none;
+    }
+
+    .face-shatter-ring {
+      position: absolute;
+      width: 84%;
+      height: 84%;
+      border-radius: 50%;
+      border: 4px dashed rgba(255, 186, 120, 0.65);
+      opacity: 0;
+      transform: scale(0.35);
+      filter: drop-shadow(0 0 16px rgba(255, 200, 150, 0.4));
+    }
+
+    .comic-text {
+      position: absolute;
+      bottom: 6%;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ffdf85;
+      text-shadow: 0 8px 24px rgba(5, 7, 14, 0.8);
+      transform: scale(0.4) rotate(-6deg);
+      opacity: 0;
+    }
+
+    .failure-caption {
+      position: absolute;
+      bottom: -12%;
+      width: 100%;
+      text-align: center;
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      font-weight: 700;
+      color: rgba(255, 178, 200, 0.95);
+      text-shadow: 0 0 12px rgba(15, 23, 42, 0.9);
+      animation: caption-pop 0.65s ease-out 0.45s forwards;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    @keyframes bomb-drop {
+      0% {
+        transform: translateY(-180%) scale(0.85) rotate(-8deg);
+        opacity: 0;
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(12%) scale(1) rotate(6deg);
+      }
+      100% {
+        transform: translateY(160%) scale(0.7) rotate(16deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes spark-ignite {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) rotate(0deg);
+      }
+      30% {
+        opacity: 1;
+        transform: scale(1.1) rotate(18deg);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.1) rotate(-18deg);
+      }
+    }
+
+    @keyframes shadow-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.35);
+      }
+      55% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.3);
+      }
+    }
+
+    @keyframes face-piece-shatter {
+      0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      55% {
+        transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * 0.6)) rotate(calc(var(--rot) * 0.6)) scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.85);
+        opacity: 0;
+      }
+    }
+
+    @keyframes ring-blast {
+      0% {
+        opacity: 0;
+        transform: scale(0.35) rotate(0deg);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.05) rotate(12deg);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.4) rotate(24deg);
+      }
+    }
+
+    @keyframes comic-pop {
+      0% {
+        transform: scale(0.4) rotate(-6deg);
+        opacity: 0;
+      }
+      55% {
+        transform: scale(1.1) rotate(6deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    @keyframes caption-pop {
+      0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.9);
+      }
+      55% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.03);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fire-glow-pulse {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.75;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.92);
+        opacity: 0.72;
+      }
+    }
+
+    @keyframes flame-flicker {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+      40% {
+        transform: translateY(-6px) scale(1.05);
+      }
+      70% {
+        transform: translateY(-3px) scale(0.98);
+      }
+      100% {
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes ember-rise {
+      0% {
+        transform: translateY(0) scale(0.6);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      80% {
+        transform: translateY(-80px) scale(1);
+        opacity: 0.85;
+      }
+      100% {
+        transform: translateY(-120px) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    .failure-overlay.is-visible .bomb {
+      animation: bomb-drop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .failure-overlay.is-visible .bomb-spark {
+      animation: spark-ignite 0.55s ease-out 0.28s forwards;
+    }
+
+    .failure-overlay.is-visible .bomb-shadow {
+      animation: shadow-pop 0.8s ease-out 0.32s forwards;
+    }
+
+    .failure-overlay.is-visible .face-piece,
+    .failure-overlay.is-visible .face-feature {
+      animation: face-piece-shatter 0.85s cubic-bezier(0.33, 1.54, 0.64, 1) forwards;
+      animation-delay: var(--delay);
+    }
+
+    .failure-overlay.is-visible .face-shatter-ring {
+      animation: ring-blast 0.78s ease-out 0.34s forwards;
+    }
+
+    .failure-overlay.is-visible .comic-text {
+      animation: comic-pop 0.6s ease-out 0.58s forwards;
+    }
+
+    .footnote {
+      margin-top: 2.25rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(100, 116, 139, 0.85);
+      line-height: 1.6;
+    }
+
+    .footnote strong {
+      color: rgba(255, 73, 118, 0.72);
+      font-weight: 700;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 5.75rem 1rem 3.25rem;
+      }
+
+      .health-bar {
+        top: 0.75rem;
+        width: calc(100vw - 1.5rem);
+        padding: 0.75rem 1rem;
+      }
+
+      body::after {
+        font-size: clamp(2.5rem, 18vw, 4.5rem);
+        top: 8%;
+        right: -25%;
+      }
+
+      .vault-card {
+        border-radius: 18px;
+        padding: 2rem 1.5rem;
+      }
+
+      .vault-credential-card {
+        margin: 1.5rem 0 2rem;
+        padding: 0.75rem;
+      }
+
+      .vault-credential-card__caption {
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+      }
+
+      .logo-lockup {
+        letter-spacing: 0.2em;
+      }
+
+      .wallet-connect-row {
+        margin-top: 0.75rem;
+      }
+
+      .wallet-status {
+        min-width: 0;
+      }
+
+      .module-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+      }
+    }
+
+
+    /* Ioncore brand alignment overrides */
+    body {
+      background: radial-gradient(120% 140% at 10% 0%, rgba(91, 248, 179, 0.16), transparent 60%),
+        radial-gradient(100% 100% at 90% 20%, rgba(40, 222, 160, 0.12), transparent 70%),
+        linear-gradient(140deg, #02070d, #071425 55%, #050912 100%);
+      color: #f5f8ff;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 18% 18%, rgba(106, 255, 59, 0.18), transparent 52%),
+        radial-gradient(circle at 78% 12%, rgba(91, 248, 179, 0.14), transparent 60%),
+        linear-gradient(135deg, rgba(8, 18, 33, 0.85), rgba(4, 9, 18, 0.92));
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: none;
+    }
+
+    .scanlines {
+      opacity: 0.08;
+      mix-blend-mode: soft-light;
+      z-index: 1;
+    }
+
+    .login-header {
+      position: relative;
+      z-index: 2;
+      padding-top: clamp(1.5rem, 4vw, 2.5rem);
+      padding-bottom: clamp(0.75rem, 2.5vw, 1.5rem);
+    }
+
+    .login-header__actions {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .login-shell {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: clamp(2rem, 5vw, 4rem);
+      align-items: start;
+      margin-top: clamp(2.5rem, 7vw, 4.5rem);
+      margin-bottom: clamp(4rem, 10vw, 6.5rem);
+    }
+
+    .login-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      background: rgba(7, 16, 29, 0.7);
+      border-radius: 28px;
+      border: 1px solid rgba(106, 255, 59, 0.2);
+      padding: clamp(1.75rem, 4vw, 2.6rem);
+      box-shadow: 0 34px 88px rgba(4, 8, 20, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    .login-overview h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: #f5f8ff;
+    }
+
+    .login-overview p {
+      margin: 0;
+      font-size: clamp(1rem, 2.1vw, 1.2rem);
+      line-height: 1.7;
+      color: rgba(183, 199, 228, 0.92);
+    }
+
+    .login-highlights {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 1.1rem;
+    }
+
+    .login-highlights li {
+      background: rgba(9, 20, 34, 0.75);
+      border: 1px solid rgba(106, 255, 59, 0.16);
+      border-radius: 18px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .login-highlights__label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(144, 168, 204, 0.85);
+      margin-bottom: 0.4rem;
+    }
+
+    .login-highlights__value {
+      display: block;
+      font-size: 1rem;
+      color: rgba(222, 234, 255, 0.92);
+      line-height: 1.5;
+    }
+
+    .login-overview__badge {
+      margin: 0;
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(214, 233, 255, 0.8);
+    }
+
+    .login-overview__badge::before {
+      content: '';
+      width: 32px;
+      height: 1px;
+      background: rgba(106, 255, 59, 0.45);
+      transform: translateY(0.5px);
+    }
+
+    .vault-card {
+      width: 100%;
+      margin: 0;
+      border-radius: 28px;
+      padding: clamp(2.25rem, 4vw, 2.85rem);
+      background: rgba(8, 18, 33, 0.88);
+      border: 1px solid rgba(106, 255, 59, 0.24);
+      box-shadow: 0 34px 90px rgba(2, 8, 20, 0.48);
+      backdrop-filter: blur(18px);
+    }
+
+    .vault-credential-card {
+      background: radial-gradient(circle at 18% 12%, rgba(106, 255, 59, 0.18), transparent 60%),
+        rgba(5, 14, 26, 0.72);
+      border: 1px solid rgba(106, 255, 59, 0.32);
+    }
+
+    .vault-credential-card__image {
+      border-radius: 18px;
+      border: 1px solid rgba(106, 255, 59, 0.28);
+    }
+
+    .vault-credential-card__caption {
+      color: rgba(214, 233, 255, 0.82);
+    }
+
+    .vault-card::after {
+      color: rgba(106, 255, 59, 0.2);
+    }
+
+    .logo-lockup {
+      background: rgba(5, 14, 26, 0.75);
+      border: 1px solid rgba(106, 255, 59, 0.25);
+    }
+
+    .intel-banner {
+      background: rgba(106, 255, 59, 0.12);
+      border: 1px solid rgba(106, 255, 59, 0.35);
+      color: rgba(205, 255, 225, 0.92);
+    }
+
+    .tagline {
+      color: rgba(183, 199, 228, 0.88);
+      font-size: 1rem;
+    }
+
+    .auth-mode-switch {
+      background: rgba(6, 14, 26, 0.76);
+      border: 1px solid rgba(106, 255, 59, 0.24);
+    }
+
+    .auth-mode {
+      color: rgba(194, 208, 234, 0.85);
+    }
+
+    .auth-mode.is-active {
+      background: rgba(106, 255, 59, 0.16);
+      color: #f5f8ff;
+      box-shadow: 0 0 0 1px rgba(106, 255, 59, 0.32), 0 16px 34px rgba(6, 20, 38, 0.35);
+    }
+
+    .auth-mode--chat {
+      background: rgba(9, 20, 34, 0.78);
+      border: 1px solid rgba(106, 255, 59, 0.18);
+      color: rgba(183, 199, 228, 0.88);
+    }
+
+    .wallet-connect-button {
+      border: 1px solid rgba(106, 255, 59, 0.18);
+      background: rgba(9, 18, 33, 0.78);
+      color: rgba(210, 222, 248, 0.92);
+    }
+
+    .wallet-connect-button:hover,
+    .wallet-connect-button:focus-visible {
+      background: rgba(9, 20, 36, 0.88);
+      box-shadow: 0 0 0 1px rgba(106, 255, 59, 0.28), 0 18px 40px rgba(6, 20, 36, 0.35);
+      color: #f5f8ff;
+    }
+
+    .wallet-connect-button__label {
+      letter-spacing: 0.12em;
+    }
+
+    .wallet-status {
+      color: rgba(167, 186, 214, 0.9);
+    }
+
+    .wallet-status--connected {
+      color: rgba(153, 255, 204, 0.95);
+    }
+
+    .access-module {
+      background: rgba(7, 16, 29, 0.72);
+      border: 1px solid rgba(106, 255, 59, 0.18);
+    }
+
+    .module-tag {
+      background: rgba(106, 255, 59, 0.14);
+      color: rgba(205, 255, 225, 0.9);
+    }
+
+    button[type="submit"] {
+      background: linear-gradient(135deg, #6aff3b, #32d68c);
+      color: #05121f;
+      box-shadow: 0 26px 48px rgba(50, 214, 140, 0.35);
+    }
+
+    .status-message {
+      color: rgba(183, 199, 228, 0.88);
+    }
+
+    .status-message--success {
+      color: rgba(153, 255, 204, 0.95);
+    }
+
+    .status-message--error {
+      color: rgba(255, 170, 190, 0.95);
+    }
+
+    .health-bar {
+      top: clamp(5.5rem, 12vw, 7.5rem);
+      background: rgba(6, 14, 26, 0.85);
+      border: 1px solid rgba(106, 255, 59, 0.22);
+      box-shadow: 0 24px 60px rgba(4, 10, 20, 0.45);
+    }
+
+    .health-bar.is-critical {
+      border-color: rgba(255, 99, 132, 0.42);
+      box-shadow: 0 24px 60px rgba(255, 99, 132, 0.3);
+    }
+
+    .health-heart::before {
+      color: #6aff3b;
+      text-shadow: 0 0 16px rgba(106, 255, 59, 0.45);
+    }
+
+    .health-heart::after {
+      color: rgba(84, 95, 125, 0.7);
+    }
+
+    .intro-screen {
+      background: radial-gradient(circle at top, rgba(8, 16, 30, 0.94) 0%, rgba(5, 10, 20, 0.96) 50%, rgba(3, 7, 14, 0.98) 100%);
+    }
+
+    .intro-screen::before {
+      background: radial-gradient(circle at 45% 30%, rgba(106, 255, 59, 0.25), transparent 60%),
+        radial-gradient(circle at 60% 70%, rgba(91, 248, 179, 0.2), transparent 65%);
+    }
+
+    .intro-text {
+      color: #6aff3b;
+    }
+
+    .intro-text span {
+      color: #f5f8ff;
+    }
+
+    .failure-overlay {
+      background: linear-gradient(135deg, rgba(10, 17, 32, 0.88), rgba(7, 12, 24, 0.95));
+    }
+
+    .failure-caption {
+      color: rgba(222, 234, 255, 0.92);
+    }
+
+    .lockdown-overlay {
+      background: linear-gradient(135deg, rgba(7, 12, 24, 0.88), rgba(4, 9, 18, 0.95));
+    }
+
+    .lockdown-message {
+      color: rgba(255, 226, 205, 0.94);
+    }
+
+    @media (max-width: 1080px) {
+      .login-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .login-overview {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .login-overview {
+        padding: 1.5rem;
+      }
+
+      .login-header__actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+    <link rel="stylesheet" href="legal-footer.css">
+</head>
+  <body>
+    <header class="site-header container login-header">
+      <a class="logo" href="fullexperience.html" aria-label="Ioncore Energy main experience">
+        <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+        <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="fullexperience.html#solutions">Solutions</a></li>
+          <li><a href="fullexperience.html#technology">Technology</a></li>
+          <li><a href="fullexperience.html#deployment">Deployment</a></li>
+          <li><a href="fullexperience.html#insights">Insights</a></li>
+        </ul>
+      </nav>
+      <div class="login-header__actions">
+
+        <a class="btn btn-outline" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Connect</a>
+
+        <a class="btn btn-outline" href="IONCORECHAT/index.html">Connect</a>
+
+        <a class="btn btn-primary" href="index.html">Brochure library</a>
+      </div>
+    </header>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="failure-overlay" aria-hidden="true">
+      <div class="failure-stage">
+        <div class="bomb-scene" aria-hidden="true">
+          <div class="bomb" role="img" aria-label="Cartoon bomb">
+            <div class="bomb-fuse" aria-hidden="true"></div>
+            <div class="bomb-spark" aria-hidden="true"></div>
+          </div>
+          <div class="bomb-shadow" aria-hidden="true"></div>
+          <div class="face-silhouette">
+            <div class="face-piece face-piece--1"></div>
+            <div class="face-piece face-piece--2"></div>
+            <div class="face-piece face-piece--3"></div>
+            <div class="face-piece face-piece--4"></div>
+            <div class="face-piece face-piece--5"></div>
+            <div class="face-piece face-piece--6"></div>
+            <div class="face-feature face-feature--eye-left"></div>
+            <div class="face-feature face-feature--eye-right"></div>
+            <div class="face-feature face-feature--mouth"></div>
+            <div class="face-feature face-feature--brow"></div>
+          </div>
+          <div class="face-shatter-ring" aria-hidden="true"></div>
+          <div class="comic-text" aria-hidden="true">Kaboom!</div>
+        </div>
+        <p class="failure-caption">The clearance dummy detonated the security selfie. Try another access combo.</p>
+      </div>
+    </div>
+    <div class="lockdown-overlay" aria-hidden="true">
+      <div class="lockdown-fire" aria-hidden="true">
+        <div class="fire-glow"></div>
+        <div class="flame flame--1"></div>
+        <div class="flame flame--2"></div>
+        <div class="flame flame--3"></div>
+        <div class="ember ember--1"></div>
+        <div class="ember ember--2"></div>
+        <div class="ember ember--3"></div>
+        <p class="lockdown-message">Countermeasures engaged. Restoring security hearts…</p>
+      </div>
+    </div>
+    <div class="intro-screen" role="presentation" aria-hidden="true">
+      <div class="intro-content">
+        <img class="intro-logo" src="battery.svg" alt="">
+        <div class="intro-text" aria-hidden="true"><span>Ioncore</span>Energy</div>
+        <p class="intro-subtext" aria-hidden="true">Secure Access Division // Clearance Gate</p>
+      </div>
+    </div>
+    <div class="health-bar" role="status" aria-live="polite">
+      <span class="health-label">Security Hearts</span>
+      <div class="health-hearts" aria-hidden="true">
+        <span class="health-heart" data-heart-index="1"></span>
+        <span class="health-heart" data-heart-index="2"></span>
+        <span class="health-heart" data-heart-index="3"></span>
+        <span class="health-heart" data-heart-index="4"></span>
+        <span class="health-heart" data-heart-index="5"></span>
+      </div>
+      <span class="health-count" aria-hidden="true">5/5</span>
+      <span id="health-status" class="sr-only">Security hearts remaining: 5 of 5.</span>
+    </div>
+    <div class="login-shell container">
+      <section class="login-overview" aria-labelledby="login-overview-title">
+        <h1 id="login-overview-title">A refined portal for strategic energy partners.</h1>
+        <p>Ioncore&apos;s clearance gate mirrors the premium experience of our flagship launch site. Align credentials, confirm custody, and step into the full portfolio of magnetic inertia intelligence curated for enterprise deployments.</p>
+        <ul class="login-highlights">
+          <li>
+            <span class="login-highlights__label">24/7 monitored</span>
+            <span class="login-highlights__value">Dedicated security operations center</span>
+          </li>
+          <li>
+            <span class="login-highlights__label">Multi-rail authentication</span>
+            <span class="login-highlights__value">Wallet, access keys, and MEKNX continuum</span>
+          </li>
+          <li>
+            <span class="login-highlights__label">Direct support</span>
+            <span class="login-highlights__value">Ioncore integration advisors on call</span>
+          </li>
+        </ul>
+        <p class="login-overview__badge">Ioncore Secure Client Access Card</p>
+      </section>
+      <main class="vault-card" role="main">
+      <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
+        <span>Ioncore</span> Energy // Clearance Gate
+      </div>
+      <div class="intel-banner" role="status">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
+        Confidential schematics. Quantum vault monitored 24/7.
+      </div>
+      <h1>Vault Access Protocol</h1>
+      <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <figure class="vault-credential-card" aria-labelledby="vault-card-caption">
+        <img src="IMG_3143.jpeg" alt="Ioncore Energy secure client access card with QR credential" class="vault-credential-card__image" loading="lazy">
+        <figcaption id="vault-card-caption" class="vault-credential-card__caption">Ioncore currency credential required for vault and continuum access.</figcaption>
+      </figure>
+      <form class="access-form" id="login-form" autocomplete="off">
+        <div class="auth-mode-group">
+          <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
+            <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
+            <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
+            <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Meknx Access</button>
+          </div>
+          <a class="auth-mode auth-mode--chat" id="tab-chat" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html" target="_blank" rel="noopener">Live Chat</a>
+        </div>
+        <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
+          <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="MetaMask fox mark">
+                  <path fill="#f5841f" d="M4.4 2.5 14.6 10l.9 2.6-7.9-2.1z" />
+                  <path fill="#e2761b" d="m27.6 2.5-10.2 7.5-.9 2.6 7.9-2.1z" />
+                  <path fill="#c0ad9e" d="M12.3 17.4 11.4 24l4.6-2.4-.5-3z" />
+                  <path fill="#c0ad9e" d="m19.7 17.4.9 6.6-4.6-2.4.5-3z" />
+                  <path fill="#f5841f" d="M14.9 14.5 10 13.2 8.6 18l3.7-.2z" />
+                  <path fill="#f5841f" d="m17.1 14.5 4.9-1.3 1.4 4.8-3.7-.2z" />
+                  <path fill="#161616" d="m8.6 18 3.6 2.6-.3 1.4L8.6 18z" />
+                  <path fill="#161616" d="m23.4 18-3.6 2.6.3 1.4 3.3-4z" />
+                  <path fill="#763d16" d="m12.2 20.6 2.9 2.1-.3 1.7z" />
+                  <path fill="#763d16" d="m19.8 20.6-2.9 2.1.3 1.7z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect MetaMask</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="metamask-status" class="wallet-status">Not connected.</div>
+          </div>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-phantom" class="wallet-connect-button wallet-connect-button--phantom">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Solana triad">
+                  <defs>
+                    <linearGradient id="solana-a" x1="6" y1="9" x2="26" y2="9" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#14f195" />
+                      <stop offset="1" stop-color="#9945ff" />
+                    </linearGradient>
+                    <linearGradient id="solana-b" x1="6" y1="16" x2="26" y2="16" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#00ffa3" />
+                      <stop offset="1" stop-color="#dc1fff" />
+                    </linearGradient>
+                    <linearGradient id="solana-c" x1="6" y1="23" x2="26" y2="23" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#19fb9b" />
+                      <stop offset="1" stop-color="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#solana-a)" d="M6 8.2 10.8 4H26l-4.8 4.2H6Z" />
+                  <path fill="url(#solana-b)" d="M6 15.1 10.8 11h15.2l-4.8 4.1H6Z" />
+                  <path fill="url(#solana-c)" d="M6 22 10.8 17.8H26l-4.8 4.2H6Z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect Phantom</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="phantom-status" class="wallet-status">Not connected.</div>
+          </div>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Cardano wallet emblem">
+                  <circle cx="16" cy="16" r="10.5" fill="#0c2d57" />
+                  <path
+                    d="M16 5.5c-5.8 0-10.5 4.7-10.5 10.5S10.2 26.5 16 26.5 26.5 21.8 26.5 16 21.8 5.5 16 5.5Zm0 17.2a6.7 6.7 0 1 1 0-13.4 6.7 6.7 0 0 1 0 13.4Z"
+                    fill="#0d3f7d"
+                  />
+                  <circle cx="16" cy="16" r="3.8" fill="#2a9dff" />
+                  <circle cx="16" cy="16" r="1.9" fill="#6bd5ff" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect Cardano Wallet</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="cardano-status" class="wallet-status">Not connected.</div>
+          </div>
+          <div class="access-module" id="meknx-module">
+            <div class="module-header">
+              <h3>MEKNX Clearance</h3>
+              <span class="module-tag">Required</span>
+            </div>
+            <p class="module-copy">Verify an existing MEKNX pass or mint a fresh credential to unlock the professional portal.</p>
+            <div class="field">
+              <label for="meknx-action">Clearance Action</label>
+              <select id="meknx-action" name="meknx-action">
+                <option value="verify">Verify Existing Pass</option>
+                <option value="mint">Mint New Pass</option>
+              </select>
+            </div>
+            <div class="module-actions">
+              <button type="button" id="meknx-action-button" class="action-button">Start Clearance</button>
+              <div id="meknx-inline-status" class="inline-status">MEKNX clearance pending.</div>
+            </div>
+          </div>
+          <div class="access-module" id="ionc-module" hidden>
+            <div class="module-header">
+              <h3>IONC Token Gate</h3>
+              <span class="module-tag module-tag--solana">Solana</span>
+            </div>
+            <p class="module-copy">Phantom sessions must confirm an IONC access token minted to the connected wallet before entry.</p>
+            <div class="module-actions">
+              <button type="button" id="ionc-verify-button" class="action-button action-button--outline">Verify IONC Token</button>
+              <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
+            </div>
+          </div>
+          <div class="access-module" id="cardano-module" hidden>
+            <div class="module-header">
+              <h3>Cardano Policy Gate</h3>
+              <span class="module-tag module-tag--cardano">Cardano</span>
+            </div>
+            <p class="module-copy">Cardano sessions must confirm holdings under the Ioncore policy ID before requesting entry.</p>
+            <div class="module-actions">
+              <button type="button" id="cardano-verify-button" class="action-button action-button--outline">Verify Cardano Policy</button>
+              <div id="cardano-inline-status" class="inline-status">Awaiting policy verification.</div>
+            </div>
+          </div>
+          <input type="hidden" name="walletAddress" id="wallet-address">
+          <input type="hidden" name="walletProvider" id="wallet-provider">
+          <input type="hidden" name="ioncVerified" id="ionc-verified">
+          <input type="hidden" name="cardanoVerified" id="cardano-verified">
+          <input type="hidden" name="cardanoPolicyId" id="cardano-policy-id">
+        </div>
+        <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials" hidden>
+          <div class="field">
+            <label for="username">Access Key</label>
+            <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA">
+          </div>
+          <div class="field">
+            <label for="password">Clearance Code</label>
+            <input id="password" name="password" type="password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="mode-panel" id="meknx-panel" data-mode="meknx" role="tabpanel" aria-labelledby="tab-meknx" hidden>
+          <div class="meknx-access-grid">
+            <h2>MEKNX Gatekeeper</h2>
+            <p class="meknx-description">Validate your MEKNX access credential or mint a fresh professional pass to enter the portal.</p>
+            <div class="meknx-token-inputs">
+              <label for="meknx-passcode">Access Token</label>
+              <input id="meknx-passcode" name="meknxPasscode" type="text" placeholder="MEKNX-ACCESS-0001" autocomplete="off">
+            </div>
+            <div class="meknx-actions">
+              <div class="wallet-connect-row">
+                <button type="button" id="meknx-verify" class="wallet-connect-button">Verify Token</button>
+                <div id="meknx-status" class="wallet-status">Awaiting verification.</div>
+              </div>
+              <div class="wallet-connect-row">
+                <button type="button" id="meknx-mint" class="wallet-connect-button wallet-connect-button--phantom">Mint Professional Pass</button>
+                <div class="wallet-status">Issue a new MEKNX pass instantly.</div>
+              </div>
+            </div>
+            <input type="hidden" name="meknxPassId" id="meknx-pass-id">
+          </div>
+        </div>
+        <button type="submit">Enter the Vault</button>
+        <p id="status" class="status-message" role="status" aria-live="polite"></p>
+      </form>
+      <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion—sessions are logged for security, while wallet fingerprints remain off-chain.</p>
+    </main>
+    </div>
+  <script>
+    const bodyElement = document.body;
+    const introScreen = document.querySelector('.intro-screen');
+
+    if (introScreen) {
+      window.addEventListener('load', () => {
+        const markIntroComplete = () => {
+          bodyElement.classList.add('intro-complete');
+        };
+
+        setTimeout(markIntroComplete, 2400);
+
+        const handleTransitionEnd = (event) => {
+          if (event.propertyName === 'opacity' && bodyElement.classList.contains('intro-complete')) {
+            introScreen.removeEventListener('transitionend', handleTransitionEnd);
+            introScreen.remove();
+          }
+        };
+
+        introScreen.addEventListener('transitionend', handleTransitionEnd);
+        setTimeout(() => {
+          markIntroComplete();
+          introScreen.removeEventListener('transitionend', handleTransitionEnd);
+          if (introScreen.parentNode) {
+            introScreen.remove();
+          }
+        }, 4000);
+      });
+    }
+
+    const form = document.getElementById('login-form');
+    const status = document.getElementById('status');
+    const failureOverlay = document.querySelector('.failure-overlay');
+    const query = new URLSearchParams(window.location.search);
+    const nextPath = query.get('next') || '/';
+    const modeButtons = Array.from(document.querySelectorAll('.auth-mode[role="tab"]'));
+    const panels = Array.from(document.querySelectorAll('.mode-panel'));
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const walletAddressInput = document.getElementById('wallet-address');
+    const walletProviderInput = document.getElementById('wallet-provider');
+    const ioncVerifiedInput = document.getElementById('ionc-verified');
+    const cardanoVerifiedInput = document.getElementById('cardano-verified');
+    const cardanoPolicyInput = document.getElementById('cardano-policy-id');
+    const metamaskButton = document.getElementById('connect-metamask');
+    const phantomButton = document.getElementById('connect-phantom');
+    const cardanoButton = document.getElementById('connect-cardano');
+    const metamaskStatus = document.getElementById('metamask-status');
+    const phantomStatus = document.getElementById('phantom-status');
+    const cardanoStatus = document.getElementById('cardano-status');
+    const meknxActionSelect = document.getElementById('meknx-action');
+    const meknxActionButton = document.getElementById('meknx-action-button');
+    const meknxInlineStatus = document.getElementById('meknx-inline-status');
+    const ioncModule = document.getElementById('ionc-module');
+    const cardanoModule = document.getElementById('cardano-module');
+    const ioncVerifyButton = document.getElementById('ionc-verify-button');
+    const ioncInlineStatus = document.getElementById('ionc-inline-status');
+    const cardanoVerifyButton = document.getElementById('cardano-verify-button');
+    const cardanoInlineStatus = document.getElementById('cardano-inline-status');
+    const meknxVerifyButton = document.getElementById('meknx-verify');
+    const meknxMintButton = document.getElementById('meknx-mint');
+    const meknxStatus = document.getElementById('meknx-status');
+    const meknxPasscodeInput = document.getElementById('meknx-passcode');
+    const meknxPassIdInput = document.getElementById('meknx-pass-id');
+
+    const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
+    const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
+    const CARDANO_POLICY_ID = 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
+    const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
+    const MIN_WALLET_VALUE_USD = 10;
+    const MIN_LOGIN_VALUE_USD = 15;
+
+    const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
+
+    const meknxState = {
+      status: 'pending',
+      passId: '',
+      mintedAt: '',
+      walletProvider: '',
+      ioncTokens: 0
+    };
+
+    const ioncState = {
+      verified: false,
+      tokens: 0
+    };
+
+    const cardanoState = {
+      verified: false,
+      policyId: '',
+      walletType: '',
+      api: null
+    };
+
+    const CARDANO_WALLET_CANDIDATES = [
+      { key: 'lace', label: 'Lace' },
+      { key: 'daedalus', label: 'Daedalus' },
+      { key: 'eternl', label: 'Eternl' },
+      { key: 'nami', label: 'Nami' },
+      { key: 'flint', label: 'Flint' },
+      { key: 'yoroi', label: 'Yoroi' },
+      { key: 'gerowallet', label: 'GeroWallet' },
+      { key: 'nufi', label: 'NuFi' },
+      { key: 'typhoncip30', label: 'Typhon' }
+    ];
+
+    const detectCardanoWallet = () => {
+      const cardano = window.cardano;
+      if (!cardano) {
+        return null;
+      }
+
+      const orderedCandidates = CARDANO_WALLET_CANDIDATES.slice();
+      if (cardanoState.walletType) {
+        const preferredIndex = orderedCandidates.findIndex((candidate) => candidate.key === cardanoState.walletType);
+        if (preferredIndex > 0) {
+          const [preferred] = orderedCandidates.splice(preferredIndex, 1);
+          orderedCandidates.unshift(preferred);
+        }
+      }
+
+      for (const candidate of orderedCandidates) {
+        const provider = cardano[candidate.key];
+        if (provider && typeof provider.enable === 'function') {
+          return { ...candidate, provider };
+        }
+      }
+
+      return null;
+    };
+
+    const walletValueState = {
+      provider: '',
+      tokenSymbol: '',
+      tokenBalance: 0,
+      usdValue: 0,
+      checkedAt: 0
+    };
+
+    const tokenPriceCache = new Map();
+
+    if (cardanoPolicyInput && !cardanoPolicyInput.value) {
+      cardanoPolicyInput.value = CARDANO_POLICY_ID;
+    }
+
+    let cameraFlashOverlay = document.querySelector('.camera-flash-overlay');
+    if (!cameraFlashOverlay) {
+      cameraFlashOverlay = document.createElement('div');
+      cameraFlashOverlay.className = 'camera-flash-overlay';
+      cameraFlashOverlay.setAttribute('aria-hidden', 'true');
+      if (bodyElement) {
+        bodyElement.appendChild(cameraFlashOverlay);
+      }
+    }
+
+    const triggerCameraFlashEffect = () => {
+      if (!cameraFlashOverlay) {
+        return;
+      }
+      cameraFlashOverlay.classList.add('is-active');
+      window.setTimeout(() => {
+        cameraFlashOverlay.classList.remove('is-active');
+      }, 220);
+    };
+
+    const setInlineStatus = (element, message, tone = 'neutral') => {
+      if (!element) return;
+      element.textContent = message;
+      element.classList.remove(...inlineStatusToneClasses);
+      if (tone === 'error') {
+        element.classList.add('inline-status--error');
+      } else if (tone === 'success') {
+        element.classList.add('inline-status--success');
+      }
+    };
+
+    const resetIoncState = (options = {}) => {
+      ioncState.verified = false;
+      ioncState.tokens = 0;
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = '';
+      }
+      if (!options.silent) {
+        setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
+      }
+    };
+
+    const resetCardanoState = (options = {}) => {
+      cardanoState.verified = false;
+      cardanoState.policyId = CARDANO_POLICY_ID;
+      if (!options.keepWalletType) {
+        cardanoState.walletType = '';
+      }
+      if (!options.keepApi) {
+        cardanoState.api = null;
+      }
+      if (cardanoVerifiedInput) {
+        cardanoVerifiedInput.value = '';
+      }
+      if (cardanoPolicyInput && !options.preservePolicyInput) {
+        cardanoPolicyInput.value = CARDANO_POLICY_ID;
+      }
+      if (!options.silent) {
+        setInlineStatus(cardanoInlineStatus, 'Awaiting policy verification.');
+      }
+    };
+
+    const resetMeknxState = (options = {}) => {
+      meknxState.status = 'pending';
+      meknxState.passId = '';
+      meknxState.mintedAt = '';
+      meknxState.walletProvider = walletProviderInput ? walletProviderInput.value : '';
+      meknxState.ioncTokens = 0;
+      if (!options.keepPassId && meknxPassIdInput) {
+        meknxPassIdInput.value = '';
+      }
+      if (!options.silent) {
+        setInlineStatus(meknxInlineStatus, 'MEKNX clearance pending.');
+        if (meknxStatus) {
+          meknxStatus.textContent = 'Awaiting verification.';
+          meknxStatus.classList.remove('wallet-status--connected');
+        }
+      }
+      resetIoncState({ silent: options.silent });
+    };
+
+    const syncIoncModuleVisibility = () => {
+      if (!ioncModule) return;
+      const provider = walletProviderInput ? walletProviderInput.value : '';
+      const shouldShow = provider === 'solana';
+      ioncModule.hidden = !shouldShow;
+      if (!shouldShow) {
+        resetIoncState();
+        return;
+      }
+
+      if (ioncState.verified) {
+        setInlineStatus(
+          ioncInlineStatus,
+          `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
+          'success'
+        );
+      } else if (ioncState.tokens > 0) {
+        const tokenLabel = ioncState.tokens === 1 ? 'token' : 'tokens';
+        setInlineStatus(
+          ioncInlineStatus,
+          `Detected ${ioncState.tokens} IONC access ${tokenLabel}. Verify to continue.`
+        );
+      } else {
+        setInlineStatus(ioncInlineStatus, 'Phantom session detected. Verify IONC token to continue.');
+      }
+    };
+
+    const syncCardanoModuleVisibility = () => {
+      if (!cardanoModule) return;
+      const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+      const shouldShow = provider.startsWith('cardano');
+      cardanoModule.hidden = !shouldShow;
+
+      if (!shouldShow) {
+        resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+        setInlineStatus(cardanoInlineStatus, 'Awaiting policy verification.');
+        return;
+      }
+
+      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Ioncore policy';
+
+      if (cardanoState.verified) {
+        setInlineStatus(
+          cardanoInlineStatus,
+          `Cardano policy ${policyLabel} verified. Submit to enter the vault.`,
+          'success'
+        );
+      } else {
+        setInlineStatus(
+          cardanoInlineStatus,
+          `Confirm holdings under policy ${policyLabel} to continue.`
+        );
+      }
+    };
+
+    const applyMeknxResponse = (data) => {
+      if (!data) return;
+      const normalizedStatus = data.status === 'verified' ? 'verified' : 'minted';
+      meknxState.status = normalizedStatus;
+      meknxState.passId = data.passId || '';
+      meknxState.mintedAt = data.mintedAt || '';
+      meknxState.walletProvider = data.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
+      meknxState.ioncTokens = typeof data.ioncTokens === 'number' ? data.ioncTokens : meknxState.ioncTokens;
+
+      const statusLabel =
+        normalizedStatus === 'verified' ? 'MEKNX verification confirmed.' : 'MEKNX pass minted successfully.';
+      const passSuffix = meknxState.passId ? ` Pass ID: ${meknxState.passId}.` : '';
+      setInlineStatus(meknxInlineStatus, `${statusLabel}${passSuffix}`, 'success');
+
+      const isSolanaSession =
+        meknxState.walletProvider === 'solana' || (walletProviderInput && walletProviderInput.value === 'solana');
+
+      const isCardanoSession =
+        (typeof meknxState.walletProvider === 'string' && meknxState.walletProvider.startsWith('cardano')) ||
+        (walletProviderInput && (walletProviderInput.value || '').startsWith('cardano'));
+
+      ioncState.tokens = meknxState.ioncTokens;
+
+      if (isSolanaSession || !ioncState.verified) {
+        syncIoncModuleVisibility();
+      }
+
+      if (typeof data.cardanoPolicyId === 'string' && data.cardanoPolicyId) {
+        cardanoState.policyId = data.cardanoPolicyId;
+        if (cardanoPolicyInput) {
+          cardanoPolicyInput.value = data.cardanoPolicyId;
+        }
+      }
+
+      if (typeof data.cardanoPolicyVerified === 'boolean') {
+        cardanoState.verified = data.cardanoPolicyVerified;
+        if (cardanoVerifiedInput) {
+          cardanoVerifiedInput.value = data.cardanoPolicyVerified ? 'true' : '';
+        }
+      }
+
+      if (isCardanoSession || !cardanoState.verified) {
+        syncCardanoModuleVisibility();
+      }
+    };
+
+    const markIoncVerified = (tokens) => {
+      ioncState.verified = true;
+      ioncState.tokens = typeof tokens === 'number' ? tokens : ioncState.tokens;
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = 'true';
+      }
+      setInlineStatus(
+        ioncInlineStatus,
+        `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
+        'success'
+      );
+    };
+
+    let audioContext;
+
+    const getAudioContext = () => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        return null;
+      }
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+      }
+      return audioContext;
+    };
+
+    const playFailureBoomSound = (startOffset = 0) => {
+      const context = getAudioContext();
+      if (!context) {
+        return;
+      }
+
+      const now = context.currentTime + Math.max(0, startOffset);
+      const boomDuration = 0.85;
+
+      const masterGain = context.createGain();
+      masterGain.gain.setValueAtTime(0.0001, now);
+      masterGain.gain.exponentialRampToValueAtTime(1.1, now + 0.018);
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
+      masterGain.connect(context.destination);
+
+      const noiseBuffer = context.createBuffer(1, context.sampleRate * boomDuration, context.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i += 1) {
+        noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length);
+      }
+
+      const noiseSource = context.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      const noiseFilter = context.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.setValueAtTime(1000, now);
+      noiseFilter.Q.setValueAtTime(0.8, now);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(masterGain);
+
+      const thumpOscillator = context.createOscillator();
+      thumpOscillator.type = 'sine';
+      thumpOscillator.frequency.setValueAtTime(90, now);
+      thumpOscillator.frequency.exponentialRampToValueAtTime(32, now + boomDuration);
+      const thumpGain = context.createGain();
+      thumpGain.gain.setValueAtTime(0.0001, now);
+      thumpGain.gain.exponentialRampToValueAtTime(0.9, now + 0.02);
+      thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
+      thumpOscillator.connect(thumpGain);
+      thumpGain.connect(masterGain);
+
+      const snapOscillator = context.createOscillator();
+      snapOscillator.type = 'triangle';
+      snapOscillator.frequency.setValueAtTime(1800, now);
+      snapOscillator.frequency.exponentialRampToValueAtTime(220, now + 0.18);
+      const snapGain = context.createGain();
+      snapGain.gain.setValueAtTime(0.0001, now);
+      snapGain.gain.exponentialRampToValueAtTime(0.7, now + 0.012);
+      snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      snapOscillator.connect(snapGain);
+      snapGain.connect(masterGain);
+
+      noiseSource.start(now);
+      noiseSource.stop(now + boomDuration);
+      thumpOscillator.start(now);
+      thumpOscillator.stop(now + boomDuration);
+      snapOscillator.start(now);
+      snapOscillator.stop(now + 0.25);
+    };
+
+    const playShotgunBlastSound = () => {
+      const context = getAudioContext();
+      if (!context) {
+        playFailureBoomSound();
+        return;
+      }
+
+      const now = context.currentTime;
+      const pumpDuration = 0.32;
+
+      const pumpBuffer = context.createBuffer(1, context.sampleRate * pumpDuration, context.sampleRate);
+      const pumpData = pumpBuffer.getChannelData(0);
+      for (let i = 0; i < pumpData.length; i += 1) {
+        const progress = i / pumpData.length;
+        pumpData[i] = (Math.random() * 2 - 1) * (1 - progress) * (0.55 + 0.45 * Math.sin(progress * Math.PI));
+      }
+
+      const pumpSource = context.createBufferSource();
+      pumpSource.buffer = pumpBuffer;
+      const pumpFilter = context.createBiquadFilter();
+      pumpFilter.type = 'bandpass';
+      pumpFilter.frequency.setValueAtTime(220, now);
+      pumpFilter.frequency.exponentialRampToValueAtTime(140, now + pumpDuration);
+      pumpFilter.Q.setValueAtTime(3, now);
+
+      const pumpGain = context.createGain();
+      pumpGain.gain.setValueAtTime(0.0001, now);
+      pumpGain.gain.exponentialRampToValueAtTime(0.8, now + 0.05);
+      pumpGain.gain.exponentialRampToValueAtTime(0.0001, now + pumpDuration);
+
+      pumpSource.connect(pumpFilter);
+      pumpFilter.connect(pumpGain);
+      pumpGain.connect(context.destination);
+
+      pumpSource.start(now);
+      pumpSource.stop(now + pumpDuration);
+
+      const clackOscillator = context.createOscillator();
+      clackOscillator.type = 'triangle';
+      clackOscillator.frequency.setValueAtTime(2600, now + 0.12);
+      clackOscillator.frequency.exponentialRampToValueAtTime(520, now + 0.26);
+
+      const clackGain = context.createGain();
+      clackGain.gain.setValueAtTime(0.0001, now + 0.12);
+      clackGain.gain.exponentialRampToValueAtTime(0.5, now + 0.16);
+      clackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+      clackOscillator.connect(clackGain);
+      clackGain.connect(context.destination);
+
+      clackOscillator.start(now + 0.12);
+      clackOscillator.stop(now + 0.34);
+
+      const shellSource = context.createBufferSource();
+      shellSource.buffer = pumpBuffer;
+      shellSource.playbackRate.setValueAtTime(2.2, now + 0.24);
+
+      const shellGain = context.createGain();
+      shellGain.gain.setValueAtTime(0.0001, now + 0.24);
+      shellGain.gain.exponentialRampToValueAtTime(0.35, now + 0.27);
+      shellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+      shellSource.connect(shellGain);
+      shellGain.connect(context.destination);
+
+      shellSource.start(now + 0.24);
+      shellSource.stop(now + 0.44);
+
+      playFailureBoomSound(0.24);
+    };
+
+    const shortenIdentifier = (value) => {
+      if (!value || value.length <= 10) {
+        return value || '';
+      }
+      return `${value.slice(0, 6)}…${value.slice(-4)}`;
+    };
+
+    const normaliseMeknxToken = (value) => {
+      if (!value) return '';
+      return value.toUpperCase().replace(/[^A-Z0-9-]/g, '').replace(/-{2,}/g, '-');
+    };
+
+    const clearWalletValueState = () => {
+      walletValueState.provider = '';
+      walletValueState.tokenSymbol = '';
+      walletValueState.tokenBalance = 0;
+      walletValueState.usdValue = 0;
+      walletValueState.checkedAt = 0;
+    };
+
+    const recordWalletValueState = (provider, tokenSymbol, tokenBalance, usdValue) => {
+      walletValueState.provider = provider;
+      walletValueState.tokenSymbol = tokenSymbol;
+      walletValueState.tokenBalance = tokenBalance;
+      walletValueState.usdValue = usdValue;
+      walletValueState.checkedAt = Date.now();
+      return { ...walletValueState };
+    };
+
+    const formatTokenAmount = (amount) => {
+      if (!Number.isFinite(amount)) {
+        return '0';
+      }
+      if (amount >= 100) {
+        return amount.toFixed(2);
+      }
+      if (amount >= 1) {
+        return amount.toFixed(4);
+      }
+      return amount.toFixed(6);
+    };
+
+    const formatUsd = (value) => {
+      if (!Number.isFinite(value)) {
+        return '$0.00';
+      }
+      return value.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    };
+
+    const waitForWalletInjection = async (detector, { interval = 200, timeout = 2200 } = {}) => {
+      let detected = detector();
+      if (detected) {
+        return detected;
+      }
+
+      const start = Date.now();
+
+      while (Date.now() - start < timeout) {
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, interval);
+        });
+        detected = detector();
+        if (detected) {
+          return detected;
+        }
+      }
+
+      return null;
+    };
+
+    const detectMetaMaskProvider = () => {
+      const { ethereum } = window;
+      if (!ethereum) {
+        return null;
+      }
+
+      if (Array.isArray(ethereum.providers)) {
+        const metamaskProvider = ethereum.providers.find((provider) => provider && provider.isMetaMask);
+        if (metamaskProvider) {
+          return metamaskProvider;
+        }
+      }
+
+      if (ethereum.isMetaMask) {
+        return ethereum;
+      }
+
+      return typeof ethereum.request === 'function' ? ethereum : null;
+    };
+
+    const detectPhantomProvider = () => {
+      if (window.solana && window.solana.isPhantom) {
+        return window.solana;
+      }
+      if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
+        return window.phantom.solana;
+      }
+      return null;
+    };
+
+    const isMobileDevice = () => {
+      if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+        return navigator.userAgentData.mobile;
+      }
+      const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+      return /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini/.test(ua);
+    };
+
+    const openDeepLinkWindow = (url) => {
+      if (!url) {
+        return false;
+      }
+      const opened = window.open(url, '_blank', 'noopener');
+      if (!opened) {
+        window.location.href = url;
+      }
+      return true;
+    };
+
+    const triggerMobileWalletDeepLink = (wallet) => {
+      if (!isMobileDevice()) {
+        return false;
+      }
+
+      const currentUrl = window.location.href;
+      if (!currentUrl) {
+        return false;
+      }
+
+      if (wallet === 'metamask') {
+        const sanitized = currentUrl.replace(/^https?:\/\//i, '');
+        const deepLink = `https://metamask.app.link/dapp/${sanitized}`;
+        return openDeepLinkWindow(deepLink);
+      }
+
+      if (wallet === 'phantom') {
+        const encoded = encodeURIComponent(currentUrl);
+        const deepLink = `https://phantom.app/ul/v1/open-app?app_url=${encoded}`;
+        return openDeepLinkWindow(deepLink);
+      }
+
+      return false;
+    };
+
+    const hexToBytes = (hex) => {
+      if (typeof hex !== 'string') {
+        throw new Error('Invalid Cardano balance payload.');
+      }
+      const cleaned = hex.startsWith('0x') ? hex.slice(2) : hex;
+      if (cleaned.length % 2 !== 0) {
+        throw new Error('Malformed Cardano balance payload.');
+      }
+      const bytes = new Uint8Array(cleaned.length / 2);
+      for (let i = 0; i < cleaned.length; i += 2) {
+        bytes[i / 2] = Number.parseInt(cleaned.slice(i, i + 2), 16);
+      }
+      return bytes;
+    };
+
+    const readCborLength = (bytes, offset, additionalInfo) => {
+      if (additionalInfo < 24) {
+        return { value: BigInt(additionalInfo), offset };
+      }
+      const byteLengths = {
+        24: 1,
+        25: 2,
+        26: 4,
+        27: 8
+      };
+      const lengthBytes = byteLengths[additionalInfo];
+      if (!lengthBytes) {
+        throw new Error('Unsupported CBOR length descriptor.');
+      }
+      if (offset + lengthBytes > bytes.length) {
+        throw new Error('Unexpected end of CBOR payload.');
+      }
+      let value = 0n;
+      for (let i = 0; i < lengthBytes; i += 1) {
+        value = (value << 8n) + BigInt(bytes[offset + i]);
+      }
+      return { value, offset: offset + lengthBytes };
+    };
+
+    const decodeCborValue = (bytes, startOffset = 0) => {
+      if (startOffset >= bytes.length) {
+        throw new Error('Unexpected end of CBOR payload.');
+      }
+      const initialByte = bytes[startOffset];
+      const majorType = initialByte >> 5;
+      const additionalInfo = initialByte & 0x1f;
+      let offset = startOffset + 1;
+
+      if (majorType === 0) {
+        const { value, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        return { value, offset: nextOffset };
+      }
+
+      if (majorType === 1) {
+        const { value, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        return { value: -1n - value, offset: nextOffset };
+      }
+
+      if (majorType === 2 || majorType === 3) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber) || nextOffset + lengthNumber > bytes.length) {
+          throw new Error('Invalid CBOR byte/string length.');
+        }
+        const slice = bytes.slice(nextOffset, nextOffset + lengthNumber);
+        const value =
+          majorType === 3
+            ? typeof TextDecoder !== 'undefined'
+              ? new TextDecoder().decode(slice)
+              : String.fromCharCode(...slice)
+            : slice;
+        return { value, offset: nextOffset + lengthNumber };
+      }
+
+      if (majorType === 4) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber)) {
+          throw new Error('CBOR array too large.');
+        }
+        const result = [];
+        let innerOffset = nextOffset;
+        for (let i = 0; i < lengthNumber; i += 1) {
+          const decoded = decodeCborValue(bytes, innerOffset);
+          result.push(decoded.value);
+          innerOffset = decoded.offset;
+        }
+        return { value: result, offset: innerOffset };
+      }
+
+      if (majorType === 5) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber)) {
+          throw new Error('CBOR map too large.');
+        }
+        const result = new Map();
+        let innerOffset = nextOffset;
+        for (let i = 0; i < lengthNumber; i += 1) {
+          const key = decodeCborValue(bytes, innerOffset);
+          const value = decodeCborValue(bytes, key.offset);
+          result.set(key.value, value.value);
+          innerOffset = value.offset;
+        }
+        return { value: result, offset: innerOffset };
+      }
+
+      throw new Error('Unsupported CBOR data type encountered.');
+    };
+
+    const extractCardanoLovelace = (hexBalance) => {
+      const bytes = hexToBytes(hexBalance);
+      const decoded = decodeCborValue(bytes);
+      const payload = decoded.value;
+      if (typeof payload === 'bigint') {
+        return payload;
+      }
+      if (Array.isArray(payload) && payload.length > 0 && typeof payload[0] === 'bigint') {
+        return payload[0];
+      }
+      throw new Error('Unsupported Cardano balance format.');
+    };
+
+    const fetchTokenPriceUsd = async (tokenId) => {
+      const cached = tokenPriceCache.get(tokenId);
+      const now = Date.now();
+      if (cached && now - cached.timestamp < 60000) {
+        return cached.price;
+      }
+
+      const response = await fetch(`${TOKEN_PRICE_ENDPOINT}?ids=${encodeURIComponent(tokenId)}&vs_currencies=usd`);
+      if (!response.ok) {
+        throw new Error(`Unable to retrieve ${tokenId.toUpperCase()} price data.`);
+      }
+      const data = await response.json();
+      const price = Number(data?.[tokenId]?.usd);
+      if (!Number.isFinite(price)) {
+        throw new Error(`USD price unavailable for ${tokenId.toUpperCase()}.`);
+      }
+      tokenPriceCache.set(tokenId, { price, timestamp: now });
+      return price;
+    };
+
+    const getSolanaBalanceLamports = async (publicKey) => {
+      const response = await fetch(SOLANA_RPC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'solana-balance-check',
+          method: 'getBalance',
+          params: [publicKey]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to retrieve SOL balance.');
+      }
+
+      const data = await response.json();
+      const lamports = data?.result?.value;
+      if (!Number.isFinite(lamports)) {
+        throw new Error('Invalid SOL balance response.');
+      }
+      return lamports;
+    };
+
+    const getCardanoBalanceLovelace = async (api) => {
+      if (!api || typeof api.getBalance !== 'function') {
+        throw new Error('Connected Cardano wallet does not expose balance queries.');
+      }
+      const balanceHex = await api.getBalance();
+      if (!balanceHex) {
+        throw new Error('No Cardano balance data returned.');
+      }
+      return extractCardanoLovelace(balanceHex);
+    };
+
+    const ensureWalletUsdValue = async ({
+      provider,
+      address,
+      api,
+      statusElement,
+      walletLabel = ''
+    }) => {
+      const normalizedProvider = provider || '';
+
+      if (normalizedProvider === 'solana') {
+        if (statusElement) {
+          statusElement.textContent = 'Assessing SOL balance value…';
+        }
+        const lamports = await getSolanaBalanceLamports(address);
+        const solBalance = lamports / 1_000_000_000;
+        const solPrice = await fetchTokenPriceUsd('solana');
+        const usdValue = solBalance * solPrice;
+        if (usdValue < MIN_WALLET_VALUE_USD) {
+          throw new Error(
+            `SOL holdings below ${formatUsd(MIN_WALLET_VALUE_USD)}. Increase your balance to continue.`
+          );
+        }
+        const snapshot = recordWalletValueState('solana', 'SOL', solBalance, usdValue);
+        if (statusElement) {
+          statusElement.textContent = `SOL balance ≈ ${formatTokenAmount(solBalance)} (${formatUsd(usdValue)})`;
+        }
+        return snapshot;
+      }
+
+      if (normalizedProvider.startsWith('cardano')) {
+        if (statusElement) {
+          statusElement.textContent = 'Assessing ADA balance value…';
+        }
+        const lovelace = await getCardanoBalanceLovelace(api);
+        const adaBalance = Number(lovelace) / 1_000_000;
+        const adaPrice = await fetchTokenPriceUsd('cardano');
+        const usdValue = adaBalance * adaPrice;
+        if (usdValue < MIN_WALLET_VALUE_USD) {
+          const label = walletLabel || 'Cardano';
+          throw new Error(
+            `${label} holdings below ${formatUsd(MIN_WALLET_VALUE_USD)}. Increase your ADA balance to continue.`
+          );
+        }
+        const snapshot = recordWalletValueState(normalizedProvider, 'ADA', adaBalance, usdValue);
+        if (statusElement) {
+          const label = walletLabel || 'Cardano';
+          statusElement.textContent = `${label} balance ≈ ${formatTokenAmount(adaBalance)} ADA (${formatUsd(usdValue)})`;
+        }
+        return snapshot;
+      }
+
+      clearWalletValueState();
+      return null;
+    };
+
+    const resetWalletIndicators = () => {
+      if (metamaskStatus) {
+        metamaskStatus.textContent = 'Not connected.';
+        metamaskStatus.classList.remove('wallet-status--connected');
+      }
+      if (phantomStatus) {
+        phantomStatus.textContent = 'Not connected.';
+        phantomStatus.classList.remove('wallet-status--connected');
+      }
+      if (cardanoStatus) {
+        cardanoStatus.textContent = 'Not connected.';
+        cardanoStatus.classList.remove('wallet-status--connected');
+      }
+      if (walletAddressInput) {
+        walletAddressInput.value = '';
+      }
+      if (walletProviderInput) {
+        walletProviderInput.value = '';
+      }
+      clearWalletValueState();
+      resetMeknxState();
+      syncIoncModuleVisibility();
+      resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+      syncCardanoModuleVisibility();
+    };
+
+    const checkIonCTokenBalance = async (publicKey) => {
+      if (!publicKey) {
+        return false;
+      }
+
+      const response = await fetch(SOLANA_RPC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'ionc-token-check',
+          method: 'getTokenAccountsByOwner',
+          params: [
+            publicKey,
+            { mint: IONC_TOKEN_MINT },
+            { encoding: 'jsonParsed' }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network error verifying IONC token.');
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error?.message || 'RPC error verifying IONC token.');
+      }
+
+      const accounts = data?.result?.value || [];
+      return accounts.some((entry) => {
+        const tokenAmount = entry?.account?.data?.parsed?.info?.tokenAmount;
+        if (!tokenAmount) {
+          return false;
+        }
+        const precise = Number.parseFloat(tokenAmount.uiAmountString || tokenAmount.uiAmount || '0');
+        return Number.isFinite(precise) && precise > 0;
+      });
+    };
+
+    const enforceIoncRequirement = async (publicKey) => {
+      if (!publicKey) {
+        throw new Error('No wallet account returned.');
+      }
+
+      const hasToken = await checkIonCTokenBalance(publicKey);
+
+      if (!hasToken) {
+        if (ioncVerifiedInput) {
+          ioncVerifiedInput.value = '';
+        }
+        throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
+      }
+
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = 'true';
+      }
+
+      return true;
+    };
+
+    const connectCardanoWallet = (button, statusElement) => {
+      if (!button) return;
+      const originalLabel = button.textContent;
+
+      button.addEventListener('click', async () => {
+        const wallet = await waitForWalletInjection(detectCardanoWallet, { timeout: 2800, interval: 220 });
+        const walletLabel = wallet ? wallet.label : 'Cardano';
+        updateStatus(`Requesting ${walletLabel} session…`);
+        button.disabled = true;
+        button.textContent = 'Connecting…';
+
+        try {
+          if (!wallet) {
+            throw new Error(
+              'No supported Cardano wallets detected on this device. Open Lace, Nami, Eternl, or another CIP-30 wallet and try again.'
+            );
+          }
+
+          const { key: walletKey, provider } = wallet;
+          const api = await provider.enable();
+          if (!api) {
+            throw new Error(`Unable to establish a ${walletLabel} wallet session.`);
+          }
+
+          if (typeof api.getNetworkId === 'function') {
+            const networkId = await api.getNetworkId();
+            if (networkId !== 1) {
+              throw new Error('Switch your wallet to Cardano mainnet before connecting.');
+            }
+          }
+
+          let addresses = [];
+          if (typeof api.getUsedAddresses === 'function') {
+            addresses = await api.getUsedAddresses();
+          }
+          if ((!addresses || addresses.length === 0) && typeof api.getUnusedAddresses === 'function') {
+            addresses = await api.getUnusedAddresses();
+          }
+
+          const accountAddress = Array.isArray(addresses) && addresses.length ? addresses[0] : '';
+          if (!accountAddress) {
+            throw new Error('No wallet address returned. Ensure the wallet has an active account.');
+          }
+
+          if (walletAddressInput) {
+            walletAddressInput.value = accountAddress;
+          }
+          if (walletProviderInput) {
+            walletProviderInput.value = `cardano-${walletKey}`;
+          }
+          if (cardanoPolicyInput) {
+            cardanoPolicyInput.value = CARDANO_POLICY_ID;
+          }
+          if (cardanoVerifiedInput) {
+            cardanoVerifiedInput.value = '';
+          }
+
+          cardanoState.walletType = walletKey;
+          cardanoState.api = api;
+          cardanoState.policyId = CARDANO_POLICY_ID;
+          cardanoState.verified = false;
+
+          const cardanoValueSnapshot = await ensureWalletUsdValue({
+            provider: `cardano-${walletKey}`,
+            address: accountAddress,
+            api,
+            statusElement,
+            walletLabel
+          });
+
+          resetMeknxState();
+          syncIoncModuleVisibility();
+          syncCardanoModuleVisibility();
+          indicateWalletConnection(`cardano-${walletKey}`, accountAddress, walletLabel);
+
+          const continuationMessage =
+            meknxState.status === 'verified' || meknxState.status === 'minted'
+              ? ' Verify the Cardano policy to continue.'
+              : ' Complete MEKNX clearance then verify the Cardano policy.';
+          const cardanoValueMessage = cardanoValueSnapshot
+            ? ` ADA value ≈ ${formatUsd(cardanoValueSnapshot.usdValue)}.`
+            : '';
+          updateStatus(
+            `${walletLabel} session established.${cardanoValueMessage}${continuationMessage}`,
+            'success'
+          );
+        } catch (error) {
+          resetWalletIndicators();
+          const message = error?.message || 'Unable to connect to the Cardano wallet. Try again.';
+          if (statusElement) {
+            statusElement.textContent = message;
+          }
+          updateStatus(message, 'error');
+          triggerFailureAnimation();
+        } finally {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        }
+      });
+    };
+
+    const verifyMeknxToken = async (rawToken) => {
+      const formatted = normaliseMeknxToken(rawToken);
+
+      if (!formatted) {
+        throw new Error('Enter your MEKNX access token before verifying.');
+      }
+
+      if (!formatted.startsWith('MEKNX')) {
+        throw new Error('MEKNX token must begin with "MEKNX".');
+      }
+
+      if (formatted.length < 12) {
+        throw new Error('MEKNX token format is too short to be valid.');
+      }
+
+      await new Promise((resolve) => {
+        window.setTimeout(resolve, 650);
+      });
+
+      return formatted;
+    };
+
+    const indicateWalletConnection = (providerLabel, address, cardanoLabel = '') => {
+      const formatted = shortenIdentifier(address);
+      const balanceSuffix =
+        walletValueState.provider === providerLabel && walletValueState.tokenSymbol
+          ? ` • ${walletValueState.tokenSymbol} ≈ ${formatTokenAmount(walletValueState.tokenBalance)} (${formatUsd(
+              walletValueState.usdValue
+            )})`
+          : '';
+      if (providerLabel === 'evm') {
+        if (metamaskStatus) {
+          metamaskStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
+          metamaskStatus.classList.add('wallet-status--connected');
+        }
+        if (phantomStatus) {
+          phantomStatus.textContent = 'Not connected.';
+          phantomStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          cardanoStatus.textContent = 'Not connected.';
+          cardanoStatus.classList.remove('wallet-status--connected');
+        }
+      } else if (providerLabel === 'solana') {
+        if (phantomStatus) {
+          phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
+          phantomStatus.classList.add('wallet-status--connected');
+        }
+        if (metamaskStatus) {
+          metamaskStatus.textContent = 'Not connected.';
+          metamaskStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          cardanoStatus.textContent = 'Not connected.';
+          cardanoStatus.classList.remove('wallet-status--connected');
+        }
+      } else if (providerLabel && providerLabel.startsWith('cardano')) {
+        if (metamaskStatus) {
+          metamaskStatus.textContent = 'Not connected.';
+          metamaskStatus.classList.remove('wallet-status--connected');
+        }
+        if (phantomStatus) {
+          phantomStatus.textContent = 'Not connected.';
+          phantomStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          const resolvedLabel =
+            cardanoLabel ||
+            (providerLabel === 'cardano-lace'
+              ? 'Lace'
+              : providerLabel === 'cardano-daedalus'
+              ? 'Daedalus'
+              : 'Cardano');
+          cardanoStatus.textContent = `Connected (${resolvedLabel}): ${formatted}${balanceSuffix}`;
+          cardanoStatus.classList.add('wallet-status--connected');
+        }
+      }
+    };
+
+    const updateStatus = (message, tone = 'neutral') => {
+      if (!status) return;
+      status.textContent = message;
+      status.classList.remove('status-message--error', 'status-message--success');
+      if (tone === 'error') {
+        status.classList.add('status-message--error');
+      }
+      if (tone === 'success') {
+        status.classList.add('status-message--success');
+      }
+    };
+
+    const healthBar = document.querySelector('.health-bar');
+    const healthStatusElement = document.getElementById('health-status');
+    const healthCountElement = document.querySelector('.health-count');
+    const heartElements = healthBar ? Array.from(healthBar.querySelectorAll('.health-heart')) : [];
+    const lockdownOverlay = document.querySelector('.lockdown-overlay');
+    const MAX_HEARTS = heartElements.length;
+    let remainingHearts = MAX_HEARTS;
+    let isLockdownActive = false;
+    let lockdownResetTimeoutId;
+    let lockdownHideTimeoutId;
+    const LOCKDOWN_RESET_DELAY = 2200;
+    const LOCKDOWN_HIDE_DELAY = 3400;
+
+    const updateHealthStatus = (overrideMessage) => {
+      if (!MAX_HEARTS) {
+        return;
+      }
+      const safeRemaining = Math.max(remainingHearts, 0);
+      const message =
+        typeof overrideMessage === 'string'
+          ? overrideMessage
+          : `Security hearts remaining: ${safeRemaining} of ${MAX_HEARTS}.`;
+      if (healthStatusElement) {
+        healthStatusElement.textContent = message;
+      }
+      if (healthCountElement) {
+        healthCountElement.textContent = `${safeRemaining}/${MAX_HEARTS}`;
+      }
+    };
+
+    const resetHealthHearts = (options = {}) => {
+      if (!heartElements.length) {
+        return;
+      }
+      remainingHearts = MAX_HEARTS;
+      heartElements.forEach((heart) => {
+        heart.classList.remove('is-depleted', 'is-popped');
+      });
+      if (healthBar) {
+        healthBar.classList.remove('is-critical');
+      }
+      updateHealthStatus(
+        options.announce
+          ? `Security hearts restored. ${MAX_HEARTS} of ${MAX_HEARTS} available.`
+          : undefined
+      );
+    };
+
+    const triggerLockdownReset = () => {
+      if (!MAX_HEARTS) {
+        return;
+      }
+      if (!lockdownOverlay) {
+        resetHealthHearts({ announce: true });
+        return;
+      }
+      if (isLockdownActive) {
+        return;
+      }
+      isLockdownActive = true;
+      lockdownOverlay.classList.add('is-active');
+      window.clearTimeout(lockdownResetTimeoutId);
+      window.clearTimeout(lockdownHideTimeoutId);
+
+      lockdownResetTimeoutId = window.setTimeout(() => {
+        resetHealthHearts({ announce: true });
+      }, LOCKDOWN_RESET_DELAY);
+
+      lockdownHideTimeoutId = window.setTimeout(() => {
+        lockdownOverlay.classList.remove('is-active');
+        isLockdownActive = false;
+      }, LOCKDOWN_HIDE_DELAY);
+    };
+
+    const registerFailureHeart = () => {
+      if (!heartElements.length) {
+        return;
+      }
+      if (remainingHearts <= 0) {
+        triggerLockdownReset();
+        return;
+      }
+
+      const heartIndex = remainingHearts - 1;
+      const heart = heartElements[heartIndex];
+      remainingHearts -= 1;
+
+      if (heart) {
+        heart.classList.add('is-depleted');
+        heart.classList.remove('is-popped');
+        void heart.offsetWidth;
+        heart.classList.add('is-popped');
+      }
+
+      if (remainingHearts > 0) {
+        updateHealthStatus();
+      } else {
+        if (healthBar) {
+          healthBar.classList.add('is-critical');
+        }
+        updateHealthStatus('Security hearts depleted. Countermeasures engaging.');
+        window.setTimeout(() => {
+          triggerLockdownReset();
+        }, 900);
+      }
+    };
+
+    if (MAX_HEARTS > 0) {
+      updateHealthStatus();
+    }
+
+    const triggerFailureAnimation = () => {
+      if (!failureOverlay) return;
+
+      const restartAnimation = (element) => {
+        if (!element) return;
+        element.style.animation = 'none';
+        void element.offsetWidth;
+        element.style.animation = '';
+      };
+
+      const animatedSelectors = [
+        '.bomb',
+        '.bomb-fuse',
+        '.bomb-spark',
+        '.bomb-shadow',
+        '.face-piece',
+        '.face-feature',
+        '.face-shatter-ring',
+        '.comic-text'
+      ];
+
+      animatedSelectors.forEach((selector) => {
+        failureOverlay.querySelectorAll(selector).forEach(restartAnimation);
+      });
+
+      failureOverlay.classList.remove('is-visible');
+      void failureOverlay.offsetWidth;
+      failureOverlay.classList.add('is-visible');
+      triggerCameraFlashEffect();
+      playShotgunBlastSound();
+      registerFailureHeart();
+      setTimeout(() => {
+        failureOverlay.classList.remove('is-visible');
+      }, 2200);
+    };
+
+    if (form && status) {
+      if (meknxPasscodeInput) {
+        meknxPasscodeInput.addEventListener('input', (event) => {
+          const target = event.target;
+          const normalised = normaliseMeknxToken(target.value);
+          if (target.value !== normalised) {
+            target.value = normalised;
+          }
+          if (meknxPassIdInput && meknxPassIdInput.value && normalised !== meknxPassIdInput.value) {
+            meknxPassIdInput.value = '';
+            if (meknxStatus) {
+              meknxStatus.textContent = 'Awaiting verification.';
+              meknxStatus.classList.remove('wallet-status--connected');
+            }
+          }
+        });
+      }
+
+      let activeMode = 'wallet';
+
+      const setMode = (mode, force = false) => {
+        if (!force && mode === activeMode) {
+          return;
+        }
+
+        activeMode = mode;
+
+        modeButtons.forEach((button) => {
+          const isActive = button.dataset.mode === mode;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        panels.forEach((panel) => {
+          if (panel.dataset.mode === mode) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', 'hidden');
+          }
+        });
+
+        if (activeMode === 'credentials') {
+          if (usernameInput) usernameInput.required = true;
+          if (passwordInput) passwordInput.required = true;
+        } else {
+          if (usernameInput) usernameInput.required = false;
+          if (passwordInput) passwordInput.required = false;
+
+          if (activeMode === 'wallet') {
+            if (!walletAddressInput || !walletAddressInput.value) {
+              resetWalletIndicators();
+            } else {
+              syncIoncModuleVisibility();
+              syncCardanoModuleVisibility();
+            }
+          } else if (activeMode === 'meknx') {
+            if (!meknxPassIdInput || !meknxPassIdInput.value) {
+              resetMeknxState();
+            }
+          }
+        }
+
+        const hasFeedbackTone =
+          status.classList.contains('status-message--error') ||
+          status.classList.contains('status-message--success');
+
+        if (!status.textContent || (!hasFeedbackTone && !force)) {
+          if (activeMode === 'wallet') {
+            updateStatus('Link MetaMask, Phantom, or a Cardano wallet to request vault entry.');
+          } else if (activeMode === 'credentials') {
+            updateStatus('Authenticate with your assigned access key.');
+          } else if (activeMode === 'meknx') {
+            updateStatus('Verify your MEKNX credential or mint a new one to continue.');
+          }
+        }
+      };
+
+      modeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const mode = button.dataset.mode;
+          if (mode) {
+            setMode(mode);
+          }
+        });
+      });
+
+      if (meknxVerifyButton) {
+        meknxVerifyButton.addEventListener('click', async () => {
+          if (!meknxPasscodeInput) {
+            return;
+          }
+
+          meknxVerifyButton.disabled = true;
+          meknxVerifyButton.textContent = 'Verifying…';
+          updateStatus('Validating MEKNX credential…');
+
+          try {
+            const verifiedToken = await verifyMeknxToken(meknxPasscodeInput.value);
+            if (meknxPassIdInput) {
+              meknxPassIdInput.value = verifiedToken;
+            }
+            if (meknxStatus) {
+              meknxStatus.textContent = `Verified: ${shortenIdentifier(verifiedToken)}`;
+              meknxStatus.classList.add('wallet-status--connected');
+            }
+            updateStatus('MEKNX credential verified. Submit to enter.', 'success');
+          } catch (error) {
+            if (meknxPassIdInput) {
+              meknxPassIdInput.value = '';
+            }
+            if (meknxStatus) {
+              const message = error?.message || 'Unable to verify MEKNX token.';
+              meknxStatus.textContent = message;
+              meknxStatus.classList.remove('wallet-status--connected');
+            }
+            updateStatus(error?.message || 'Unable to verify MEKNX token.', 'error');
+            triggerFailureAnimation();
+          } finally {
+            meknxVerifyButton.disabled = false;
+            meknxVerifyButton.textContent = 'Verify Token';
+          }
+        });
+      }
+
+      if (meknxMintButton) {
+        meknxMintButton.addEventListener('click', () => {
+          const mintUrl = 'https://meknx.com/mint/ioncore-access';
+          window.open(mintUrl, '_blank', 'noopener');
+          updateStatus('MEKNX minting portal opened in a new tab. Complete minting then verify your token.');
+        });
+      }
+
+      if (metamaskButton) {
+        metamaskButton.addEventListener('click', async () => {
+          updateStatus('Requesting MetaMask session…');
+          metamaskButton.disabled = true;
+          metamaskButton.textContent = 'Connecting…';
+
+          try {
+            let provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
+
+            if (!provider) {
+              const openedMobileLink = triggerMobileWalletDeepLink('metamask');
+              if (openedMobileLink) {
+                if (metamaskStatus) {
+                  metamaskStatus.textContent = 'Opening MetaMask app… return here after approving the session.';
+                }
+                updateStatus('Launching MetaMask. Approve the connection in-app, then return to the browser.');
+                provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 7200, interval: 260 });
+              }
+            }
+
+            if (!provider) {
+              throw new Error(
+                'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
+              );
+            }
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            const account = accounts && accounts[0];
+            if (!account) {
+              throw new Error('No wallet account returned.');
+            }
+            if (walletAddressInput) {
+              walletAddressInput.value = account;
+            }
+            if (walletProviderInput) {
+              walletProviderInput.value = 'evm';
+            }
+            clearWalletValueState();
+            resetMeknxState();
+            syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
+            indicateWalletConnection('evm', account);
+            updateStatus('Wallet channel established. Run MEKNX clearance to continue.', 'success');
+          } catch (error) {
+            resetWalletIndicators();
+            const message = error?.message || 'MetaMask connection failed. Try again.';
+            if (metamaskStatus) {
+              metamaskStatus.textContent = message;
+            }
+            updateStatus(message, 'error');
+            triggerFailureAnimation();
+          } finally {
+            metamaskButton.disabled = false;
+            metamaskButton.textContent = 'Connect MetaMask';
+          }
+        });
+      }
+
+      if (phantomButton) {
+        phantomButton.addEventListener('click', async () => {
+          updateStatus('Requesting Phantom session…');
+          phantomButton.disabled = true;
+          phantomButton.textContent = 'Connecting…';
+
+          try {
+            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
+            if (!provider || !provider.isPhantom) {
+              const openedMobileLink = triggerMobileWalletDeepLink('phantom');
+              if (openedMobileLink) {
+                if (phantomStatus) {
+                  phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
+                }
+                updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
+                provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 7200, interval: 260 });
+              }
+            }
+            if (!provider || !provider.isPhantom) {
+              throw new Error(
+                'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'
+              );
+            }
+            const response = await provider.connect();
+            const publicKey = response?.publicKey?.toString();
+            if (!publicKey) {
+              throw new Error('No wallet account returned.');
+            }
+            if (phantomStatus) {
+              phantomStatus.textContent = 'Verifying IONC token…';
+            }
+            updateStatus('Verifying IONC token holdings…');
+            await enforceIoncRequirement(publicKey);
+            const solanaValueSnapshot = await ensureWalletUsdValue({
+              provider: 'solana',
+              address: publicKey,
+              statusElement: phantomStatus,
+              walletLabel: 'Solana'
+            });
+            if (walletAddressInput) {
+              walletAddressInput.value = publicKey;
+            }
+            if (walletProviderInput) {
+              walletProviderInput.value = 'solana';
+            }
+            resetMeknxState();
+            syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
+            indicateWalletConnection('solana', publicKey);
+            const solanaValueMessage = solanaValueSnapshot
+              ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
+              : '';
+            updateStatus(
+              `Phantom channel ready.${solanaValueMessage} Complete MEKNX and IONC verification to continue.`,
+              'success'
+            );
+            setInlineStatus(
+              ioncInlineStatus,
+              'IONC holdings confirmed. SOL balance meets the access requirement. Submit to enter the vault.',
+              'success'
+            );
+          } catch (error) {
+            resetWalletIndicators();
+            const message = error?.message || 'Phantom connection failed. Try again.';
+            if (phantomStatus) {
+              phantomStatus.textContent = message;
+            }
+            updateStatus(message, 'error');
+            triggerFailureAnimation();
+          } finally {
+            phantomButton.disabled = false;
+            phantomButton.textContent = 'Connect Phantom';
+          }
+        });
+      }
+
+      connectCardanoWallet(cardanoButton, cardanoStatus);
+
+      if (meknxActionButton) {
+        meknxActionButton.addEventListener('click', async () => {
+          const action = (meknxActionSelect && meknxActionSelect.value) || 'verify';
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(
+              meknxInlineStatus,
+              'Connect MetaMask, Phantom, or a Cardano wallet before requesting MEKNX clearance.',
+              'error'
+            );
+            updateStatus('Connect a wallet before starting MEKNX clearance.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          const progressLabel =
+            action === 'mint' ? 'Minting MEKNX clearance…' : 'Verifying MEKNX pass…';
+          setInlineStatus(meknxInlineStatus, progressLabel);
+          meknxActionButton.disabled = true;
+
+          try {
+            const response = await fetch('/access/meknx', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                action,
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage =
+                action === 'mint'
+                  ? 'MEKNX minting request denied. Review requirements and try again.'
+                  : 'MEKNX verification failed. Mint a pass or retry.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(meknxInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            applyMeknxResponse(data);
+            const successMessage =
+              data && data.message
+                ? data.message
+                : action === 'mint'
+                ? 'MEKNX pass minted successfully.'
+                : 'MEKNX verification confirmed.';
+            const normalizedProvider =
+              provider || meknxState.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
+            const needsIonc =
+              normalizedProvider === 'solana' && !ioncState.verified;
+            const needsCardanoPolicy =
+              normalizedProvider.startsWith && normalizedProvider.startsWith('cardano') && !cardanoState.verified;
+            const continuation = needsIonc
+              ? ' Continue with IONC verification.'
+              : needsCardanoPolicy
+              ? ' Continue with Cardano policy verification.'
+              : ' Submit to enter the vault.';
+            updateStatus(`${successMessage}${continuation}`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'MEKNX clearance request failed. Try again shortly.';
+            setInlineStatus(meknxInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            meknxActionButton.disabled = false;
+          }
+        });
+      }
+
+      if (ioncVerifyButton) {
+        ioncVerifyButton.addEventListener('click', async () => {
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (provider !== 'solana') {
+            setInlineStatus(ioncInlineStatus, 'IONC verification requires an active Phantom session.', 'error');
+            updateStatus('Open a Phantom session before requesting IONC verification.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(ioncInlineStatus, 'Connect Phantom before verifying IONC tokens.', 'error');
+            updateStatus('Connect Phantom before verifying IONC tokens.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          setInlineStatus(ioncInlineStatus, 'Checking Solana IONC balance…');
+          ioncVerifyButton.disabled = true;
+
+          try {
+            const response = await fetch('/access/ionc', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider,
+                meknxPassId: meknxState.passId
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage = 'IONC verification failed. Ensure your Solana wallet holds the access token.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(ioncInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            const tokens = typeof data.tokens === 'number' ? data.tokens : ioncState.tokens;
+            markIoncVerified(tokens);
+            syncIoncModuleVisibility();
+            const successMessage =
+              data && data.message
+                ? data.message
+                : `IONC verification complete. Tokens detected: ${tokens}.`;
+            updateStatus(`${successMessage} Submit to enter the vault.`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'Unable to verify IONC tokens. Try again shortly.';
+            setInlineStatus(ioncInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            ioncVerifyButton.disabled = false;
+          }
+        });
+      }
+
+      if (cardanoVerifyButton) {
+        cardanoVerifyButton.addEventListener('click', async () => {
+          const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(
+              cardanoInlineStatus,
+              'Connect a Cardano wallet before verifying the policy.',
+              'error'
+            );
+            updateStatus('Connect a Cardano wallet before verifying the policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (!provider || !provider.startsWith('cardano')) {
+            setInlineStatus(cardanoInlineStatus, 'Active session is not a Cardano wallet.', 'error');
+            updateStatus('Switch to a Cardano wallet to verify the policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
+            setInlineStatus(cardanoInlineStatus, 'Complete MEKNX clearance before policy checks.', 'error');
+            updateStatus('Complete MEKNX clearance before verifying the Cardano policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          cardanoVerifyButton.disabled = true;
+          setInlineStatus(cardanoInlineStatus, 'Verifying Cardano policy…');
+          updateStatus('Confirming Cardano policy holdings…');
+
+          try {
+            const response = await fetch('/access/cardano', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider,
+                meknxPassId: meknxState.passId,
+                policyId: cardanoState.policyId || CARDANO_POLICY_ID
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage = 'Cardano policy verification failed. Try again.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(cardanoInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            cardanoState.verified = true;
+            cardanoState.policyId = data.policyId || cardanoState.policyId || CARDANO_POLICY_ID;
+            if (cardanoVerifiedInput) {
+              cardanoVerifiedInput.value = 'true';
+            }
+            if (cardanoPolicyInput) {
+              cardanoPolicyInput.value = cardanoState.policyId;
+            }
+            syncCardanoModuleVisibility();
+            const successMessage =
+              data && data.message ? data.message : 'Cardano policy verification complete.';
+            updateStatus(`${successMessage} Submit to enter the vault.`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'Cardano policy verification failed. Try again shortly.';
+            setInlineStatus(cardanoInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            cardanoVerifyButton.disabled = false;
+          }
+        });
+      }
+
+      setMode('wallet', true);
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (!submitButton) {
+          return;
+        }
+
+        const verifyingMessage =
+          activeMode === 'wallet'
+            ? 'Verifying wallet clearance…'
+            : activeMode === 'meknx'
+            ? 'Confirming MEKNX credential…'
+            : 'Decrypting clearance codes…';
+        updateStatus(verifyingMessage);
+        submitButton.disabled = true;
+        submitButton.textContent =
+          activeMode === 'wallet'
+            ? 'Verifying Wallet…'
+            : activeMode === 'meknx'
+            ? 'Verifying MEKNX…'
+            : 'Verifying…';
+
+        const payload = {
+          method: activeMode,
+          next: nextPath
+        };
+
+        if (activeMode === 'wallet') {
+          if (!walletAddressInput || !walletAddressInput.value) {
+            updateStatus('Connect MetaMask, Phantom, or a Cardano wallet before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
+            updateStatus('Complete MEKNX clearance before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (provider === 'solana' && !ioncState.verified) {
+            updateStatus('Verify your IONC access token before requesting entry.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (provider && provider.startsWith('cardano') && !cardanoState.verified) {
+            updateStatus('Verify the required Cardano policy before requesting entry.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (provider === 'solana' || (provider && provider.startsWith('cardano'))) {
+            if (walletValueState.provider !== provider) {
+              updateStatus('Reconnect your wallet to refresh the on-chain balance check.', 'error');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+
+            if (walletValueState.usdValue < MIN_LOGIN_VALUE_USD) {
+              const tokenLabel = walletValueState.tokenSymbol || 'Wallet';
+              updateStatus(
+                `${tokenLabel} holdings must exceed ${formatUsd(
+                  MIN_LOGIN_VALUE_USD
+                )} before entering. Current value: ${formatUsd(walletValueState.usdValue)}.`,
+                'error'
+              );
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+          }
+
+          payload.walletAddress = walletAddressInput.value;
+          payload.walletProvider = provider;
+          payload.meknxPassId = meknxState.passId;
+          payload.meknxStatus = meknxState.status;
+          payload.meknxMintedAt = meknxState.mintedAt;
+          payload.ioncTokens = ioncState.tokens;
+          payload.ioncVerified = ioncState.verified;
+          payload.cardanoPolicyVerified = provider && provider.startsWith('cardano') ? cardanoState.verified : false;
+          payload.cardanoPolicyId = provider && provider.startsWith('cardano') ? cardanoState.policyId : '';
+        } else if (activeMode === 'meknx') {
+          const meknxPassId = meknxPassIdInput ? meknxPassIdInput.value.trim() : '';
+          if (!meknxPassId) {
+            updateStatus('Verify your MEKNX token before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+          payload.meknxPassId = meknxPassId;
+        } else {
+          const username = usernameInput ? usernameInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
+          if (!username || !password) {
+            updateStatus('Enter both your access key and clearance code.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+          payload.username = username;
+          payload.password = password;
+        }
+
+        try {
+          const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            updateStatus('Access granted. Opening vault…', 'success');
+            setTimeout(() => {
+              window.location.href = data.redirect || nextPath || '/';
+            }, 450);
+          } else {
+            let errorMessage = 'Access denied. Check your clearance credentials.';
+            try {
+              const data = await response.json();
+              if (data && data.message) {
+                errorMessage = data.message;
+              }
+            } catch (err) {
+              // ignore
+            }
+            updateStatus(`${errorMessage} The vault just giggled at the explosion.`, 'error');
+            triggerFailureAnimation();
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+          }
+        } catch (error) {
+          updateStatus('Secure channel disrupted. A cartoon blast occurred. Please attempt again.', 'error');
+          triggerFailureAnimation();
+          submitButton.disabled = false;
+          submitButton.textContent = 'Enter the Vault';
+        }
+      });
+    }
+  </script>
+
+  <footer class="legal-footer">
+    <p>Copyright © 2024 Ioncore Energy. Proprietary clean data and assets licensed for Ioncore Energy marketing use only.</p>
+  </footer>
+</body>
+</html>

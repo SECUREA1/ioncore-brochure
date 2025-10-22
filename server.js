@@ -999,6 +999,8 @@ function isPublicRoute(req) {
       '/login',
       '/login.html',
       '/',
+      '/webpage',
+      '/webpage.html',
       '/IONCORECHAT',
       '/IONCORECHAT/',
       '/IONCORECHAT/index',
@@ -1065,7 +1067,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage.html'));
 });
 
 app.get('/timepieces', async (req, res) => {

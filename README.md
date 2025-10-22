@@ -2,7 +2,7 @@
 
 This repository contains a collection of HTML brochures. A small Express server is included so the pages can be browsed locally or deployed on Render.
 
-The public homepage lives at `/` and links to an admin-only index of every HTML file. That listing resides at `/admin` and is protected with Basic Auth (`investor`/`burrito`). All brochure HTML files—even those not included on the old `index.html` page—require the same credentials. Selecting a link opens the brochure wrapped with a "Back" button so you can return to the index, and the browser tab title reflects the brochure's own title.
+The public homepage lives at `/` and links to a complete index of every HTML file. The listing resides at `/admin` and is now open to everyone for quick browsing—no credentials required. Selecting a link opens the brochure wrapped with a "Back" button so you can return to the index, and the browser tab title reflects the brochure's own title.
 
 ## Development
 
@@ -13,7 +13,7 @@ npm install
 npm start
 ```
 
-Visit <http://localhost:3000> for the homepage. Click **All HTML Files** and sign in with the admin credentials to browse the full index of brochures.
+Visit <http://localhost:3000> for the homepage. Click **All HTML Files** to browse the full index of brochures without signing in.
 
 ## Live engagement counters
 

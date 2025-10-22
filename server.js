@@ -183,13 +183,7 @@ function pruneSessions() {
   }
 }
 
-const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
-const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'burrito';
-
-const COOKIE_NAME = 'ioncore_session';
-const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
-
-const authSessions = new Map();
+const ACCESS_CODE_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 const meknxRegistry = new Map();
 
 function registerSession() {
@@ -232,28 +226,6 @@ async function sendHtml(res, filePath) {
   }
 }
 
-function createAuthSession() {
-  const sessionId = randomUUID();
-  authSessions.set(sessionId, Date.now());
-  return sessionId;
-}
-
-function validateAuthSession(sessionId) {
-  if (typeof sessionId !== 'string' || !sessionId) {
-    return false;
-  }
-  const lastSeen = authSessions.get(sessionId);
-  if (!lastSeen) {
-    return false;
-  }
-  if (Date.now() - lastSeen > COOKIE_MAX_AGE_MS) {
-    authSessions.delete(sessionId);
-    return false;
-  }
-  authSessions.set(sessionId, Date.now());
-  return true;
-}
-
 function buildHead(pageTitle) {
   const brandName = BRAND.name;
   const fullTitle = pageTitle.toLowerCase().includes(brandName.toLowerCase())
@@ -262,42 +234,6 @@ function buildHead(pageTitle) {
   const ogImage = BRAND.icon;
   const themeColor = BRAND.themeColor;
   return `<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="application-name" content="${brandName}"><meta name="apple-mobile-web-app-title" content="${brandName}"><meta name="theme-color" content="${themeColor}"><meta property="og:site_name" content="${brandName}"><meta property="og:title" content="${fullTitle}"><meta property="og:image" content="${ogImage}"><title>${fullTitle}</title><link rel="icon" type="image/svg+xml" href="${BRAND.icon}"><link rel="apple-touch-icon" href="${BRAND.icon}"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">`;
-}
-
-function destroyAuthSession(sessionId) {
-  if (typeof sessionId !== 'string' || !sessionId) {
-    return;
-  }
-  authSessions.delete(sessionId);
-}
-
-function getSessionIdFromCookies(req) {
-  const cookieHeader = req.headers.cookie;
-  if (!cookieHeader) {
-    return '';
-  }
-  const cookies = cookieHeader.split(';');
-  for (const cookie of cookies) {
-    const [rawName, ...rest] = cookie.trim().split('=');
-    if (rawName === COOKIE_NAME) {
-      return rest.join('=');
-    }
-  }
-  return '';
-}
-
-function setSessionCookie(res, sessionId) {
-  const maxAgeSeconds = Math.floor(COOKIE_MAX_AGE_MS / 1000);
-  res.setHeader(
-    'Set-Cookie',
-    `${COOKIE_NAME}=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAgeSeconds}`
-  );
-}
-
-function clearSessionCookie(res) {
-  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
-}
-
 function normalizeProvider(provider) {
   if (typeof provider !== 'string') {
     return 'evm';
@@ -323,277 +259,6 @@ function generateAccessCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-app.get('/login', async (req, res) => {
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
-    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
-    return res.redirect(safeNext);
-  }
-  await sendHtml(res, path.join(__dirname, 'login.html'));
-});
-
-app.post('/login', async (req, res) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const username = typeof body.username === 'string' ? body.username.trim() : '';
-  const password = typeof body.password === 'string' ? body.password : '';
-  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
-  const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
-  const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
-  let nextPath = typeof body.next === 'string' ? body.next : '/';
-
-  if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
-    nextPath = '/';
-  }
-
-  const method = walletAddress
-    ? 'wallet'
-    : !username && meknxPassId && !password
-      ? 'meknx'
-      : 'credentials';
-
-  const metadataBase = {
-    nextPath,
-    meknxStatus: body.meknxStatus,
-    meknxMintedAt: body.meknxMintedAt,
-    ioncTokens: body.ioncTokens,
-    ioncVerified: body.ioncVerified,
-    cardanoPolicyVerified: body.cardanoPolicyVerified,
-    cardanoPolicyId: body.cardanoPolicyId
-  };
-  const metadata = serializeMetadata(metadataBase);
-
-  const recordFailure = async (message, statusCode = 401) => {
-    await recordLoginEvent({
-      method,
-      username,
-      walletAddress,
-      walletProvider,
-      meknxPassId,
-      success: false,
-      metadata
-    });
-    clearSessionCookie(res);
-    return res
-      .status(statusCode)
-      .json({ message: message || 'Access denied. Invalid clearance credentials.' });
-  };
-
-  if (method === 'credentials') {
-    if (username === AUTH_USER && password === AUTH_PASS) {
-      await recordLoginEvent({
-        method,
-        username,
-        walletAddress,
-        walletProvider,
-        meknxPassId,
-        success: true,
-        metadata
-      });
-      const sessionId = createAuthSession();
-      setSessionCookie(res, sessionId);
-      return res.json({ redirect: nextPath });
-    }
-    return recordFailure();
-  }
-
-  if (method === 'wallet') {
-    if (!walletAddress) {
-      return recordFailure('Wallet session required for clearance validation. Connect a wallet and retry.');
-    }
-
-    if (!meknxPassId) {
-      return recordFailure('MEKNX clearance token required for wallet entry. Verify your pass before continuing.');
-    }
-
-    const meknxRecord = meknxRegistry.get(walletAddress);
-    const normalizedProvider = walletProvider
-      ? normalizeProvider(walletProvider)
-      : normalizeProvider(meknxRecord?.walletProvider || '');
-
-    if (!meknxRecord) {
-      return recordFailure(
-        'No MEKNX clearance found for this wallet. Mint or verify a MEKNX pass before requesting entry.',
-        403
-      );
-    }
-
-    if (meknxRecord.passId && meknxRecord.passId !== meknxPassId) {
-      return recordFailure('MEKNX pass mismatch detected. Re-verify your clearance token and try again.', 409);
-    }
-
-    if (!meknxRecord.passId) {
-      return recordFailure('MEKNX clearance token not yet minted for this wallet. Complete minting first.', 403);
-    }
-
-    const meknxStatusRaw = typeof body.meknxStatus === 'string' ? body.meknxStatus.trim().toLowerCase() : '';
-    const meknxStatus =
-      meknxStatusRaw === 'verified' || meknxStatusRaw === 'minted'
-        ? meknxStatusRaw
-        : meknxRecord.lastVerifiedAt
-        ? 'verified'
-        : 'minted';
-
-    const hasRecentVerification = Boolean(meknxRecord.lastVerifiedAt || meknxRecord.mintedAt);
-    if (!hasRecentVerification) {
-      return recordFailure('MEKNX clearance has not been verified recently. Re-run the MEKNX gate.', 403);
-    }
-
-    if (normalizedProvider === 'solana') {
-      const ioncVerified =
-        body.ioncVerified === true ||
-        body.ioncVerified === 'true' ||
-        body.ioncVerified === 1 ||
-        body.ioncVerified === '1';
-      const ioncTokens = Number.isFinite(body.ioncTokens) ? body.ioncTokens : Number(body.ioncTokens || 0);
-      const recordedTokens = Number.isFinite(meknxRecord.ioncTokens) ? meknxRecord.ioncTokens : 0;
-      if (!ioncVerified && (!ioncTokens || ioncTokens < 1)) {
-        return recordFailure('IONC verification required for Solana sessions. Confirm token holdings before entry.', 403);
-      }
-      if (!recordedTokens || recordedTokens < 1) {
-        return recordFailure('IONC access tokens not detected for this wallet. Mint or refresh MEKNX clearance first.', 403);
-      }
-    }
-
-    if (normalizedProvider === 'cardano') {
-      const policyVerified =
-        body.cardanoPolicyVerified === true ||
-        body.cardanoPolicyVerified === 'true' ||
-        body.cardanoPolicyVerified === 1 ||
-        body.cardanoPolicyVerified === '1';
-      if (!policyVerified) {
-        return recordFailure('Cardano policy verification required before entry. Confirm the policy and retry.', 403);
-      }
-      if (!meknxRecord.cardanoPolicyVerified || !meknxRecord.cardanoPolicyId) {
-        return recordFailure('Cardano policy not confirmed for this wallet. Complete policy verification and try again.', 403);
-      }
-      if (CARDANO_POLICY_ID && meknxRecord.cardanoPolicyId) {
-        const expectedPolicy = CARDANO_POLICY_ID.toLowerCase();
-        const recordedPolicy = meknxRecord.cardanoPolicyId.toLowerCase();
-        if (expectedPolicy && recordedPolicy !== expectedPolicy) {
-          return recordFailure('Recorded Cardano policy does not match the required asset. Re-verify the policy.', 403);
-        }
-      }
-    }
-
-    meknxRecord.walletProvider = normalizedProvider;
-    meknxRecord.lastLoginAt = new Date().toISOString();
-    meknxRegistry.set(walletAddress, meknxRecord);
-
-    const walletMetadata = serializeMetadata({
-      ...metadataBase,
-      walletLogin: {
-        provider: normalizedProvider,
-        meknxStatus,
-        meknxPassId,
-        meknxLastVerifiedAt: meknxRecord.lastVerifiedAt || null,
-        meknxMintedAt: meknxRecord.mintedAt || null,
-        ioncTokens: meknxRecord.ioncTokens || 0,
-        cardanoPolicyVerified: Boolean(meknxRecord.cardanoPolicyVerified),
-        cardanoPolicyId: meknxRecord.cardanoPolicyId || null
-      }
-    });
-
-    await recordLoginEvent({
-      method,
-      username,
-      walletAddress,
-      walletProvider: normalizedProvider,
-      meknxPassId,
-      success: true,
-      metadata: walletMetadata
-    });
-
-    const sessionId = createAuthSession();
-    setSessionCookie(res, sessionId);
-
-    return res.json({
-      redirect: nextPath,
-      wallet: {
-        address: walletAddress,
-        provider: normalizedProvider,
-        meknxPassId: meknxRecord.passId,
-        meknxStatus,
-        mintedAt: meknxRecord.mintedAt || null,
-        lastVerifiedAt: meknxRecord.lastVerifiedAt || null,
-        ioncTokens: meknxRecord.ioncTokens || 0,
-        cardanoPolicyVerified: Boolean(meknxRecord.cardanoPolicyVerified),
-        cardanoPolicyId: meknxRecord.cardanoPolicyId || null
-      }
-    });
-  }
-
-  if (method === 'meknx') {
-    if (!isThirdwebConfigured()) {
-      return recordFailure(
-        'MEKNX verification temporarily offline. Contact support for clearance.',
-        503
-      );
-    }
-
-    try {
-      const verification = await executeMeknxGate({
-        passId: meknxPassId,
-        walletAddress
-      });
-
-      if (!verification.authorized) {
-        const failureMessage =
-          verification.message || 'MEKNX contract denied this clearance request.';
-        return recordFailure(failureMessage, 403);
-      }
-
-      const enrichedMetadata = serializeMetadata({
-        ...metadataBase,
-        meknxContract: {
-          authorized: verification.authorized,
-          message: verification.message,
-          contractAddress: verification.contractAddress,
-          method: verification.method,
-          params: verification.params,
-          rawResult: verification.rawResult
-        }
-      });
-
-      await recordLoginEvent({
-        method,
-        username,
-        walletAddress,
-        walletProvider,
-        meknxPassId,
-        success: true,
-        metadata: enrichedMetadata
-      });
-
-      const sessionId = createAuthSession();
-      setSessionCookie(res, sessionId);
-
-      return res.json({
-        redirect: nextPath,
-        meknx: {
-          authorized: verification.authorized,
-          message: verification.message,
-          contractAddress: verification.contractAddress,
-          method: verification.method,
-          params: verification.params
-        }
-      });
-    } catch (error) {
-      const failureMessage =
-        error && typeof error.message === 'string'
-          ? error.message
-          : 'MEKNX contract verification failed. Try again shortly.';
-      return recordFailure(failureMessage, 502);
-    }
-  }
-
-  return recordFailure(
-    method === 'wallet'
-      ? 'Wallet verification not yet provisioned for automated vault entry.'
-      : 'MEKNX verification not yet provisioned for automated vault entry.'
-  );
-});
 
 app.post('/contact', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -717,7 +382,7 @@ app.post('/gateway', async (req, res) => {
         .json({ message: 'We were unable to record your access request. Please try again shortly.' });
     }
 
-    const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
+    const expiresAt = new Date(Date.now() + ACCESS_CODE_TTL_MS).toISOString();
     return res.status(201).json({
       message: 'Access granted. Your personal 6-digit code has been issued. Save it for your next visit.',
       assignedCode: accessCode,
@@ -772,20 +437,13 @@ app.post('/gateway', async (req, res) => {
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
 
-  const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
+  const expiresAt = new Date(Date.now() + ACCESS_CODE_TTL_MS).toISOString();
   res.json({
     message: 'Access verified. Redirecting to brochure.',
     assignedCode: refreshedUser.accessCode,
     isNewUser: false,
     expiresAt
   });
-});
-
-app.post('/logout', (req, res) => {
-  const sessionId = getSessionIdFromCookies(req);
-  destroyAuthSession(sessionId);
-  clearSessionCookie(res);
-  res.json({ message: 'Logged out' });
 });
 
 app.post('/access/meknx', (req, res) => {
@@ -986,59 +644,6 @@ app.post('/access/cardano', (req, res) => {
   });
 });
 
-function isPublicRoute(req) {
-  if (
-    req.method === 'POST' &&
-    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano', '/contact', '/gateway'].includes(req.path)
-  ) {
-    return true;
-  }
-
-  if (req.method === 'GET') {
-    const publicHtml = new Set([
-      '/login',
-      '/login.html',
-      '/',
-      '/IONCORECHAT',
-      '/IONCORECHAT/',
-      '/IONCORECHAT/index',
-      '/IONCORECHAT/index.html'
-    ]);
-    if (publicHtml.has(req.path)) {
-      return true;
-    }
-
-    const publicAssets = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.json', '.txt']);
-    const extension = path.extname(req.path).toLowerCase();
-    if (publicAssets.has(extension)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function requireAuth(req, res, next) {
-  if (isPublicRoute(req)) {
-    return next();
-  }
-
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    return next();
-  }
-
-  clearSessionCookie(res);
-
-  const expectsHtml = req.method === 'GET' && req.accepts('html');
-  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
-  if (expectsHtml) {
-    return res.redirect(`/login?next=${nextPath}`);
-  }
-  res.status(401).json({ message: 'Authentication required' });
-}
-
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   let files = [];
@@ -1061,11 +666,9 @@ async function getTitle(filePath) {
   return match ? match[1].trim() : path.basename(filePath);
 }
 
-app.use(requireAuth);
-
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage.html'));
 });
 
 app.get('/timepieces', async (req, res) => {
@@ -1097,7 +700,7 @@ app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
 // Serve static assets but disable automatic index fallback
 app.use(express.static(__dirname, { index: false }));
 
-// Password-protected HTML file listing
+// HTML file listing
 app.get('/admin', async (req, res) => {
   try {
     const files = await getHtmlFiles(__dirname);

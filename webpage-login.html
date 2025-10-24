@@ -257,6 +257,124 @@
       min-height: 110px;
     }
 
+    .gateway__toggles {
+      gap: 0.75rem;
+    }
+
+    .gateway__toggles[role='group'] {
+      margin-top: 0.5rem;
+    }
+
+    .gateway__toggle-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(209, 226, 255, 0.75);
+    }
+
+    .gateway__toggle-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .gateway-toggle {
+      display: block;
+      position: relative;
+    }
+
+    .gateway-toggle input {
+      position: absolute;
+      opacity: 0;
+      inset: 0;
+      cursor: pointer;
+    }
+
+    .gateway-toggle__body {
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      border-radius: 18px;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(0, 243, 179, 0.18);
+      background: rgba(4, 11, 24, 0.6);
+      transition: border-color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+    }
+
+    .gateway-toggle__indicator {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(226, 237, 255, 0.45);
+      display: grid;
+      place-items: center;
+      transition: border-color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+    }
+
+    .gateway-toggle__indicator::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background 200ms ease;
+    }
+
+    .gateway-toggle__content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .gateway-toggle__title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .gateway-toggle__copy {
+      font-size: 0.85rem;
+      color: rgba(198, 216, 246, 0.75);
+      line-height: 1.5;
+    }
+
+    .gateway-toggle input:focus-visible + .gateway-toggle__body {
+      outline: 2px solid rgba(0, 243, 179, 0.8);
+      outline-offset: 3px;
+    }
+
+    .gateway-toggle input:hover + .gateway-toggle__body,
+    .gateway-toggle input:focus-visible + .gateway-toggle__body {
+      border-color: rgba(0, 243, 179, 0.38);
+      background: rgba(6, 18, 38, 0.7);
+    }
+
+    .gateway-toggle input:checked + .gateway-toggle__body {
+      border-color: var(--ioncore-emerald);
+      background: rgba(8, 29, 52, 0.8);
+      box-shadow: 0 18px 40px rgba(0, 243, 179, 0.18);
+    }
+
+    .gateway-toggle input:checked + .gateway-toggle__body .gateway-toggle__indicator {
+      border-color: var(--ioncore-emerald);
+      background: linear-gradient(135deg, rgba(0, 243, 179, 0.95), rgba(22, 121, 255, 0.95));
+      box-shadow: 0 0 0 4px rgba(0, 243, 179, 0.18);
+    }
+
+    .gateway-toggle input:checked + .gateway-toggle__body .gateway-toggle__indicator::after {
+      background: rgba(4, 11, 24, 0.9);
+    }
+
+    .gateway-toggle--compact .gateway-toggle__body {
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      background: rgba(4, 14, 28, 0.65);
+    }
+
+    .gateway__toggles--secondary {
+      margin-top: 0.5rem;
+    }
+
     .gateway__input input:focus,
     .gateway__input textarea:focus {
       border-color: rgba(0, 243, 179, 0.55);
@@ -355,12 +473,41 @@
 
     @media (max-width: 720px) {
       body {
-        padding: 4vh 1.5rem;
+        padding: 4vh 1.25rem;
       }
 
       .gateway {
         border-radius: 26px;
         padding: clamp(2.2rem, 6vw, 2.7rem);
+      }
+
+      .gateway__header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .gateway__roles {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 540px) {
+      body {
+        padding: 3.5vh 1rem;
+      }
+
+      .gateway__form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .gateway__actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .gateway__submit {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -376,7 +523,7 @@
         <div class="gateway__identity">
           <span>Ioncore Energy</span>
           <h1 id="gateway-title" class="gateway__title">Secure intelligence gateway</h1>
-          <p class="gateway__subtitle">Select your relationship with Ioncore Energy, verify credentials, and continue to the restricted brochure experience.</p>
+          <p class="gateway__subtitle">Choose how you partner with Ioncore Energy to unlock investor dossiers, industrial deployment kits, and team operations intelligence.</p>
         </div>
       </header>
 
@@ -385,25 +532,25 @@
         <div class="gateway__roles" role="list">
           <button class="gateway-role" type="button" data-role="investor">
             <span class="gateway-role__eyebrow">Investors</span>
-            <span class="gateway-role__title">Capital partners &amp; family offices</span>
-            <p class="gateway-role__copy">Review fund performance briefs, growth roadmaps, and market-entry strategies.</p>
+            <span class="gateway-role__title">Capital partners &amp; strategic funds</span>
+            <p class="gateway-role__copy">Review deal rooms, performance briefs, and upcoming raise timelines.</p>
           </button>
           <button class="gateway-role" type="button" data-role="buyer">
-            <span class="gateway-role__eyebrow">Buyers</span>
-            <span class="gateway-role__title">Enterprise &amp; government procurement</span>
-            <p class="gateway-role__copy">Explore deployment playbooks, tiered pricing, and integration benchmarks.</p>
+            <span class="gateway-role__eyebrow">Industrial buyers</span>
+            <span class="gateway-role__title">Manufacturing &amp; deployment leads</span>
+            <p class="gateway-role__copy">Explore rollout playbooks, integration benchmarks, and purchasing frameworks.</p>
           </button>
           <button class="gateway-role" type="button" data-role="team">
             <span class="gateway-role__eyebrow">Ioncore Team</span>
-            <span class="gateway-role__title">Internal specialists &amp; advisors</span>
-            <p class="gateway-role__copy">Access confidential schematics, enablement tools, and engagement trackers.</p>
+            <span class="gateway-role__title">Field engineers &amp; collaborators</span>
+            <p class="gateway-role__copy">Access confidential schematics, enablement tools, and partner engagement trackers.</p>
           </button>
         </div>
       </section>
 
       <form class="gateway__form" id="gateway-form" novalidate>
         <fieldset>
-          <legend>Credential verification</legend>
+          <legend>Access preferences</legend>
           <div class="gateway__form-row">
             <div class="gateway__input">
               <label for="gateway-name">Full name</label>
@@ -411,26 +558,62 @@
               <p class="gateway__error" data-error-for="gateway-name" role="alert"></p>
             </div>
             <div class="gateway__input">
-              <label for="gateway-email">Work email</label>
-              <input type="email" id="gateway-email" name="email" autocomplete="email" required placeholder="j.avery@organization.com">
+              <label for="gateway-email">Work email <span class="gateway__optional">Optional</span></label>
+              <input type="email" id="gateway-email" name="email" autocomplete="email" placeholder="j.avery@organization.com">
               <p class="gateway__error" data-error-for="gateway-email" role="alert"></p>
             </div>
           </div>
-          <div class="gateway__form-row">
-            <div class="gateway__input">
-              <label for="gateway-code">Access code</label>
-              <input type="password" id="gateway-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code (leave blank if new)">
-              <p class="gateway__error" data-error-for="gateway-code" role="alert"></p>
+          <div class="gateway__input gateway__toggles" id="gateway-streams" role="group" aria-labelledby="gateway-streams-label">
+            <span id="gateway-streams-label" class="gateway__toggle-label">Choose the intelligence streams to unlock</span>
+            <div class="gateway__toggle-list">
+              <label class="gateway-toggle">
+                <input type="checkbox" name="streams" value="investor-dossier">
+                <span class="gateway-toggle__body">
+                  <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                  <span class="gateway-toggle__content">
+                    <span class="gateway-toggle__title">Investor dossiers</span>
+                    <span class="gateway-toggle__copy">Financial briefs, valuation narratives, and raise participation terms.</span>
+                  </span>
+                </span>
+              </label>
+              <label class="gateway-toggle">
+                <input type="checkbox" name="streams" value="industrial-playbooks">
+                <span class="gateway-toggle__body">
+                  <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                  <span class="gateway-toggle__content">
+                    <span class="gateway-toggle__title">Industrial deployment playbooks</span>
+                    <span class="gateway-toggle__copy">Specifications for manufacturing, commissioning, and large-scale rollouts.</span>
+                  </span>
+                </span>
+              </label>
+              <label class="gateway-toggle">
+                <input type="checkbox" name="streams" value="team-ops">
+                <span class="gateway-toggle__body">
+                  <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                  <span class="gateway-toggle__content">
+                    <span class="gateway-toggle__title">Operations alignment</span>
+                    <span class="gateway-toggle__copy">Collaboration tools, tasking dashboards, and program readiness updates.</span>
+                  </span>
+                </span>
+              </label>
             </div>
-            <div class="gateway__input">
-              <label for="gateway-intent">Engagement focus <span class="gateway__optional">Returning users may leave this blank</span></label>
-              <textarea id="gateway-intent" name="intent" placeholder="Outline the program or product line you are evaluating."></textarea>
-              <p class="gateway__error" data-error-for="gateway-intent" role="alert"></p>
-            </div>
+            <p class="gateway__error" data-error-for="gateway-streams" role="alert"></p>
+          </div>
+          <div class="gateway__input gateway__toggles gateway__toggles--secondary">
+            <label class="gateway-toggle gateway-toggle--compact">
+              <input type="checkbox" name="databaseOptIn" value="yes" checked>
+              <span class="gateway-toggle__body">
+                <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                <span class="gateway-toggle__content">
+                  <span class="gateway-toggle__title">Add me to the Ioncore partner ledger</span>
+                  <span class="gateway-toggle__copy">Log my name for investor, buyer, or team coordination follow-ups.</span>
+                </span>
+              </span>
+            </label>
           </div>
         </fieldset>
         <div class="gateway__actions">
-          <p class="gateway__privacy">By continuing you acknowledge Ioncore Energy's confidentiality policy. Shared intelligence is proprietary and intended only for approved stakeholders.</p>
+          <p class="gateway__privacy">By continuing you acknowledge Ioncore Energy's confidentiality policy. Shared intelligence is proprietary and tailored for approved investors, industrial buyers, and team partners.</p>
           <button class="gateway__submit" type="submit">
             PROCEED <i class="fa-solid fa-arrow-right"></i>
           </button>
@@ -439,7 +622,7 @@
 
       <div class="gateway__status" id="gateway-status" role="status" aria-live="assertive" aria-atomic="true">
         <span class="status-icon" aria-hidden="true">✔</span>
-        <span class="status-message">Access granted. Redirecting to brochure.</span>
+        <span class="status-message">Preferences saved. Redirecting to brochure.</span>
         <span class="status-code" id="gateway-status-code"></span>
       </div>
     </div>
@@ -471,11 +654,17 @@
       if (errorEl) {
         errorEl.textContent = message;
       }
-      field?.setAttribute('aria-invalid', message ? 'true' : 'false');
+      if (field) {
+        if (message) {
+          field.setAttribute('aria-invalid', 'true');
+        } else {
+          field.removeAttribute('aria-invalid');
+        }
+      }
     }
 
     function clearErrors() {
-      ['gateway-name', 'gateway-email', 'gateway-code', 'gateway-intent'].forEach((id) => setError(id, ''));
+      ['gateway-name', 'gateway-email', 'gateway-streams'].forEach((id) => setError(id, ''));
       const generalError = document.getElementById('gateway-general-error');
       if (generalError) generalError.remove();
       form?.removeAttribute('aria-describedby');
@@ -521,36 +710,23 @@
 
       const name = form.elements.namedItem('name');
       const email = form.elements.namedItem('email');
-      const code = form.elements.namedItem('code');
-      const intent = form.elements.namedItem('intent');
+      const streamInputs = Array.from(form.querySelectorAll('input[name="streams"]'));
+      const databaseToggle = form.elements.namedItem('databaseOptIn');
 
       if (!name.value.trim()) {
         setError('gateway-name', 'Enter your full name to continue.');
         hasError = true;
       }
 
-      if (!email.value.trim() || !/^\S+@\S+\.\S+$/.test(email.value)) {
-        setError('gateway-email', 'Provide a valid work email address.');
+      const emailValue = email.value.trim();
+      if (emailValue && !/^\S+@\S+\.\S+$/.test(emailValue)) {
+        setError('gateway-email', 'Provide a valid work email address or leave this field blank.');
         hasError = true;
       }
 
-      const codeValue = code.value.trim();
-      const intentValue = intent.value.trim();
-      const hasCode = codeValue.length > 0;
-      const codeIsValid = /^\d{6}$/.test(codeValue);
-
-      if (hasCode && !codeIsValid) {
-        setError('gateway-code', 'Access codes must be exactly 6 digits. Leave this blank if you are a new visitor.');
-        hasError = true;
-      }
-
-      if (!hasCode && intentValue.length < 12) {
-        setError('gateway-intent', 'First-time access requires a brief summary of your engagement focus (12+ characters).');
-        hasError = true;
-      }
-
-      if (hasCode && intentValue.length > 0 && intentValue.length < 12) {
-        setError('gateway-intent', 'Share at least 12 characters to update your engagement focus, or leave it blank.');
+      const selectedStreams = streamInputs.filter((input) => input.checked).map((input) => input.value);
+      if (selectedStreams.length === 0) {
+        setError('gateway-streams', 'Select at least one access toggle to continue.');
         hasError = true;
       }
 
@@ -564,14 +740,14 @@
       const requestPayload = {
         role: selectedRole,
         name: name.value.trim(),
-        email: email.value.trim(),
-        code: hasCode && codeIsValid ? codeValue : '',
-        intent: intentValue
+        email: emailValue,
+        streams: selectedStreams,
+        databaseOptIn: !!databaseToggle && databaseToggle.checked
       };
 
       const roleLabels = {
         investor: 'Investor',
-        buyer: 'Buyer',
+        buyer: 'Industrial buyer',
         team: 'Ioncore team'
       };
 
@@ -612,6 +788,8 @@
       const payload = {
         role: selectedRole,
         name: name.value.trim(),
+        streams: selectedStreams,
+        databaseOptIn: !!(databaseToggle && databaseToggle.checked),
         grantedAt: now,
         expires: now + twelveHours
       };
@@ -632,13 +810,17 @@
       form.setAttribute('aria-hidden', 'true');
       form.style.display = 'none';
       status.setAttribute('aria-live', 'assertive');
-      const label = roleLabels[selectedRole] || 'Stakeholder';
-      const message = (responseData && responseData.message) || `${label} access granted. Redirecting to brochure.`;
-      status.querySelector('.status-message').textContent = message;
+      const label = roleLabels[selectedRole] || 'Partner';
+      const baseMessage = (responseData && responseData.message) || `${label} preferences saved. Redirecting to brochure.`;
+      const selectionCopy =
+        responseData && Array.isArray(responseData.selections) && responseData.selections.length
+          ? ` Focus: ${responseData.selections.join(', ')}.`
+          : '';
+      status.querySelector('.status-message').textContent = `${baseMessage}${selectionCopy}`;
 
       if (statusCode) {
-        if (responseData && typeof responseData.assignedCode === 'string' && responseData.assignedCode.trim()) {
-          statusCode.textContent = `Access code: ${responseData.assignedCode}`;
+        if (responseData && typeof responseData.entryId === 'string' && responseData.entryId.trim()) {
+          statusCode.textContent = `Partner record ID: ${responseData.entryId}`;
           statusCode.classList.add('is-visible');
         } else {
           statusCode.textContent = '';
@@ -646,7 +828,7 @@
         }
       }
 
-      const redirectDelay = responseData && responseData.isNewUser ? 6000 : 900;
+      const redirectDelay = responseData && responseData.delayMs ? Number(responseData.delayMs) : 1400;
       setTimeout(() => {
         window.location.href = 'webpage.html';
       }, redirectDelay);

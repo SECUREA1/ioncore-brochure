@@ -137,23 +137,45 @@ async function recordContactSubmission(submission) {
 }
 
 async function recordGatewaySubmission(submission) {
+  const createdAt = new Date().toISOString();
+  const selectionsValue = Array.isArray(submission.selections) ? submission.selections : [];
+  const record = {
+    createdAt,
+    role: normalizeForStorage(submission.role),
+    name: normalizeForStorage(submission.name),
+    email: normalizeForStorage(submission.email),
+    selections: serializeMetadata(selectionsValue),
+    databaseOptIn: submission.databaseOptIn ? 1 : 0,
+    userAgent: normalizeForStorage(submission.userAgent),
+    referer: normalizeForStorage(submission.referer),
+    ipAddress: normalizeForStorage(submission.ipAddress)
+  };
+
+  let entryId = null;
+
+  if (submission.databaseOptIn) {
+    entryId = randomUUID();
+    store.gatewayUsers[entryId] = {
+      role: record.role,
+      name: record.name,
+      email: record.email,
+      selections: record.selections,
+      databaseOptIn: 1,
+      createdAt,
+      updatedAt: createdAt
+    };
+  }
+
   try {
-    store.gatewaySubmissions.push({
-      createdAt: new Date().toISOString(),
-      role: normalizeForStorage(submission.role),
-      name: normalizeForStorage(submission.name),
-      email: normalizeForStorage(submission.email),
-      accessCode: normalizeForStorage(submission.accessCode),
-      engagementFocus: normalizeForStorage(submission.engagementFocus),
-      userAgent: normalizeForStorage(submission.userAgent),
-      referer: normalizeForStorage(submission.referer),
-      ipAddress: normalizeForStorage(submission.ipAddress)
-    });
+    store.gatewaySubmissions.push({ ...record, entryId });
     await saveStore();
-    return true;
+    return { success: true, entryId };
   } catch (err) {
+    if (entryId) {
+      delete store.gatewayUsers[entryId];
+    }
     console.error('Failed to record gateway submission', err);
-    return false;
+    return { success: false, error: err };
   }
 }
 
@@ -317,10 +339,6 @@ function normalizeProvider(provider) {
 
 function generateMeknxPassId() {
   return `MEKNX-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
-}
-
-function generateAccessCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 app.get('/login', async (req, res) => {
@@ -625,11 +643,16 @@ app.post('/gateway', async (req, res) => {
   const role = typeof body.role === 'string' ? body.role.trim().toLowerCase() : '';
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
-  const code = typeof body.code === 'string' ? body.code.trim() : '';
-  const intent = typeof body.intent === 'string' ? body.intent.trim() : '';
+  const streamsRaw = body.streams;
+  const databaseOptInRaw = body.databaseOptIn;
 
-  const allowedRoles = new Set(['investor', 'buyer', 'team']);
-  if (!allowedRoles.has(role)) {
+  const roleLabels = new Map([
+    ['investor', 'Investor'],
+    ['buyer', 'Industrial buyer'],
+    ['team', 'Ioncore team']
+  ]);
+
+  if (!roleLabels.has(role)) {
     return res
       .status(400)
       .json({ message: 'Select the access profile that best represents your relationship with Ioncore Energy.' });
@@ -640,143 +663,68 @@ app.post('/gateway', async (req, res) => {
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRaw || !emailPattern.test(emailRaw)) {
-    return res.status(400).json({ message: 'Provide a valid work email address.' });
+  let email = '';
+  if (emailRaw) {
+    if (!emailPattern.test(emailRaw)) {
+      return res.status(400).json({ message: 'Provide a valid work email address or leave the field blank.' });
+    }
+    email = emailRaw.toLowerCase();
   }
 
-  const email = emailRaw.toLowerCase();
-  const existingUser = store.gatewayUsers[email] || null;
-  const isExistingUser = !!existingUser;
+  const streamOptions = new Map([
+    ['investor-dossier', 'Investor dossiers'],
+    ['industrial-playbooks', 'Industrial deployment playbooks'],
+    ['team-ops', 'Operations alignment']
+  ]);
 
-  if (isExistingUser) {
-    if (!/^\d{6}$/.test(code)) {
-      return res.status(400).json({ message: 'Enter the 6-digit access code issued on your first login.' });
-    }
-    if (code !== existingUser.accessCode) {
-      return res.status(401).json({ message: 'Incorrect access code. Use the 6-digit code provided on your initial login.' });
-    }
-    if (intent && intent.length > 0 && intent.length < 12) {
-      return res
-        .status(400)
-        .json({ message: 'Share at least 12 characters if you would like to update your engagement focus, or leave it blank to keep the previous entry.' });
-    }
-  } else if (code) {
-    if (!/^\d{6}$/.test(code)) {
-      return res.status(400).json({ message: 'Access codes must be 6 digits. Leave this field blank for first-time access.' });
-    }
+  const streamValues = Array.isArray(streamsRaw) ? streamsRaw : streamsRaw ? [streamsRaw] : [];
+  const normalizedStreams = Array.from(
+    new Set(
+      streamValues
+        .map((value) => (typeof value === 'string' ? value.trim().toLowerCase() : ''))
+        .filter((value) => value && streamOptions.has(value))
+    )
+  );
+
+  if (normalizedStreams.length === 0) {
+    return res.status(400).json({ message: 'Select at least one access toggle to continue.' });
   }
 
-  if (!isExistingUser) {
-    if (!intent || intent.length < 12) {
-      return res
-        .status(400)
-        .json({ message: 'Share a brief summary of your engagement focus (12+ characters).' });
-    }
+  const databaseOptIn =
+    databaseOptInRaw === true ||
+    databaseOptInRaw === 'true' ||
+    databaseOptInRaw === 'yes' ||
+    databaseOptInRaw === 'on' ||
+    databaseOptInRaw === '1';
 
-    const accessCode = generateAccessCode();
-    if (store.gatewayUsers[email]) {
-      return res
-        .status(409)
-        .json({ message: 'An access code has already been issued for this email. Enter your 6-digit code to continue.' });
-    }
-
-    const nowIso = new Date().toISOString();
-    store.gatewayUsers[email] = {
-      role,
-      name,
-      email,
-      engagementFocus: intent,
-      accessCode,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-      lastLogin: nowIso
-    };
-
-    try {
-      await saveStore();
-    } catch (error) {
-      console.error('Failed to create gateway user', error);
-      delete store.gatewayUsers[email];
-      return res.status(500).json({ message: 'We were unable to record your access request. Please try again shortly.' });
-    }
-
-    const stored = await recordGatewaySubmission({
-      role,
-      name,
-      email,
-      accessCode,
-      engagementFocus: intent,
-      userAgent: req.get('user-agent'),
-      referer: req.get('referer'),
-      ipAddress: req.ip
-    });
-
-    if (!stored) {
-      return res
-        .status(500)
-        .json({ message: 'We were unable to record your access request. Please try again shortly.' });
-    }
-
-    const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
-    return res.status(201).json({
-      message: 'Access granted. Your personal 6-digit code has been issued. Save it for your next visit.',
-      assignedCode: accessCode,
-      isNewUser: true,
-      expiresAt
-    });
-  }
-
-  const engagementFocusUpdate = intent && intent.length >= 12 ? intent : null;
-  const resolvedEngagementFocus = engagementFocusUpdate || existingUser.engagementFocus || 'Existing engagement focus retained';
-
-  const nowIso = new Date().toISOString();
-  try {
-    const updatedUser = {
-      ...existingUser,
-      role,
-      name,
-      lastLogin: nowIso,
-      updatedAt: nowIso
-    };
-    if (engagementFocusUpdate) {
-      updatedUser.engagementFocus = engagementFocusUpdate;
-    }
-    store.gatewayUsers[email] = updatedUser;
-    await saveStore();
-  } catch (error) {
-    console.error('Failed to update gateway user', error);
-    store.gatewayUsers[email] = existingUser;
-    return res.status(500).json({ message: 'We were unable to refresh your access. Please try again shortly.' });
-  }
-
-  const refreshedUser = store.gatewayUsers[email];
-  if (!refreshedUser) {
-    console.error('Gateway user missing after update for email:', email);
-    return res.status(500).json({ message: 'We were unable to refresh your access. Please try again shortly.' });
-  }
-
-  const stored = await recordGatewaySubmission({
+  const submission = {
     role,
     name,
     email,
-    accessCode: refreshedUser.accessCode,
-    engagementFocus: resolvedEngagementFocus,
+    selections: normalizedStreams,
+    databaseOptIn,
     userAgent: req.get('user-agent'),
     referer: req.get('referer'),
     ipAddress: req.ip
-  });
+  };
 
-  if (!stored) {
+  const stored = await recordGatewaySubmission(submission);
+
+  if (!stored || !stored.success) {
     return res
       .status(500)
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
 
   const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
-  res.json({
-    message: 'Access verified. Redirecting to brochure.',
-    assignedCode: refreshedUser.accessCode,
-    isNewUser: false,
+  const readableSelections = normalizedStreams.map((value) => streamOptions.get(value));
+  const message = `${roleLabels.get(role)} preferences saved. Redirecting to brochure.`;
+
+  return res.status(201).json({
+    message,
+    entryId: stored.entryId || '',
+    selections: readableSelections,
+    delayMs: 1400,
     expiresAt
   });
 });

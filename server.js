@@ -359,10 +359,10 @@ app.post('/login', async (req, res) => {
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
   const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
-  let nextPath = typeof body.next === 'string' ? body.next : '/';
+  let nextPath = typeof body.next === 'string' ? body.next : '/webpage.html';
 
   if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
-    nextPath = '/';
+    nextPath = '/webpage.html';
   }
 
   const method = walletAddress
@@ -947,6 +947,8 @@ function isPublicRoute(req) {
       '/login',
       '/login.html',
       '/',
+      '/webpage.html',
+      '/ioncore-contracting.html',
       '/IONCORECHAT',
       '/IONCORECHAT/',
       '/IONCORECHAT/index',

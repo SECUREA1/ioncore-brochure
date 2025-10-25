@@ -2585,10 +2585,23 @@
       meknxState.walletProvider = data.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
       meknxState.ioncTokens = typeof data.ioncTokens === 'number' ? data.ioncTokens : meknxState.ioncTokens;
 
-      const statusLabel =
+      const statusDetail =
         normalizedStatus === 'verified' ? 'MEKNX verification confirmed.' : 'MEKNX pass minted successfully.';
       const passSuffix = meknxState.passId ? ` Pass ID: ${meknxState.passId}.` : '';
-      setInlineStatus(meknxInlineStatus, `${statusLabel}${passSuffix}`, 'success');
+      setInlineStatus(
+        meknxInlineStatus,
+        `Access granted. Opening vault… ${statusDetail}${passSuffix}`.trim(),
+        'success'
+      );
+
+      if (meknxStatus) {
+        const shortId = meknxState.passId ? shortenIdentifier(meknxState.passId) : '';
+        const vaultMessage = shortId
+          ? `Access granted. Opening vault… (${shortId})`
+          : 'Access granted. Opening vault…';
+        meknxStatus.textContent = vaultMessage;
+        meknxStatus.classList.add('wallet-status--connected');
+      }
 
       const isSolanaSession =
         meknxState.walletProvider === 'solana' || (walletProviderInput && walletProviderInput.value === 'solana');
@@ -3697,10 +3710,10 @@
               meknxPassIdInput.value = verifiedToken;
             }
             if (meknxStatus) {
-              meknxStatus.textContent = `Verified: ${shortenIdentifier(verifiedToken)}`;
+              meknxStatus.textContent = `Access granted. Opening vault… (${shortenIdentifier(verifiedToken)})`;
               meknxStatus.classList.add('wallet-status--connected');
             }
-            updateStatus('MEKNX credential verified. Submit to enter.', 'success');
+            updateStatus('Access granted. Opening vault… Submit to enter.', 'success');
           } catch (error) {
             if (meknxPassIdInput) {
               meknxPassIdInput.value = '';
@@ -3917,12 +3930,8 @@
 
             const data = await response.json();
             applyMeknxResponse(data);
-            const successMessage =
-              data && data.message
-                ? data.message
-                : action === 'mint'
-                ? 'MEKNX pass minted successfully.'
-                : 'MEKNX verification confirmed.';
+            const successMessageBase = data && data.message ? `${data.message} ` : '';
+            const successMessage = `${successMessageBase}Access granted. Opening vault…`.trim();
             const normalizedProvider =
               provider || meknxState.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
             const needsIonc =

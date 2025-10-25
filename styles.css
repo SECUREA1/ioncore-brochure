@@ -2517,6 +2517,22 @@ main {
   color: var(--text-muted);
 }
 
+.checkout-form__feedback {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.checkout-form__feedback.is-success {
+  color: #6aff3b;
+}
+
+.checkout-form__feedback.is-error {
+  color: #ff6b6b;
+}
+
 .checkout-sidebar {
   background: var(--surface-soft);
   border: 1px solid var(--border);

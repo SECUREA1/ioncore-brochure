@@ -58,7 +58,7 @@
       <div class="checkout-panel">
         <h2>Sales Checkout</h2>
         <p class="checkout-panel__subtitle">Swipe the customer&apos;s card and capture the transaction details for immediate processing.</p>
-        <form class="checkout-form">
+        <form class="checkout-form" novalidate>
           <div class="form-row">
             <label for="cardholder">Cardholder Name</label>
             <input type="text" id="cardholder" name="cardholder" placeholder="Alex Johnson" required>
@@ -86,6 +86,7 @@
             <textarea id="notes" name="notes" rows="3" placeholder="Hybrid flywheel deployment – Phase 1 deposit"></textarea>
           </div>
           <button class="btn btn-primary checkout-form__submit" type="submit">Process Magnetic Stripe Sale</button>
+          <div class="checkout-form__feedback" role="status" aria-live="polite"></div>
           <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete.</p>
         </form>
       </div>
@@ -136,5 +137,87 @@
       </div>
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.querySelector('.checkout-form');
+      if (!form) {
+        return;
+      }
+
+      const feedback = form.querySelector('.checkout-form__feedback');
+      const submitButton = form.querySelector('.checkout-form__submit');
+
+      const setFeedback = (message, variant) => {
+        if (!feedback) {
+          return;
+        }
+        feedback.textContent = message || '';
+        feedback.classList.remove('is-success', 'is-error');
+        if (variant === 'success') {
+          feedback.classList.add('is-success');
+        } else if (variant === 'error') {
+          feedback.classList.add('is-error');
+        }
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!submitButton) {
+          return;
+        }
+
+        const formData = new FormData(form);
+        const payload = {
+          cardholder: formData.get('cardholder') || '',
+          cardNumber: formData.get('card-number') || '',
+          expiry: formData.get('expiry') || '',
+          cvv: formData.get('cvv') || '',
+          amount: formData.get('amount') || '',
+          projectReference: formData.get('notes') || ''
+        };
+
+        submitButton.disabled = true;
+        setFeedback('Authorizing magnetic stripe sale…', null);
+
+        try {
+          const response = await fetch('/payments/magnetic-stripe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json().catch(() => null);
+
+          if (!response.ok || !result) {
+            const message =
+              (result && result.message) ||
+              'Authorization failed. Verify the details or escalate to the deployment success team.';
+            setFeedback(message, 'error');
+            return;
+          }
+
+          const receiptLines = [
+            result.message,
+            result.authorizationCode ? `Auth code: ${result.authorizationCode}` : null,
+            result.maskedCardNumber ? `Card: ${result.maskedCardNumber}` : null,
+            result.amount && result.currency ? `Amount: ${result.currency} ${result.amount.toFixed ? result.amount.toFixed(2) : result.amount}` : null
+          ].filter(Boolean);
+
+          setFeedback(receiptLines.join(' • '), 'success');
+
+          form.reset();
+        } catch (error) {
+          setFeedback(
+            'We were unable to reach the processor. Check your connection or retry the authorization shortly.',
+            'error'
+          );
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    });
+  </script>
 </body>
 </html>

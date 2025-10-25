@@ -31,7 +31,8 @@ const defaultStore = {
   loginEvents: [],
   contactSubmissions: [],
   gatewaySubmissions: [],
-  gatewayUsers: {}
+  gatewayUsers: {},
+  magstripeTransactions: []
 };
 
 async function loadStore() {
@@ -45,7 +46,8 @@ async function loadStore() {
       gatewayUsers:
         parsed.gatewayUsers && typeof parsed.gatewayUsers === 'object' && !Array.isArray(parsed.gatewayUsers)
           ? parsed.gatewayUsers
-          : {}
+          : {},
+      magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : []
     };
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
@@ -176,6 +178,71 @@ async function recordGatewaySubmission(submission) {
     }
     console.error('Failed to record gateway submission', err);
     return { success: false, error: err };
+  }
+}
+
+function maskCardNumber(cardNumber) {
+  if (typeof cardNumber !== 'string') {
+    return null;
+  }
+  const digitsOnly = cardNumber.replace(/\D+/g, '');
+  if (digitsOnly.length < 4) {
+    return null;
+  }
+  const last4 = digitsOnly.slice(-4);
+  return `${'•'.repeat(Math.max(digitsOnly.length - 4, 0))}${last4}`;
+}
+
+function validateLuhn(cardNumber) {
+  if (typeof cardNumber !== 'string') {
+    return false;
+  }
+  const digits = cardNumber.replace(/\D+/g, '');
+  if (!digits) {
+    return false;
+  }
+
+  let sum = 0;
+  let doubleDigit = false;
+
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    let value = Number.parseInt(digits[i], 10);
+    if (Number.isNaN(value)) {
+      return false;
+    }
+    if (doubleDigit) {
+      value *= 2;
+      if (value > 9) {
+        value -= 9;
+      }
+    }
+    sum += value;
+    doubleDigit = !doubleDigit;
+  }
+
+  return sum % 10 === 0;
+}
+
+async function recordMagstripeTransaction(transaction) {
+  try {
+    const entryId = transaction.transactionId || randomUUID();
+    store.magstripeTransactions.push({
+      createdAt: new Date().toISOString(),
+      entryId,
+      transactionId: entryId,
+      cardholder: normalizeForStorage(transaction.cardholder),
+      maskedCardNumber: normalizeForStorage(transaction.maskedCardNumber),
+      amount: transaction.amount,
+      currency: transaction.currency,
+      projectReference: normalizeForStorage(transaction.projectReference),
+      authorizationCode: normalizeForStorage(transaction.authorizationCode),
+      status: normalizeForStorage(transaction.status),
+      processor: normalizeForStorage(transaction.processor)
+    });
+    await saveStore();
+  } catch (error) {
+    console.error('Failed to store magnetic stripe transaction', error);
+    throw error;
   }
 }
 
@@ -726,6 +793,92 @@ app.post('/gateway', async (req, res) => {
     selections: readableSelections,
     delayMs: 1400,
     expiresAt
+  });
+});
+
+app.post('/payments/magnetic-stripe', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const cardholder = typeof body.cardholder === 'string' ? body.cardholder.trim() : '';
+  const cardNumber = typeof body.cardNumber === 'string' ? body.cardNumber.trim() : '';
+  const expiryRaw = typeof body.expiry === 'string' ? body.expiry.trim() : '';
+  const cvv = typeof body.cvv === 'string' ? body.cvv.trim() : '';
+  const amountRaw = body.amount;
+  const projectReference = typeof body.projectReference === 'string' ? body.projectReference.trim() : '';
+
+  if (cardholder.length < 2) {
+    return res.status(400).json({ message: 'Cardholder name is required to authorize this transaction.' });
+  }
+
+  const normalizedCardDigits = typeof cardNumber === 'string' ? cardNumber.replace(/\D+/g, '') : '';
+  if (normalizedCardDigits.length < 12 || normalizedCardDigits.length > 19 || !validateLuhn(cardNumber)) {
+    return res.status(400).json({ message: 'Enter a valid magnetic stripe account number before submitting.' });
+  }
+
+  const expiryValue = expiryRaw.replace(/\s+/g, '');
+  const expiryMatch = /^(0[1-9]|1[0-2])\/?(\d{2}|\d{4})$/.exec(expiryValue);
+  if (!expiryMatch) {
+    return res.status(400).json({ message: 'Provide the card expiration in MM/YY format.' });
+  }
+
+  const expiryMonth = Number.parseInt(expiryMatch[1], 10);
+  let expiryYear = Number.parseInt(expiryMatch[2], 10);
+  if (expiryMatch[2].length === 2) {
+    expiryYear += expiryYear >= 70 ? 1900 : 2000;
+  }
+  const expirationBoundary = new Date(expiryYear, expiryMonth, 1);
+  const now = new Date();
+  if (expirationBoundary <= now) {
+    return res.status(400).json({ message: 'This card is expired. Request an alternate payment method.' });
+  }
+
+  const cvvDigits = cvv.replace(/\D+/g, '');
+  if (cvvDigits.length < 3 || cvvDigits.length > 4) {
+    return res.status(400).json({ message: 'Security code must contain 3 or 4 digits.' });
+  }
+
+  let amount = 0;
+  if (typeof amountRaw === 'number') {
+    amount = amountRaw;
+  } else if (typeof amountRaw === 'string') {
+    amount = Number.parseFloat(amountRaw.replace(/[^0-9.\-]/g, ''));
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ message: 'Enter a positive charge amount in USD.' });
+  }
+
+  const maskedCardNumber = maskCardNumber(cardNumber);
+  const authorizationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const transactionId = randomUUID();
+
+  try {
+    await recordMagstripeTransaction({
+      cardholder,
+      maskedCardNumber,
+      amount: Number(amount.toFixed(2)),
+      currency: 'USD',
+      projectReference,
+      authorizationCode,
+      status: 'authorized',
+      processor: 'ioncore-magnetic-stripe',
+      transactionId
+    });
+  } catch (error) {
+    return res
+      .status(502)
+      .json({ message: 'We could not finalize the authorization. Try again shortly or escalate to support.' });
+  }
+
+  return res.status(201).json({
+    message: 'Magstripe authorization approved and queued for settlement.',
+    transactionId,
+    authorizationCode,
+    cardholder,
+    maskedCardNumber,
+    amount: Number(amount.toFixed(2)),
+    currency: 'USD',
+    projectReference,
+    captureWindowHours: 24
   });
 });
 

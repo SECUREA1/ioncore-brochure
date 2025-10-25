@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ioncore Energy | Admin Control Center</title>
+    <link rel="icon" type="image/svg+xml" href="/battery.svg" />
+    <link rel="apple-touch-icon" href="/battery.svg" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      body {
+        background: var(--page-gradient);
+      }
+
+      header.admin-hero {
+        padding: clamp(32px, 6vw, 72px) 0 24px;
+      }
+
+      header.admin-hero .container {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      header.admin-hero h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 5vw, 3.4rem);
+      }
+
+      header.admin-hero p {
+        max-width: 760px;
+        font-size: 1.05rem;
+        line-height: 1.8;
+      }
+
+      header.admin-hero .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+      }
+
+      header.admin-hero .cta-row .status-pill {
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(106, 255, 59, 0.14);
+        border: 1px solid rgba(106, 255, 59, 0.38);
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      main.admin-main {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(42px, 5vw, 72px);
+        padding-bottom: 120px;
+      }
+
+      .admin-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+      }
+
+      .metric-card {
+        padding: 24px;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--tile-glow-rest);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .metric-card h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+      }
+
+      .metric-card strong {
+        font-size: clamp(2.2rem, 4vw, 2.8rem);
+        letter-spacing: -0.02em;
+      }
+
+      .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 24px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: clamp(1.95rem, 3vw, 2.5rem);
+      }
+
+      .section-header p {
+        margin: 0;
+        color: var(--text-muted);
+      }
+
+      .section-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .section-actions input[type='search'] {
+        background: rgba(12, 20, 36, 0.8);
+        border-radius: 999px;
+        border: 1px solid var(--border-strong);
+        padding: 12px 18px;
+        color: var(--text-high);
+        font-size: 0.95rem;
+        min-width: 240px;
+      }
+
+      .section-actions input[type='search']::placeholder {
+        color: var(--text-muted);
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        overflow: hidden;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--tile-glow-rest);
+      }
+
+      .data-table thead {
+        background: rgba(106, 255, 59, 0.08);
+        color: var(--text-high);
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 16px 18px;
+        text-align: left;
+        font-size: 0.92rem;
+        vertical-align: top;
+      }
+
+      .data-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .empty-state {
+        padding: 36px;
+        text-align: center;
+        color: var(--text-muted);
+      }
+
+      .timeline-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .timeline-item {
+        display: grid;
+        gap: 8px;
+        padding: 20px 22px;
+        border-radius: 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--tile-glow-rest);
+      }
+
+      .timeline-item time {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .badge[data-variant='success'] {
+        color: var(--accent);
+        border-color: rgba(106, 255, 59, 0.4);
+        background: rgba(106, 255, 59, 0.08);
+      }
+
+      .badge[data-variant='warning'] {
+        color: var(--warning);
+        border-color: rgba(250, 204, 21, 0.5);
+        background: rgba(250, 204, 21, 0.12);
+      }
+
+      .badge[data-variant='danger'] {
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.45);
+        background: rgba(248, 113, 113, 0.12);
+      }
+
+      .status-banner {
+        margin-top: 18px;
+        padding: 16px 20px;
+        border-radius: 18px;
+        border: 1px solid transparent;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.98rem;
+      }
+
+      .status-banner.is-visible {
+        display: inline-flex;
+      }
+
+      .status-banner[data-variant='info'] {
+        background: rgba(106, 255, 59, 0.12);
+        border-color: rgba(106, 255, 59, 0.4);
+        color: var(--accent);
+      }
+
+      .status-banner[data-variant='error'] {
+        background: rgba(248, 113, 113, 0.12);
+        border-color: rgba(248, 113, 113, 0.4);
+        color: #fca5a5;
+      }
+
+      .status-banner[data-variant='success'] {
+        background: rgba(59, 130, 246, 0.12);
+        border-color: rgba(59, 130, 246, 0.38);
+        color: #93c5fd;
+      }
+
+      .editor-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 7, 18, 0.72);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        z-index: 900;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+
+      .editor-overlay.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .editor-panel {
+        width: min(620px, 100%);
+        max-height: min(80vh, 760px);
+        overflow-y: auto;
+        background: var(--surface-strong);
+        border-radius: 26px;
+        padding: 32px;
+        border: 1px solid var(--border-strong);
+        box-shadow: var(--highlight-glow-strong);
+        display: grid;
+        gap: 22px;
+      }
+
+      .editor-panel header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .editor-panel header h2 {
+        margin: 0;
+        font-size: 1.65rem;
+      }
+
+      .editor-panel label {
+        display: grid;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      .editor-panel input,
+      .editor-panel textarea,
+      .editor-panel select {
+        background: rgba(12, 20, 36, 0.92);
+        border-radius: 14px;
+        border: 1px solid var(--border-strong);
+        padding: 12px 14px;
+        color: var(--text-high);
+        font-size: 0.95rem;
+      }
+
+      .editor-panel textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .editor-panel footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .chips-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .chips-row span {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.82rem;
+      }
+
+      @media (max-width: 720px) {
+        .section-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .section-actions input[type='search'] {
+          min-width: 0;
+          flex: 1 1 100%;
+        }
+
+        .editor-panel {
+          padding: 24px;
+        }
+
+        header.admin-hero .container {
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="admin-hero">
+      <div class="container">
+        <span class="eyebrow">Secure Administration</span>
+        <h1>Admin Control Center</h1>
+        <p>
+          Gain unified insight into Stripe activity, membership credentials, poll feedback, and login events. Edit user privileges,
+          attach compliance notes, and recall precise timestamps for every interaction in Ioncore's ecosystem.
+        </p>
+        <div class="cta-row">
+          <a class="btn" href="/">Return Home</a>
+          <a class="btn" href="/admin">Brochure Index</a>
+          <span class="status-pill" id="generated-at">Gathering intelligence…</span>
+          <div class="status-banner" id="status-banner" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </header>
+    <main class="admin-main container">
+      <section aria-labelledby="metrics-title">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Snapshot</span>
+            <h2 id="metrics-title">Mission Metrics</h2>
+            <p>The latest totals from magstripe commerce, credentialed members, and engagement streams.</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn" type="button" id="refresh-dashboard">Refresh Intelligence</button>
+          </div>
+        </div>
+        <div class="admin-card-grid" id="metrics-grid">
+          <article class="metric-card">
+            <h3>Gateway Users</h3>
+            <strong id="metric-users">0</strong>
+            <p id="metric-users-updated" class="text-muted"></p>
+          </article>
+          <article class="metric-card">
+            <h3>Stripe / Magstripe</h3>
+            <strong id="metric-stripe">0</strong>
+            <p class="text-muted">Encrypted ledger of card activity.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Poll &amp; Gateway Submissions</h3>
+            <strong id="metric-polls">0</strong>
+            <p class="text-muted">Opt-ins, polls, and questionnaire intel.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Contact &amp; Login Signals</h3>
+            <strong id="metric-contact">0</strong>
+            <p class="text-muted">Direct inquiries and authentication events.</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="timeline-title">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Unified Chronicle</span>
+            <h2 id="timeline-title">Activity Timeline</h2>
+            <p>Recent submissions, credential edits, and Stripe operations.</p>
+          </div>
+        </div>
+        <div id="timeline" class="timeline-list" aria-live="polite"></div>
+      </section>
+
+      <section aria-labelledby="users-title" id="user-profiles">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Credential Directory</span>
+            <h2 id="users-title">User Profiles &amp; Permissions</h2>
+            <p>Audit and amend user credentials, review opt-in status, and capture investigative notes.</p>
+          </div>
+          <div class="section-actions">
+            <input type="search" id="user-search" placeholder="Search by name, email, role, or note" />
+            <button class="btn" type="button" id="new-user-button">New Credential Record</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="users-table">
+            <thead>
+              <tr>
+                <th scope="col">Username</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Role</th>
+                <th scope="col">Status</th>
+                <th scope="col">Credential Review</th>
+                <th scope="col">Notes</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="users-empty">No credential records detected.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="stripe-title">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Payments Intelligence</span>
+            <h2 id="stripe-title">Stripe &amp; Magstripe Ledger</h2>
+            <p>Review transaction status, authorization codes, and project references.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="stripe-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Cardholder</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+                <th scope="col">Project</th>
+                <th scope="col">Authorization</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="stripe-empty">No Stripe or magstripe transactions recorded.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="polls-title">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Engagement Streams</span>
+            <h2 id="polls-title">Polls, Gateway Submissions &amp; Contact Signals</h2>
+            <p>Track poll selections, opt-ins, and outreach history from the field.</p>
+          </div>
+        </div>
+        <div class="admin-card-grid">
+          <article class="metric-card">
+            <h3>Gateway Submissions</h3>
+            <div class="chips-row" id="gateway-counts"></div>
+            <div class="table-wrapper">
+              <table class="data-table" id="gateway-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Selections</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <div class="empty-state" id="gateway-empty">No gateway submissions yet.</div>
+            </div>
+          </article>
+          <article class="metric-card">
+            <h3>Contact Inbox</h3>
+            <div class="table-wrapper">
+              <table class="data-table" id="contact-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Message</th>
+                    <th scope="col">Source</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <div class="empty-state" id="contact-empty">No contact submissions logged.</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="login-title">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Authentication History</span>
+            <h2 id="login-title">Login &amp; Wallet Events</h2>
+            <p>Trace credential attempts, wallet sign-ins, and MeknX verifications.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="login-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Method</th>
+                <th scope="col">Username</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Result</th>
+                <th scope="col">Metadata</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="login-empty">No login activity captured.</div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact" style="padding: 64px 0 96px;">
+      <div class="container">
+        <h3>Need additional exports?</h3>
+        <p>
+          Reach out to the Ioncore Energy security team for bespoke analytics, deep-dive credential audits, or compliance extracts.
+        </p>
+        <a href="mailto:ioncoreenergy@gmail.com" class="btn">Contact Security Desk</a>
+      </div>
+    </footer>
+
+    <div class="editor-overlay" id="user-editor" role="dialog" aria-modal="true" aria-labelledby="user-editor-title">
+      <form class="editor-panel" id="user-editor-form">
+        <header>
+          <div>
+            <span class="eyebrow">Credential Edit</span>
+            <h2 id="user-editor-title">Update User Record</h2>
+          </div>
+          <button class="btn" type="button" data-close-editor>Close</button>
+        </header>
+        <input type="hidden" name="id" id="editor-id" />
+        <label>
+          Username
+          <input type="text" name="username" id="editor-username" placeholder="wallet, handle, or alias" />
+        </label>
+        <label>
+          Full Name
+          <input type="text" name="name" id="editor-name" placeholder="Ioncore Admin" />
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" id="editor-email" placeholder="admin@ioncore.energy" />
+        </label>
+        <label>
+          Role / Access Tier
+          <input type="text" name="role" id="editor-role" placeholder="Investor, Partner, Technician" />
+        </label>
+        <label>
+          Credential Status
+          <select name="credentialStatus" id="editor-status">
+            <option value="">Select status…</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending Review</option>
+            <option value="suspended">Suspended</option>
+            <option value="revoked">Revoked</option>
+          </select>
+        </label>
+        <label>
+          Poll &amp; Program Selections (JSON allowed)
+          <textarea name="selections" id="editor-selections" placeholder='["Hybrid Storage", "Utility-Scale"]'></textarea>
+        </label>
+        <label>
+          Compliance Notes
+          <textarea name="notes" id="editor-notes" placeholder="Timestamped memo for this credential."></textarea>
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" name="databaseOptIn" id="editor-optin" />
+          <span>Opted in to database communications</span>
+        </label>
+        <footer>
+          <button class="btn" type="button" data-close-editor>Cancel</button>
+          <button class="btn" type="submit">Save Changes</button>
+        </footer>
+      </form>
+    </div>
+
+    <script>
+      const state = {
+        data: null,
+        search: '',
+        editorOpen: false
+      };
+
+      const statusBanner = document.getElementById('status-banner');
+      const generatedAt = document.getElementById('generated-at');
+      const refreshButton = document.getElementById('refresh-dashboard');
+      const searchInput = document.getElementById('user-search');
+      const usersTableBody = document.querySelector('#users-table tbody');
+      const usersEmpty = document.getElementById('users-empty');
+      const stripeTableBody = document.querySelector('#stripe-table tbody');
+      const stripeEmpty = document.getElementById('stripe-empty');
+      const gatewayTableBody = document.querySelector('#gateway-table tbody');
+      const gatewayEmpty = document.getElementById('gateway-empty');
+      const gatewayCounts = document.getElementById('gateway-counts');
+      const contactTableBody = document.querySelector('#contact-table tbody');
+      const contactEmpty = document.getElementById('contact-empty');
+      const loginTableBody = document.querySelector('#login-table tbody');
+      const loginEmpty = document.getElementById('login-empty');
+      const timelineList = document.getElementById('timeline');
+      const newUserButton = document.getElementById('new-user-button');
+      const editorOverlay = document.getElementById('user-editor');
+      const editorForm = document.getElementById('user-editor-form');
+      const closeEditorButtons = editorForm.querySelectorAll('[data-close-editor]');
+      const editorFields = {
+        id: document.getElementById('editor-id'),
+        username: document.getElementById('editor-username'),
+        name: document.getElementById('editor-name'),
+        email: document.getElementById('editor-email'),
+        role: document.getElementById('editor-role'),
+        status: document.getElementById('editor-status'),
+        selections: document.getElementById('editor-selections'),
+        notes: document.getElementById('editor-notes'),
+        optIn: document.getElementById('editor-optin')
+      };
+      const metricUsers = document.getElementById('metric-users');
+      const metricUsersUpdated = document.getElementById('metric-users-updated');
+      const metricStripe = document.getElementById('metric-stripe');
+      const metricPolls = document.getElementById('metric-polls');
+      const metricContact = document.getElementById('metric-contact');
+
+      function formatDate(value) {
+        if (!value) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString();
+      }
+
+      function setStatus(message, variant = 'info') {
+        if (!message) {
+          statusBanner.classList.remove('is-visible');
+          statusBanner.textContent = '';
+          return;
+        }
+        statusBanner.dataset.variant = variant;
+        statusBanner.textContent = message;
+        statusBanner.classList.add('is-visible');
+      }
+
+      async function loadOverview(options = {}) {
+        const silent = Boolean(options.silent);
+        if (!silent) {
+          setStatus('Synchronizing with secure datastore…', 'info');
+        }
+        try {
+          const response = await fetch('/api/admin/overview', {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
+          }
+          const payload = await response.json();
+          state.data = payload;
+          renderDashboard();
+          if (!silent) {
+            setStatus('Intelligence synchronized successfully.', 'success');
+          }
+          return payload;
+        } catch (error) {
+          console.error('Failed to load overview', error);
+          setStatus('Unable to connect to the admin datastore. Retry shortly.', 'error');
+          throw error;
+        }
+      }
+
+      function renderDashboard() {
+        if (!state.data) {
+          return;
+        }
+
+        generatedAt.textContent = 'Synced ' + formatDate(state.data.generatedAt);
+
+        metricUsers.textContent = state.data.metrics.totalGatewayUsers;
+        metricStripe.textContent = state.data.metrics.totalStripeTransactions;
+        metricPolls.textContent = state.data.metrics.totalGatewaySubmissions;
+        metricContact.textContent = state.data.metrics.totalContactSubmissions +
+          ' / ' + state.data.metrics.totalLoginEvents + ' logins';
+
+        const latestUser = state.data.gatewayUsers[0];
+        metricUsersUpdated.textContent = latestUser
+          ? 'Last credential update ' + formatDate(latestUser.updatedAt || latestUser.createdAt)
+          : 'No credential updates yet';
+
+        renderUsers();
+        renderStripe();
+        renderGateway();
+        renderContacts();
+        renderLogins();
+        renderTimeline();
+      }
+
+      function renderUsers() {
+        const users = (state.data?.gatewayUsers || []).filter((user) => {
+          if (!state.search) return true;
+          const haystack = [
+            user.username,
+            user.name,
+            user.email,
+            user.role,
+            user.notes,
+            user.credentialStatus
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          return haystack.includes(state.search);
+        });
+
+        usersTableBody.innerHTML = '';
+
+        if (!users.length) {
+          usersEmpty.style.display = 'block';
+          return;
+        }
+
+        usersEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const user of users) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${user.username || '—'}</td>
+            <td>${user.name || '—'}</td>
+            <td>${user.email || '—'}</td>
+            <td>${user.role || '—'}</td>
+            <td>
+              <span class="badge" data-variant="${badgeVariant(user.credentialStatus)}">
+                ${user.credentialStatus || 'Unclassified'}
+              </span>
+            </td>
+            <td>${formatDate(user.lastCredentialReview || user.updatedAt || user.createdAt)}</td>
+            <td>${truncate(user.notes)}</td>
+            <td><button class="btn" data-action="edit" data-user="${encodeURIComponent(user.id)}">Edit</button></td>
+          `;
+          fragment.appendChild(tr);
+        }
+        usersTableBody.appendChild(fragment);
+      }
+
+      function badgeVariant(status) {
+        if (!status) return 'warning';
+        const key = String(status).toLowerCase();
+        if (key.includes('active') || key.includes('approved')) return 'success';
+        if (key.includes('pending')) return 'warning';
+        if (key.includes('revoked') || key.includes('suspend')) return 'danger';
+        return 'warning';
+      }
+
+      function truncate(value, max = 120) {
+        if (!value) return '—';
+        const str = String(value);
+        if (str.length <= max) return str;
+        return str.slice(0, max - 1) + '…';
+      }
+
+      function generateId() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+          return window.crypto.randomUUID();
+        }
+        return `admin-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+      }
+
+      function renderStripe() {
+        const entries = state.data?.magstripeTransactions || [];
+        stripeTableBody.innerHTML = '';
+        if (!entries.length) {
+          stripeEmpty.style.display = 'block';
+          return;
+        }
+        stripeEmpty.style.display = 'none';
+        const fragment = document.createDocumentFragment();
+        for (const entry of entries) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(entry.createdAt)}</td>
+            <td>${entry.cardholder || '—'}</td>
+            <td>${entry.currency || ''} ${entry.amount != null ? entry.amount : '—'}</td>
+            <td><span class="badge" data-variant="${badgeVariant(entry.status)}">${entry.status || 'pending'}</span></td>
+            <td>${entry.projectReference || '—'}</td>
+            <td>${entry.authorizationCode || '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        stripeTableBody.appendChild(fragment);
+      }
+
+      function renderGateway() {
+        const submissions = state.data?.gatewaySubmissions || [];
+        gatewayTableBody.innerHTML = '';
+        gatewayCounts.innerHTML = '';
+        if (!submissions.length) {
+          gatewayEmpty.style.display = 'block';
+          return;
+        }
+        gatewayEmpty.style.display = 'none';
+
+        const roleCounts = new Map();
+        for (const submission of submissions) {
+          const key = (submission.role || 'Unspecified').trim();
+          roleCounts.set(key, (roleCounts.get(key) || 0) + 1);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(submission.updatedAt || submission.createdAt)}</td>
+            <td>${submission.name || '—'}</td>
+            <td>${submission.email || '—'}</td>
+            <td>${submission.role || '—'}</td>
+            <td>${truncate(parseSelections(submission.selections))}</td>
+          `;
+          gatewayTableBody.appendChild(tr);
+        }
+
+        const fragment = document.createDocumentFragment();
+        for (const [role, count] of roleCounts.entries()) {
+          const span = document.createElement('span');
+          span.textContent = `${role}: ${count}`;
+          fragment.appendChild(span);
+        }
+        gatewayCounts.appendChild(fragment);
+      }
+
+      function parseSelections(value) {
+        if (!value) return '—';
+        if (Array.isArray(value)) return value.join(', ');
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) {
+            return parsed.join(', ');
+          }
+          if (typeof parsed === 'object' && parsed !== null) {
+            return Object.entries(parsed)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(', ');
+          }
+          return String(parsed);
+        } catch (error) {
+          return value;
+        }
+      }
+
+      function renderContacts() {
+        const contacts = state.data?.contactSubmissions || [];
+        contactTableBody.innerHTML = '';
+        if (!contacts.length) {
+          contactEmpty.style.display = 'block';
+          return;
+        }
+        contactEmpty.style.display = 'none';
+        for (const contact of contacts) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(contact.createdAt)}</td>
+            <td>${contact.name || '—'}</td>
+            <td>${contact.email || '—'}</td>
+            <td>${truncate(contact.message, 160)}</td>
+            <td>${contact.source || '—'}</td>
+          `;
+          contactTableBody.appendChild(tr);
+        }
+      }
+
+      function renderLogins() {
+        const events = state.data?.loginEvents || [];
+        loginTableBody.innerHTML = '';
+        if (!events.length) {
+          loginEmpty.style.display = 'block';
+          return;
+        }
+        loginEmpty.style.display = 'none';
+        for (const event of events) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(event.createdAt)}</td>
+            <td>${event.method || 'credentials'}</td>
+            <td>${event.username || '—'}</td>
+            <td>${event.walletAddress ? `${event.walletAddress} (${event.walletProvider || 'wallet'})` : '—'}</td>
+            <td><span class="badge" data-variant="${event.success ? 'success' : 'danger'}">${event.success ? 'Success' : 'Failed'}</span></td>
+            <td>${truncate(event.metadata)}</td>
+          `;
+          loginTableBody.appendChild(tr);
+        }
+      }
+
+      function renderTimeline() {
+        timelineList.innerHTML = '';
+        const timeline = state.data?.activityTimeline || [];
+        if (!timeline.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.textContent = 'No activity captured yet.';
+          timelineList.appendChild(empty);
+          return;
+        }
+
+        for (const item of timeline.slice(0, 25)) {
+          const container = document.createElement('article');
+          container.className = 'timeline-item';
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = item.type.replace(/-/g, ' ');
+          container.appendChild(badge);
+          const time = document.createElement('time');
+          time.dateTime = item.timestamp || '';
+          time.textContent = formatDate(item.timestamp);
+          container.appendChild(time);
+          const title = document.createElement('h3');
+          title.style.margin = '0';
+          title.textContent = item.headline || 'Event';
+          container.appendChild(title);
+          const detail = document.createElement('p');
+          detail.textContent = item.detail || '';
+          container.appendChild(detail);
+          timelineList.appendChild(container);
+        }
+      }
+
+      function openEditor(user = null) {
+        state.editorOpen = true;
+        editorOverlay.classList.add('is-open');
+        if (!user) {
+          editorFields.id.value = '';
+          editorFields.username.value = '';
+          editorFields.name.value = '';
+          editorFields.email.value = '';
+          editorFields.role.value = '';
+          editorFields.status.value = '';
+          editorFields.selections.value = '';
+          editorFields.notes.value = '';
+          editorFields.optIn.checked = false;
+          editorFields.username.focus();
+          return;
+        }
+        editorFields.id.value = user.id || '';
+        editorFields.username.value = user.username || '';
+        editorFields.name.value = user.name || '';
+        editorFields.email.value = user.email || '';
+        editorFields.role.value = user.role || '';
+        editorFields.status.value = user.credentialStatus || '';
+        editorFields.selections.value = formatSelectionsForEditor(user.selections);
+        editorFields.notes.value = user.notes || '';
+        editorFields.optIn.checked = Boolean(user.databaseOptIn);
+        editorFields.username.focus();
+      }
+
+      function closeEditor() {
+        state.editorOpen = false;
+        editorOverlay.classList.remove('is-open');
+      }
+
+      function formatSelectionsForEditor(value) {
+        if (!value) return '';
+        if (typeof value === 'string') return value;
+        try {
+          return JSON.stringify(value, null, 2);
+        } catch (error) {
+          return String(value);
+        }
+      }
+
+      async function submitEditor(event) {
+        event.preventDefault();
+        const id = editorFields.id.value.trim();
+        if (!id) {
+          setStatus('Assign an entry ID before saving a credential record.', 'error');
+          return;
+        }
+        const payload = {
+          username: editorFields.username.value,
+          name: editorFields.name.value,
+          email: editorFields.email.value,
+          role: editorFields.role.value,
+          credentialStatus: editorFields.status.value,
+          selections: editorFields.selections.value,
+          notes: editorFields.notes.value,
+          databaseOptIn: editorFields.optIn.checked
+        };
+        try {
+          const response = await fetch(`/api/admin/gateway-users/${encodeURIComponent(id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) {
+            throw new Error('Update failed with status ' + response.status);
+          }
+          await response.json();
+          closeEditor();
+          await loadOverview({ silent: true });
+          setStatus('Credential profile updated successfully.', 'success');
+        } catch (error) {
+          console.error('Failed to update credential', error);
+          setStatus('Unable to persist credential changes. Please retry.', 'error');
+        }
+      }
+
+      function resolveUserFromEvent(target) {
+        const encoded = target.getAttribute('data-user');
+        if (!encoded || !state.data) return null;
+        const id = decodeURIComponent(encoded);
+        return state.data.gatewayUsers.find((user) => user.id === id) || null;
+      }
+
+      function ensureUserId(user) {
+        if (user?.id) return user.id;
+        const newId = generateId();
+        if (user) user.id = newId;
+        return newId;
+      }
+
+      usersTableBody.addEventListener('click', (event) => {
+        const action = event.target.closest('[data-action="edit"]');
+        if (!action) return;
+        const user = resolveUserFromEvent(action);
+        if (!user) {
+          setStatus('Unable to locate the selected user record.', 'error');
+          return;
+        }
+        ensureUserId(user);
+        editorFields.id.value = user.id;
+        openEditor(user);
+      });
+
+      searchInput.addEventListener('input', (event) => {
+        state.search = event.target.value.trim().toLowerCase();
+        renderUsers();
+      });
+
+      refreshButton.addEventListener('click', () => {
+        loadOverview();
+      });
+
+      newUserButton.addEventListener('click', () => {
+        const randomId = generateId();
+        editorFields.id.value = randomId;
+        openEditor({ id: randomId, credentialStatus: 'pending' });
+      });
+
+      closeEditorButtons.forEach((btn) => btn.addEventListener('click', () => closeEditor()));
+      editorOverlay.addEventListener('click', (event) => {
+        if (event.target === editorOverlay) {
+          closeEditor();
+        }
+      });
+
+      editorForm.addEventListener('submit', submitEditor);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && state.editorOpen) {
+          closeEditor();
+        }
+      });
+
+      loadOverview();
+    </script>
+  </body>
+</html>

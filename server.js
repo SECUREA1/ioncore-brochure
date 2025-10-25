@@ -13,6 +13,31 @@ const PORT = process.env.PORT || 3000;
 
 const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip';
 const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
+const ADMIN_PROMO_SECTION = `
+  <section id="admin-control-hub" style="position:relative;margin:80px auto;max-width:960px;padding:56px 48px;border-radius:28px;background:rgba(9,16,29,0.9);box-shadow:0 32px 80px rgba(3,7,18,0.56);border:1px solid rgba(106,255,59,0.22);overflow:hidden;">
+    <div style="position:absolute;inset:auto -60px -120px auto;width:360px;height:360px;background:radial-gradient(circle,rgba(106,255,59,0.16)0%,rgba(106,255,59,0)68%);"></div>
+    <span style="display:inline-flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#6aff3b;">Admin Access</span>
+    <h2 style="font-size:2.4rem;margin:18px 0 12px;color:#f5f8ff;">Command Center for Stripe &amp; Membership Intelligence</h2>
+    <p style="max-width:640px;font-size:1.05rem;line-height:1.7;color:#b7c7e4;">
+      Unlock the administrative console to review Stripe transaction history, manage Ioncore user credentials, audit poll and question box submissions, and recall precise activity timestamps for due diligence.
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:36px;">
+      <div style="flex:1 1 240px;min-width:240px;padding:22px;border-radius:18px;background:rgba(106,255,59,0.12);border:1px solid rgba(106,255,59,0.28);color:#0d182e;">
+        <h3 style="margin:0 0 10px;font-size:1.2rem;color:#071225;">Unified Data Access</h3>
+        <p style="margin:0;color:#071225;opacity:0.82;">
+          Review gateway submissions, credential changes, and contact center history from a single timeline.
+        </p>
+      </div>
+      <div style="flex:1 1 240px;min-width:240px;padding:22px;border-radius:18px;background:rgba(12,20,36,0.88);border:1px solid rgba(255,255,255,0.08);color:#f5f8ff;">
+        <h3 style="margin:0 0 10px;font-size:1.2rem;">Credential Controls</h3>
+        <p style="margin:0;color:rgba(247,249,255,0.78);">
+          Edit user roles, refresh permissions, and attach investigative notes with automatic timestamping.
+        </p>
+      </div>
+    </div>
+    <a href="/admin-control-center.html" class="btn" style="margin-top:38px;display:inline-flex;padding:16px 34px;border-radius:999px;background:#6aff3b;color:#030712;font-weight:700;font-size:1.05rem;text-decoration:none;">Launch Admin Control Center</a>
+  </section>
+`;
 const CARDANO_POLICY_ID =
   process.env.CARDANO_POLICY_ID || 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
 
@@ -100,6 +125,29 @@ function serializeMetadata(value) {
   } catch (err) {
     console.error('Failed to serialize metadata for storage', err);
     return null;
+  }
+}
+
+function sanitizeSelectionsForStorage(value) {
+  if (value == null) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(trimmed);
+      return JSON.stringify(parsed);
+    } catch {
+      return trimmed;
+    }
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return normalizeForStorage(value);
   }
 }
 
@@ -1180,7 +1228,15 @@ app.get('/timepieces', async (req, res) => {
       return res.status(404).send('Timepieces brochure not found');
     }
     const buffer = await file.buffer();
-    const html = buffer.toString('utf8');
+    let html = buffer.toString('utf8');
+    if (!html.includes('admin-control-center.html')) {
+      const closingTagMatch = html.match(/<\/body>/i);
+      if (closingTagMatch) {
+        html = html.replace(/<\/body>/i, `${ADMIN_PROMO_SECTION}</body>`);
+      } else {
+        html += ADMIN_PROMO_SECTION;
+      }
+    }
     res.type('html').send(html);
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);
@@ -1219,6 +1275,186 @@ app.get('/admin', async (req, res) => {
   } catch (err) {
     res.status(500).send('Failed to load index');
   }
+});
+
+app.get('/api/admin/overview', (req, res) => {
+  const toTimestamp = (value) => {
+    if (!value) return 0;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
+  const sortByTimestampDesc = (collection, primaryKey = 'createdAt', fallbackKey = null) =>
+    collection
+      .slice()
+      .sort((a, b) => toTimestamp(b[primaryKey] || (fallbackKey ? b[fallbackKey] : null)) - toTimestamp(a[primaryKey] || (fallbackKey ? a[fallbackKey] : null)));
+
+  const gatewayUsers = Object.entries(store.gatewayUsers || {}).map(([id, user]) => ({ id, ...user }));
+
+  const activityTimeline = [];
+
+  for (const event of store.loginEvents) {
+    activityTimeline.push({
+      type: 'login',
+      timestamp: event.createdAt,
+      headline: event.username || event.walletAddress || 'Credential Access',
+      detail: `${event.success ? 'Successful' : 'Failed'} ${event.method || 'login'} verification`,
+      reference: event
+    });
+  }
+
+  for (const submission of store.gatewaySubmissions) {
+    activityTimeline.push({
+      type: 'gateway-submission',
+      timestamp: submission.updatedAt || submission.createdAt,
+      headline: submission.name || submission.email || 'Gateway submission',
+      detail: `Role: ${submission.role || 'Unspecified'} · Opt-in: ${submission.databaseOptIn ? 'Yes' : 'No'}`,
+      reference: submission
+    });
+  }
+
+  for (const contact of store.contactSubmissions) {
+    activityTimeline.push({
+      type: 'contact',
+      timestamp: contact.createdAt,
+      headline: contact.name || contact.email || 'Contact form submission',
+      detail: contact.source ? `Source: ${contact.source}` : 'Direct inquiry',
+      reference: contact
+    });
+  }
+
+  for (const transaction of store.magstripeTransactions) {
+    activityTimeline.push({
+      type: 'stripe-transaction',
+      timestamp: transaction.createdAt,
+      headline: transaction.cardholder || transaction.projectReference || 'Stripe transaction',
+      detail: `${transaction.currency || ''} ${transaction.amount != null ? transaction.amount : ''} · Status: ${transaction.status || 'pending'}`.trim(),
+      reference: transaction
+    });
+  }
+
+  activityTimeline.sort((a, b) => toTimestamp(b.timestamp) - toTimestamp(a.timestamp));
+
+  res.json({
+    generatedAt: new Date().toISOString(),
+    metrics: {
+      totalGatewayUsers: gatewayUsers.length,
+      totalGatewaySubmissions: store.gatewaySubmissions.length,
+      totalContactSubmissions: store.contactSubmissions.length,
+      totalLoginEvents: store.loginEvents.length,
+      totalStripeTransactions: store.magstripeTransactions.length
+    },
+    gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
+    magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
+    contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
+    gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
+    loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),
+    activityTimeline
+  });
+});
+
+app.patch('/api/admin/gateway-users/:id', async (req, res) => {
+  const { id } = req.params;
+  if (typeof id !== 'string' || !id) {
+    return res.status(400).json({ message: 'Missing gateway user id' });
+  }
+
+  const body = req.body || {};
+  const existing = store.gatewayUsers[id];
+  const now = new Date().toISOString();
+  const isNew = !existing;
+  const updated = existing
+    ? { ...existing }
+    : {
+        createdAt: now,
+        updatedAt: now,
+        databaseOptIn: body.databaseOptIn ? 1 : 0
+      };
+  let credentialTouched = isNew;
+
+  if (Object.prototype.hasOwnProperty.call(body, 'role')) {
+    updated.role = normalizeForStorage(body.role);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'name')) {
+    updated.name = normalizeForStorage(body.name);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'email')) {
+    updated.email = normalizeForStorage(body.email);
+    credentialTouched = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'username')) {
+    updated.username = normalizeForStorage(body.username);
+    credentialTouched = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'selections')) {
+    updated.selections = sanitizeSelectionsForStorage(body.selections);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'notes')) {
+    updated.notes = normalizeForStorage(body.notes);
+    credentialTouched = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'credentialStatus')) {
+    updated.credentialStatus = normalizeForStorage(body.credentialStatus);
+    credentialTouched = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'databaseOptIn')) {
+    updated.databaseOptIn = body.databaseOptIn ? 1 : 0;
+  }
+
+  updated.updatedAt = now;
+  if (credentialTouched) {
+    updated.lastCredentialReview = now;
+  }
+
+  store.gatewayUsers[id] = updated;
+
+  let linkedSubmission = null;
+  for (const submission of store.gatewaySubmissions) {
+    if (submission.entryId === id) {
+      linkedSubmission = submission;
+      if (Object.prototype.hasOwnProperty.call(body, 'role')) {
+        submission.role = updated.role;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, 'name')) {
+        submission.name = updated.name;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, 'email')) {
+        submission.email = updated.email;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, 'selections')) {
+        submission.selections = updated.selections;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, 'databaseOptIn')) {
+        submission.databaseOptIn = updated.databaseOptIn ? 1 : 0;
+      }
+      submission.updatedAt = now;
+    }
+  }
+
+  if (!linkedSubmission) {
+    store.gatewaySubmissions.push({
+      createdAt: now,
+      updatedAt: now,
+      entryId: id,
+      role: updated.role,
+      name: updated.name,
+      email: updated.email,
+      selections: updated.selections,
+      databaseOptIn: updated.databaseOptIn ? 1 : 0,
+      userAgent: 'admin-control-center',
+      referer: 'admin-control-center',
+      ipAddress: null
+    });
+  }
+
+  try {
+    await saveStore();
+  } catch (error) {
+    console.error('Failed to persist gateway user update', error);
+    return res.status(500).json({ message: 'Failed to persist gateway user update' });
+  }
+
+  res.json({ id, ...updated });
 });
 
 app.get('/view', async (req, res) => {

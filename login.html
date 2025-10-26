@@ -696,6 +696,28 @@
       color: rgba(148, 163, 184, 0.88);
     }
 
+    .wallet-input-subdetail {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: rgba(148, 163, 184, 0.78);
+      letter-spacing: 0.06em;
+    }
+
+    .wallet-input-subdetail strong {
+      color: var(--ioncore-neon);
+      font-weight: 700;
+    }
+
+    .wallet-input-subdetail--alert {
+      color: rgba(255, 73, 118, 0.92);
+    }
+
+    .wallet-input-subdetail--ready {
+      color: rgba(106, 255, 59, 0.92);
+    }
+
     .wallet-connect-button {
       position: relative;
       display: inline-flex;
@@ -2288,6 +2310,15 @@
               >
               <div id="solana-deposit-help" class="wallet-input-sublabel">
                 1 SOL mints 1,000 IONC tokens to your clearance ledger. Approved transfers log to the Ioncore admin vault in real time.
+                <span id="solana-deposit-ionc-preview" class="wallet-input-subdetail">
+                  Selected amount will mint <strong>1,000 IONC</strong> to your ledger.
+                </span>
+                <span
+                  id="ionc-order-backlog-status"
+                  class="wallet-input-subdetail wallet-input-subdetail--alert"
+                >
+                  Buy order backlog 0/5. Five buy orders are required before IONC verification is released.
+                </span>
               </div>
               <div class="wallet-input-actions">
                 <button type="button" id="solana-deposit-send" class="action-button">Send SOL Retainer</button>
@@ -2371,6 +2402,9 @@
           <input type="hidden" name="walletProvider" id="wallet-provider">
           <input type="hidden" name="solanaDepositSignature" id="solana-deposit-signature">
           <input type="hidden" name="solanaDepositAmount" id="solana-deposit-amount-hidden">
+          <input type="hidden" name="solanaDepositIonc" id="solana-deposit-ionc">
+          <input type="hidden" name="ioncLedger" id="ionc-ledger">
+          <input type="hidden" name="ioncOrderBacklog" id="ionc-order-backlog">
           <input type="hidden" name="ioncVerified" id="ionc-verified">
           <input type="hidden" name="cardanoVerified" id="cardano-verified">
           <input type="hidden" name="cardanoPolicyId" id="cardano-policy-id">
@@ -2468,6 +2502,11 @@
     const solanaDepositSignatureInput = document.getElementById('solana-deposit-signature');
     const solanaDepositAmountInput = document.getElementById('solana-deposit-amount');
     const solanaDepositAmountHiddenInput = document.getElementById('solana-deposit-amount-hidden');
+    const solanaDepositIoncHiddenInput = document.getElementById('solana-deposit-ionc');
+    const solanaDepositIoncPreview = document.getElementById('solana-deposit-ionc-preview');
+    const ioncOrderBacklogStatus = document.getElementById('ionc-order-backlog-status');
+    const ioncLedgerInput = document.getElementById('ionc-ledger');
+    const ioncOrderBacklogInput = document.getElementById('ionc-order-backlog');
     const solanaDepositSendButton = document.getElementById('solana-deposit-send');
     const solanaDepositVerifyButton = document.getElementById('solana-deposit-verify');
     const meknxActionSelect = document.getElementById('meknx-action');
@@ -2510,6 +2549,40 @@
       IoncoreSolanaModule && typeof IoncoreSolanaModule.LAMPORTS_PER_SOL === 'number'
         ? IoncoreSolanaModule.LAMPORTS_PER_SOL * MIN_SOL_DEPOSIT_SOL
         : 1_000_000_000;
+    const IONC_PER_SOL = (IoncoreSolanaModule && IoncoreSolanaModule.IONC_PER_SOL) || 1000;
+    const MIN_IONC_ORDER_BACKLOG = 5;
+    const IONC_LEDGER_STORAGE_KEY = 'ioncore-ledger';
+    const IONC_ORDER_STORAGE_KEY = 'ioncore-order-backlog';
+    const DEFAULT_IONC_ORDER_BACKLOG = [
+      {
+        id: 'ORD-5001',
+        wallet: '7T3q9u1ZgVYkbLQaH8KcWXp9s1qYdERj6uNb4zP5Cf7h',
+        amountSol: 1.5,
+        ioncMinted: 1500,
+        timestamp: '2024-02-18T15:12:00Z'
+      },
+      {
+        id: 'ORD-5002',
+        wallet: '5uN3kPqVj7XcQ8Rz1LcT9vB2hFy6Md3Pa8Wq4Yz7NsLm',
+        amountSol: 2.25,
+        ioncMinted: 2250,
+        timestamp: '2024-02-21T09:45:00Z'
+      },
+      {
+        id: 'ORD-5003',
+        wallet: '9Hg5sLm8Qw2Er7Tz6Yu3Bn5Cv8Lp1Na6Qw7Er4Ty9Ui8',
+        amountSol: 3.75,
+        ioncMinted: 3750,
+        timestamp: '2024-02-24T22:18:00Z'
+      },
+      {
+        id: 'ORD-5004',
+        wallet: '3Pa7Lq9Vw6Yt2Df5Gh8Jk1Mn4Br7Vc2Xs5Za8Pl3Qw6E',
+        amountSol: 1.1,
+        ioncMinted: 1100,
+        timestamp: '2024-02-28T12:36:00Z'
+      }
+    ];
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
 
@@ -2537,13 +2610,150 @@
       signature: '',
       lamports: MIN_SOL_DEPOSIT_LAMPORTS,
       completed: false,
-      amountSol: MIN_SOL_DEPOSIT_SOL
+      amountSol: MIN_SOL_DEPOSIT_SOL,
+      ioncMinted: MIN_SOL_DEPOSIT_SOL * IONC_PER_SOL
     };
 
     const solanaSessionState = {
       provider: null,
       publicKey: ''
     };
+
+    const cloneDefaultIoncOrders = () => DEFAULT_IONC_ORDER_BACKLOG.map((order) => ({ ...order }));
+
+    const getLocalStorage = () => {
+      try {
+        return typeof window !== 'undefined' && window.localStorage ? window.localStorage : null;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const loadIoncLedgerState = () => {
+      const storage = getLocalStorage();
+      if (!storage) {
+        return { totalMinted: 0, entries: [] };
+      }
+      try {
+        const raw = storage.getItem(IONC_LEDGER_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.entries)) {
+            const safeEntries = parsed.entries
+              .map((entry) => ({
+                ...entry,
+                ioncMinted: Number.isFinite(entry.ioncMinted) ? entry.ioncMinted : 0
+              }))
+              .filter((entry) => typeof entry.signature === 'string' && entry.signature);
+            const totalMinted = safeEntries.reduce(
+              (sum, entry) => sum + (Number.isFinite(entry.ioncMinted) ? entry.ioncMinted : 0),
+              0
+            );
+            return { totalMinted, entries: safeEntries };
+          }
+        }
+      } catch (error) {
+        // ignore parse errors
+      }
+      return { totalMinted: 0, entries: [] };
+    };
+
+    const loadIoncOrderBacklog = () => {
+      const storage = getLocalStorage();
+      if (!storage) {
+        return cloneDefaultIoncOrders();
+      }
+      try {
+        const raw = storage.getItem(IONC_ORDER_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) {
+            return parsed.map((order) => ({ ...order }));
+          }
+        }
+      } catch (error) {
+        // ignore parse errors
+      }
+      return cloneDefaultIoncOrders();
+    };
+
+    const ioncLedgerState = loadIoncLedgerState();
+    const ioncOrderBookState = {
+      minOrders: MIN_IONC_ORDER_BACKLOG,
+      orders: loadIoncOrderBacklog()
+    };
+
+    const persistIoncLedgerState = () => {
+      const storage = getLocalStorage();
+      if (!storage) return;
+      try {
+        storage.setItem(IONC_LEDGER_STORAGE_KEY, JSON.stringify(ioncLedgerState));
+      } catch (error) {
+        // ignore storage errors
+      }
+    };
+
+    const persistIoncOrderBacklogState = () => {
+      const storage = getLocalStorage();
+      if (!storage) return;
+      try {
+        storage.setItem(IONC_ORDER_STORAGE_KEY, JSON.stringify(ioncOrderBookState.orders));
+      } catch (error) {
+        // ignore storage errors
+      }
+    };
+
+    const recalcIoncLedgerTotals = () => {
+      ioncLedgerState.totalMinted = ioncLedgerState.entries.reduce(
+        (sum, entry) => sum + (Number.isFinite(entry.ioncMinted) ? entry.ioncMinted : 0),
+        0
+      );
+      return ioncLedgerState.totalMinted;
+    };
+
+    const updateIoncLedgerInput = () => {
+      if (!ioncLedgerInput) return;
+      try {
+        const payload = {
+          totalMinted: ioncLedgerState.totalMinted,
+          entries: ioncLedgerState.entries.slice(-20)
+        };
+        ioncLedgerInput.value = JSON.stringify(payload);
+      } catch (error) {
+        ioncLedgerInput.value = '';
+      }
+    };
+
+    const updateIoncOrderBacklogInput = () => {
+      if (!ioncOrderBacklogInput) return;
+      try {
+        const payload = {
+          minOrders: ioncOrderBookState.minOrders,
+          count: ioncOrderBookState.orders.length,
+          orders: ioncOrderBookState.orders.slice(-20)
+        };
+        ioncOrderBacklogInput.value = JSON.stringify(payload);
+      } catch (error) {
+        ioncOrderBacklogInput.value = ioncOrderBookState.orders.length.toString();
+      }
+    };
+
+    const getOrderBacklogCount = () => ioncOrderBookState.orders.length;
+
+    const hasMinimumOrderBacklog = () => getOrderBacklogCount() >= ioncOrderBookState.minOrders;
+
+    recalcIoncLedgerTotals();
+    updateIoncLedgerInput();
+    updateIoncOrderBacklogStatus();
+    if (ioncLedgerState.totalMinted > 0) {
+      ioncState.tokens = Math.max(ioncState.tokens, ioncLedgerState.totalMinted);
+      if (hasMinimumOrderBacklog()) {
+        ioncState.verified = true;
+        if (ioncVerifiedInput) {
+          ioncVerifiedInput.value = 'true';
+        }
+      }
+    }
 
     const CARDANO_WALLET_CANDIDATES = [
       { key: 'lace', label: 'Lace' },
@@ -2799,7 +3009,7 @@
       }
       setInlineStatus(
         ioncInlineStatus,
-        `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
+        `IONC verification complete. Ledger holds ${formatIoncAmountLabel(ioncState.tokens)}.`,
         'success'
       );
     };
@@ -2991,6 +3201,115 @@
       })} SOL`;
     };
 
+    const formatInteger = (value) => {
+      if (!Number.isFinite(value)) {
+        return '0';
+      }
+      return Math.max(0, Math.round(value)).toLocaleString('en-US');
+    };
+
+    const formatIoncAmountLabel = (amount) => `${formatInteger(amount)} IONC`;
+
+    const getIoncFromSolAmount = (amount) => {
+      const sanitized = sanitizeSolanaAmount(amount);
+      return Math.max(0, Math.round(sanitized * IONC_PER_SOL));
+    };
+
+    const updateSolanaDerivedLabels = () => {
+      const minted = getIoncFromSolAmount(solanaDepositState.amountSol);
+      solanaDepositState.ioncMinted = minted;
+      if (solanaDepositIoncPreview) {
+        solanaDepositIoncPreview.innerHTML = `Selected amount will mint <strong>${formatInteger(
+          minted
+        )} IONC</strong> to your ledger.`;
+      }
+      if (solanaDepositIoncHiddenInput) {
+        solanaDepositIoncHiddenInput.value = minted ? minted.toString() : '0';
+      }
+    };
+
+    const updateIoncOrderBacklogStatus = () => {
+      if (!ioncOrderBacklogStatus) return;
+      const count = getOrderBacklogCount();
+      const required = ioncOrderBookState.minOrders;
+      const remaining = Math.max(0, required - count);
+      ioncOrderBacklogStatus.classList.remove('wallet-input-subdetail--alert', 'wallet-input-subdetail--ready');
+      if (count >= required) {
+        ioncOrderBacklogStatus.textContent = `Buy order backlog ready (${count}/${required}). IONC transactions can be verified immediately.`;
+        ioncOrderBacklogStatus.classList.add('wallet-input-subdetail--ready');
+      } else {
+        const orderLabel = remaining === 1 ? 'order' : 'orders';
+        ioncOrderBacklogStatus.textContent = `Buy order backlog ${count}/${required}. ${remaining} additional ${orderLabel} required before IONC verification.`;
+        ioncOrderBacklogStatus.classList.add('wallet-input-subdetail--alert');
+      }
+      updateIoncOrderBacklogInput();
+    };
+
+    const recordSolanaLedgerEntry = ({ signature, amountSol, lamports, ioncMinted, timestamp }) => {
+      if (!signature) {
+        return null;
+      }
+      const normalizedAmount = sanitizeSolanaAmount(amountSol);
+      const minted = Number.isFinite(ioncMinted) ? Math.max(0, Math.round(ioncMinted)) : getIoncFromSolAmount(normalizedAmount);
+      const entry = {
+        signature,
+        amountSol: normalizedAmount,
+        lamports,
+        ioncMinted: minted,
+        timestamp: timestamp || new Date().toISOString()
+      };
+      const existingIndex = ioncLedgerState.entries.findIndex((item) => item.signature === signature);
+      if (existingIndex >= 0) {
+        ioncLedgerState.entries[existingIndex] = { ...ioncLedgerState.entries[existingIndex], ...entry };
+      } else {
+        ioncLedgerState.entries.push(entry);
+        if (ioncLedgerState.entries.length > 50) {
+          ioncLedgerState.entries.splice(0, ioncLedgerState.entries.length - 50);
+        }
+      }
+      recalcIoncLedgerTotals();
+      persistIoncLedgerState();
+      updateIoncLedgerInput();
+      return entry;
+    };
+
+    const upsertIoncOrderBacklog = (order) => {
+      if (!order) return;
+      const normalizedOrder = {
+        id: order.id || `ORD-${Date.now()}`,
+        wallet:
+          order.wallet || (walletAddressInput && walletAddressInput.value ? walletAddressInput.value : ''),
+        signature: order.signature || '',
+        amountSol: sanitizeSolanaAmount(order.amountSol || solanaDepositState.amountSol),
+        ioncMinted: Number.isFinite(order.ioncMinted)
+          ? Math.max(0, Math.round(order.ioncMinted))
+          : getIoncFromSolAmount(order.amountSol || solanaDepositState.amountSol),
+        timestamp: order.timestamp || new Date().toISOString()
+      };
+
+      const existingIndex = ioncOrderBookState.orders.findIndex((entry) =>
+        normalizedOrder.signature
+          ? entry.signature === normalizedOrder.signature
+          : entry.id === normalizedOrder.id
+      );
+
+      if (existingIndex >= 0) {
+        ioncOrderBookState.orders[existingIndex] = {
+          ...ioncOrderBookState.orders[existingIndex],
+          ...normalizedOrder
+        };
+      } else {
+        ioncOrderBookState.orders.push(normalizedOrder);
+        if (ioncOrderBookState.orders.length > 50) {
+          ioncOrderBookState.orders.splice(0, ioncOrderBookState.orders.length - 50);
+        }
+      }
+
+      persistIoncOrderBacklogState();
+      updateIoncOrderBacklogStatus();
+      return normalizedOrder;
+    };
+
     const updateSolanaActionButtons = () => {
       const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
       if (solanaDepositSendButton) {
@@ -3047,6 +3366,10 @@
       } else if (!solanaDepositState.completed) {
         solanaDepositState.amountSol = sanitized;
       }
+      if (solanaDepositAmountHiddenInput) {
+        solanaDepositAmountHiddenInput.value = sanitized.toString();
+      }
+      updateSolanaDerivedLabels();
       if (!solanaDepositState.completed && solanaDepositStatus) {
         solanaDepositStatus.textContent = `Access retainer pending. Select ${formatSolDepositLabel(
           sanitized
@@ -3064,15 +3387,17 @@
       solanaDepositState.amountSol = sanitizeSolanaAmount(
         solanaDepositAmountInput ? solanaDepositAmountInput.value : MIN_SOL_DEPOSIT_SOL
       );
+      solanaDepositState.ioncMinted = getIoncFromSolAmount(solanaDepositState.amountSol);
       if (solanaDepositSignatureInput) {
         solanaDepositSignatureInput.value = '';
       }
       if (solanaDepositAmountHiddenInput) {
-        solanaDepositAmountHiddenInput.value = '';
+        solanaDepositAmountHiddenInput.value = solanaDepositState.amountSol.toString();
       }
       if (solanaDepositAmountInput) {
         solanaDepositAmountInput.value = solanaDepositState.amountSol.toString();
       }
+      updateSolanaDerivedLabels();
       if (solanaDepositRow) {
         solanaDepositRow.hidden = !keepVisible;
       }
@@ -3087,7 +3412,8 @@
     const markSolanaDepositComplete = (
       signature,
       lamports = MIN_SOL_DEPOSIT_LAMPORTS,
-      amountSol = solanaDepositState.amountSol
+      amountSol = solanaDepositState.amountSol,
+      ioncMinted = solanaDepositState.ioncMinted
     ) => {
       if (!signature) {
         return;
@@ -3098,21 +3424,60 @@
       const normalizedAmount = sanitizeSolanaAmount(
         amountSol || solanaDepositState.lamports / (IoncoreSolanaModule?.LAMPORTS_PER_SOL || 1_000_000_000)
       );
+      const minted = Number.isFinite(ioncMinted)
+        ? Math.max(0, Math.round(ioncMinted))
+        : getIoncFromSolAmount(normalizedAmount);
       solanaDepositState.amountSol = normalizedAmount;
+      solanaDepositState.ioncMinted = minted;
       if (solanaDepositSignatureInput) {
         solanaDepositSignatureInput.value = signature;
       }
       if (solanaDepositAmountHiddenInput) {
         solanaDepositAmountHiddenInput.value = normalizedAmount.toString();
       }
+      if (solanaDepositIoncHiddenInput) {
+        solanaDepositIoncHiddenInput.value = minted ? minted.toString() : '0';
+      }
+      updateSolanaDerivedLabels();
       if (solanaDepositRow) {
         solanaDepositRow.hidden = false;
       }
       if (solanaDepositStatus) {
+        const mintedLabel = formatIoncAmountLabel(minted);
         solanaDepositStatus.textContent = `${formatSolDepositLabel(
           normalizedAmount
-        )} access retainer submitted. Ref: ${shortenIdentifier(signature)}`;
+        )} access retainer submitted (${mintedLabel} ledger credit). Ref: ${shortenIdentifier(signature)}`;
         solanaDepositStatus.classList.add('wallet-status--connected');
+      }
+      const ledgerEntry = recordSolanaLedgerEntry({
+        signature,
+        amountSol: normalizedAmount,
+        lamports,
+        ioncMinted: minted
+      });
+      upsertIoncOrderBacklog({
+        signature,
+        amountSol: normalizedAmount,
+        ioncMinted: minted,
+        timestamp: ledgerEntry ? ledgerEntry.timestamp : undefined
+      });
+      const ledgerTotal = ioncLedgerState.totalMinted;
+      if (ledgerTotal > 0) {
+        ioncState.tokens = Math.max(ioncState.tokens, ledgerTotal);
+        if (hasMinimumOrderBacklog()) {
+          markIoncVerified(ledgerTotal);
+        } else {
+          const required = ioncOrderBookState.minOrders;
+          const count = getOrderBacklogCount();
+          const remaining = Math.max(0, required - count);
+          const orderLabel = remaining === 1 ? 'order' : 'orders';
+          setInlineStatus(
+            ioncInlineStatus,
+            `Ledger credited ${formatIoncAmountLabel(ledgerTotal)}. ${remaining} additional ${orderLabel} required before IONC verification unlocks.`,
+            'error'
+          );
+        }
+        syncIoncModuleVisibility();
       }
       updateSolanaActionButtons();
     };
@@ -3160,8 +3525,8 @@
           rpcEndpoint: SOLANA_RPC_ENDPOINT,
           amountSol: selectedAmount,
           statusElement: solanaDepositStatus,
-          onSignature: (signature, lamports, amount) => {
-            markSolanaDepositComplete(signature, lamports, amount);
+          onSignature: (signature, lamports, amount, minted) => {
+            markSolanaDepositComplete(signature, lamports, amount, minted);
           }
         });
 
@@ -3213,17 +3578,25 @@
           });
 
           const signature = receipt?.signature || solanaDepositState.signature;
-          const normalizedAmount = formatSolDepositLabel(
-            receipt && Number.isFinite(receipt.amountSol) ? receipt.amountSol : solanaDepositState.amountSol
-          );
+          const amountSolValue =
+            receipt && Number.isFinite(receipt.amountSol)
+              ? receipt.amountSol
+              : solanaDepositState.amountSol;
+          const normalizedAmount = formatSolDepositLabel(amountSolValue);
+          const mintedIonc =
+            receipt && Number.isFinite(receipt.ioncMinted)
+              ? Math.max(0, Math.round(receipt.ioncMinted))
+              : getIoncFromSolAmount(amountSolValue);
+          const ioncLabel = formatIoncAmountLabel(mintedIonc);
+          const referenceLabel = signature ? `ref ${shortenIdentifier(signature)}` : '';
           const solanaValueMessage =
             walletValueState.provider === 'solana' && Number.isFinite(walletValueState.usdValue)
               ? ` SOL value ≈ ${formatUsd(walletValueState.usdValue)}.`
               : '';
 
-          const confirmationPrompt = signature
-            ? ` ${normalizedAmount} access retainer submitted (${shortenIdentifier(signature)}).`
-            : ` ${normalizedAmount} access retainer submitted.`;
+          const confirmationPrompt = ` ${normalizedAmount} access retainer submitted (${ioncLabel} ledger credit${
+            referenceLabel ? `, ${referenceLabel}` : ''
+          }).`;
 
           updateStatus(
             `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the receipt or continue with MEKNX clearance.`,
@@ -3233,10 +3606,10 @@
           setInlineStatus(
             ioncInlineStatus,
             signature
-              ? `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
-                  signature
-                )}). Submit to enter the vault.`
-              : `IONC holdings confirmed. ${normalizedAmount} access retainer submitted. Submit to enter the vault.`,
+              ? `IONC ledger credited ${ioncLabel}. ${normalizedAmount} submitted${
+                  referenceLabel ? ` (${referenceLabel})` : ''
+                }. Submit to enter the vault.`
+              : `IONC ledger credited ${ioncLabel}. ${normalizedAmount} submitted. Submit to enter the vault.`,
             'success'
           );
         } catch (error) {
@@ -3262,6 +3635,18 @@
           return;
         }
 
+        if (!hasMinimumOrderBacklog()) {
+          const required = ioncOrderBookState.minOrders;
+          const count = getOrderBacklogCount();
+          const remaining = Math.max(0, required - count);
+          const orderLabel = remaining === 1 ? 'order' : 'orders';
+          const backlogMessage = `IONC verification unlocks after ${required} buy orders are logged. ${remaining} additional ${orderLabel} required.`;
+          setInlineStatus(ioncInlineStatus, backlogMessage, 'error');
+          updateStatus(backlogMessage, 'error');
+          triggerFailureAnimation();
+          return;
+        }
+
         solanaDepositVerifyButton.dataset.loading = 'true';
         solanaDepositVerifyButton.disabled = true;
         solanaDepositVerifyButton.textContent = 'Verifying…';
@@ -3275,8 +3660,9 @@
           const status = await verifySolanaDeposit(solanaDepositState.signature);
           const confirmationLabel = status?.confirmationStatus || 'confirmed';
           const normalizedAmount = formatSolDepositLabel(solanaDepositState.amountSol);
+          const mintedLabel = formatIoncAmountLabel(solanaDepositState.ioncMinted);
           if (solanaDepositStatus) {
-            solanaDepositStatus.textContent = `${normalizedAmount} access retainer confirmed (${confirmationLabel}). Ref: ${shortenIdentifier(
+            solanaDepositStatus.textContent = `${normalizedAmount} access retainer confirmed (${confirmationLabel}; ${mintedLabel} ledger credit). Ref: ${shortenIdentifier(
               solanaDepositState.signature
             )}.`;
             solanaDepositStatus.classList.add('wallet-status--connected');
@@ -3288,17 +3674,18 @@
               : '';
 
           updateStatus(
-            `Phantom retainer receipt verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            `Phantom retainer receipt verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}; ${mintedLabel} ledger credit). Complete MEKNX clearance to enter.`,
             'success'
           );
 
+          markIoncVerified(Math.max(ioncLedgerState.totalMinted, solanaDepositState.ioncMinted));
+          const referenceLabel = `ref ${shortenIdentifier(solanaDepositState.signature)}`;
           setInlineStatus(
             ioncInlineStatus,
-            `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
-              solanaDepositState.signature
-            )}). Submit to enter the vault.`,
+            `IONC ledger credited ${mintedLabel}. ${normalizedAmount} confirmed (${confirmationLabel}; ${referenceLabel}). Submit to enter the vault.`,
             'success'
           );
+          syncIoncModuleVisibility();
         } catch (error) {
           if (solanaDepositStatus) {
             solanaDepositStatus.textContent =
@@ -3933,7 +4320,8 @@
           markSolanaDepositComplete(
             solanaDepositState.signature,
             solanaDepositState.lamports,
-            solanaDepositState.amountSol
+            solanaDepositState.amountSol,
+            solanaDepositState.ioncMinted
           );
         } else {
           if (solanaDepositRow) {

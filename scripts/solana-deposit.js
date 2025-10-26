@@ -3,6 +3,7 @@
   const DEFAULT_TREASURY = '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT';
   const LAMPORTS_PER_SOL = 1_000_000_000;
   const MAX_SOL_DEPOSIT_SOL = 1000;
+  const IONC_PER_SOL = 1000;
   const WEB3_CDN_SRC = 'https://unpkg.com/@solana/web3.js@1.91.9/lib/index.iife.min.js';
 
   let solanaLoaderPromise = null;
@@ -115,6 +116,7 @@
 
     const normalizedAmount = clampSolAmount(amountSol);
     const lamports = Math.max(Math.round(normalizedAmount * LAMPORTS_PER_SOL), LAMPORTS_PER_SOL);
+    const ioncMinted = Math.round(normalizedAmount * IONC_PER_SOL);
     const formattedAmount = formatSolAmountLabel(normalizedAmount);
 
     const latestBlockhash = await connection.getLatestBlockhash(commitment);
@@ -164,17 +166,17 @@
     );
 
     if (typeof onSignature === 'function') {
-      onSignature(signature, lamports, normalizedAmount);
+      onSignature(signature, lamports, normalizedAmount, ioncMinted);
     }
 
     if (statusElement) {
-      statusElement.textContent = `${formattedAmount} access retainer submitted. Reference: ${shortenSignature(
-        signature
-      )}`;
+      statusElement.textContent = `${formattedAmount} access retainer submitted (${ioncMinted.toLocaleString(
+        'en-US'
+      )} IONC). Reference: ${shortenSignature(signature)}`;
       statusElement.classList.add('wallet-status--connected');
     }
 
-    return { signature, lamports, destination: treasury.toBase58(), amountSol: normalizedAmount };
+    return { signature, lamports, destination: treasury.toBase58(), amountSol: normalizedAmount, ioncMinted };
   };
 
   const verifySignature = async ({ signature, rpcEndpoint, commitment = 'confirmed' }) => {
@@ -206,6 +208,7 @@
     verifySignature,
     LAMPORTS_PER_SOL,
     MAX_SOL_DEPOSIT_SOL,
+    IONC_PER_SOL,
     getDefaultTreasury: getTreasuryAddress,
     getDefaultRpc: getRpcEndpoint,
     shortenSignature,

@@ -3489,7 +3489,7 @@
       }
     };
 
-    const updateIoncOrderBacklogStatus = () => {
+    function updateIoncOrderBacklogStatus() {
       if (!ioncOrderBacklogStatus) return;
       const count = getOrderBacklogCount();
       const required = ioncOrderBookState.minOrders;
@@ -3504,7 +3504,7 @@
         ioncOrderBacklogStatus.classList.add('wallet-input-subdetail--alert');
       }
       updateIoncOrderBacklogInput();
-    };
+    }
 
     const recordSolanaLedgerEntry = ({ signature, amountSol, lamports, ioncMinted, timestamp }) => {
       if (!signature) {

@@ -658,6 +658,18 @@
       margin-top: 0.65rem;
     }
 
+    .wallet-input-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      width: 100%;
+    }
+
+    .wallet-input-actions .action-button {
+      flex: 1 1 180px;
+      min-width: 0;
+    }
+
     .wallet-input-control input[type='number'] {
       width: 100%;
       max-width: 210px;
@@ -2277,11 +2289,22 @@
               <div id="solana-deposit-help" class="wallet-input-sublabel">
                 1 SOL mints 1,000 IONC tokens to your clearance ledger. Approved transfers log to the Ioncore admin vault in real time.
               </div>
+              <div class="wallet-input-actions">
+                <button type="button" id="solana-deposit-send" class="action-button">Send SOL Retainer</button>
+                <button
+                  type="button"
+                  id="solana-deposit-verify"
+                  class="action-button action-button--outline"
+                  disabled
+                >
+                  Verify Receipt
+                </button>
+              </div>
             </div>
           </div>
           <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
             <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
-              Access retainer pending. Select your SOL amount above and authorize the transfer after connecting.
+              Access retainer pending. Select your SOL amount, connect Phantom, then click Send to authorize the transfer.
             </div>
           </div>
           <div class="wallet-connect-row">
@@ -2445,6 +2468,8 @@
     const solanaDepositSignatureInput = document.getElementById('solana-deposit-signature');
     const solanaDepositAmountInput = document.getElementById('solana-deposit-amount');
     const solanaDepositAmountHiddenInput = document.getElementById('solana-deposit-amount-hidden');
+    const solanaDepositSendButton = document.getElementById('solana-deposit-send');
+    const solanaDepositVerifyButton = document.getElementById('solana-deposit-verify');
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
@@ -2513,6 +2538,11 @@
       lamports: MIN_SOL_DEPOSIT_LAMPORTS,
       completed: false,
       amountSol: MIN_SOL_DEPOSIT_SOL
+    };
+
+    const solanaSessionState = {
+      provider: null,
+      publicKey: ''
     };
 
     const CARDANO_WALLET_CANDIDATES = [
@@ -2961,6 +2991,44 @@
       })} SOL`;
     };
 
+    const updateSolanaActionButtons = () => {
+      const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
+      if (solanaDepositSendButton) {
+        if (solanaDepositSendButton.dataset.loading !== 'true') {
+          solanaDepositSendButton.textContent = `Send ${amountLabel}`;
+        }
+        const hasSession = Boolean(solanaSessionState.publicKey);
+        const isLoading = solanaDepositSendButton.dataset.loading === 'true';
+        solanaDepositSendButton.disabled = !hasSession || isLoading;
+      }
+      if (solanaDepositVerifyButton) {
+        if (solanaDepositVerifyButton.dataset.loading !== 'true') {
+          solanaDepositVerifyButton.textContent = 'Verify Receipt';
+        }
+        const hasSignature = Boolean(solanaDepositState.signature);
+        const isLoading = solanaDepositVerifyButton.dataset.loading === 'true';
+        solanaDepositVerifyButton.disabled = !hasSignature || isLoading;
+      }
+    };
+
+    const clearSolanaSession = () => {
+      solanaSessionState.provider = null;
+      solanaSessionState.publicKey = '';
+      if (solanaDepositSendButton) {
+        delete solanaDepositSendButton.dataset.loading;
+      }
+      if (solanaDepositVerifyButton) {
+        delete solanaDepositVerifyButton.dataset.loading;
+      }
+      updateSolanaActionButtons();
+    };
+
+    const setSolanaSession = (provider, publicKey) => {
+      solanaSessionState.provider = provider || null;
+      solanaSessionState.publicKey = publicKey || '';
+      updateSolanaActionButtons();
+    };
+
     const getSelectedSolanaAmount = () => {
       if (!solanaDepositAmountInput) {
         return MIN_SOL_DEPOSIT_SOL;
@@ -2972,15 +3040,20 @@
 
     const syncSolanaAmountSelection = () => {
       const sanitized = getSelectedSolanaAmount();
-      if (!solanaDepositState.completed) {
+      const amountChanged = solanaDepositState.amountSol !== sanitized;
+      if (solanaDepositState.completed && amountChanged) {
+        clearSolanaDepositState({ keepVisible: true });
+        solanaDepositState.amountSol = sanitized;
+      } else if (!solanaDepositState.completed) {
         solanaDepositState.amountSol = sanitized;
       }
       if (!solanaDepositState.completed && solanaDepositStatus) {
-        solanaDepositStatus.textContent = `Access retainer pending. Authorize a ${formatSolDepositLabel(
+        solanaDepositStatus.textContent = `Access retainer pending. Select ${formatSolDepositLabel(
           sanitized
-        )} transfer after connecting.`;
+        )} then click Send after connecting.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
+      updateSolanaActionButtons();
       return sanitized;
     };
 
@@ -3005,9 +3078,10 @@
       }
       if (solanaDepositStatus) {
         const pendingAmount = formatSolDepositLabel(solanaDepositState.amountSol);
-        solanaDepositStatus.textContent = `Access retainer pending. Authorize a ${pendingAmount} transfer after connecting.`;
+        solanaDepositStatus.textContent = `Access retainer pending. Select ${pendingAmount} then click Send after connecting.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
+      updateSolanaActionButtons();
     };
 
     const markSolanaDepositComplete = (
@@ -3040,6 +3114,7 @@
         )} access retainer submitted. Ref: ${shortenIdentifier(signature)}`;
         solanaDepositStatus.classList.add('wallet-status--connected');
       }
+      updateSolanaActionButtons();
     };
 
     if (solanaDepositAmountInput) {
@@ -3051,6 +3126,8 @@
       });
       refreshAmount();
     }
+
+    updateSolanaActionButtons();
 
     const ensureSolanaDeposit = async ({ provider, publicKey }) => {
       if (!provider || !publicKey) {
@@ -3098,6 +3175,144 @@
         throw error;
       }
     };
+
+    const verifySolanaDeposit = async (signature) => {
+      if (!signature) {
+        throw new Error('Transaction signature required for verification.');
+      }
+
+      if (!IoncoreSolanaModule || typeof IoncoreSolanaModule.verifySignature !== 'function') {
+        throw new Error('Solana verification module unavailable. Refresh the page and try again.');
+      }
+
+      const status = await IoncoreSolanaModule.verifySignature({
+        signature,
+        rpcEndpoint: SOLANA_RPC_ENDPOINT
+      });
+
+      return status;
+    };
+
+    if (solanaDepositSendButton) {
+      solanaDepositSendButton.addEventListener('click', async () => {
+        if (!solanaSessionState.publicKey || !solanaSessionState.provider) {
+          updateStatus('Connect Phantom before sending the SOL access retainer.', 'error');
+          triggerFailureAnimation();
+          return;
+        }
+
+        const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
+        solanaDepositSendButton.dataset.loading = 'true';
+        solanaDepositSendButton.disabled = true;
+        solanaDepositSendButton.textContent = 'Sending…';
+
+        try {
+          const receipt = await ensureSolanaDeposit({
+            provider: solanaSessionState.provider,
+            publicKey: solanaSessionState.publicKey
+          });
+
+          const signature = receipt?.signature || solanaDepositState.signature;
+          const normalizedAmount = formatSolDepositLabel(
+            receipt && Number.isFinite(receipt.amountSol) ? receipt.amountSol : solanaDepositState.amountSol
+          );
+          const solanaValueMessage =
+            walletValueState.provider === 'solana' && Number.isFinite(walletValueState.usdValue)
+              ? ` SOL value ≈ ${formatUsd(walletValueState.usdValue)}.`
+              : '';
+
+          const confirmationPrompt = signature
+            ? ` ${normalizedAmount} access retainer submitted (${shortenIdentifier(signature)}).`
+            : ` ${normalizedAmount} access retainer submitted.`;
+
+          updateStatus(
+            `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the receipt or continue with MEKNX clearance.`,
+            'success'
+          );
+
+          setInlineStatus(
+            ioncInlineStatus,
+            signature
+              ? `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
+                  signature
+                )}). Submit to enter the vault.`
+              : `IONC holdings confirmed. ${normalizedAmount} access retainer submitted. Submit to enter the vault.`,
+            'success'
+          );
+        } catch (error) {
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent =
+              error?.message || `Unable to submit the ${amountLabel} access retainer. Try again shortly.`;
+            solanaDepositStatus.classList.remove('wallet-status--connected');
+          }
+          updateStatus(error?.message || 'Unable to submit the SOL access retainer.', 'error');
+          triggerFailureAnimation();
+        } finally {
+          delete solanaDepositSendButton.dataset.loading;
+          updateSolanaActionButtons();
+        }
+      });
+    }
+
+    if (solanaDepositVerifyButton) {
+      solanaDepositVerifyButton.addEventListener('click', async () => {
+        if (!solanaDepositState.signature) {
+          updateStatus('Send the SOL access retainer before verifying the receipt.', 'error');
+          triggerFailureAnimation();
+          return;
+        }
+
+        solanaDepositVerifyButton.dataset.loading = 'true';
+        solanaDepositVerifyButton.disabled = true;
+        solanaDepositVerifyButton.textContent = 'Verifying…';
+
+        if (solanaDepositStatus) {
+          solanaDepositStatus.textContent = 'Confirming access retainer on Solana…';
+          solanaDepositStatus.classList.remove('wallet-status--connected');
+        }
+
+        try {
+          const status = await verifySolanaDeposit(solanaDepositState.signature);
+          const confirmationLabel = status?.confirmationStatus || 'confirmed';
+          const normalizedAmount = formatSolDepositLabel(solanaDepositState.amountSol);
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent = `${normalizedAmount} access retainer confirmed (${confirmationLabel}). Ref: ${shortenIdentifier(
+              solanaDepositState.signature
+            )}.`;
+            solanaDepositStatus.classList.add('wallet-status--connected');
+          }
+
+          const solanaValueMessage =
+            walletValueState.provider === 'solana' && Number.isFinite(walletValueState.usdValue)
+              ? ` SOL value ≈ ${formatUsd(walletValueState.usdValue)}.`
+              : '';
+
+          updateStatus(
+            `Phantom retainer receipt verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            'success'
+          );
+
+          setInlineStatus(
+            ioncInlineStatus,
+            `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
+              solanaDepositState.signature
+            )}). Submit to enter the vault.`,
+            'success'
+          );
+        } catch (error) {
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent =
+              error?.message || 'Unable to verify the SOL access retainer. Try again shortly.';
+            solanaDepositStatus.classList.remove('wallet-status--connected');
+          }
+          updateStatus(error?.message || 'Unable to verify the SOL access retainer.', 'error');
+          triggerFailureAnimation();
+        } finally {
+          delete solanaDepositVerifyButton.dataset.loading;
+          updateSolanaActionButtons();
+        }
+      });
+    }
 
     const recordWalletValueState = (provider, tokenSymbol, tokenBalance, usdValue) => {
       walletValueState.provider = provider;
@@ -3484,6 +3699,7 @@
       }
       clearWalletValueState();
       clearSolanaDepositState();
+      clearSolanaSession();
       resetMeknxState();
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
@@ -3699,6 +3915,7 @@
           cardanoStatus.classList.remove('wallet-status--connected');
         }
         clearSolanaDepositState();
+        clearSolanaSession();
       } else if (providerLabel === 'solana') {
         if (phantomStatus) {
           phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
@@ -3724,7 +3941,7 @@
           }
           if (solanaDepositStatus) {
             const pendingLabel = formatSolDepositLabel(solanaDepositState.amountSol);
-            solanaDepositStatus.textContent = `Access retainer pending. Approve the ${pendingLabel} transfer prompt.`;
+            solanaDepositStatus.textContent = `Access retainer pending. Send the ${pendingLabel} retainer from this panel.`;
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
         }
@@ -3749,6 +3966,7 @@
           cardanoStatus.classList.add('wallet-status--connected');
         }
         clearSolanaDepositState();
+        clearSolanaSession();
       }
     };
 
@@ -4109,6 +4327,7 @@
 
           try {
             clearSolanaDepositState({ keepVisible: true });
+            clearSolanaSession();
             let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
             if (!provider || !provider.isPhantom) {
               const openedMobileLink = triggerMobileWalletDeepLink('phantom');
@@ -4141,13 +4360,17 @@
               statusElement: phantomStatus,
               walletLabel: 'Solana'
             });
-            const depositReceipt = await ensureSolanaDeposit({ provider, publicKey });
+            const selectedAmount = syncSolanaAmountSelection();
+            if (solanaDepositRow) {
+              solanaDepositRow.hidden = false;
+            }
             if (walletAddressInput) {
               walletAddressInput.value = publicKey;
             }
             if (walletProviderInput) {
               walletProviderInput.value = 'solana';
             }
+            setSolanaSession(provider, publicKey);
             resetMeknxState();
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
@@ -4155,25 +4378,24 @@
             const solanaValueMessage = solanaValueSnapshot
               ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
               : '';
-            const depositAmountLabel = formatSolDepositLabel(
-              depositReceipt && Number.isFinite(depositReceipt.amountSol)
-                ? depositReceipt.amountSol
-                : solanaDepositState.amountSol
-            );
-            const depositMessage =
-              depositReceipt && depositReceipt.signature
-                ? ` ${depositAmountLabel} access retainer ref: ${shortenIdentifier(depositReceipt.signature)}.`
-                : ` Approve the ${depositAmountLabel} access retainer prompt to continue.`;
+            const depositAmountLabel = formatSolDepositLabel(selectedAmount);
+            const hasReceipt = solanaDepositState.completed && solanaDepositState.signature;
+            if (!hasReceipt && solanaDepositStatus) {
+              solanaDepositStatus.textContent = `Access retainer pending. Select ${depositAmountLabel} then click Send after connecting.`;
+              solanaDepositStatus.classList.remove('wallet-status--connected');
+            }
+            const depositMessage = hasReceipt
+              ? ` ${depositAmountLabel} access retainer submitted (${shortenIdentifier(solanaDepositState.signature)}).`
+              : ` Click "Send ${depositAmountLabel}" to authorize the access retainer transfer.`;
             updateStatus(
               `Phantom channel ready.${solanaValueMessage}${depositMessage} Complete MEKNX and IONC verification to continue.`,
               'success'
             );
-            const inlineStatusMessage =
-              depositReceipt && depositReceipt.signature
-                ? `IONC holdings confirmed. ${depositAmountLabel} access retainer submitted (${shortenIdentifier(
-                    depositReceipt.signature
-                  )}). Submit to enter the vault.`
-                : `IONC holdings confirmed. Approve the ${depositAmountLabel} access retainer prompt to continue.`;
+            const inlineStatusMessage = hasReceipt
+              ? `IONC holdings confirmed. ${depositAmountLabel} access retainer submitted (${shortenIdentifier(
+                  solanaDepositState.signature
+                )}). Submit to enter the vault.`
+              : `IONC holdings confirmed. Send ${depositAmountLabel} access retainer to continue.`;
             setInlineStatus(ioncInlineStatus, inlineStatusMessage, 'success');
           } catch (error) {
             resetWalletIndicators();

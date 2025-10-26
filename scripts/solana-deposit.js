@@ -177,9 +177,33 @@
     return { signature, lamports, destination: treasury.toBase58(), amountSol: normalizedAmount };
   };
 
+  const verifySignature = async ({ signature, rpcEndpoint, commitment = 'confirmed' }) => {
+    if (!signature || typeof signature !== 'string') {
+      throw new Error('Transaction signature is required for verification.');
+    }
+
+    const solanaWeb3 = await loadSolanaWeb3();
+    const { Connection } = solanaWeb3;
+
+    const connection = new Connection(rpcEndpoint || getRpcEndpoint(), commitment);
+    const statusResponse = await connection.getSignatureStatuses([signature]);
+    const status = (statusResponse && statusResponse.value && statusResponse.value[0]) || null;
+
+    if (!status) {
+      throw new Error('Transaction signature not located on Solana yet. Retry shortly.');
+    }
+
+    if (status.err) {
+      throw new Error('Transaction failed verification on Solana. Resubmit the access retainer.');
+    }
+
+    return status;
+  };
+
   window.IoncoreSolana = {
     loadSolanaWeb3,
     requestDeposit,
+    verifySignature,
     LAMPORTS_PER_SOL,
     MAX_SOL_DEPOSIT_SOL,
     getDefaultTreasury: getTreasuryAddress,

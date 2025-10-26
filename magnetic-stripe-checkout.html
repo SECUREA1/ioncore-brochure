@@ -36,9 +36,9 @@
     <section class="container page-section page-section--tight checkout-hero">
       <div class="checkout-hero__content">
         <div>
-          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Magnetic Stripe Checkout</span>
-          <h1 class="section-title">Capture point-of-sale transactions for Ioncore deployments.</h1>
-          <p class="section-subtitle">Use our secure magnetic stripe checkout to book deposits, finalize project invoices, and reconcile sales instantly with the Ioncore operations team.</p>
+          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Magnetic Stripe &amp; Bitcoin Checkout</span>
+          <h1 class="section-title">Capture point-of-sale transactions or raise instant Bitcoin requests.</h1>
+          <p class="section-subtitle">Use our secure checkout to book deposits, finalize project invoices, and reconcile sales instantly with the Ioncore operations team—whether the customer pays by card or on-chain.</p>
         </div>
         <div class="checkout-hero__card" aria-hidden="true">
           <div class="checkout-card">
@@ -57,24 +57,59 @@
     <section class="container page-section--tight checkout-grid">
       <div class="checkout-panel">
         <h2>Sales Checkout</h2>
-        <p class="checkout-panel__subtitle">Swipe the customer&apos;s card and capture the transaction details for immediate processing.</p>
+        <p class="checkout-panel__subtitle">Select the customer&apos;s payment method and capture the transaction details for immediate processing.</p>
         <form class="checkout-form" novalidate>
+          <fieldset class="form-row payment-method-selector">
+            <legend>Payment Method</legend>
+            <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="magstripe" checked>
+              Magnetic Stripe
+            </label>
+            <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="bitcoin">
+              Bitcoin
+            </label>
+          </fieldset>
           <div class="form-row">
-            <label for="cardholder">Cardholder Name</label>
+            <label for="cardholder">Customer Name</label>
             <input type="text" id="cardholder" name="cardholder" placeholder="Alex Johnson" required>
           </div>
-          <div class="form-row">
-            <label for="card-number">Magstripe Account Number</label>
-            <input type="text" id="card-number" name="card-number" inputmode="numeric" autocomplete="cc-number" placeholder="#### #### #### ####" required>
-          </div>
-          <div class="form-row form-row--split">
-            <div>
-              <label for="expiry">Expiration</label>
-              <input type="text" id="expiry" name="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" required>
+          <div class="payment-section" data-payment-section="magstripe">
+            <div class="form-row">
+              <label for="card-number">Magstripe Account Number</label>
+              <input type="text" id="card-number" name="card-number" inputmode="numeric" autocomplete="cc-number" placeholder="#### #### #### ####" data-required-when="magstripe">
             </div>
-            <div>
-              <label for="cvv">Security Code</label>
-              <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" required>
+            <div class="form-row form-row--split">
+              <div>
+                <label for="expiry">Expiration</label>
+                <input type="text" id="expiry" name="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" data-required-when="magstripe">
+              </div>
+              <div>
+                <label for="cvv">Security Code</label>
+                <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" data-required-when="magstripe">
+              </div>
+            </div>
+          </div>
+          <div class="payment-section payment-section--bitcoin" data-payment-section="bitcoin" hidden>
+            <div class="form-row">
+              <label for="btc-wallet">Ioncore BTC Address</label>
+              <div class="btc-wallet">
+                <input type="text" id="btc-wallet" name="btc-wallet" value="bc1qioncoreenergy0u0ytsc4p58u4k3p9l4f3d9s7" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <button type="button" class="btn btn-outline btn-compact" data-copy-target="btc-wallet">Copy</button>
+              </div>
+              <p class="form-help">Send only BTC on the Bitcoin network. Initiate the transfer before submitting the transaction record.</p>
+            </div>
+            <div class="form-row">
+              <label for="btc-amount">Bitcoin Amount (BTC)</label>
+              <input type="text" id="btc-amount" name="btc-amount" placeholder="0.00000000" inputmode="decimal" spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+            </div>
+            <div class="form-row">
+              <label for="btc-txid">Bitcoin Transaction ID</label>
+              <input type="text" id="btc-txid" name="btc-txid" placeholder="Paste TXID after broadcast" spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+            </div>
+            <div class="form-row">
+              <label for="btc-contact">Remitting Wallet Contact</label>
+              <input type="text" id="btc-contact" name="btc-contact" placeholder="Telegram @handle or email" autocomplete="off">
             </div>
           </div>
           <div class="form-row">
@@ -87,7 +122,7 @@
           </div>
           <button class="btn btn-primary checkout-form__submit" type="submit">Process Magnetic Stripe Sale</button>
           <div class="checkout-form__feedback" role="status" aria-live="polite"></div>
-          <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete.</p>
+          <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete. Bitcoin submissions log the wallet destination and are confirmed on-chain prior to equipment release.</p>
         </form>
       </div>
       <aside class="checkout-sidebar">
@@ -96,6 +131,7 @@
           <li><span>Verify the swiped data before submitting to ensure the cardholder name and amount match the signed work order.</span></li>
           <li><span>Use the notes field to identify the project stage—deposit, milestone, or final commissioning payment.</span></li>
           <li><span>Send the confirmation email from the Ioncore CRM within 15 minutes of approval.</span></li>
+          <li><span>For Bitcoin, request on-chain confirmation or a transaction ID before releasing equipment or closing the service ticket.</span></li>
         </ul>
         <div class="checkout-sidebar__cta">
           <h4>Need help?</h4>
@@ -146,6 +182,12 @@
 
       const feedback = form.querySelector('.checkout-form__feedback');
       const submitButton = form.querySelector('.checkout-form__submit');
+      const paymentMethodInputs = Array.from(form.querySelectorAll('input[name="payment-method"]'));
+      const paymentSections = {
+        magstripe: form.querySelector('[data-payment-section="magstripe"]'),
+        bitcoin: form.querySelector('[data-payment-section="bitcoin"]')
+      };
+      const dynamicRequiredFields = Array.from(form.querySelectorAll('[data-required-when]'));
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -160,6 +202,67 @@
         }
       };
 
+      const updatePaymentMethod = (method) => {
+        const isMagstripe = method === 'magstripe';
+        if (paymentSections.magstripe) {
+          paymentSections.magstripe.hidden = !isMagstripe;
+        }
+        if (paymentSections.bitcoin) {
+          paymentSections.bitcoin.hidden = isMagstripe;
+        }
+        if (submitButton) {
+          submitButton.textContent = isMagstripe ? 'Process Magnetic Stripe Sale' : 'Generate Bitcoin Payment';
+        }
+        dynamicRequiredFields.forEach((field) => {
+          const requiredWhen = field.dataset.requiredWhen;
+          field.required = requiredWhen === method;
+        });
+      };
+
+      const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'magstripe';
+      updatePaymentMethod(selectedMethod);
+
+      paymentMethodInputs.forEach((input) => {
+        input.addEventListener('change', (event) => {
+          updatePaymentMethod(event.target.value);
+          setFeedback('', null);
+        });
+      });
+
+      form.querySelectorAll('[data-copy-target]').forEach((button) => {
+        const originalLabel = button.textContent.trim() || 'Copy';
+        button.addEventListener('click', async () => {
+          const targetId = button.getAttribute('data-copy-target');
+          const target = targetId ? form.querySelector(`#${targetId}`) : null;
+          if (!target) {
+            return;
+          }
+
+          button.blur();
+
+          if (!navigator.clipboard || !navigator.clipboard.writeText) {
+            button.textContent = 'Copy not supported';
+            setTimeout(() => {
+              button.textContent = originalLabel;
+            }, 1600);
+            return;
+          }
+
+          try {
+            await navigator.clipboard.writeText(target.value || target.textContent || '');
+            button.textContent = 'Copied!';
+          } catch (error) {
+            button.textContent = 'Copy failed';
+          }
+
+          button.disabled = true;
+          setTimeout(() => {
+            button.textContent = originalLabel;
+            button.disabled = false;
+          }, 1600);
+        });
+      });
+
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!submitButton) {
@@ -167,20 +270,42 @@
         }
 
         const formData = new FormData(form);
+        const paymentMethod = formData.get('payment-method') || 'magstripe';
         const payload = {
+          paymentMethod,
           cardholder: formData.get('cardholder') || '',
-          cardNumber: formData.get('card-number') || '',
-          expiry: formData.get('expiry') || '',
-          cvv: formData.get('cvv') || '',
           amount: formData.get('amount') || '',
           projectReference: formData.get('notes') || ''
         };
 
+        let endpoint = '/payments/magnetic-stripe';
+
+        if (paymentMethod === 'bitcoin') {
+          endpoint = '/payments/bitcoin';
+          Object.assign(payload, {
+            btcWallet: formData.get('btc-wallet') || '',
+            btcAmount: formData.get('btc-amount') || '',
+            transactionId: formData.get('btc-txid') || '',
+            remittingContact: formData.get('btc-contact') || ''
+          });
+        } else {
+          Object.assign(payload, {
+            cardNumber: formData.get('card-number') || '',
+            expiry: formData.get('expiry') || '',
+            cvv: formData.get('cvv') || ''
+          });
+        }
+
         submitButton.disabled = true;
-        setFeedback('Authorizing magnetic stripe sale…', null);
+        setFeedback(
+          paymentMethod === 'bitcoin'
+            ? 'Creating bitcoin payment record…'
+            : 'Authorizing magnetic stripe sale…',
+          null
+        );
 
         try {
-          const response = await fetch('/payments/magnetic-stripe', {
+          const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -193,21 +318,62 @@
           if (!response.ok || !result) {
             const message =
               (result && result.message) ||
-              'Authorization failed. Verify the details or escalate to the deployment success team.';
+              (paymentMethod === 'bitcoin'
+                ? 'We could not register the bitcoin payment. Verify the details or contact the deployment success team.'
+                : 'Authorization failed. Verify the details or escalate to the deployment success team.');
             setFeedback(message, 'error');
             return;
           }
 
-          const receiptLines = [
-            result.message,
-            result.authorizationCode ? `Auth code: ${result.authorizationCode}` : null,
-            result.maskedCardNumber ? `Card: ${result.maskedCardNumber}` : null,
-            result.amount && result.currency ? `Amount: ${result.currency} ${result.amount.toFixed ? result.amount.toFixed(2) : result.amount}` : null
-          ].filter(Boolean);
+          const receiptLines = [];
+
+          if (result.message) {
+            receiptLines.push(result.message);
+          }
+
+          if (paymentMethod === 'bitcoin') {
+            if (result.invoiceId) {
+              receiptLines.push(`Invoice: ${result.invoiceId}`);
+            }
+            if (result.btcAddress) {
+              receiptLines.push(`Send to: ${result.btcAddress}`);
+            }
+            if (result.currency && result.amount !== undefined && result.amount !== null) {
+              const amountValue = result.amount;
+              const formattedAmount =
+                typeof amountValue === 'number' && Number.isFinite(amountValue)
+                  ? amountValue.toFixed(2)
+                  : amountValue;
+              receiptLines.push(`Amount: ${result.currency} ${formattedAmount}`);
+            }
+            if (result.btcAmount !== undefined && result.btcAmount !== null && `${result.btcAmount}` !== '') {
+              receiptLines.push(`BTC: ${result.btcAmount}`);
+            }
+            if (result.settlementEta) {
+              receiptLines.push(`Settlement ETA: ${result.settlementEta}`);
+            }
+          } else {
+            if (result.authorizationCode) {
+              receiptLines.push(`Auth code: ${result.authorizationCode}`);
+            }
+            if (result.maskedCardNumber) {
+              receiptLines.push(`Card: ${result.maskedCardNumber}`);
+            }
+            if (result.currency && result.amount !== undefined && result.amount !== null) {
+              const amountValue = result.amount;
+              const formattedAmount =
+                typeof amountValue === 'number' && Number.isFinite(amountValue)
+                  ? amountValue.toFixed(2)
+                  : amountValue;
+              receiptLines.push(`Amount: ${result.currency} ${formattedAmount}`);
+            }
+          }
 
           setFeedback(receiptLines.join(' • '), 'success');
 
           form.reset();
+          const nextMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
+          updatePaymentMethod(nextMethod);
         } catch (error) {
           setFeedback(
             'We were unable to reach the processor. Check your connection or retry the authorization shortly.',

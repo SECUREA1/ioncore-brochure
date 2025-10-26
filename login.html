@@ -2619,6 +2619,15 @@
       publicKey: ''
     };
 
+    const metamaskConnectionState = {
+      provider: null,
+      accounts: [],
+      eventHandlersAttached: false,
+      listeners: null
+    };
+
+    const solanaProviderListenerRegistry = new WeakSet();
+
     const cloneDefaultIoncOrders = () => DEFAULT_IONC_ORDER_BACKLOG.map((order) => ({ ...order }));
 
     const getLocalStorage = () => {
@@ -3348,6 +3357,172 @@
       updateSolanaActionButtons();
     };
 
+    const handleMetaMaskAccountsChanged = (accounts) => {
+      const normalizedAccounts = Array.isArray(accounts)
+        ? accounts.map(normalizeEvmAccount).filter(Boolean)
+        : [];
+      const previousPrimaryAccount = metamaskConnectionState.accounts[0] || '';
+      metamaskConnectionState.accounts = normalizedAccounts;
+
+      const activeProvider = walletProviderInput ? walletProviderInput.value : '';
+      if (activeProvider !== 'evm') {
+        return;
+      }
+
+      const primaryAccount = normalizedAccounts[0] || '';
+      if (primaryAccount) {
+        if (walletAddressInput) {
+          walletAddressInput.value = primaryAccount;
+        }
+        indicateWalletConnection('evm', primaryAccount);
+        clearWalletValueState();
+        if (primaryAccount !== previousPrimaryAccount) {
+          updateStatus('MetaMask account changed. Run MEKNX clearance to continue.');
+        }
+      } else {
+        if (walletAddressInput) {
+          walletAddressInput.value = '';
+        }
+        if (walletProviderInput) {
+          walletProviderInput.value = '';
+        }
+        resetWalletIndicators();
+        clearWalletValueState();
+        resetMeknxState();
+        syncIoncModuleVisibility();
+        syncCardanoModuleVisibility();
+        updateStatus('MetaMask account disconnected. Reconnect to continue.', 'error');
+      }
+    };
+
+    const attachMetaMaskEventHandlers = (provider, previousProvider, previousListeners) => {
+      if (!provider || typeof provider.on !== 'function') {
+        return;
+      }
+
+      if (previousProvider && previousListeners && typeof previousProvider.removeListener === 'function') {
+        if (previousListeners.accountsChanged) {
+          previousProvider.removeListener('accountsChanged', previousListeners.accountsChanged);
+        }
+        if (previousListeners.chainChanged) {
+          previousProvider.removeListener('chainChanged', previousListeners.chainChanged);
+        }
+        if (previousListeners.disconnect) {
+          previousProvider.removeListener('disconnect', previousListeners.disconnect);
+        }
+      }
+
+      const listeners = metamaskConnectionState.listeners || {};
+
+      if (!listeners.accountsChanged) {
+        listeners.accountsChanged = (accounts) => {
+          try {
+            handleMetaMaskAccountsChanged(accounts);
+          } catch (error) {
+            console.error('MetaMask accountsChanged handler failed', error);
+          }
+        };
+      }
+
+      if (!listeners.chainChanged) {
+        listeners.chainChanged = () => {
+          if (walletProviderInput && walletProviderInput.value === 'evm') {
+            clearWalletValueState();
+            if (metamaskStatus) {
+              metamaskStatus.textContent = 'Network changed. Reconnect MetaMask to continue.';
+              metamaskStatus.classList.remove('wallet-status--connected');
+            }
+            updateStatus('MetaMask network changed. Reconnect to continue.', 'error');
+          }
+        };
+      }
+
+      if (!listeners.disconnect) {
+        listeners.disconnect = () => {
+          if (walletProviderInput && walletProviderInput.value === 'evm') {
+            if (walletAddressInput) {
+              walletAddressInput.value = '';
+            }
+            walletProviderInput.value = '';
+            resetWalletIndicators();
+            clearWalletValueState();
+            resetMeknxState();
+            syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
+            updateStatus('MetaMask disconnected. Reconnect to continue.', 'error');
+          }
+        };
+      }
+
+      if (!metamaskConnectionState.eventHandlersAttached || metamaskConnectionState.provider !== provider) {
+        provider.on('accountsChanged', listeners.accountsChanged);
+        provider.on('chainChanged', listeners.chainChanged);
+        provider.on('disconnect', listeners.disconnect);
+        metamaskConnectionState.eventHandlersAttached = true;
+      }
+
+      metamaskConnectionState.provider = provider;
+      metamaskConnectionState.listeners = listeners;
+    };
+
+    const attachPhantomEventHandlers = (provider) => {
+      if (!provider || typeof provider.on !== 'function') {
+        return;
+      }
+
+      if (solanaProviderListenerRegistry.has(provider)) {
+        return;
+      }
+
+      const handleAccountChanged = (nextAccount) => {
+        const normalized = normalizeSolanaPublicKey(nextAccount);
+        if (walletProviderInput && walletProviderInput.value === 'solana') {
+          if (normalized) {
+            setSolanaSession(provider, normalized);
+            if (walletAddressInput) {
+              walletAddressInput.value = normalized;
+            }
+            indicateWalletConnection('solana', normalized);
+            clearWalletValueState();
+            clearSolanaDepositState({ keepVisible: true });
+            resetMeknxState();
+            syncIoncModuleVisibility();
+            updateStatus('Phantom account changed. Re-run IONC verification to continue.');
+          } else {
+            setSolanaSession(null, '');
+            if (walletAddressInput) {
+              walletAddressInput.value = '';
+            }
+            walletProviderInput.value = '';
+            resetWalletIndicators();
+            clearSolanaDepositState();
+            resetMeknxState();
+            syncIoncModuleVisibility();
+            updateStatus('Phantom account disconnected. Reconnect to continue.', 'error');
+          }
+        }
+      };
+
+      const handleDisconnect = () => {
+        if (walletProviderInput && walletProviderInput.value === 'solana') {
+          setSolanaSession(null, '');
+          if (walletAddressInput) {
+            walletAddressInput.value = '';
+          }
+          walletProviderInput.value = '';
+          resetWalletIndicators();
+          clearSolanaDepositState();
+          resetMeknxState();
+          syncIoncModuleVisibility();
+          updateStatus('Phantom disconnected. Reconnect to continue.', 'error');
+        }
+      };
+
+      provider.on('accountChanged', handleAccountChanged);
+      provider.on('disconnect', handleDisconnect);
+      solanaProviderListenerRegistry.add(provider);
+    };
+
     const getSelectedSolanaAmount = () => {
       if (!solanaDepositAmountInput) {
         return MIN_SOL_DEPOSIT_SOL;
@@ -3786,6 +3961,202 @@
       return null;
     };
 
+    const normalizeEvmAccount = (account) => {
+      if (typeof account !== 'string') {
+        return '';
+      }
+      const trimmed = account.trim();
+      return trimmed.length > 0 ? trimmed : '';
+    };
+
+    const requestEvmAccounts = async (provider) => {
+      if (!provider) {
+        throw new Error('MetaMask provider unavailable.');
+      }
+
+      const attemptRequest = async () => {
+        if (typeof provider.request === 'function') {
+          const result = await provider.request({ method: 'eth_requestAccounts' });
+          if (Array.isArray(result) && result.length > 0) {
+            return result;
+          }
+        }
+        return null;
+      };
+
+      const attemptEnable = async () => {
+        if (typeof provider.enable === 'function') {
+          const result = await provider.enable();
+          if (Array.isArray(result) && result.length > 0) {
+            return result;
+          }
+        }
+        return null;
+      };
+
+      const attemptSend = async () => {
+        if (typeof provider.send === 'function') {
+          const result = await provider.send('eth_requestAccounts', []);
+          if (Array.isArray(result) && result.length > 0) {
+            return result;
+          }
+          if (result && Array.isArray(result.result) && result.result.length > 0) {
+            return result.result;
+          }
+        }
+        if (typeof provider.sendAsync === 'function') {
+          const response = await new Promise((resolve, reject) => {
+            provider.sendAsync(
+              { method: 'eth_requestAccounts', params: [] },
+              (error, res) => {
+                if (error) {
+                  reject(error);
+                  return;
+                }
+                resolve(res);
+              }
+            );
+          });
+          if (response && Array.isArray(response.result) && response.result.length > 0) {
+            return response.result;
+          }
+        }
+        return null;
+      };
+
+      let accounts = null;
+      try {
+        accounts = await attemptRequest();
+      } catch (error) {
+        if (error && typeof error.code === 'number' && error.code === 4001) {
+          throw error;
+        }
+        if (!accounts) {
+          console.warn('MetaMask request() failed, retrying with enable()', error);
+        }
+      }
+
+      if (!accounts) {
+        try {
+          accounts = await attemptEnable();
+        } catch (error) {
+          if (error && typeof error.code === 'number' && error.code === 4001) {
+            throw error;
+          }
+          if (!accounts) {
+            console.warn('MetaMask enable() failed, retrying with send()', error);
+          }
+        }
+      }
+
+      if (!accounts) {
+        try {
+          accounts = await attemptSend();
+        } catch (error) {
+          if (error && typeof error.code === 'number' && error.code === 4001) {
+            throw error;
+          }
+          console.warn('MetaMask send() fallback failed', error);
+        }
+      }
+
+      if (!accounts || accounts.length === 0) {
+        const selected = normalizeEvmAccount(provider.selectedAddress || provider.address);
+        if (selected) {
+          return [selected];
+        }
+        throw new Error('MetaMask did not return any accounts.');
+      }
+
+      return accounts.map(normalizeEvmAccount).filter(Boolean);
+    };
+
+    const normalizeSolanaPublicKey = (value) => {
+      if (!value) {
+        return '';
+      }
+      if (Array.isArray(value)) {
+        return normalizeSolanaPublicKey(value[0]);
+      }
+      if (typeof value === 'string') {
+        return value;
+      }
+      if (typeof value === 'object' && typeof value.toBase58 === 'function') {
+        return value.toBase58();
+      }
+      if (typeof value === 'object' && typeof value.toString === 'function') {
+        return value.toString();
+      }
+      return '';
+    };
+
+    const establishPhantomSession = async (provider) => {
+      if (!provider || !provider.isPhantom) {
+        throw new Error('Phantom provider unavailable.');
+      }
+
+      const attemptConnect = async () => {
+        if (typeof provider.connect !== 'function') {
+          return null;
+        }
+        try {
+          const response = await provider.connect();
+          const derived =
+            (response && normalizeSolanaPublicKey(response.publicKey)) ||
+            normalizeSolanaPublicKey(provider.publicKey);
+          return derived ? { provider, publicKey: derived } : null;
+        } catch (error) {
+          if (error && typeof error.code === 'number' && error.code === 4001) {
+            throw error;
+          }
+          if (provider.publicKey) {
+            const fallbackKey = normalizeSolanaPublicKey(provider.publicKey);
+            if (fallbackKey) {
+              return { provider, publicKey: fallbackKey };
+            }
+          }
+          console.warn('Phantom connect() failed', error);
+          return null;
+        }
+      };
+
+      const attemptTrustedConnect = async () => {
+        if (typeof provider.connect !== 'function') {
+          return null;
+        }
+        try {
+          const response = await provider.connect({ onlyIfTrusted: true });
+          const derived =
+            (response && normalizeSolanaPublicKey(response.publicKey)) ||
+            normalizeSolanaPublicKey(provider.publicKey);
+          return derived ? { provider, publicKey: derived } : null;
+        } catch (error) {
+          if (error && typeof error.code === 'number' && error.code === 4001) {
+            throw error;
+          }
+          return null;
+        }
+      };
+
+      let session = await attemptTrustedConnect();
+      if (!session) {
+        session = await attemptConnect();
+      }
+
+      if (!session) {
+        const derived = normalizeSolanaPublicKey(provider.publicKey);
+        if (derived) {
+          session = { provider, publicKey: derived };
+        }
+      }
+
+      if (!session || !session.publicKey) {
+        throw new Error('Phantom did not provide a wallet address.');
+      }
+
+      return session;
+    };
+
     const isMobileDevice = () => {
       if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
         return navigator.userAgentData.mobile;
@@ -4066,6 +4437,7 @@
     };
 
     const resetWalletIndicators = () => {
+      metamaskConnectionState.accounts = [];
       if (metamaskStatus) {
         metamaskStatus.textContent = 'Not connected.';
         metamaskStatus.classList.remove('wallet-status--connected');
@@ -4674,7 +5046,9 @@
                 'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
               );
             }
-            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            const previousProvider = metamaskConnectionState.provider;
+            const previousListeners = metamaskConnectionState.listeners;
+            const accounts = await requestEvmAccounts(provider);
             const account = accounts && accounts[0];
             if (!account) {
               throw new Error('No wallet account returned.');
@@ -4685,6 +5059,11 @@
             if (walletProviderInput) {
               walletProviderInput.value = 'evm';
             }
+            metamaskConnectionState.eventHandlersAttached = false;
+            metamaskConnectionState.provider = null;
+            metamaskConnectionState.listeners = null;
+            metamaskConnectionState.accounts = accounts;
+            attachMetaMaskEventHandlers(provider, previousProvider, previousListeners);
             clearWalletValueState();
             clearSolanaDepositState();
             resetMeknxState();
@@ -4732,8 +5111,9 @@
                 'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'
               );
             }
-            const response = await provider.connect();
-            const publicKey = response?.publicKey?.toString();
+            const session = await establishPhantomSession(provider);
+            const publicKey = session.publicKey;
+            provider = session.provider || provider;
             if (!publicKey) {
               throw new Error('No wallet account returned.');
             }
@@ -4759,6 +5139,7 @@
               walletProviderInput.value = 'solana';
             }
             setSolanaSession(provider, publicKey);
+            attachPhantomEventHandlers(provider);
             resetMeknxState();
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();

@@ -622,6 +622,50 @@
       margin-top: 1.15rem;
     }
 
+    .wallet-connect-row--selectable {
+      position: relative;
+      padding: 0.85rem 1rem;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.38);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      transition: border-color 0.24s ease, box-shadow 0.24s ease, background 0.24s ease, transform 0.24s ease;
+    }
+
+    .wallet-connect-row--selectable::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: radial-gradient(circle at 15% 15%, rgba(72, 255, 226, 0.08), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.24s ease;
+      pointer-events: none;
+    }
+
+    .wallet-connect-row--selectable.is-active {
+      border-color: rgba(72, 255, 226, 0.55);
+      background: rgba(15, 23, 42, 0.68);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.45), inset 0 0 0 1px rgba(72, 255, 226, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .wallet-connect-row--selectable.is-active::before {
+      opacity: 1;
+    }
+
+    .wallet-connect-row--selectable.is-dimmed {
+      opacity: 0.72;
+    }
+
+    .wallet-connect-row--selectable .wallet-status {
+      flex: 1 1 220px;
+      min-width: 180px;
+    }
+
+    .wallet-connect-button.is-active {
+      box-shadow: 0 0 0 3px rgba(72, 255, 226, 0.25);
+    }
+
     .wallet-connect-row--status {
       align-items: flex-start;
       margin-top: 0.35rem;
@@ -894,6 +938,12 @@
       border-color: rgba(41, 173, 255, 0.65);
     }
 
+    .module-tag--market {
+      background: linear-gradient(135deg, rgba(245, 201, 120, 0.28), rgba(255, 156, 92, 0.32));
+      border-color: rgba(245, 201, 120, 0.55);
+      color: rgba(255, 241, 196, 0.9);
+    }
+
     .access-module {
       display: grid;
       gap: 0.75rem;
@@ -951,6 +1001,45 @@
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
+    }
+
+    .ionc-market-list {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .ionc-market-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      padding: 0.8rem 1rem;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .ionc-market-item__details {
+      display: grid;
+      gap: 0.2rem;
+      min-width: 200px;
+    }
+
+    .ionc-market-item__title {
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.9);
+    }
+
+    .ionc-market-item__description {
+      font-size: 0.78rem;
+      color: rgba(148, 163, 184, 0.88);
+    }
+
+    .ionc-market-actions {
+      justify-content: flex-start;
     }
 
     .action-button {
@@ -2239,8 +2328,14 @@
         </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet">
           <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
-          <div class="wallet-connect-row">
-            <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
+          <div class="wallet-connect-row wallet-connect-row--selectable">
+            <button
+              type="button"
+              id="connect-metamask"
+              class="wallet-connect-button wallet-connect-button--metamask"
+              data-wallet-provider="evm"
+              aria-pressed="false"
+            >
               <span class="wallet-connect-button__icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" role="img" aria-label="MetaMask fox mark">
                   <path fill="#f5841f" d="M4.4 2.5 14.6 10l.9 2.6-7.9-2.1z" />
@@ -2262,8 +2357,14 @@
             </button>
             <div id="metamask-status" class="wallet-status">Not connected.</div>
           </div>
-          <div class="wallet-connect-row">
-            <button type="button" id="connect-phantom" class="wallet-connect-button wallet-connect-button--phantom">
+          <div class="wallet-connect-row wallet-connect-row--selectable">
+            <button
+              type="button"
+              id="connect-phantom"
+              class="wallet-connect-button wallet-connect-button--phantom"
+              data-wallet-provider="solana"
+              aria-pressed="false"
+            >
               <span class="wallet-connect-button__icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" role="img" aria-label="Solana triad">
                   <defs>
@@ -2338,8 +2439,14 @@
               Access retainer pending. Select your SOL amount, connect Phantom, then click Send to authorize the transfer.
             </div>
           </div>
-          <div class="wallet-connect-row">
-            <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
+          <div class="wallet-connect-row wallet-connect-row--selectable">
+            <button
+              type="button"
+              id="connect-cardano"
+              class="wallet-connect-button wallet-connect-button--cardano"
+              data-wallet-provider="cardano"
+              aria-pressed="false"
+            >
               <span class="wallet-connect-button__icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" role="img" aria-label="Cardano wallet emblem">
                   <circle cx="16" cy="16" r="10.5" fill="#0c2d57" />
@@ -2385,6 +2492,62 @@
             <div class="module-actions">
               <button type="button" id="ionc-verify-button" class="action-button action-button--outline">Verify IONC Token</button>
               <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
+            </div>
+          </div>
+          <div class="access-module" id="ionc-market-module" hidden>
+            <div class="module-header">
+              <h3>Acquire IONC</h3>
+              <span class="module-tag module-tag--market">Marketplace</span>
+            </div>
+            <p class="module-copy" data-ionc-market-focus tabindex="-1">
+              No IONC access token was detected on the connected Solana wallet. Swap SOL for IONC using one of the curated
+              markets below, then reconnect your wallet to continue.
+            </p>
+            <div class="ionc-market-list">
+              <div class="ionc-market-item">
+                <div class="ionc-market-item__details">
+                  <span class="ionc-market-item__title">Jupiter Aggregator</span>
+                  <span class="ionc-market-item__description">Swap SOL → IONC with deep liquidity routing.</span>
+                </div>
+                <a
+                  class="action-button action-button--outline"
+                  href="https://jup.ag/swap/SOL-IONC"
+                  target="_blank"
+                  rel="noopener"
+                  data-ionc-market-link
+                >Open Swap</a>
+              </div>
+              <div class="ionc-market-item">
+                <div class="ionc-market-item__details">
+                  <span class="ionc-market-item__title">Raydium</span>
+                  <span class="ionc-market-item__description">Execute direct SOL/IONC trades on Raydium.</span>
+                </div>
+                <a
+                  class="action-button action-button--outline"
+                  href="https://raydium.io/swap/?input=sol&output=ionc"
+                  target="_blank"
+                  rel="noopener"
+                  data-ionc-market-link
+                >Trade Now</a>
+              </div>
+              <div class="ionc-market-item">
+                <div class="ionc-market-item__details">
+                  <span class="ionc-market-item__title">DexScreener Markets</span>
+                  <span class="ionc-market-item__description">Review IONC liquidity pools across Solana venues.</span>
+                </div>
+                <a
+                  class="action-button action-button--outline"
+                  href="https://dexscreener.com/solana/ionc"
+                  target="_blank"
+                  rel="noopener"
+                  data-ionc-market-link
+                >View Pools</a>
+              </div>
+            </div>
+            <div class="module-actions ionc-market-actions">
+              <button type="button" id="ionc-market-open-phantom" class="action-button">Open Phantom</button>
+              <button type="button" id="ionc-market-open-metamask" class="action-button action-button--outline">Open MetaMask</button>
+              <button type="button" id="ionc-market-open-cardano" class="action-button action-button--outline">Cardano Access</button>
             </div>
           </div>
           <div class="access-module" id="cardano-module" hidden>
@@ -2513,11 +2676,18 @@
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
     const ioncModule = document.getElementById('ionc-module');
+    const ioncMarketModule = document.getElementById('ionc-market-module');
     const cardanoModule = document.getElementById('cardano-module');
     const ioncVerifyButton = document.getElementById('ionc-verify-button');
     const ioncInlineStatus = document.getElementById('ionc-inline-status');
     const cardanoVerifyButton = document.getElementById('cardano-verify-button');
     const cardanoInlineStatus = document.getElementById('cardano-inline-status');
+    const ioncMarketFocusTarget = ioncMarketModule
+      ? ioncMarketModule.querySelector('[data-ionc-market-focus]')
+      : null;
+    const ioncMarketOpenPhantomButton = document.getElementById('ionc-market-open-phantom');
+    const ioncMarketOpenMetamaskButton = document.getElementById('ionc-market-open-metamask');
+    const ioncMarketOpenCardanoButton = document.getElementById('ionc-market-open-cardano');
     const meknxVerifyButton = document.getElementById('meknx-verify');
     const meknxMintButton = document.getElementById('meknx-mint');
     const meknxStatus = document.getElementById('meknx-status');
@@ -2627,6 +2797,79 @@
     };
 
     const solanaProviderListenerRegistry = new WeakSet();
+
+    const walletButtonEntries = [
+      { key: 'evm', button: metamaskButton },
+      { key: 'solana', button: phantomButton },
+      { key: 'cardano', button: cardanoButton }
+    ].filter((entry) => entry.button);
+
+    const resolveWalletSelectionKey = (provider = '') => {
+      if (!provider) {
+        return '';
+      }
+      if (provider.startsWith('cardano')) {
+        return 'cardano';
+      }
+      return provider;
+    };
+
+    const setActiveWalletButton = (provider) => {
+      const normalized = resolveWalletSelectionKey(provider);
+      walletButtonEntries.forEach(({ button, key }) => {
+        const isActive = Boolean(normalized) && key === normalized;
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        button.classList.toggle('is-active', isActive);
+        const row = button.closest('.wallet-connect-row--selectable');
+        if (row) {
+          row.classList.toggle('is-active', isActive);
+          row.classList.toggle('is-dimmed', Boolean(normalized) && !isActive);
+        }
+      });
+    };
+
+    setActiveWalletButton('');
+
+    const focusElementSafely = (element) => {
+      if (!element || typeof element.focus !== 'function') {
+        return;
+      }
+      try {
+        element.focus({ preventScroll: false });
+      } catch (error) {
+        element.focus();
+      }
+    };
+
+    const showIoncMarketModule = ({ focus = false } = {}) => {
+      if (!ioncMarketModule) {
+        return;
+      }
+      ioncMarketModule.hidden = false;
+      if (focus) {
+        focusElementSafely(ioncMarketFocusTarget || ioncMarketModule);
+      }
+    };
+
+    const hideIoncMarketModule = () => {
+      if (!ioncMarketModule) {
+        return;
+      }
+      ioncMarketModule.hidden = true;
+    };
+
+    const isMissingIoncTokenError = (message) => {
+      if (typeof message !== 'string') {
+        return false;
+      }
+      const normalized = message.toLowerCase();
+      return (
+        normalized.includes('no ionc token') ||
+        normalized.includes('acquire ionc') ||
+        normalized.includes('ensure your solana wallet holds the access token') ||
+        normalized.includes('ionc verification failed')
+      );
+    };
 
     const cloneDefaultIoncOrders = () => DEFAULT_IONC_ORDER_BACKLOG.map((order) => ({ ...order }));
 
@@ -2855,6 +3098,7 @@
       if (!options.silent) {
         setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
       }
+      hideIoncMarketModule();
     };
 
     const resetCardanoState = (options = {}) => {
@@ -2903,6 +3147,7 @@
       ioncModule.hidden = !shouldShow;
       if (!shouldShow) {
         resetIoncState();
+        hideIoncMarketModule();
         return;
       }
 
@@ -2912,14 +3157,20 @@
           `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
           'success'
         );
+        hideIoncMarketModule();
       } else if (ioncState.tokens > 0) {
         const tokenLabel = ioncState.tokens === 1 ? 'token' : 'tokens';
         setInlineStatus(
           ioncInlineStatus,
           `Detected ${ioncState.tokens} IONC access ${tokenLabel}. Verify to continue.`
         );
+        hideIoncMarketModule();
       } else {
-        setInlineStatus(ioncInlineStatus, 'Phantom session detected. Verify IONC token to continue.');
+        setInlineStatus(
+          ioncInlineStatus,
+          'Phantom session detected. Verify IONC token to continue or acquire tokens below.'
+        );
+        showIoncMarketModule();
       }
     };
 
@@ -3021,6 +3272,7 @@
         `IONC verification complete. Ledger holds ${formatIoncAmountLabel(ioncState.tokens)}.`,
         'success'
       );
+      hideIoncMarketModule();
     };
 
     let audioContext;
@@ -4201,6 +4453,43 @@
       return false;
     };
 
+    if (ioncMarketOpenPhantomButton) {
+      ioncMarketOpenPhantomButton.addEventListener('click', () => {
+        showIoncMarketModule();
+        setActiveWalletButton('solana');
+        if (phantomButton) {
+          phantomButton.focus();
+          phantomButton.click();
+        }
+        triggerMobileWalletDeepLink('phantom');
+      });
+    }
+
+    if (ioncMarketOpenMetamaskButton) {
+      ioncMarketOpenMetamaskButton.addEventListener('click', () => {
+        showIoncMarketModule();
+        setActiveWalletButton('evm');
+        if (metamaskButton) {
+          metamaskButton.focus();
+          metamaskButton.click();
+        }
+        triggerMobileWalletDeepLink('metamask');
+      });
+    }
+
+    if (ioncMarketOpenCardanoButton) {
+      ioncMarketOpenCardanoButton.addEventListener('click', () => {
+        showIoncMarketModule();
+        setActiveWalletButton('cardano');
+        if (cardanoButton) {
+          cardanoButton.focus();
+          cardanoButton.click();
+          return;
+        }
+        window.open('https://lace.io/', '_blank', 'noopener');
+      });
+    }
+
     const hexToBytes = (hex) => {
       if (typeof hex !== 'string') {
         throw new Error('Invalid Cardano balance payload.');
@@ -4463,6 +4752,8 @@
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
       syncCardanoModuleVisibility();
+      setActiveWalletButton('');
+      hideIoncMarketModule();
     };
 
     const checkIonCTokenBalance = async (publicKey) => {
@@ -4516,9 +4807,17 @@
       const hasToken = await checkIonCTokenBalance(publicKey);
 
       if (!hasToken) {
+        ioncState.verified = false;
+        ioncState.tokens = 0;
         if (ioncVerifiedInput) {
           ioncVerifiedInput.value = '';
         }
+        showIoncMarketModule({ focus: true });
+        setInlineStatus(
+          ioncInlineStatus,
+          'No IONC token detected. Swap SOL for IONC using the marketplace options below.',
+          'error'
+        );
         throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
       }
 
@@ -4534,6 +4833,7 @@
       const originalLabel = button.textContent;
 
       button.addEventListener('click', async () => {
+        setActiveWalletButton('cardano');
         const wallet = await waitForWalletInjection(detectCardanoWallet, { timeout: 2800, interval: 220 });
         const walletLabel = wallet ? wallet.label : 'Cardano';
         updateStatus(`Requesting ${walletLabel} session…`);
@@ -4653,6 +4953,11 @@
     };
 
     const indicateWalletConnection = (providerLabel, address, cardanoLabel = '') => {
+      const selectionKey = resolveWalletSelectionKey(providerLabel);
+      setActiveWalletButton(providerLabel);
+      if (selectionKey !== 'solana') {
+        hideIoncMarketModule();
+      }
       const formatted = shortenIdentifier(address);
       const balanceSuffix =
         walletValueState.provider === providerLabel && walletValueState.tokenSymbol
@@ -5023,6 +5328,7 @@
 
       if (metamaskButton) {
         metamaskButton.addEventListener('click', async () => {
+          setActiveWalletButton('evm');
           updateStatus('Requesting MetaMask session…');
           metamaskButton.disabled = true;
           metamaskButton.textContent = 'Connecting…';
@@ -5088,6 +5394,7 @@
 
       if (phantomButton) {
         phantomButton.addEventListener('click', async () => {
+          setActiveWalletButton('solana');
           updateStatus('Requesting Phantom session…');
           phantomButton.disabled = true;
           phantomButton.textContent = 'Connecting…';
@@ -5166,18 +5473,33 @@
                 )}). Submit to enter the vault.`
               : `IONC holdings confirmed. Send ${depositAmountLabel} access retainer to continue.`;
             setInlineStatus(ioncInlineStatus, inlineStatusMessage, 'success');
-          } catch (error) {
-            resetWalletIndicators();
-            const message = error?.message || 'Phantom connection failed. Try again.';
-            if (phantomStatus) {
-              phantomStatus.textContent = message;
-            }
-            updateStatus(message, 'error');
-            triggerFailureAnimation();
-          } finally {
-            phantomButton.disabled = false;
-            phantomButton.textContent = 'Connect Phantom';
+        } catch (error) {
+          const message = error?.message || 'Phantom connection failed. Try again.';
+          const missingIonc = isMissingIoncTokenError(message);
+          resetWalletIndicators();
+          if (missingIonc) {
+            setActiveWalletButton('solana');
+            showIoncMarketModule({ focus: true });
+            setInlineStatus(
+              ioncInlineStatus,
+              'No IONC tokens detected. Use the marketplace options below to acquire IONC, then reconnect.',
+              'error'
+            );
           }
+          if (phantomStatus) {
+            phantomStatus.textContent = message;
+          }
+          updateStatus(
+            missingIonc
+              ? `${message} Use the marketplace options below to swap SOL for IONC before retrying.`
+              : message,
+            'error'
+          );
+          triggerFailureAnimation();
+        } finally {
+          phantomButton.disabled = false;
+          phantomButton.textContent = 'Connect Phantom';
+        }
         });
       }
 
@@ -5307,8 +5629,24 @@
               } catch (err) {
                 // ignore JSON parsing errors
               }
-              setInlineStatus(ioncInlineStatus, errorMessage, 'error');
-              updateStatus(errorMessage, 'error');
+              const missingIonc = isMissingIoncTokenError(errorMessage);
+              setInlineStatus(
+                ioncInlineStatus,
+                missingIonc
+                  ? 'IONC tokens not found. Use the marketplace options below to acquire IONC, then retry verification.'
+                  : errorMessage,
+                'error'
+              );
+              if (missingIonc) {
+                showIoncMarketModule({ focus: true });
+                setActiveWalletButton('solana');
+              }
+              updateStatus(
+                missingIonc
+                  ? `${errorMessage} Access the marketplace below to swap SOL for IONC before retrying.`
+                  : errorMessage,
+                'error'
+              );
               triggerFailureAnimation();
               return;
             }
@@ -5324,8 +5662,24 @@
             updateStatus(`${successMessage} Submit to enter the vault.`, 'success');
           } catch (error) {
             const fallbackMessage = 'Unable to verify IONC tokens. Try again shortly.';
-            setInlineStatus(ioncInlineStatus, fallbackMessage, 'error');
-            updateStatus(fallbackMessage, 'error');
+            const missingIonc = isMissingIoncTokenError(error?.message || fallbackMessage);
+            setInlineStatus(
+              ioncInlineStatus,
+              missingIonc
+                ? 'No IONC tokens detected. Access the marketplace options below to continue.'
+                : fallbackMessage,
+              'error'
+            );
+            if (missingIonc) {
+              showIoncMarketModule({ focus: true });
+              setActiveWalletButton('solana');
+            }
+            updateStatus(
+              missingIonc
+                ? `${fallbackMessage} Use the marketplace below to acquire IONC before trying again.`
+                : fallbackMessage,
+              'error'
+            );
             triggerFailureAnimation();
           } finally {
             ioncVerifyButton.disabled = false;

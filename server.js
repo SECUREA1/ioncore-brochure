@@ -35,7 +35,7 @@ const ADMIN_PROMO_SECTION = `
         </p>
       </div>
     </div>
-    <a href="/admin-control-center.html" class="btn" style="margin-top:38px;display:inline-flex;padding:16px 34px;border-radius:999px;background:#6aff3b;color:#030712;font-weight:700;font-size:1.05rem;text-decoration:none;">Launch Admin Control Center</a>
+    <a href="/admin.html" class="btn" style="margin-top:38px;display:inline-flex;padding:16px 34px;border-radius:999px;background:#6aff3b;color:#030712;font-weight:700;font-size:1.05rem;text-decoration:none;">Launch Admin Control Center</a>
   </section>
 `;
 const CARDANO_POLICY_ID =
@@ -1384,7 +1384,7 @@ app.get('/timepieces', async (req, res) => {
     }
     const buffer = await file.buffer();
     let html = buffer.toString('utf8');
-    if (!html.includes('admin-control-center.html')) {
+    if (!html.includes('admin.html')) {
       const closingTagMatch = html.match(/<\/body>/i);
       if (closingTagMatch) {
         html = html.replace(/<\/body>/i, `${ADMIN_PROMO_SECTION}</body>`);

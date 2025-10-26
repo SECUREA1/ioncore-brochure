@@ -477,7 +477,7 @@
           <article class="metric-card">
             <h3>Stripe / Magstripe</h3>
             <strong id="metric-stripe">0</strong>
-            <p class="text-muted">Encrypted ledger of card activity.</p>
+            <p class="text-muted">Encrypted ledger of card &amp; bitcoin activity.</p>
           </article>
           <article class="metric-card">
             <h3>Poll &amp; Gateway Submissions</h3>
@@ -604,7 +604,8 @@
             <thead>
               <tr>
                 <th scope="col">Timestamp</th>
-                <th scope="col">Cardholder</th>
+                <th scope="col">Method</th>
+                <th scope="col">Account</th>
                 <th scope="col">Amount</th>
                 <th scope="col">Status</th>
                 <th scope="col">Project</th>
@@ -613,7 +614,7 @@
             </thead>
             <tbody></tbody>
           </table>
-          <div class="empty-state" id="stripe-empty">No Stripe or magstripe transactions recorded.</div>
+          <div class="empty-state" id="stripe-empty">No Stripe, magstripe, or bitcoin transactions recorded.</div>
         </div>
       </section>
 
@@ -1011,6 +1012,106 @@
         return date.toLocaleString();
       }
 
+      function timestampValue(value) {
+        if (!value) return 0;
+        const parsed = new Date(value).getTime();
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function formatFiatAmount(amount, currency) {
+        if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+          return null;
+        }
+        const formatted = amount.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        return `${currency || ''} ${formatted}`.trim();
+      }
+
+      function formatBitcoinAmount(entry) {
+        if (!entry) return null;
+        const btcAmount =
+          typeof entry.btcAmount === 'number' && Number.isFinite(entry.btcAmount)
+            ? `BTC ${entry.btcAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 8
+              })}`
+            : null;
+        const usdAmount =
+          typeof entry.usdAmount === 'number' && Number.isFinite(entry.usdAmount)
+            ? `USD ${entry.usdAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`
+            : null;
+        if (btcAmount && usdAmount) {
+          return `${btcAmount} (${usdAmount})`;
+        }
+        return btcAmount || usdAmount || null;
+      }
+
+      function ledgerMethodLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return 'Bitcoin';
+        }
+        const processor = (item.data.processor || '').toLowerCase();
+        if (processor.includes('stripe')) {
+          return 'Stripe';
+        }
+        if (processor.includes('magstripe') || processor.includes('magnetic')) {
+          return 'Magstripe';
+        }
+        return 'Card';
+      }
+
+      function ledgerAccountLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          const name = item.data.cardholder || item.data.remittingContact || '';
+          const wallet = item.data.btcAddress ? shortenWalletReference(item.data.btcAddress) : '';
+          if (name && wallet) {
+            return `${name} (${wallet})`;
+          }
+          return name || wallet || '—';
+        }
+        return item.data.cardholder || '—';
+      }
+
+      function ledgerAmountLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return formatBitcoinAmount(item.data) || '—';
+        }
+        return formatFiatAmount(item.data.amount, item.data.currency) || '—';
+      }
+
+      function ledgerProjectLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return item.data.projectReference || item.data.invoiceId || '—';
+        }
+        return item.data.projectReference || '—';
+      }
+
+      function ledgerAuthorizationLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return item.data.transactionId || item.data.invoiceId || '—';
+        }
+        return item.data.authorizationCode || item.data.transactionId || '—';
+      }
+
+      function ledgerStatusLabel(item) {
+        if (!item || !item.data) return 'pending';
+        const status = item.data.status;
+        if (status && String(status).trim()) {
+          return status;
+        }
+        return item.type === 'bitcoin' ? 'pending-confirmation' : 'pending';
+      }
+
       function setStatus(message, variant = 'info') {
         if (!message) {
           statusBanner.classList.remove('is-visible');
@@ -1056,7 +1157,9 @@
         generatedAt.textContent = 'Synced ' + formatDate(state.data.generatedAt);
 
         metricUsers.textContent = state.data.metrics.totalGatewayUsers;
-        metricStripe.textContent = state.data.metrics.totalStripeTransactions;
+        const stripeTransactions = Number(state.data.metrics.totalStripeTransactions || 0);
+        const bitcoinTransactions = Number(state.data.metrics.totalBitcoinTransactions || 0);
+        metricStripe.textContent = stripeTransactions + bitcoinTransactions;
         metricPolls.textContent = state.data.metrics.totalGatewaySubmissions;
         metricContact.textContent = state.data.metrics.totalContactSubmissions +
           ' / ' + state.data.metrics.totalLoginEvents + ' logins';
@@ -1131,7 +1234,8 @@
       function badgeVariant(status) {
         if (!status) return 'warning';
         const key = String(status).toLowerCase();
-        if (key.includes('active') || key.includes('approved')) return 'success';
+        if (key.includes('active') || key.includes('approved') || key.includes('authoriz') || key.includes('confirm'))
+          return 'success';
         if (key.includes('pending')) return 'warning';
         if (key.includes('revoked') || key.includes('suspend')) return 'danger';
         return 'warning';
@@ -1152,26 +1256,65 @@
       }
 
       function renderStripe() {
-        const entries = state.data?.magstripeTransactions || [];
+        const magstripeEntries = Array.isArray(state.data?.magstripeTransactions)
+          ? state.data.magstripeTransactions.map((entry) => ({ type: 'magstripe', data: entry }))
+          : [];
+        const bitcoinEntries = Array.isArray(state.data?.bitcoinTransactions)
+          ? state.data.bitcoinTransactions.map((entry) => ({ type: 'bitcoin', data: entry }))
+          : [];
+
+        const combinedEntries = [...magstripeEntries, ...bitcoinEntries].sort(
+          (a, b) => timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt)
+        );
+
         stripeTableBody.innerHTML = '';
-        if (!entries.length) {
+        if (!combinedEntries.length) {
           stripeEmpty.style.display = 'block';
           return;
         }
+
         stripeEmpty.style.display = 'none';
         const fragment = document.createDocumentFragment();
-        for (const entry of entries) {
+
+        for (const item of combinedEntries) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(entry.createdAt)}</td>
-            <td>${entry.cardholder || '—'}</td>
-            <td>${entry.currency || ''} ${entry.amount != null ? entry.amount : '—'}</td>
-            <td><span class="badge" data-variant="${badgeVariant(entry.status)}">${entry.status || 'pending'}</span></td>
-            <td>${entry.projectReference || '—'}</td>
-            <td>${entry.authorizationCode || '—'}</td>
-          `;
+
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(item?.data?.createdAt);
+          tr.appendChild(timestampCell);
+
+          const methodCell = document.createElement('td');
+          methodCell.textContent = ledgerMethodLabel(item);
+          tr.appendChild(methodCell);
+
+          const accountCell = document.createElement('td');
+          accountCell.textContent = ledgerAccountLabel(item);
+          tr.appendChild(accountCell);
+
+          const amountCell = document.createElement('td');
+          amountCell.textContent = ledgerAmountLabel(item);
+          tr.appendChild(amountCell);
+
+          const statusCell = document.createElement('td');
+          const statusBadge = document.createElement('span');
+          const statusLabel = ledgerStatusLabel(item);
+          statusBadge.className = 'badge';
+          statusBadge.dataset.variant = badgeVariant(statusLabel);
+          statusBadge.textContent = statusLabel;
+          statusCell.appendChild(statusBadge);
+          tr.appendChild(statusCell);
+
+          const projectCell = document.createElement('td');
+          projectCell.textContent = ledgerProjectLabel(item);
+          tr.appendChild(projectCell);
+
+          const authorizationCell = document.createElement('td');
+          authorizationCell.textContent = ledgerAuthorizationLabel(item);
+          tr.appendChild(authorizationCell);
+
           fragment.appendChild(tr);
         }
+
         stripeTableBody.appendChild(fragment);
       }
 

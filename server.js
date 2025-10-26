@@ -69,7 +69,9 @@ const defaultStore = {
   gatewaySubmissions: [],
   gatewayUsers: {},
   magstripeTransactions: [],
-  bitcoinTransactions: []
+  bitcoinTransactions: [],
+  marketplaceUploads: [],
+  marketplaceBids: []
 };
 
 async function loadStore() {
@@ -85,7 +87,9 @@ async function loadStore() {
           ? parsed.gatewayUsers
           : {},
       magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : [],
-      bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : []
+      bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
+      marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
+      marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : []
     };
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
@@ -164,6 +168,61 @@ function sanitizeSelectionsForStorage(value) {
   }
 }
 
+function sanitizeUrl(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (trimmed.startsWith('ipfs://')) {
+    return trimmed;
+  }
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url.toString();
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
+}
+
+function parseCurrencyAmount(raw) {
+  if (typeof raw === 'number') {
+    return Number.isFinite(raw) ? raw : 0;
+  }
+  if (typeof raw === 'string') {
+    const normalized = raw.replace(/[^0-9.\-]/g, '');
+    if (!normalized) {
+      return 0;
+    }
+    const value = Number.parseFloat(normalized);
+    return Number.isFinite(value) ? value : 0;
+  }
+  return 0;
+}
+
+function toTimestamp(value) {
+  if (!value) {
+    return 0;
+  }
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function sortByTimestampDesc(collection, primaryKey = 'createdAt', fallbackKey = null) {
+  return collection
+    .slice()
+    .sort(
+      (a, b) =>
+        toTimestamp(b?.[primaryKey] || (fallbackKey ? b?.[fallbackKey] : null)) -
+        toTimestamp(a?.[primaryKey] || (fallbackKey ? a?.[fallbackKey] : null))
+    );
+}
+
 async function recordLoginEvent(event) {
   try {
     store.loginEvents.push({
@@ -239,6 +298,41 @@ async function recordGatewaySubmission(submission) {
     }
     console.error('Failed to record gateway submission', err);
     return { success: false, error: err };
+  }
+}
+
+async function persistMarketplaceUpload(record) {
+  try {
+    if (!Array.isArray(store.marketplaceUploads)) {
+      store.marketplaceUploads = [];
+    }
+    store.marketplaceUploads.push(record);
+    await saveStore();
+    return record;
+  } catch (error) {
+    console.error('Failed to store marketplace upload', error);
+    throw error;
+  }
+}
+
+async function persistMarketplaceBid(record, assetId) {
+  try {
+    if (!Array.isArray(store.marketplaceBids)) {
+      store.marketplaceBids = [];
+    }
+    store.marketplaceBids.push(record);
+    if (Array.isArray(store.marketplaceUploads)) {
+      const target = store.marketplaceUploads.find((upload) => upload.id === assetId);
+      if (target) {
+        target.lastBidAt = record.createdAt;
+        target.updatedAt = record.createdAt;
+      }
+    }
+    await saveStore();
+    return record;
+  } catch (error) {
+    console.error('Failed to store marketplace bid', error);
+    throw error;
   }
 }
 
@@ -1290,10 +1384,185 @@ app.post('/access/cardano', (req, res) => {
   });
 });
 
+app.post('/api/marketplace/uploads', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const title = normalizeForStorage(body.title);
+  const username = normalizeForStorage(body.username || body.creator || body.handle);
+  const walletAddress = normalizeForStorage(body.walletAddress || body.wallet);
+  const description = normalizeForStorage(body.description || body.summary || body.notes);
+  const contact = normalizeForStorage(body.contact || body.email || body.link);
+  const mediaUrl = sanitizeUrl(typeof body.mediaUrl === 'string' ? body.mediaUrl : body.previewUrl);
+
+  if (!title) {
+    return res.status(400).json({ message: 'Provide a title or label for this marketplace upload.' });
+  }
+
+  const now = new Date().toISOString();
+  const record = {
+    id: randomUUID(),
+    title,
+    description,
+    username,
+    walletAddress,
+    mediaUrl,
+    contact,
+    createdAt: now,
+    updatedAt: now,
+    lastBidAt: null
+  };
+
+  try {
+    await persistMarketplaceUpload(record);
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to register the marketplace upload. Retry shortly.' });
+  }
+
+  res.status(201).json({
+    ...record,
+    bidCount: 0,
+    highestBidAmount: null,
+    highestBidCurrency: null
+  });
+});
+
+app.post('/api/marketplace/bids', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const assetIdRaw = typeof body.assetId === 'string' ? body.assetId.trim() : '';
+  if (!assetIdRaw) {
+    return res.status(400).json({ message: 'Specify the marketplace upload you are bidding on.' });
+  }
+
+  const uploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
+  const asset = uploads.find((upload) => upload.id === assetIdRaw);
+  if (!asset) {
+    return res.status(404).json({ message: 'Marketplace upload not found. Refresh and try again.' });
+  }
+
+  const amount = parseCurrencyAmount(body.amount || body.bidAmount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ message: 'Enter a valid bid amount greater than zero.' });
+  }
+
+  if (amount > 1_000_000_000) {
+    return res.status(400).json({ message: 'Bid amount exceeds the allowable range.' });
+  }
+
+  const currencyRaw = typeof body.currency === 'string' ? body.currency.trim().toUpperCase() : '';
+  const currency = /^[A-Z]{2,6}$/.test(currencyRaw) ? currencyRaw : 'USD';
+  const bidderName = normalizeForStorage(body.bidderName || body.username || body.name);
+  const bidderWallet = normalizeForStorage(body.bidderWallet || body.walletAddress || body.wallet);
+  const bidderContact = normalizeForStorage(body.contact || body.email || body.communicationHandle);
+  const message = normalizeForStorage(body.message || body.notes || body.memo);
+
+  const now = new Date().toISOString();
+  const amountValue = Number(amount.toFixed(2));
+  const record = {
+    id: randomUUID(),
+    assetId: assetIdRaw,
+    amount: amountValue,
+    currency,
+    bidderName,
+    bidderWallet,
+    bidderContact,
+    message,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  try {
+    await persistMarketplaceBid(record, assetIdRaw);
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to register the bid. Please try again shortly.' });
+  }
+
+  res.status(201).json({
+    ...record,
+    assetTitle: asset.title || null,
+    assetOwner: asset.username || asset.walletAddress || null
+  });
+});
+
+app.get('/api/marketplace', (req, res) => {
+  const uploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
+  const bids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
+  const bidLookup = new Map();
+
+  for (const bid of bids) {
+    if (!bidLookup.has(bid.assetId)) {
+      bidLookup.set(bid.assetId, []);
+    }
+    bidLookup.get(bid.assetId).push(bid);
+  }
+
+  const orderedUploads = sortByTimestampDesc(uploads, 'updatedAt', 'createdAt').map((upload) => {
+    const relatedBids = bidLookup.get(upload.id) || [];
+    const highestBid = relatedBids.reduce((current, candidate) => {
+      if (!candidate || typeof candidate.amount !== 'number') {
+        return current;
+      }
+      if (!current) {
+        return candidate;
+      }
+      return candidate.amount > current.amount ? candidate : current;
+    }, null);
+
+    return {
+      id: upload.id,
+      title: upload.title,
+      description: upload.description,
+      username: upload.username,
+      walletAddress: upload.walletAddress,
+      mediaUrl: upload.mediaUrl,
+      contact: upload.contact,
+      createdAt: upload.createdAt,
+      updatedAt: upload.updatedAt,
+      lastBidAt: upload.lastBidAt || null,
+      bidCount: relatedBids.length,
+      highestBidAmount: highestBid ? highestBid.amount : null,
+      highestBidCurrency: highestBid ? highestBid.currency : null
+    };
+  });
+
+  const uploadLookup = new Map(uploads.map((upload) => [upload.id, upload]));
+  const orderedBids = sortByTimestampDesc(bids, 'createdAt').map((bid) => {
+    const asset = uploadLookup.get(bid.assetId);
+    return {
+      id: bid.id,
+      assetId: bid.assetId,
+      amount: bid.amount,
+      currency: bid.currency,
+      bidderName: bid.bidderName,
+      bidderWallet: bid.bidderWallet,
+      bidderContact: bid.bidderContact,
+      message: bid.message,
+      createdAt: bid.createdAt,
+      updatedAt: bid.updatedAt,
+      assetTitle: asset?.title || null,
+      assetOwner: asset?.username || asset?.walletAddress || null
+    };
+  });
+
+  res.json({
+    generatedAt: new Date().toISOString(),
+    uploads: orderedUploads,
+    bids: orderedBids
+  });
+});
+
 function isPublicRoute(req) {
   if (
     req.method === 'POST' &&
-    ['/login', '/logout', '/access/meknx', '/access/ionc', '/access/cardano', '/contact', '/gateway'].includes(req.path)
+    [
+      '/login',
+      '/logout',
+      '/access/meknx',
+      '/access/ionc',
+      '/access/cardano',
+      '/contact',
+      '/gateway',
+      '/api/marketplace/uploads',
+      '/api/marketplace/bids'
+    ].includes(req.path)
   ) {
     return true;
   }
@@ -1317,6 +1586,11 @@ function isPublicRoute(req) {
     const publicAssets = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.json', '.txt']);
     const extension = path.extname(req.path).toLowerCase();
     if (publicAssets.has(extension)) {
+      return true;
+    }
+
+    const publicApis = new Set(['/api/marketplace']);
+    if (publicApis.has(req.path)) {
       return true;
     }
   }
@@ -1433,18 +1707,10 @@ app.get('/admin', async (req, res) => {
 });
 
 app.get('/api/admin/overview', (req, res) => {
-  const toTimestamp = (value) => {
-    if (!value) return 0;
-    const parsed = Date.parse(value);
-    return Number.isNaN(parsed) ? 0 : parsed;
-  };
-
-  const sortByTimestampDesc = (collection, primaryKey = 'createdAt', fallbackKey = null) =>
-    collection
-      .slice()
-      .sort((a, b) => toTimestamp(b[primaryKey] || (fallbackKey ? b[fallbackKey] : null)) - toTimestamp(a[primaryKey] || (fallbackKey ? a[fallbackKey] : null)));
-
   const gatewayUsers = Object.entries(store.gatewayUsers || {}).map(([id, user]) => ({ id, ...user }));
+  const marketplaceUploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
+  const marketplaceBids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
+  const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
   const activityTimeline = [];
 
@@ -1500,7 +1766,84 @@ app.get('/api/admin/overview', (req, res) => {
     });
   }
 
+  for (const upload of marketplaceUploads) {
+    activityTimeline.push({
+      type: 'marketplace-upload',
+      timestamp: upload.updatedAt || upload.createdAt,
+      headline: upload.title || upload.username || upload.walletAddress || 'Marketplace upload',
+      detail: `Creator: ${upload.username || upload.walletAddress || 'Anonymous'}`,
+      reference: upload
+    });
+  }
+
+  for (const bid of marketplaceBids) {
+    const asset = uploadMap.get(bid.assetId);
+    activityTimeline.push({
+      type: 'marketplace-bid',
+      timestamp: bid.createdAt,
+      headline: `Bid ${bid.currency || ''} ${bid.amount != null ? bid.amount : ''}`.trim(),
+      detail: asset
+        ? `On ${asset.title || 'upload'} by ${asset.username || asset.walletAddress || 'creator'}`
+        : `Asset reference ${bid.assetId}`,
+      reference: bid
+    });
+  }
+
   activityTimeline.sort((a, b) => toTimestamp(b.timestamp) - toTimestamp(a.timestamp));
+
+  const bidLookup = new Map();
+  for (const bid of marketplaceBids) {
+    if (!bidLookup.has(bid.assetId)) {
+      bidLookup.set(bid.assetId, []);
+    }
+    bidLookup.get(bid.assetId).push(bid);
+  }
+
+  const marketplaceUploadsSummary = sortByTimestampDesc(marketplaceUploads, 'updatedAt', 'createdAt').map((upload) => {
+    const relatedBids = bidLookup.get(upload.id) || [];
+    const highestBid = relatedBids.reduce((current, candidate) => {
+      if (!candidate || typeof candidate.amount !== 'number') {
+        return current;
+      }
+      if (!current) {
+        return candidate;
+      }
+      return candidate.amount > current.amount ? candidate : current;
+    }, null);
+    return {
+      id: upload.id,
+      title: upload.title,
+      description: upload.description,
+      username: upload.username,
+      walletAddress: upload.walletAddress,
+      mediaUrl: upload.mediaUrl,
+      contact: upload.contact,
+      createdAt: upload.createdAt,
+      updatedAt: upload.updatedAt,
+      lastBidAt: upload.lastBidAt || null,
+      bidCount: relatedBids.length,
+      highestBidAmount: highestBid ? highestBid.amount : null,
+      highestBidCurrency: highestBid ? highestBid.currency : null
+    };
+  });
+
+  const marketplaceBidsSummary = sortByTimestampDesc(marketplaceBids, 'createdAt').map((bid) => {
+    const asset = uploadMap.get(bid.assetId);
+    return {
+      id: bid.id,
+      assetId: bid.assetId,
+      amount: bid.amount,
+      currency: bid.currency,
+      bidderName: bid.bidderName,
+      bidderWallet: bid.bidderWallet,
+      bidderContact: bid.bidderContact,
+      message: bid.message,
+      createdAt: bid.createdAt,
+      updatedAt: bid.updatedAt,
+      assetTitle: asset?.title || null,
+      assetOwner: asset?.username || asset?.walletAddress || null
+    };
+  });
 
   res.json({
     generatedAt: new Date().toISOString(),
@@ -1510,7 +1853,9 @@ app.get('/api/admin/overview', (req, res) => {
       totalContactSubmissions: store.contactSubmissions.length,
       totalLoginEvents: store.loginEvents.length,
       totalStripeTransactions: store.magstripeTransactions.length,
-      totalBitcoinTransactions: store.bitcoinTransactions.length
+      totalBitcoinTransactions: store.bitcoinTransactions.length,
+      totalMarketplaceUploads: marketplaceUploads.length,
+      totalMarketplaceBids: marketplaceBids.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
     magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
@@ -1518,6 +1863,8 @@ app.get('/api/admin/overview', (req, res) => {
     contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
     gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
     loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),
+    marketplaceUploads: marketplaceUploadsSummary,
+    marketplaceBids: marketplaceBidsSummary,
     activityTimeline
   });
 });

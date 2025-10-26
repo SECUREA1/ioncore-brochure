@@ -2,6 +2,7 @@
   const DEFAULT_SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
   const DEFAULT_TREASURY = '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT';
   const LAMPORTS_PER_SOL = 1_000_000_000;
+  const MIN_SOL_DEPOSIT_SOL = 0.1;
   const MAX_SOL_DEPOSIT_SOL = 1000;
   const IONC_PER_SOL = 1000;
   const WEB3_CDN_SRC = 'https://unpkg.com/@solana/web3.js@1.91.9/lib/index.iife.min.js';
@@ -74,16 +75,17 @@
   const clampSolAmount = (value) => {
     const numeric = typeof value === 'number' ? value : Number.parseFloat(value);
     if (!Number.isFinite(numeric)) {
-      return 1;
+      return MIN_SOL_DEPOSIT_SOL;
     }
-    const clamped = Math.min(Math.max(numeric, 1), MAX_SOL_DEPOSIT_SOL);
+    const clamped = Math.min(Math.max(numeric, MIN_SOL_DEPOSIT_SOL), MAX_SOL_DEPOSIT_SOL);
     return Number.parseFloat(clamped.toFixed(3));
   };
 
   const formatSolAmountLabel = (value) => {
     const safeValue = clampSolAmount(value);
+    const hasFraction = Math.abs(safeValue % 1) > 1e-9;
     return `${safeValue.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
+      minimumFractionDigits: hasFraction ? 1 : 0,
       maximumFractionDigits: 3
     })} SOL`;
   };
@@ -115,7 +117,10 @@
     const treasury = new PublicKey(destinationAddress || getTreasuryAddress());
 
     const normalizedAmount = clampSolAmount(amountSol);
-    const lamports = Math.max(Math.round(normalizedAmount * LAMPORTS_PER_SOL), LAMPORTS_PER_SOL);
+    const lamports = Math.max(
+      Math.round(normalizedAmount * LAMPORTS_PER_SOL),
+      Math.round(MIN_SOL_DEPOSIT_SOL * LAMPORTS_PER_SOL)
+    );
     const ioncMinted = Math.round(normalizedAmount * IONC_PER_SOL);
     const formattedAmount = formatSolAmountLabel(normalizedAmount);
 

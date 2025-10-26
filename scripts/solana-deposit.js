@@ -2,6 +2,7 @@
   const DEFAULT_SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
   const DEFAULT_TREASURY = '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT';
   const LAMPORTS_PER_SOL = 1_000_000_000;
+  const MAX_SOL_DEPOSIT_SOL = 1000;
   const WEB3_CDN_SRC = 'https://unpkg.com/@solana/web3.js@1.91.9/lib/index.iife.min.js';
 
   let solanaLoaderPromise = null;
@@ -69,6 +70,23 @@
     return `${value.slice(0, 6)}…${value.slice(-6)}`;
   };
 
+  const clampSolAmount = (value) => {
+    const numeric = typeof value === 'number' ? value : Number.parseFloat(value);
+    if (!Number.isFinite(numeric)) {
+      return 1;
+    }
+    const clamped = Math.min(Math.max(numeric, 1), MAX_SOL_DEPOSIT_SOL);
+    return Number.parseFloat(clamped.toFixed(3));
+  };
+
+  const formatSolAmountLabel = (value) => {
+    const safeValue = clampSolAmount(value);
+    return `${safeValue.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 3
+    })} SOL`;
+  };
+
   const requestDeposit = async ({
     provider,
     fromAddress,
@@ -95,8 +113,9 @@
     const fromPubkey = new PublicKey(address);
     const treasury = new PublicKey(destinationAddress || getTreasuryAddress());
 
-    const normalizedAmount = Number.isFinite(amountSol) && amountSol > 0 ? amountSol : 1;
+    const normalizedAmount = clampSolAmount(amountSol);
     const lamports = Math.max(Math.round(normalizedAmount * LAMPORTS_PER_SOL), LAMPORTS_PER_SOL);
+    const formattedAmount = formatSolAmountLabel(normalizedAmount);
 
     const latestBlockhash = await connection.getLatestBlockhash(commitment);
     const transaction = new Transaction({
@@ -113,7 +132,7 @@
     );
 
     if (statusElement) {
-      statusElement.textContent = 'Presenting 1 SOL access retainer for approval…';
+      statusElement.textContent = `Presenting ${formattedAmount} access retainer for approval…`;
       statusElement.classList.remove('wallet-status--connected');
     }
 
@@ -145,23 +164,28 @@
     );
 
     if (typeof onSignature === 'function') {
-      onSignature(signature, lamports);
+      onSignature(signature, lamports, normalizedAmount);
     }
 
     if (statusElement) {
-      statusElement.textContent = `1 SOL access retainer submitted. Reference: ${shortenSignature(signature)}`;
+      statusElement.textContent = `${formattedAmount} access retainer submitted. Reference: ${shortenSignature(
+        signature
+      )}`;
       statusElement.classList.add('wallet-status--connected');
     }
 
-    return { signature, lamports, destination: treasury.toBase58() };
+    return { signature, lamports, destination: treasury.toBase58(), amountSol: normalizedAmount };
   };
 
   window.IoncoreSolana = {
     loadSolanaWeb3,
     requestDeposit,
     LAMPORTS_PER_SOL,
+    MAX_SOL_DEPOSIT_SOL,
     getDefaultTreasury: getTreasuryAddress,
     getDefaultRpc: getRpcEndpoint,
-    shortenSignature
+    shortenSignature,
+    formatSolAmountLabel,
+    clampSolAmount
   };
 })();

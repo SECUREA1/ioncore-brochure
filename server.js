@@ -47,6 +47,17 @@ const BRAND = {
   icon: '/battery.svg'
 };
 
+const BITCOIN_ADDRESS =
+  (process.env.IONCORE_BTC_ADDRESS || 'bc1qioncoreenergy0u0ytsc4p58u4k3p9l4f3d9s7').trim();
+const BITCOIN_CONFIRMATIONS_REQUIRED = Math.min(
+  Math.max(Number.parseInt(process.env.IONCORE_BTC_CONFIRMATIONS || '2', 10) || 2, 1),
+  6
+);
+const BITCOIN_SETTLEMENT_WINDOW_MINUTES = Math.min(
+  Math.max(Number.parseInt(process.env.IONCORE_BTC_SETTLEMENT_MINUTES || '45', 10) || 45, 10),
+  180
+);
+
 const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
 
@@ -57,7 +68,8 @@ const defaultStore = {
   contactSubmissions: [],
   gatewaySubmissions: [],
   gatewayUsers: {},
-  magstripeTransactions: []
+  magstripeTransactions: [],
+  bitcoinTransactions: []
 };
 
 async function loadStore() {
@@ -72,7 +84,8 @@ async function loadStore() {
         parsed.gatewayUsers && typeof parsed.gatewayUsers === 'object' && !Array.isArray(parsed.gatewayUsers)
           ? parsed.gatewayUsers
           : {},
-      magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : []
+      magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : [],
+      bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : []
     };
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
@@ -290,6 +303,58 @@ async function recordMagstripeTransaction(transaction) {
     await saveStore();
   } catch (error) {
     console.error('Failed to store magnetic stripe transaction', error);
+    throw error;
+  }
+}
+
+function parseBtcAmount(amountRaw) {
+  if (typeof amountRaw === 'number') {
+    return amountRaw;
+  }
+  if (typeof amountRaw === 'string') {
+    const normalized = amountRaw.replace(/[^0-9.\-]/g, '');
+    if (!normalized) {
+      return 0;
+    }
+    return Number.parseFloat(normalized);
+  }
+  return 0;
+}
+
+function generateBitcoinInvoiceId() {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const randomChunk = Math.floor(Math.random() * 46656)
+    .toString(36)
+    .toUpperCase()
+    .padStart(3, '0');
+  return `BTC-${timestamp}-${randomChunk}`;
+}
+
+async function recordBitcoinTransaction(transaction) {
+  try {
+    const entryId = transaction.invoiceId || randomUUID();
+    store.bitcoinTransactions.push({
+      createdAt: new Date().toISOString(),
+      entryId,
+      invoiceId: entryId,
+      cardholder: normalizeForStorage(transaction.cardholder),
+      btcAddress: normalizeForStorage(transaction.btcAddress || BITCOIN_ADDRESS),
+      btcAmount: typeof transaction.btcAmount === 'number' && Number.isFinite(transaction.btcAmount)
+        ? Number(transaction.btcAmount.toFixed(8))
+        : null,
+      usdAmount: typeof transaction.usdAmount === 'number' && Number.isFinite(transaction.usdAmount)
+        ? Number(transaction.usdAmount.toFixed(2))
+        : null,
+      transactionId: normalizeForStorage(transaction.transactionId),
+      remittingContact: normalizeForStorage(transaction.remittingContact),
+      projectReference: normalizeForStorage(transaction.projectReference),
+      status: normalizeForStorage(transaction.status) || (transaction.transactionId ? 'pending-confirmation' : 'awaiting-txid'),
+      confirmationsRequired: BITCOIN_CONFIRMATIONS_REQUIRED,
+      settlementWindowMinutes: BITCOIN_SETTLEMENT_WINDOW_MINUTES
+    });
+    await saveStore();
+  } catch (error) {
+    console.error('Failed to store bitcoin transaction', error);
     throw error;
   }
 }
@@ -844,6 +909,96 @@ app.post('/gateway', async (req, res) => {
   });
 });
 
+app.get('/api/payments/bitcoin/config', (req, res) => {
+  res.json({
+    btcAddress: BITCOIN_ADDRESS,
+    confirmationsRequired: BITCOIN_CONFIRMATIONS_REQUIRED,
+    settlementWindowMinutes: BITCOIN_SETTLEMENT_WINDOW_MINUTES
+  });
+});
+
+app.post('/payments/bitcoin', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const cardholder = typeof body.cardholder === 'string' ? body.cardholder.trim() : '';
+  const btcWalletRaw = typeof body.btcWallet === 'string' ? body.btcWallet.trim() : '';
+  const btcAmountRaw = body.btcAmount;
+  const usdAmountRaw = body.amount;
+  const projectReference = typeof body.projectReference === 'string' ? body.projectReference.trim() : '';
+  const transactionIdRaw = typeof body.transactionId === 'string' ? body.transactionId.trim() : '';
+  const remittingContact = typeof body.remittingContact === 'string' ? body.remittingContact.trim() : '';
+
+  if (cardholder.length < 2) {
+    return res.status(400).json({ message: 'Customer name required to register the bitcoin payment.' });
+  }
+
+  const btcAddress = btcWalletRaw || BITCOIN_ADDRESS;
+  if (BITCOIN_ADDRESS && btcAddress !== BITCOIN_ADDRESS) {
+    return res.status(400).json({ message: 'Use the designated Ioncore settlement address for bitcoin remittance.' });
+  }
+
+  const btcAmount = parseBtcAmount(btcAmountRaw);
+  if (!Number.isFinite(btcAmount) || btcAmount <= 0) {
+    return res.status(400).json({ message: 'Enter the bitcoin amount being remitted on-chain.' });
+  }
+  if (btcAmount > 21_000_000) {
+    return res.status(400).json({ message: 'Bitcoin amount exceeds the valid range.' });
+  }
+
+  let usdAmount = 0;
+  if (typeof usdAmountRaw === 'number') {
+    usdAmount = usdAmountRaw;
+  } else if (typeof usdAmountRaw === 'string') {
+    usdAmount = Number.parseFloat(usdAmountRaw.replace(/[^0-9.\-]/g, ''));
+  }
+
+  if (!Number.isFinite(usdAmount) || usdAmount <= 0) {
+    return res.status(400).json({ message: 'Enter the USD invoice amount linked to this bitcoin transfer.' });
+  }
+
+  const txIdPattern = /^[0-9a-fA-F]{10,}$/;
+  const transactionId = transactionIdRaw;
+  if (transactionId && !txIdPattern.test(transactionId)) {
+    return res.status(400).json({ message: 'Provide a valid bitcoin transaction ID or leave the field blank until broadcast.' });
+  }
+
+  const invoiceId = generateBitcoinInvoiceId();
+  const settlementEta = `~${BITCOIN_SETTLEMENT_WINDOW_MINUTES} minutes after ${BITCOIN_CONFIRMATIONS_REQUIRED} confirmation${
+    BITCOIN_CONFIRMATIONS_REQUIRED === 1 ? '' : 's'
+  }`;
+
+  try {
+    await recordBitcoinTransaction({
+      invoiceId,
+      cardholder,
+      btcAddress,
+      btcAmount,
+      usdAmount,
+      transactionId,
+      remittingContact,
+      projectReference,
+      status: transactionId ? 'pending-confirmation' : 'awaiting-txid'
+    });
+  } catch (error) {
+    return res
+      .status(502)
+      .json({ message: 'We could not register the bitcoin payment. Verify the details or retry shortly.' });
+  }
+
+  return res.status(201).json({
+    message: 'Bitcoin payment logged. Awaiting network confirmations.',
+    invoiceId,
+    btcAddress: BITCOIN_ADDRESS,
+    btcAmount: Number(btcAmount.toFixed(8)),
+    amount: Number(usdAmount.toFixed(2)),
+    currency: 'USD',
+    transactionId: transactionId || undefined,
+    settlementEta,
+    remittingContact: remittingContact || undefined,
+    explorerUrl: transactionId ? `https://mempool.space/tx/${transactionId}` : undefined,
+    projectReference: projectReference || undefined
+  });
+});
+
 app.post('/payments/magnetic-stripe', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const cardholder = typeof body.cardholder === 'string' ? body.cardholder.trim() : '';
@@ -1333,6 +1488,18 @@ app.get('/api/admin/overview', (req, res) => {
     });
   }
 
+  for (const transaction of store.bitcoinTransactions) {
+    activityTimeline.push({
+      type: 'bitcoin-transaction',
+      timestamp: transaction.createdAt,
+      headline: transaction.cardholder || transaction.invoiceId || 'Bitcoin payment',
+      detail: `BTC ${transaction.btcAmount != null ? transaction.btcAmount : ''} · USD ${
+        transaction.usdAmount != null ? transaction.usdAmount : ''
+      } · Status: ${transaction.status || 'pending'}`.trim(),
+      reference: transaction
+    });
+  }
+
   activityTimeline.sort((a, b) => toTimestamp(b.timestamp) - toTimestamp(a.timestamp));
 
   res.json({
@@ -1342,10 +1509,12 @@ app.get('/api/admin/overview', (req, res) => {
       totalGatewaySubmissions: store.gatewaySubmissions.length,
       totalContactSubmissions: store.contactSubmissions.length,
       totalLoginEvents: store.loginEvents.length,
-      totalStripeTransactions: store.magstripeTransactions.length
+      totalStripeTransactions: store.magstripeTransactions.length,
+      totalBitcoinTransactions: store.bitcoinTransactions.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
     magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
+    bitcoinTransactions: sortByTimestampDesc(store.bitcoinTransactions, 'createdAt'),
     contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
     gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
     loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),

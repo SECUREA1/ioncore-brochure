@@ -499,6 +499,11 @@
             <strong id="metric-marketplace-bids">0</strong>
             <p class="text-muted">Offers and negotiations in flight.</p>
           </article>
+          <article class="metric-card">
+            <h3>Timepiece Mint Ledger</h3>
+            <strong id="metric-timepiece-mints">0</strong>
+            <p class="text-muted">Wallets requesting collectible minting.</p>
+          </article>
         </div>
       </section>
 
@@ -615,6 +620,34 @@
             <tbody></tbody>
           </table>
           <div class="empty-state" id="stripe-empty">No Stripe, magstripe, or bitcoin transactions recorded.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="timepiece-ledger-title" id="timepiece-ledger-section">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Limited Editions</span>
+            <h2 id="timepiece-ledger-title">Timepiece Mint Ledger</h2>
+            <p>Review wallets requesting Ioncore timepiece minting and capture follow-up details.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="timepiece-ledger-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Network</th>
+                <th scope="col">Item</th>
+                <th scope="col">Edition</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Source</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="timepiece-ledger-empty">No mint intents recorded.</div>
         </div>
       </section>
 
@@ -981,6 +1014,8 @@
       const marketplaceEmpty = document.getElementById('marketplace-empty');
       const bidsTableBody = document.querySelector('#bids-table tbody');
       const bidsEmpty = document.getElementById('bids-empty');
+      const timepieceLedgerTableBody = document.querySelector('#timepiece-ledger-table tbody');
+      const timepieceLedgerEmpty = document.getElementById('timepiece-ledger-empty');
       const timelineList = document.getElementById('timeline');
       const newUserButton = document.getElementById('new-user-button');
       const editorOverlay = document.getElementById('user-editor');
@@ -1004,6 +1039,7 @@
       const metricContact = document.getElementById('metric-contact');
       const metricMarketplaceUploads = document.getElementById('metric-marketplace-uploads');
       const metricMarketplaceBids = document.getElementById('metric-marketplace-bids');
+      const metricTimepieceMints = document.getElementById('metric-timepiece-mints');
 
       function formatDate(value) {
         if (!value) return '—';
@@ -1167,6 +1203,8 @@
         const bidsMetric = state.data.metrics.totalMarketplaceBids;
         metricMarketplaceUploads.textContent = typeof uploadsMetric === 'number' ? uploadsMetric : 0;
         metricMarketplaceBids.textContent = typeof bidsMetric === 'number' ? bidsMetric : 0;
+        const timepieceMintMetric = state.data.metrics.totalTimepieceMintIntents;
+        metricTimepieceMints.textContent = typeof timepieceMintMetric === 'number' ? timepieceMintMetric : 0;
 
         const latestUser = state.data.gatewayUsers[0];
         metricUsersUpdated.textContent = latestUser
@@ -1180,6 +1218,7 @@
         renderLogins();
         renderMarketplaceUploads();
         renderMarketplaceBids();
+        renderTimepieceLedger();
         renderTimeline();
       }
 
@@ -1371,6 +1410,50 @@
         }
       }
 
+      function parseMintMetadata(value) {
+        if (!value) return null;
+        if (typeof value === 'object') return value;
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value);
+          } catch (error) {
+            return null;
+          }
+        }
+        return null;
+      }
+
+      function formatMintNotes(entry) {
+        const notes = [];
+        const metadata = parseMintMetadata(entry?.metadata);
+        if (metadata && typeof metadata === 'object') {
+          if (metadata.ledgerNotes) {
+            notes.push(metadata.ledgerNotes);
+          }
+          if (metadata.rawSelection) {
+            if (typeof metadata.rawSelection === 'string') {
+              notes.push(metadata.rawSelection);
+            } else {
+              try {
+                notes.push(JSON.stringify(metadata.rawSelection));
+              } catch (error) {
+                notes.push(String(metadata.rawSelection));
+              }
+            }
+          }
+        }
+        if (entry?.buttonLabel && entry.buttonLabel !== entry.itemLabel) {
+          notes.push(entry.buttonLabel);
+        }
+        if (entry?.referer && entry.referer !== entry?.mintSource) {
+          notes.push(`Ref: ${entry.referer}`);
+        }
+        if (!notes.length && entry?.userAgent) {
+          notes.push(entry.userAgent);
+        }
+        return truncate(notes.join(' · '));
+      }
+
       function renderMarketplaceUploads() {
         const uploads = state.data?.marketplaceUploads || [];
         marketplaceTableBody.innerHTML = '';
@@ -1494,6 +1577,56 @@
         }
 
         bidsTableBody.appendChild(fragment);
+      }
+
+      function renderTimepieceLedger() {
+        const entries = state.data?.timepieceMintLedger || [];
+        timepieceLedgerTableBody.innerHTML = '';
+        if (!entries.length) {
+          timepieceLedgerEmpty.style.display = 'block';
+          return;
+        }
+        timepieceLedgerEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const entry of entries) {
+          const tr = document.createElement('tr');
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(entry.updatedAt || entry.createdAt);
+          tr.appendChild(timestampCell);
+
+          const walletCell = document.createElement('td');
+          walletCell.textContent = entry.walletAddress || '—';
+          tr.appendChild(walletCell);
+
+          const networkCell = document.createElement('td');
+          networkCell.textContent = entry.walletNetwork ? entry.walletNetwork.toUpperCase() : '—';
+          tr.appendChild(networkCell);
+
+          const itemCell = document.createElement('td');
+          itemCell.textContent = entry.itemLabel || entry.buttonLabel || entry.itemChoice || '—';
+          tr.appendChild(itemCell);
+
+          const editionCell = document.createElement('td');
+          editionCell.textContent = entry.editionNote || '—';
+          tr.appendChild(editionCell);
+
+          const contactCell = document.createElement('td');
+          contactCell.textContent = entry.contactDetail || '—';
+          tr.appendChild(contactCell);
+
+          const sourceCell = document.createElement('td');
+          sourceCell.textContent = entry.mintSource || entry.referer || '—';
+          tr.appendChild(sourceCell);
+
+          const notesCell = document.createElement('td');
+          notesCell.textContent = formatMintNotes(entry);
+          tr.appendChild(notesCell);
+
+          fragment.appendChild(tr);
+        }
+
+        timepieceLedgerTableBody.appendChild(fragment);
       }
 
       function renderContacts() {

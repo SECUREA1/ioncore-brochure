@@ -622,6 +622,11 @@
       margin-top: 1.15rem;
     }
 
+    .wallet-connect-row--status {
+      align-items: flex-start;
+      margin-top: 0.35rem;
+    }
+
     .wallet-connect-button {
       position: relative;
       display: inline-flex;
@@ -787,6 +792,10 @@
 
     .wallet-status--connected {
       color: rgba(165, 255, 214, 0.92);
+    }
+
+    .wallet-status--notice {
+      color: rgba(178, 206, 255, 0.88);
     }
 
     .module-tag--cardano {
@@ -2192,6 +2201,11 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
+          <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
+            <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
+              Access retainer pending. A 1 SOL transfer will be requested after connecting.
+            </div>
+          </div>
           <div class="wallet-connect-row">
             <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
               <span class="wallet-connect-button__icon" aria-hidden="true">
@@ -2254,6 +2268,7 @@
           </div>
           <input type="hidden" name="walletAddress" id="wallet-address">
           <input type="hidden" name="walletProvider" id="wallet-provider">
+          <input type="hidden" name="solanaDepositSignature" id="solana-deposit-signature">
           <input type="hidden" name="ioncVerified" id="ionc-verified">
           <input type="hidden" name="cardanoVerified" id="cardano-verified">
           <input type="hidden" name="cardanoPolicyId" id="cardano-policy-id">
@@ -2295,6 +2310,7 @@
       <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion—sessions are logged for security, while wallet fingerprints remain off-chain.</p>
     </main>
     </div>
+  <script src="/scripts/solana-deposit.js"></script>
   <script>
     const bodyElement = document.body;
     const introScreen = document.querySelector('.intro-screen');
@@ -2345,6 +2361,9 @@
     const metamaskStatus = document.getElementById('metamask-status');
     const phantomStatus = document.getElementById('phantom-status');
     const cardanoStatus = document.getElementById('cardano-status');
+    const solanaDepositRow = document.getElementById('solana-deposit-row');
+    const solanaDepositStatus = document.getElementById('solana-deposit-status');
+    const solanaDepositSignatureInput = document.getElementById('solana-deposit-signature');
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
@@ -2360,12 +2379,30 @@
     const meknxPasscodeInput = document.getElementById('meknx-passcode');
     const meknxPassIdInput = document.getElementById('meknx-pass-id');
 
-    const SOLANA_RPC_ENDPOINT = 'https://api.mainnet-beta.solana.com';
+    const IoncoreSolanaModule = window.IoncoreSolana || null;
+    const SOLANA_RPC_ENDPOINT =
+      (typeof window !== 'undefined' && typeof window.IONCORE_SOL_RPC === 'string' && window.IONCORE_SOL_RPC.trim()) ||
+      (IoncoreSolanaModule && typeof IoncoreSolanaModule.getDefaultRpc === 'function'
+        ? IoncoreSolanaModule.getDefaultRpc()
+        : 'https://api.mainnet-beta.solana.com');
+    const SOLANA_DEFAULT_TREASURY =
+      IoncoreSolanaModule && typeof IoncoreSolanaModule.getDefaultTreasury === 'function'
+        ? IoncoreSolanaModule.getDefaultTreasury()
+        : '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT';
+    const SOLANA_TREASURY_ADDRESS =
+      (typeof window !== 'undefined' && typeof window.IONCORE_SOL_TREASURY === 'string' &&
+        window.IONCORE_SOL_TREASURY.trim()) ||
+      SOLANA_DEFAULT_TREASURY;
     const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
     const CARDANO_POLICY_ID = 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
     const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
     const MIN_WALLET_VALUE_USD = 10;
     const MIN_LOGIN_VALUE_USD = 15;
+    const MIN_SOL_DEPOSIT_SOL = 1;
+    const MIN_SOL_DEPOSIT_LAMPORTS =
+      IoncoreSolanaModule && typeof IoncoreSolanaModule.LAMPORTS_PER_SOL === 'number'
+        ? IoncoreSolanaModule.LAMPORTS_PER_SOL * MIN_SOL_DEPOSIT_SOL
+        : 1_000_000_000;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
 
@@ -2387,6 +2424,12 @@
       policyId: '',
       walletType: '',
       api: null
+    };
+
+    const solanaDepositState = {
+      signature: '',
+      lamports: MIN_SOL_DEPOSIT_LAMPORTS,
+      completed: false
     };
 
     const CARDANO_WALLET_CANDIDATES = [
@@ -2815,6 +2858,87 @@
       walletValueState.checkedAt = 0;
     };
 
+    const clearSolanaDepositState = ({ keepVisible = false } = {}) => {
+      solanaDepositState.signature = '';
+      solanaDepositState.lamports = MIN_SOL_DEPOSIT_LAMPORTS;
+      solanaDepositState.completed = false;
+      if (solanaDepositSignatureInput) {
+        solanaDepositSignatureInput.value = '';
+      }
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = !keepVisible;
+      }
+      if (solanaDepositStatus) {
+        solanaDepositStatus.textContent =
+          'Access retainer pending. A 1 SOL transfer will be requested after connecting.';
+        solanaDepositStatus.classList.remove('wallet-status--connected');
+      }
+    };
+
+    const markSolanaDepositComplete = (signature, lamports = MIN_SOL_DEPOSIT_LAMPORTS) => {
+      if (!signature) {
+        return;
+      }
+      solanaDepositState.signature = signature;
+      solanaDepositState.lamports = lamports || MIN_SOL_DEPOSIT_LAMPORTS;
+      solanaDepositState.completed = true;
+      if (solanaDepositSignatureInput) {
+        solanaDepositSignatureInput.value = signature;
+      }
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = false;
+      }
+      if (solanaDepositStatus) {
+        solanaDepositStatus.textContent = `1 SOL access retainer submitted. Ref: ${shortenIdentifier(signature)}`;
+        solanaDepositStatus.classList.add('wallet-status--connected');
+      }
+    };
+
+    const ensureSolanaDeposit = async ({ provider, publicKey }) => {
+      if (!provider || !publicKey) {
+        throw new Error('Phantom provider required to submit the 1 SOL access retainer.');
+      }
+
+      if (solanaDepositState.completed && solanaDepositState.signature) {
+        return { ...solanaDepositState };
+      }
+
+      if (!IoncoreSolanaModule || typeof IoncoreSolanaModule.requestDeposit !== 'function') {
+        throw new Error('Solana deposit module unavailable. Refresh the page and try again.');
+      }
+
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = false;
+      }
+      if (solanaDepositStatus) {
+        solanaDepositStatus.textContent = 'Preparing 1 SOL access retainer…';
+        solanaDepositStatus.classList.remove('wallet-status--connected');
+      }
+
+      try {
+        const receipt = await IoncoreSolanaModule.requestDeposit({
+          provider,
+          fromAddress: publicKey,
+          destinationAddress: SOLANA_TREASURY_ADDRESS,
+          rpcEndpoint: SOLANA_RPC_ENDPOINT,
+          amountSol: MIN_SOL_DEPOSIT_SOL,
+          statusElement: solanaDepositStatus,
+          onSignature: (signature, lamports) => {
+            markSolanaDepositComplete(signature, lamports);
+          }
+        });
+
+        return receipt;
+      } catch (error) {
+        if (solanaDepositStatus) {
+          solanaDepositStatus.textContent =
+            error?.message || 'Unable to submit the 1 SOL access retainer. Try again shortly.';
+          solanaDepositStatus.classList.remove('wallet-status--connected');
+        }
+        throw error;
+      }
+    };
+
     const recordWalletValueState = (provider, tokenSymbol, tokenBalance, usdValue) => {
       walletValueState.provider = provider;
       walletValueState.tokenSymbol = tokenSymbol;
@@ -3199,6 +3323,7 @@
         walletProviderInput.value = '';
       }
       clearWalletValueState();
+      clearSolanaDepositState();
       resetMeknxState();
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
@@ -3413,6 +3538,7 @@
           cardanoStatus.textContent = 'Not connected.';
           cardanoStatus.classList.remove('wallet-status--connected');
         }
+        clearSolanaDepositState();
       } else if (providerLabel === 'solana') {
         if (phantomStatus) {
           phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
@@ -3425,6 +3551,17 @@
         if (cardanoStatus) {
           cardanoStatus.textContent = 'Not connected.';
           cardanoStatus.classList.remove('wallet-status--connected');
+        }
+        if (solanaDepositState.completed && solanaDepositState.signature) {
+          markSolanaDepositComplete(solanaDepositState.signature, solanaDepositState.lamports);
+        } else {
+          if (solanaDepositRow) {
+            solanaDepositRow.hidden = false;
+          }
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent = 'Access retainer pending. Approve the 1 SOL transfer prompt.';
+            solanaDepositStatus.classList.remove('wallet-status--connected');
+          }
         }
       } else if (providerLabel && providerLabel.startsWith('cardano')) {
         if (metamaskStatus) {
@@ -3446,6 +3583,7 @@
           cardanoStatus.textContent = `Connected (${resolvedLabel}): ${formatted}${balanceSuffix}`;
           cardanoStatus.classList.add('wallet-status--connected');
         }
+        clearSolanaDepositState();
       }
     };
 
@@ -3777,6 +3915,7 @@
               walletProviderInput.value = 'evm';
             }
             clearWalletValueState();
+            clearSolanaDepositState();
             resetMeknxState();
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
@@ -3804,6 +3943,7 @@
           phantomButton.textContent = 'Connecting…';
 
           try {
+            clearSolanaDepositState({ keepVisible: true });
             let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
             if (!provider || !provider.isPhantom) {
               const openedMobileLink = triggerMobileWalletDeepLink('phantom');
@@ -3836,6 +3976,7 @@
               statusElement: phantomStatus,
               walletLabel: 'Solana'
             });
+            const depositReceipt = await ensureSolanaDeposit({ provider, publicKey });
             if (walletAddressInput) {
               walletAddressInput.value = publicKey;
             }
@@ -3849,15 +3990,21 @@
             const solanaValueMessage = solanaValueSnapshot
               ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
               : '';
+            const depositMessage =
+              depositReceipt && depositReceipt.signature
+                ? ` Access retainer ref: ${shortenIdentifier(depositReceipt.signature)}.`
+                : ' Approve the 1 SOL access retainer prompt to continue.';
             updateStatus(
-              `Phantom channel ready.${solanaValueMessage} Complete MEKNX and IONC verification to continue.`,
+              `Phantom channel ready.${solanaValueMessage}${depositMessage} Complete MEKNX and IONC verification to continue.`,
               'success'
             );
-            setInlineStatus(
-              ioncInlineStatus,
-              'IONC holdings confirmed. SOL balance meets the access requirement. Submit to enter the vault.',
-              'success'
-            );
+            const inlineStatusMessage =
+              depositReceipt && depositReceipt.signature
+                ? `IONC holdings confirmed. 1 SOL access retainer submitted (${shortenIdentifier(
+                    depositReceipt.signature
+                  )}). Submit to enter the vault.`
+                : 'IONC holdings confirmed. Approve the 1 SOL access retainer prompt to continue.';
+            setInlineStatus(ioncInlineStatus, inlineStatusMessage, 'success');
           } catch (error) {
             resetWalletIndicators();
             const message = error?.message || 'Phantom connection failed. Try again.';

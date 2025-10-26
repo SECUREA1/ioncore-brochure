@@ -131,6 +131,58 @@
         color: var(--text-muted);
       }
 
+      .admin-wallet-panel {
+        margin-top: 24px;
+        padding: 26px 28px;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--tile-glow-rest);
+        display: grid;
+        gap: 18px;
+      }
+
+      .admin-wallet-panel h3 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .admin-wallet-panel p {
+        margin: 0;
+        color: var(--text-muted);
+      }
+
+      .admin-wallet-actions {
+        display: grid;
+        gap: 12px;
+      }
+
+      .admin-wallet-actions .wallet-connect-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .admin-wallet-actions .btn {
+        min-width: 220px;
+      }
+
+      .wallet-status {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.95);
+      }
+
+      .wallet-status--connected {
+        color: rgba(165, 255, 214, 0.92);
+      }
+
+      .wallet-status--error {
+        color: #fca5a5;
+      }
+
       .data-table {
         width: 100%;
         border-collapse: collapse;
@@ -380,6 +432,31 @@
       </div>
     </header>
     <main class="admin-main container">
+      <section aria-labelledby="solana-access-title" id="solana-access">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Solana Access Retainer</span>
+            <h2 id="solana-access-title">Phantom Wallet Control &amp; Treasury Bridge</h2>
+            <p>Connect Phantom, confirm the 1 SOL access retainer, and synchronise the treasury ledger for compliance.</p>
+          </div>
+        </div>
+        <div class="admin-wallet-panel" role="region" aria-labelledby="solana-access-title">
+          <div>
+            <h3>Phantom Wallet Bridge</h3>
+            <p>Establish a secure Phantom session and dispatch the mandatory 1 SOL professional retainer to the Ioncore treasury.</p>
+          </div>
+          <div class="admin-wallet-actions">
+            <div class="wallet-connect-row">
+              <button type="button" class="btn" id="admin-phantom-connect">Connect Phantom</button>
+              <div class="wallet-status" id="admin-phantom-status">Not connected.</div>
+            </div>
+            <div class="wallet-connect-row">
+              <button type="button" class="btn" id="admin-solana-deposit" disabled>Send 1 SOL Retainer</button>
+              <div class="wallet-status" id="admin-solana-deposit-status">Awaiting connection.</div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section aria-labelledby="metrics-title">
         <div class="section-header">
           <div>
@@ -625,6 +702,7 @@
       </form>
     </div>
 
+    <script src="/scripts/solana-deposit.js"></script>
     <script>
       const state = {
         data: null,
@@ -638,6 +716,201 @@
       const searchInput = document.getElementById('user-search');
       const usersTableBody = document.querySelector('#users-table tbody');
       const usersEmpty = document.getElementById('users-empty');
+      const adminPhantomConnectButton = document.getElementById('admin-phantom-connect');
+      const adminPhantomStatus = document.getElementById('admin-phantom-status');
+      const adminDepositButton = document.getElementById('admin-solana-deposit');
+      const adminDepositStatus = document.getElementById('admin-solana-deposit-status');
+      const IoncoreSolanaModule = window.IoncoreSolana || null;
+      const SOLANA_RPC_ENDPOINT =
+        (typeof window !== 'undefined' && typeof window.IONCORE_SOL_RPC === 'string' && window.IONCORE_SOL_RPC.trim()) ||
+        (IoncoreSolanaModule && typeof IoncoreSolanaModule.getDefaultRpc === 'function'
+          ? IoncoreSolanaModule.getDefaultRpc()
+          : 'https://api.mainnet-beta.solana.com');
+      const SOLANA_TREASURY_ADDRESS =
+        (typeof window !== 'undefined' && typeof window.IONCORE_SOL_TREASURY === 'string' &&
+          window.IONCORE_SOL_TREASURY.trim()) ||
+        (IoncoreSolanaModule && typeof IoncoreSolanaModule.getDefaultTreasury === 'function'
+          ? IoncoreSolanaModule.getDefaultTreasury()
+          : '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT');
+      let adminPhantomProvider = null;
+      let adminPhantomPublicKey = '';
+      let adminDepositSignature = '';
+
+      const shortenWalletReference = (value) => {
+        if (!value || typeof value !== 'string') {
+          return '';
+        }
+        return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
+      };
+
+      const detectAdminPhantomProvider = () => {
+        if (window.solana && window.solana.isPhantom) {
+          return window.solana;
+        }
+        if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
+          return window.phantom.solana;
+        }
+        return null;
+      };
+
+      const waitForAdminPhantomProvider = async (timeout = 2800, interval = 220) => {
+        const started = Date.now();
+        let provider = detectAdminPhantomProvider();
+        while (!provider && Date.now() - started < timeout) {
+          await new Promise((resolve) => window.setTimeout(resolve, interval));
+          provider = detectAdminPhantomProvider();
+        }
+        return provider;
+      };
+
+      const resetAdminSolanaBridge = ({ preserveStatus } = {}) => {
+        if (!preserveStatus && adminPhantomStatus) {
+          adminPhantomStatus.textContent = 'Not connected.';
+          adminPhantomStatus.classList.remove('wallet-status--connected');
+        }
+        if (!preserveStatus && adminDepositStatus) {
+          adminDepositStatus.textContent = 'Awaiting connection.';
+          adminDepositStatus.classList.remove('wallet-status--connected', 'wallet-status--error');
+        }
+        adminDepositSignature = '';
+        if (adminDepositButton) {
+          adminDepositButton.disabled = true;
+          adminDepositButton.textContent = 'Send 1 SOL Retainer';
+        }
+      };
+
+      resetAdminSolanaBridge();
+
+      if (adminPhantomConnectButton) {
+        adminPhantomConnectButton.addEventListener('click', async () => {
+          adminPhantomConnectButton.disabled = true;
+          if (adminPhantomStatus) {
+            adminPhantomStatus.textContent = 'Requesting Phantom session…';
+            adminPhantomStatus.classList.remove('wallet-status--connected');
+          }
+          if (adminDepositStatus) {
+            adminDepositStatus.textContent = 'Awaiting connection.';
+            adminDepositStatus.classList.remove('wallet-status--connected', 'wallet-status--error');
+          }
+
+          try {
+            let provider = await waitForAdminPhantomProvider(2800, 220);
+            if (!provider) {
+              provider = await waitForAdminPhantomProvider(7200, 260);
+            }
+            if (!provider) {
+              throw new Error('Phantom wallet not detected. Open the Phantom app or extension and try again.');
+            }
+
+            const response = await provider.connect();
+            const publicKey =
+              (response && typeof response.publicKey?.toString === 'function'
+                ? response.publicKey.toString()
+                : response?.publicKey) ||
+              (provider.publicKey && typeof provider.publicKey.toBase58 === 'function'
+                ? provider.publicKey.toBase58()
+                : '');
+
+            if (!publicKey) {
+              throw new Error('No wallet account returned by Phantom.');
+            }
+
+            adminPhantomProvider = provider;
+            adminPhantomPublicKey = publicKey;
+            adminDepositSignature = '';
+
+            if (adminPhantomStatus) {
+              adminPhantomStatus.textContent = `Connected: ${shortenWalletReference(publicKey)}`;
+              adminPhantomStatus.classList.add('wallet-status--connected');
+            }
+            if (adminDepositButton) {
+              adminDepositButton.disabled = false;
+              adminDepositButton.textContent = 'Send 1 SOL Retainer';
+            }
+            if (adminDepositStatus) {
+              adminDepositStatus.textContent = 'Ready to dispatch the 1 SOL retainer.';
+              adminDepositStatus.classList.remove('wallet-status--error');
+            }
+          } catch (error) {
+            adminPhantomProvider = null;
+            adminPhantomPublicKey = '';
+            adminDepositSignature = '';
+            if (adminPhantomStatus) {
+              adminPhantomStatus.textContent = error?.message || 'Unable to connect to Phantom.';
+              adminPhantomStatus.classList.remove('wallet-status--connected');
+            }
+            if (adminDepositStatus) {
+              adminDepositStatus.textContent = 'Awaiting connection.';
+              adminDepositStatus.classList.add('wallet-status--error');
+            }
+            if (adminDepositButton) {
+              adminDepositButton.disabled = true;
+              adminDepositButton.textContent = 'Send 1 SOL Retainer';
+            }
+          } finally {
+            adminPhantomConnectButton.disabled = false;
+          }
+        });
+      }
+
+      if (adminDepositButton) {
+        adminDepositButton.addEventListener('click', async () => {
+          if (!adminPhantomProvider || !adminPhantomPublicKey) {
+            if (adminDepositStatus) {
+              adminDepositStatus.textContent = 'Connect Phantom before sending the retainer.';
+              adminDepositStatus.classList.add('wallet-status--error');
+            }
+            return;
+          }
+
+          if (!IoncoreSolanaModule || typeof IoncoreSolanaModule.requestDeposit !== 'function') {
+            if (adminDepositStatus) {
+              adminDepositStatus.textContent = 'Solana deposit module unavailable. Refresh and try again.';
+              adminDepositStatus.classList.add('wallet-status--error');
+            }
+            return;
+          }
+
+          adminDepositButton.disabled = true;
+          adminDepositButton.textContent = 'Submitting…';
+          if (adminDepositStatus) {
+            adminDepositStatus.textContent = 'Preparing 1 SOL access retainer…';
+            adminDepositStatus.classList.remove('wallet-status--error');
+            adminDepositStatus.classList.remove('wallet-status--connected');
+          }
+
+          try {
+            const receipt = await IoncoreSolanaModule.requestDeposit({
+              provider: adminPhantomProvider,
+              fromAddress: adminPhantomPublicKey,
+              destinationAddress: SOLANA_TREASURY_ADDRESS,
+              rpcEndpoint: SOLANA_RPC_ENDPOINT,
+              amountSol: 1,
+              statusElement: adminDepositStatus
+            });
+
+            adminDepositSignature = receipt?.signature || '';
+            if (adminDepositStatus) {
+              adminDepositStatus.classList.remove('wallet-status--error');
+            }
+            adminDepositButton.textContent = 'Retainer Sent';
+          } catch (error) {
+            adminDepositSignature = '';
+            if (adminDepositStatus) {
+              adminDepositStatus.textContent =
+                error?.message || 'Failed to send the 1 SOL retainer. Check Phantom and try again.';
+              adminDepositStatus.classList.add('wallet-status--error');
+            }
+          } finally {
+            if (adminDepositSignature) {
+              adminDepositButton.disabled = true;
+            } else {
+              adminDepositButton.disabled = false;
+              adminDepositButton.textContent = 'Send 1 SOL Retainer';
+            }
+          }
+        });
+      }
       const stripeTableBody = document.querySelector('#stripe-table tbody');
       const stripeEmpty = document.getElementById('stripe-empty');
       const gatewayTableBody = document.querySelector('#gateway-table tbody');

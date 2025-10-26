@@ -97,7 +97,7 @@
                 <input type="text" id="btc-wallet" name="btc-wallet" value="bc1qioncoreenergy0u0ytsc4p58u4k3p9l4f3d9s7" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
                 <button type="button" class="btn btn-outline btn-compact" data-copy-target="btc-wallet">Copy</button>
               </div>
-              <p class="form-help">Send only BTC on the Bitcoin network. Initiate the transfer before submitting the transaction record.</p>
+              <p class="form-help" data-bitcoin-help>Send only BTC on the Bitcoin network. Initiate the transfer before submitting the transaction record.</p>
             </div>
             <div class="form-row">
               <label for="btc-amount">Bitcoin Amount (BTC)</label>
@@ -188,6 +188,41 @@
         bitcoin: form.querySelector('[data-payment-section="bitcoin"]')
       };
       const dynamicRequiredFields = Array.from(form.querySelectorAll('[data-required-when]'));
+      const btcWalletInput = form.querySelector('#btc-wallet');
+      const bitcoinHelp = form.querySelector('[data-bitcoin-help]');
+
+      const applyBitcoinConfig = (config) => {
+        if (!config || typeof config !== 'object') {
+          return;
+        }
+        if (config.btcAddress && btcWalletInput) {
+          btcWalletInput.value = config.btcAddress;
+          btcWalletInput.setAttribute('value', config.btcAddress);
+        }
+        if (bitcoinHelp) {
+          const confirmations = Number.parseInt(config.confirmationsRequired, 10);
+          const settlementMinutes = Number.parseInt(config.settlementWindowMinutes, 10);
+          const confirmationLabel = confirmations === 1 ? 'confirmation' : 'confirmations';
+          if (Number.isFinite(confirmations) && confirmations > 0 && Number.isFinite(settlementMinutes) && settlementMinutes > 0) {
+            bitcoinHelp.textContent = `Send only BTC on the Bitcoin network. Provide the TXID after broadcast so we can confirm ${
+              confirmations
+            } ${confirmationLabel} (~${settlementMinutes} min settlement).`;
+          } else if (Number.isFinite(confirmations) && confirmations > 0) {
+            bitcoinHelp.textContent = `Send only BTC on the Bitcoin network. Provide the TXID after broadcast so we can confirm ${
+              confirmations
+            } ${confirmationLabel}.`;
+          }
+        }
+      };
+
+      fetch('/api/payments/bitcoin/config', { cache: 'no-store' })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((config) => {
+          applyBitcoinConfig(config);
+        })
+        .catch(() => {
+          // Ignore configuration fetch errors and retain defaults.
+        });
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -348,6 +383,15 @@
             }
             if (result.btcAmount !== undefined && result.btcAmount !== null && `${result.btcAmount}` !== '') {
               receiptLines.push(`BTC: ${result.btcAmount}`);
+            }
+            if (result.transactionId) {
+              receiptLines.push(`TXID: ${result.transactionId}`);
+            }
+            if (result.explorerUrl) {
+              receiptLines.push(`Track: ${result.explorerUrl}`);
+            }
+            if (result.remittingContact) {
+              receiptLines.push(`Contact: ${result.remittingContact}`);
             }
             if (result.settlementEta) {
               receiptLines.push(`Settlement ETA: ${result.settlementEta}`);

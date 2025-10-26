@@ -489,6 +489,16 @@
             <strong id="metric-contact">0</strong>
             <p class="text-muted">Direct inquiries and authentication events.</p>
           </article>
+          <article class="metric-card">
+            <h3>Marketplace Uploads</h3>
+            <strong id="metric-marketplace-uploads">0</strong>
+            <p class="text-muted">Community submissions awaiting review.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Marketplace Bids</h3>
+            <strong id="metric-marketplace-bids">0</strong>
+            <p class="text-muted">Offers and negotiations in flight.</p>
+          </article>
         </div>
       </section>
 
@@ -501,6 +511,52 @@
           </div>
         </div>
         <div id="timeline" class="timeline-list" aria-live="polite"></div>
+      </section>
+
+      <section aria-labelledby="marketplace-title" id="marketplace-admin">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Marketplace Catalogue</span>
+            <h2 id="marketplace-title">Uploads &amp; Bid Intelligence</h2>
+            <p>Audit user-submitted marketplace assets and review open bids in one command center.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="marketplace-table">
+            <thead>
+              <tr>
+                <th scope="col">Submitted</th>
+                <th scope="col">Title</th>
+                <th scope="col">Creator</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Media</th>
+                <th scope="col">Bids</th>
+                <th scope="col">Top Bid</th>
+                <th scope="col">Last Bid</th>
+                <th scope="col">Description</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="marketplace-empty">No marketplace uploads recorded.</div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="bids-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Asset</th>
+                <th scope="col">Bidder</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Message</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="bids-empty">No marketplace bids registered.</div>
+        </div>
       </section>
 
       <section aria-labelledby="users-title" id="user-profiles">
@@ -920,6 +976,10 @@
       const contactEmpty = document.getElementById('contact-empty');
       const loginTableBody = document.querySelector('#login-table tbody');
       const loginEmpty = document.getElementById('login-empty');
+      const marketplaceTableBody = document.querySelector('#marketplace-table tbody');
+      const marketplaceEmpty = document.getElementById('marketplace-empty');
+      const bidsTableBody = document.querySelector('#bids-table tbody');
+      const bidsEmpty = document.getElementById('bids-empty');
       const timelineList = document.getElementById('timeline');
       const newUserButton = document.getElementById('new-user-button');
       const editorOverlay = document.getElementById('user-editor');
@@ -941,6 +1001,8 @@
       const metricStripe = document.getElementById('metric-stripe');
       const metricPolls = document.getElementById('metric-polls');
       const metricContact = document.getElementById('metric-contact');
+      const metricMarketplaceUploads = document.getElementById('metric-marketplace-uploads');
+      const metricMarketplaceBids = document.getElementById('metric-marketplace-bids');
 
       function formatDate(value) {
         if (!value) return '—';
@@ -998,6 +1060,10 @@
         metricPolls.textContent = state.data.metrics.totalGatewaySubmissions;
         metricContact.textContent = state.data.metrics.totalContactSubmissions +
           ' / ' + state.data.metrics.totalLoginEvents + ' logins';
+        const uploadsMetric = state.data.metrics.totalMarketplaceUploads;
+        const bidsMetric = state.data.metrics.totalMarketplaceBids;
+        metricMarketplaceUploads.textContent = typeof uploadsMetric === 'number' ? uploadsMetric : 0;
+        metricMarketplaceBids.textContent = typeof bidsMetric === 'number' ? bidsMetric : 0;
 
         const latestUser = state.data.gatewayUsers[0];
         metricUsersUpdated.textContent = latestUser
@@ -1009,6 +1075,8 @@
         renderGateway();
         renderContacts();
         renderLogins();
+        renderMarketplaceUploads();
+        renderMarketplaceBids();
         renderTimeline();
       }
 
@@ -1158,6 +1226,131 @@
         } catch (error) {
           return value;
         }
+      }
+
+      function renderMarketplaceUploads() {
+        const uploads = state.data?.marketplaceUploads || [];
+        marketplaceTableBody.innerHTML = '';
+        if (!uploads.length) {
+          marketplaceEmpty.style.display = 'block';
+          return;
+        }
+        marketplaceEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const upload of uploads) {
+          const tr = document.createElement('tr');
+
+          const submittedCell = document.createElement('td');
+          submittedCell.textContent = formatDate(upload.createdAt);
+          tr.appendChild(submittedCell);
+
+          const titleCell = document.createElement('td');
+          titleCell.textContent = upload.title || '—';
+          tr.appendChild(titleCell);
+
+          const creatorCell = document.createElement('td');
+          creatorCell.textContent = upload.username || '—';
+          tr.appendChild(creatorCell);
+
+          const walletCell = document.createElement('td');
+          walletCell.textContent = upload.walletAddress || '—';
+          tr.appendChild(walletCell);
+
+          const mediaCell = document.createElement('td');
+          if (upload.mediaUrl) {
+            const link = document.createElement('a');
+            link.href = upload.mediaUrl;
+            link.textContent = 'Preview';
+            link.target = '_blank';
+            link.rel = 'noopener';
+            mediaCell.appendChild(link);
+          } else {
+            mediaCell.textContent = '—';
+          }
+          tr.appendChild(mediaCell);
+
+          const bidsCell = document.createElement('td');
+          bidsCell.textContent = String(upload.bidCount || 0);
+          tr.appendChild(bidsCell);
+
+          const topBidCell = document.createElement('td');
+          if (typeof upload.highestBidAmount === 'number' && Number.isFinite(upload.highestBidAmount)) {
+            topBidCell.textContent = `${upload.highestBidCurrency || ''} ${upload.highestBidAmount.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2
+            })}`.trim();
+          } else {
+            topBidCell.textContent = '—';
+          }
+          tr.appendChild(topBidCell);
+
+          const lastBidCell = document.createElement('td');
+          lastBidCell.textContent = upload.lastBidAt ? formatDate(upload.lastBidAt) : '—';
+          tr.appendChild(lastBidCell);
+
+          const descriptionCell = document.createElement('td');
+          descriptionCell.textContent = truncate(upload.description);
+          tr.appendChild(descriptionCell);
+
+          fragment.appendChild(tr);
+        }
+
+        marketplaceTableBody.appendChild(fragment);
+      }
+
+      function renderMarketplaceBids() {
+        const bids = state.data?.marketplaceBids || [];
+        bidsTableBody.innerHTML = '';
+        if (!bids.length) {
+          bidsEmpty.style.display = 'block';
+          return;
+        }
+        bidsEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const bid of bids) {
+          const tr = document.createElement('tr');
+
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(bid.createdAt);
+          tr.appendChild(timestampCell);
+
+          const assetCell = document.createElement('td');
+          assetCell.textContent = bid.assetTitle || bid.assetId || '—';
+          tr.appendChild(assetCell);
+
+          const bidderCell = document.createElement('td');
+          bidderCell.textContent = bid.bidderName || '—';
+          tr.appendChild(bidderCell);
+
+          const amountCell = document.createElement('td');
+          if (typeof bid.amount === 'number' && Number.isFinite(bid.amount)) {
+            amountCell.textContent = `${bid.currency || ''} ${bid.amount.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2
+            })}`.trim();
+          } else {
+            amountCell.textContent = '—';
+          }
+          tr.appendChild(amountCell);
+
+          const walletCell = document.createElement('td');
+          walletCell.textContent = bid.bidderWallet || '—';
+          tr.appendChild(walletCell);
+
+          const contactCell = document.createElement('td');
+          contactCell.textContent = bid.bidderContact || '—';
+          tr.appendChild(contactCell);
+
+          const messageCell = document.createElement('td');
+          messageCell.textContent = truncate(bid.message);
+          tr.appendChild(messageCell);
+
+          fragment.appendChild(tr);
+        }
+
+        bidsTableBody.appendChild(fragment);
       }
 
       function renderContacts() {

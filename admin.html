@@ -477,7 +477,7 @@
           <article class="metric-card">
             <h3>Stripe / Magstripe</h3>
             <strong id="metric-stripe">0</strong>
-            <p class="text-muted">Encrypted ledger of card activity.</p>
+            <p class="text-muted">Encrypted ledger of card &amp; bitcoin activity.</p>
           </article>
           <article class="metric-card">
             <h3>Poll &amp; Gateway Submissions</h3>
@@ -499,6 +499,16 @@
             <strong id="metric-marketplace-bids">0</strong>
             <p class="text-muted">Offers and negotiations in flight.</p>
           </article>
+          <article class="metric-card">
+            <h3>Timepiece Mints</h3>
+            <strong id="metric-timepiece-mints">0</strong>
+            <p class="text-muted">Ledgered mint intents across editions.</p>
+          </article>
+          <article class="metric-card">
+            <h3>File Broadcasts</h3>
+            <strong id="metric-file-broadcasts">0</strong>
+            <p class="text-muted">Tracked creations, media, and mint events.</p>
+          </article>
         </div>
       </section>
 
@@ -511,6 +521,36 @@
           </div>
         </div>
         <div id="timeline" class="timeline-list" aria-live="polite"></div>
+      </section>
+
+      <section aria-labelledby="file-broadcasts-title" id="file-broadcasts">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Creation Ledger</span>
+            <h2 id="file-broadcasts-title">File Broadcast Intelligence</h2>
+            <p>Monitor audio drops, minted media, and server-side asset processing in real time.</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn" type="button" id="rescan-file-broadcasts">Rescan Broadcasts</button>
+          </div>
+        </div>
+        <div class="status-banner" id="file-broadcasts-status" role="status" aria-live="polite"></div>
+        <div class="table-wrapper">
+          <table class="data-table" id="file-broadcasts-table">
+            <thead>
+              <tr>
+                <th scope="col">Asset</th>
+                <th scope="col">Category</th>
+                <th scope="col">Event</th>
+                <th scope="col">Size</th>
+                <th scope="col">Modified</th>
+                <th scope="col">Indexed</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="file-broadcasts-empty">No file broadcasts logged yet.</div>
+        </div>
       </section>
 
       <section aria-labelledby="marketplace-title" id="marketplace-admin">
@@ -604,7 +644,8 @@
             <thead>
               <tr>
                 <th scope="col">Timestamp</th>
-                <th scope="col">Cardholder</th>
+                <th scope="col">Method</th>
+                <th scope="col">Account</th>
                 <th scope="col">Amount</th>
                 <th scope="col">Status</th>
                 <th scope="col">Project</th>
@@ -613,7 +654,35 @@
             </thead>
             <tbody></tbody>
           </table>
-          <div class="empty-state" id="stripe-empty">No Stripe or magstripe transactions recorded.</div>
+          <div class="empty-state" id="stripe-empty">No Stripe, magstripe, or bitcoin transactions recorded.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="timepiece-ledger-title" id="timepiece-ledger-section">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Limited Editions</span>
+            <h2 id="timepiece-ledger-title">Timepiece Mint Ledger</h2>
+            <p>Review wallets requesting Ioncore timepiece minting and capture follow-up details.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="timepiece-ledger-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Network</th>
+                <th scope="col">Item</th>
+                <th scope="col">Edition</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Source</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="timepiece-ledger-empty">No mint intents recorded.</div>
         </div>
       </section>
 
@@ -980,6 +1049,12 @@
       const marketplaceEmpty = document.getElementById('marketplace-empty');
       const bidsTableBody = document.querySelector('#bids-table tbody');
       const bidsEmpty = document.getElementById('bids-empty');
+      const timepieceLedgerTableBody = document.querySelector('#timepiece-ledger-table tbody');
+      const timepieceLedgerEmpty = document.getElementById('timepiece-ledger-empty');
+      const fileBroadcastsTableBody = document.querySelector('#file-broadcasts-table tbody');
+      const fileBroadcastsEmpty = document.getElementById('file-broadcasts-empty');
+      const fileBroadcastsStatus = document.getElementById('file-broadcasts-status');
+      const rescanFileBroadcastsButton = document.getElementById('rescan-file-broadcasts');
       const timelineList = document.getElementById('timeline');
       const newUserButton = document.getElementById('new-user-button');
       const editorOverlay = document.getElementById('user-editor');
@@ -1003,12 +1078,68 @@
       const metricContact = document.getElementById('metric-contact');
       const metricMarketplaceUploads = document.getElementById('metric-marketplace-uploads');
       const metricMarketplaceBids = document.getElementById('metric-marketplace-bids');
+      const metricTimepieceMints = document.getElementById('metric-timepiece-mints');
+      const metricFileBroadcasts = document.getElementById('metric-file-broadcasts');
 
       function formatDate(value) {
         if (!value) return '—';
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return value;
         return date.toLocaleString();
+      }
+
+      function timestampValue(value) {
+        if (!value) return 0;
+        const parsed = new Date(value).getTime();
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function formatFiatAmount(amount, currency) {
+        if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+          return null;
+        }
+        const formatted = amount.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        return `${currency || ''} ${formatted}`.trim();
+      }
+
+      function formatBytes(bytes) {
+        if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) {
+          return '—';
+        }
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let value = bytes;
+        let unitIndex = 0;
+        while (value >= 1024 && unitIndex < units.length - 1) {
+          value /= 1024;
+          unitIndex += 1;
+        }
+        const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
+        return `${value.toFixed(precision)} ${units[unitIndex]}`;
+      }
+
+      function formatBitcoinAmount(entry) {
+        if (!entry) return null;
+        const btcAmount =
+          typeof entry.btcAmount === 'number' && Number.isFinite(entry.btcAmount)
+            ? `BTC ${entry.btcAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 8
+              })}`
+            : null;
+        const usdAmount =
+          typeof entry.usdAmount === 'number' && Number.isFinite(entry.usdAmount)
+            ? `USD ${entry.usdAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`
+            : null;
+        if (btcAmount && usdAmount) {
+          return `${btcAmount} (${usdAmount})`;
+        }
+        return btcAmount || usdAmount || null;
       }
 
       function setStatus(message, variant = 'info') {
@@ -1020,6 +1151,20 @@
         statusBanner.dataset.variant = variant;
         statusBanner.textContent = message;
         statusBanner.classList.add('is-visible');
+      }
+
+      function setFileBroadcastStatus(message, variant = 'info') {
+        if (!fileBroadcastsStatus) {
+          return;
+        }
+        if (!message) {
+          fileBroadcastsStatus.classList.remove('is-visible');
+          fileBroadcastsStatus.textContent = '';
+          return;
+        }
+        fileBroadcastsStatus.dataset.variant = variant;
+        fileBroadcastsStatus.textContent = message;
+        fileBroadcastsStatus.classList.add('is-visible');
       }
 
       async function loadOverview(options = {}) {
@@ -1056,7 +1201,9 @@
         generatedAt.textContent = 'Synced ' + formatDate(state.data.generatedAt);
 
         metricUsers.textContent = state.data.metrics.totalGatewayUsers;
-        metricStripe.textContent = state.data.metrics.totalStripeTransactions;
+        const stripeTransactions = Number(state.data.metrics.totalStripeTransactions || 0);
+        const bitcoinTransactions = Number(state.data.metrics.totalBitcoinTransactions || 0);
+        metricStripe.textContent = stripeTransactions + bitcoinTransactions;
         metricPolls.textContent = state.data.metrics.totalGatewaySubmissions;
         metricContact.textContent = state.data.metrics.totalContactSubmissions +
           ' / ' + state.data.metrics.totalLoginEvents + ' logins';
@@ -1064,6 +1211,12 @@
         const bidsMetric = state.data.metrics.totalMarketplaceBids;
         metricMarketplaceUploads.textContent = typeof uploadsMetric === 'number' ? uploadsMetric : 0;
         metricMarketplaceBids.textContent = typeof bidsMetric === 'number' ? bidsMetric : 0;
+        const timepieceMintMetric = state.data.metrics.totalTimepieceMintIntents;
+        if (metricTimepieceMints) {
+          metricTimepieceMints.textContent = typeof timepieceMintMetric === 'number' ? timepieceMintMetric : 0;
+        }
+        const broadcastsMetric = Number(state.data.metrics.totalFileBroadcasts || 0);
+        metricFileBroadcasts.textContent = Number.isFinite(broadcastsMetric) ? broadcastsMetric : 0;
 
         const latestUser = state.data.gatewayUsers[0];
         metricUsersUpdated.textContent = latestUser
@@ -1077,6 +1230,8 @@
         renderLogins();
         renderMarketplaceUploads();
         renderMarketplaceBids();
+        renderTimepieceLedger();
+        renderFileBroadcasts();
         renderTimeline();
       }
 
@@ -1131,8 +1286,16 @@
       function badgeVariant(status) {
         if (!status) return 'warning';
         const key = String(status).toLowerCase();
-        if (key.includes('active') || key.includes('approved')) return 'success';
-        if (key.includes('pending')) return 'warning';
+        if (key.includes('remove') || key.includes('fail') || key.includes('error')) return 'danger';
+        if (
+          key.includes('active') ||
+          key.includes('approved') ||
+          key.includes('authoriz') ||
+          key.includes('confirm') ||
+          key.includes('restore')
+        )
+          return 'success';
+        if (key.includes('pending') || key.includes('update')) return 'warning';
         if (key.includes('revoked') || key.includes('suspend')) return 'danger';
         return 'warning';
       }
@@ -1151,27 +1314,126 @@
         return `admin-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
       }
 
+      function ledgerMethodLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return 'Bitcoin';
+        }
+        const processor = (item.data.processor || '').toLowerCase();
+        if (processor.includes('stripe')) {
+          return 'Stripe';
+        }
+        if (processor.includes('magstripe') || processor.includes('magnetic')) {
+          return 'Magstripe';
+        }
+        return 'Card';
+      }
+
+      function ledgerAccountLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          const name = item.data.cardholder || item.data.remittingContact || '';
+          const wallet = item.data.btcAddress ? shortenWalletReference(item.data.btcAddress) : '';
+          if (name && wallet) {
+            return `${name} (${wallet})`;
+          }
+          return name || wallet || '—';
+        }
+        return item.data.cardholder || '—';
+      }
+
+      function ledgerAmountLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return formatBitcoinAmount(item.data) || '—';
+        }
+        return formatFiatAmount(item.data.amount, item.data.currency) || '—';
+      }
+
+      function ledgerProjectLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return item.data.projectReference || item.data.invoiceId || '—';
+        }
+        return item.data.projectReference || '—';
+      }
+
+      function ledgerAuthorizationLabel(item) {
+        if (!item || !item.data) return '—';
+        if (item.type === 'bitcoin') {
+          return item.data.transactionId || item.data.invoiceId || '—';
+        }
+        return item.data.authorizationCode || item.data.transactionId || '—';
+      }
+
+      function ledgerStatusLabel(item) {
+        if (!item || !item.data) return 'pending';
+        const status = item.data.status;
+        if (status && String(status).trim()) {
+          return status;
+        }
+        return item.type === 'bitcoin' ? 'pending-confirmation' : 'pending';
+      }
+
       function renderStripe() {
-        const entries = state.data?.magstripeTransactions || [];
+        const magstripeEntries = Array.isArray(state.data?.magstripeTransactions)
+          ? state.data.magstripeTransactions.map((entry) => ({ type: 'magstripe', data: entry }))
+          : [];
+        const bitcoinEntries = Array.isArray(state.data?.bitcoinTransactions)
+          ? state.data.bitcoinTransactions.map((entry) => ({ type: 'bitcoin', data: entry }))
+          : [];
+
+        const combinedEntries = [...magstripeEntries, ...bitcoinEntries].sort(
+          (a, b) => timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt)
+        );
+
         stripeTableBody.innerHTML = '';
-        if (!entries.length) {
+        if (!combinedEntries.length) {
           stripeEmpty.style.display = 'block';
           return;
         }
         stripeEmpty.style.display = 'none';
         const fragment = document.createDocumentFragment();
-        for (const entry of entries) {
+
+        for (const item of combinedEntries) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(entry.createdAt)}</td>
-            <td>${entry.cardholder || '—'}</td>
-            <td>${entry.currency || ''} ${entry.amount != null ? entry.amount : '—'}</td>
-            <td><span class="badge" data-variant="${badgeVariant(entry.status)}">${entry.status || 'pending'}</span></td>
-            <td>${entry.projectReference || '—'}</td>
-            <td>${entry.authorizationCode || '—'}</td>
-          `;
+
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(item?.data?.createdAt);
+          tr.appendChild(timestampCell);
+
+          const methodCell = document.createElement('td');
+          methodCell.textContent = ledgerMethodLabel(item);
+          tr.appendChild(methodCell);
+
+          const accountCell = document.createElement('td');
+          accountCell.textContent = ledgerAccountLabel(item);
+          tr.appendChild(accountCell);
+
+          const amountCell = document.createElement('td');
+          amountCell.textContent = ledgerAmountLabel(item);
+          tr.appendChild(amountCell);
+
+          const statusCell = document.createElement('td');
+          const statusBadge = document.createElement('span');
+          const statusLabel = ledgerStatusLabel(item);
+          statusBadge.className = 'badge';
+          statusBadge.dataset.variant = badgeVariant(statusLabel);
+          statusBadge.textContent = statusLabel;
+          statusCell.appendChild(statusBadge);
+          tr.appendChild(statusCell);
+
+          const projectCell = document.createElement('td');
+          projectCell.textContent = ledgerProjectLabel(item);
+          tr.appendChild(projectCell);
+
+          const authorizationCell = document.createElement('td');
+          authorizationCell.textContent = ledgerAuthorizationLabel(item);
+          tr.appendChild(authorizationCell);
+
           fragment.appendChild(tr);
         }
+
         stripeTableBody.appendChild(fragment);
       }
 
@@ -1351,6 +1613,135 @@
         }
 
         bidsTableBody.appendChild(fragment);
+      }
+
+      function parseMintMetadata(value) {
+        if (!value) return null;
+        if (typeof value === 'object') return value;
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value);
+          } catch (error) {
+            return null;
+          }
+        }
+        return null;
+      }
+
+      function formatMintNotes(entry) {
+        const notes = [];
+        const metadata = parseMintMetadata(entry?.metadata);
+        if (metadata && typeof metadata === 'object') {
+          if (metadata.ledgerNotes) {
+            notes.push(metadata.ledgerNotes);
+          }
+          if (metadata.rawSelection) {
+            if (typeof metadata.rawSelection === 'string') {
+              notes.push(metadata.rawSelection);
+            } else {
+              try {
+                notes.push(JSON.stringify(metadata.rawSelection));
+              } catch (error) {
+                notes.push(String(metadata.rawSelection));
+              }
+            }
+          }
+        }
+        if (entry?.buttonLabel && entry.buttonLabel !== entry.itemLabel) {
+          notes.push(entry.buttonLabel);
+        }
+        if (entry?.referer && entry.referer !== entry?.mintSource) {
+          notes.push(`Ref: ${entry.referer}`);
+        }
+        if (!notes.length && entry?.userAgent) {
+          notes.push(entry.userAgent);
+        }
+        return truncate(notes.join(' · '));
+      }
+
+      function renderTimepieceLedger() {
+        if (!timepieceLedgerTableBody || !timepieceLedgerEmpty) {
+          return;
+        }
+        const entries = state.data?.timepieceMintLedger || [];
+        timepieceLedgerTableBody.innerHTML = '';
+        if (!entries.length) {
+          timepieceLedgerEmpty.style.display = 'block';
+          return;
+        }
+        timepieceLedgerEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const entry of entries) {
+          const tr = document.createElement('tr');
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(entry.updatedAt || entry.createdAt);
+          tr.appendChild(timestampCell);
+
+          const walletCell = document.createElement('td');
+          walletCell.textContent = entry.walletAddress || '—';
+          tr.appendChild(walletCell);
+
+          const networkCell = document.createElement('td');
+          networkCell.textContent = entry.walletNetwork ? entry.walletNetwork.toUpperCase() : '—';
+          tr.appendChild(networkCell);
+
+          const itemCell = document.createElement('td');
+          itemCell.textContent = entry.itemLabel || entry.buttonLabel || entry.itemChoice || '—';
+          tr.appendChild(itemCell);
+
+          const editionCell = document.createElement('td');
+          editionCell.textContent = entry.editionNote || '—';
+          tr.appendChild(editionCell);
+
+          const contactCell = document.createElement('td');
+          contactCell.textContent = entry.contactDetail || '—';
+          tr.appendChild(contactCell);
+
+          const sourceCell = document.createElement('td');
+          sourceCell.textContent = entry.mintSource || entry.referer || '—';
+          tr.appendChild(sourceCell);
+
+          const notesCell = document.createElement('td');
+          notesCell.textContent = formatMintNotes(entry);
+          tr.appendChild(notesCell);
+
+          fragment.appendChild(tr);
+        }
+
+        timepieceLedgerTableBody.appendChild(fragment);
+      }
+
+      function renderFileBroadcasts() {
+        if (!fileBroadcastsTableBody) {
+          return;
+        }
+        const broadcasts = state.data?.fileBroadcasts || [];
+        if (fileBroadcastsEmpty) {
+          fileBroadcastsEmpty.style.display = broadcasts.length ? 'none' : 'block';
+        }
+        fileBroadcastsTableBody.innerHTML = '';
+        if (!broadcasts.length) {
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        for (const broadcast of broadcasts) {
+          const tr = document.createElement('tr');
+          const statusLabel = (broadcast.lastEvent || broadcast.status || 'updated').replace(/-/g, ' ');
+          const variant = badgeVariant(statusLabel);
+          tr.innerHTML = `
+            <td>${broadcast.path || '—'}</td>
+            <td>${broadcast.category || '—'}</td>
+            <td><span class="badge" data-variant="${variant}">${statusLabel}</span></td>
+            <td>${formatBytes(broadcast.fileSize)}</td>
+            <td>${formatDate(broadcast.modifiedAt || broadcast.updatedAt || broadcast.createdAt)}</td>
+            <td>${formatDate(broadcast.updatedAt || broadcast.indexedAt || broadcast.createdAt)}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+
+        fileBroadcastsTableBody.appendChild(fragment);
       }
 
       function renderContacts() {
@@ -1539,6 +1930,33 @@
         state.search = event.target.value.trim().toLowerCase();
         renderUsers();
       });
+
+      if (rescanFileBroadcastsButton) {
+        rescanFileBroadcastsButton.addEventListener('click', async () => {
+          if (rescanFileBroadcastsButton.disabled) {
+            return;
+          }
+          rescanFileBroadcastsButton.disabled = true;
+          setFileBroadcastStatus('Reindexing file broadcasts…', 'info');
+          try {
+            const response = await fetch('/api/admin/file-broadcasts/rescan', {
+              method: 'POST',
+              headers: { Accept: 'application/json' }
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error((payload && payload.message) || 'Failed to reindex file broadcasts.');
+            }
+            setFileBroadcastStatus(payload.message || 'File broadcasts synchronized.', 'success');
+            await loadOverview({ silent: true }).catch(() => {});
+          } catch (error) {
+            console.error('File broadcast rescan failed', error);
+            setFileBroadcastStatus(error.message || 'Failed to reindex file broadcasts.', 'error');
+          } finally {
+            rescanFileBroadcastsButton.disabled = false;
+          }
+        });
+      }
 
       refreshButton.addEventListener('click', () => {
         loadOverview();

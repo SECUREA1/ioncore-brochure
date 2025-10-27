@@ -181,6 +181,72 @@
     .send { padding:10px 14px; border-radius:12px; border:0; font-weight:700; cursor:pointer; color:#021203; background: linear-gradient(180deg, var(--accent), var(--accent-2)); box-shadow: var(--shadow); text-transform:uppercase; letter-spacing:.08em; }
     .send:disabled { opacity:.6; cursor:not-allowed; }
 
+    .studio-video {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: clamp(18px, 4vw, 32px);
+      margin: clamp(18px, 4vw, 42px) 18px 0;
+      padding: clamp(18px, 4vw, 32px);
+      border-radius: 24px;
+      background: color-mix(in oklab, var(--panel), transparent 6%);
+      border: 1px solid color-mix(in oklab, var(--lining), transparent 10%);
+      box-shadow: var(--shadow);
+    }
+
+    .studio-video__copy {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .studio-video__eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: color-mix(in oklab, var(--accent), transparent 25%);
+      font-weight: 700;
+    }
+
+    .studio-video__title {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      letter-spacing: -0.01em;
+    }
+
+    .studio-video__description {
+      margin: 0;
+      color: color-mix(in oklab, var(--muted), transparent 5%);
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    .studio-video__player {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid color-mix(in oklab, var(--lining), transparent 4%);
+      box-shadow: var(--shadow);
+      background: #000;
+    }
+
+    .studio-video__player::after {
+      content: '';
+      position: absolute;
+      inset: auto -40% -40% auto;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(106, 255, 59, 0.22) 0%, rgba(106, 255, 59, 0) 70%);
+      pointer-events: none;
+    }
+
+    .studio-video__player video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     /* Auth screen */
     .auth { position: fixed; inset:0; display:grid; place-items:center; background: linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.65)); backdrop-filter: blur(4px); }
     .card { width:min(520px, 92vw); padding:22px; border-radius: 18px; background: var(--panel); border: 1px solid var(--lining); box-shadow: var(--shadow); }
@@ -406,6 +472,24 @@
     </div>
 
       <main>
+        <section class="studio-video" aria-labelledby="studio-video-title">
+          <div class="studio-video__copy">
+            <span class="studio-video__eyebrow">Ioncore Studio Capsule</span>
+            <h2 class="studio-video__title" id="studio-video-title">Experience the flagship broadcast stage</h2>
+            <p class="studio-video__description">
+              Watch a guided tour of the Ioncore command desk, then join the conversation to surface field intel,
+              coordinate deployments, and hand off live demonstrations to the engineering team.
+            </p>
+          </div>
+          <div class="studio-video__player">
+            <video controls preload="metadata" poster="../GEN4.png">
+              <source src="https://cdn.coverr.co/videos/coverr-motherboard-technology-8018/1080p.mp4" type="video/mp4" />
+              <source src="https://cdn.coverr.co/videos/coverr-motherboard-technology-8018/webm" type="video/webm" />
+              Your browser does not support the video tag. Download the briefing at
+              <a href="https://ioncore.energy" target="_blank" rel="noopener">ioncore.energy</a>.
+            </video>
+          </div>
+        </section>
         <div id="streams" class="streams"></div>
         <form id="composer" class="composer" autocomplete="off">
           <label class="input" for="text">
@@ -1122,6 +1206,43 @@
       fileInput.value = '';
     });
 
+      function logChatLedgerEvent(message){
+        if(!message || !message.id){
+          return;
+        }
+        const username = typeof message.user === 'string' && message.user ? message.user : (store.user || '');
+        const text = typeof message.text === 'string' ? message.text.slice(0, 640) : '';
+        const payload = {
+          messageId: message.id,
+          user: username,
+          text,
+          room: message.room || null,
+          broadcast: Boolean(message.broadcast),
+          isAction: Boolean(message.isAction),
+          hasAttachment: Boolean(message.image || message.file || message.video),
+          fileName: message.fileName || null,
+          fileType: message.fileType || null,
+          createdAt: message.ts ? new Date(message.ts).toISOString() : new Date().toISOString(),
+          transport: onlineMode,
+          clientId,
+          likes: typeof message.likes === 'number' ? message.likes : undefined,
+          commentCount: Array.isArray(message.comments) ? message.comments.length : undefined
+        };
+        try {
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          const options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          };
+          if(controller){
+            options.signal = controller.signal;
+            setTimeout(() => controller.abort(), 4000);
+          }
+          fetch('/api/chat/ledger', options).catch(() => {});
+        } catch {}
+      }
+
       function postMessage({ text='', image, file, fileName, fileType, name, isAction=false, broadcast=false, video, room }){
       if(broadcast && joinApproved && pendingJoinHost){
         room = pendingJoinHost;
@@ -1148,6 +1269,7 @@
       // Push to UI + storage immediately
         receive(msg, true);
         if(!room) store.pushMsg(msg);
+        logChatLedgerEvent(msg);
 
       // Broadcast locally
       try { bc && bc.postMessage(msg); } catch {}

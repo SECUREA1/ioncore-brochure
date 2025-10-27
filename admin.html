@@ -2572,6 +2572,125 @@
         questionsTableBody.appendChild(fragment);
       }
 
+      function loginMethodLabel(event) {
+        if (!event) {
+          return 'credentials';
+        }
+        const method = typeof event.method === 'string' ? event.method.trim() : event.method;
+        if (method) {
+          return String(method);
+        }
+        if (event.walletAddress || event.wallet || event.publicKey || event.address) {
+          return 'wallet';
+        }
+        return 'credentials';
+      }
+
+      function loginWalletLabel(event) {
+        if (!event) {
+          return '—';
+        }
+        const wallet =
+          event.walletAddress ||
+          event.wallet ||
+          event.publicKey ||
+          event.address ||
+          event.meknxPassId ||
+          '';
+        if (!wallet) {
+          return '—';
+        }
+        const provider = (event.walletProvider || event.provider || event.integration || event.platform || '').toString().trim();
+        const reference = shortenWalletReference(typeof wallet === 'string' ? wallet : String(wallet));
+        return provider ? `${reference} (${provider})` : reference;
+      }
+
+      function loginResultVariant(event) {
+        if (!event) {
+          return 'warning';
+        }
+        if (typeof event.success === 'boolean') {
+          return event.success ? 'success' : 'danger';
+        }
+        const result = (event.result || event.status || '').toString().toLowerCase();
+        if (!result) {
+          return 'warning';
+        }
+        if (result.includes('fail') || result.includes('error') || result.includes('denied')) {
+          return 'danger';
+        }
+        if (result.includes('pending') || result.includes('review') || result.includes('challenge')) {
+          return 'warning';
+        }
+        return 'success';
+      }
+
+      function loginResultLabel(event) {
+        if (!event) {
+          return '—';
+        }
+        if (event.result) {
+          return String(event.result).trim() || '—';
+        }
+        if (event.status) {
+          return String(event.status).trim() || '—';
+        }
+        if (typeof event.success === 'boolean') {
+          return event.success ? 'Success' : 'Failed';
+        }
+        return '—';
+      }
+
+      function loginMetadataLabel(event) {
+        if (!event) {
+          return '—';
+        }
+
+        const metadataSources = [
+          event.metadata,
+          event.detail,
+          event.details,
+          event.context,
+          event.extra,
+          event.rawMetadata
+        ];
+
+        const stringSource = metadataSources.find((value) => typeof value === 'string' && value.trim().length > 0);
+        if (stringSource) {
+          return truncate(stringSource, 160);
+        }
+
+        const objectSource = metadataSources.find((value) => value && typeof value === 'object');
+        const metadataPayload = objectSource ? { ...objectSource } : {};
+        const supplementalKeys = [
+          'meknxStatus',
+          'meknxMintedAt',
+          'meknxPassId',
+          'nextPath',
+          'ioncTokens',
+          'ioncVerified',
+          'ipAddress',
+          'userAgent',
+          'sessionId'
+        ];
+
+        for (const key of supplementalKeys) {
+          if (event[key] !== undefined && event[key] !== null && metadataPayload[key] === undefined) {
+            metadataPayload[key] = event[key];
+          }
+        }
+
+        if (Object.keys(metadataPayload).length === 0) {
+          return '—';
+        }
+
+        try {
+          return truncate(JSON.stringify(metadataPayload), 160);
+        } catch (error) {
+          return '—';
+        }
+      }
+
       function renderLogins() {
         if (!loginTableBody || !loginEmpty) {
           return;
@@ -2589,9 +2708,11 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${formatDate(event.createdAt)}</td>
+            <td>${loginMethodLabel(event)}</td>
             <td>${event.username || '—'}</td>
-            <td>${event.walletAddress || '—'}</td>
-            <td>${event.meknxPassId || '—'}</td>
+            <td>${loginWalletLabel(event)}</td>
+            <td><span class="badge" data-variant="${loginResultVariant(event)}">${loginResultLabel(event)}</span></td>
+            <td>${loginMetadataLabel(event)}</td>
           `;
           fragment.appendChild(tr);
         }

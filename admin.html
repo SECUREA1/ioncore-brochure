@@ -699,6 +699,11 @@
             <p class="tile-meta">Live sessions and total visitors.</p>
           </article>
           <article class="server-tile" role="listitem">
+            <h3>Chat Servers</h3>
+            <div class="tile-value" id="infrastructure-chat-status">—</div>
+            <p class="tile-meta" id="infrastructure-chat-detail">Awaiting telemetry.</p>
+          </article>
+          <article class="server-tile" role="listitem">
             <h3>Signals</h3>
             <ul id="infrastructure-hints-list" class="tile-meta-list" aria-live="polite"></ul>
           </article>
@@ -1264,13 +1269,141 @@
       let adminPhantomProvider = null;
       let adminPhantomPublicKey = '';
       let adminDepositSignature = '';
+      let adminPhantomEventsBound = false;
+      let adminPhantomEventSource = null;
+
+      const INTERNAL_BROADCAST_PATTERNS = [
+        /^node_modules\//i,
+        /^data\//i,
+        /^scripts?\//i,
+        /^config\//i,
+        /^\.well-known\//i,
+        /^package(-lock)?\.json$/i,
+        /^server\.js$/i,
+        /^track\.py$/i
+      ];
+
+      const INTERNAL_BROADCAST_TAGS = ['internal', 'system', 'private'];
+
+      function isInternalBroadcast(entry) {
+        if (!entry) {
+          return false;
+        }
+        if (entry.internal === true || entry.isInternal === true) {
+          return true;
+        }
+        const visibility = typeof entry.visibility === 'string' ? entry.visibility.toLowerCase() : '';
+        if (visibility && (visibility === 'internal' || visibility === 'private')) {
+          return true;
+        }
+        const category = typeof entry.category === 'string' ? entry.category.toLowerCase() : '';
+        if (category && INTERNAL_BROADCAST_TAGS.some((tag) => category.includes(tag))) {
+          return true;
+        }
+        if (Array.isArray(entry.tags)) {
+          for (const tag of entry.tags) {
+            if (typeof tag === 'string' && INTERNAL_BROADCAST_TAGS.some((needle) => tag.toLowerCase().includes(needle))) {
+              return true;
+            }
+          }
+        }
+        const path = typeof entry.path === 'string' ? entry.path.trim() : '';
+        if (!path) {
+          return false;
+        }
+        const normalizedPath = path.replace(/^\/+/, '');
+        return INTERNAL_BROADCAST_PATTERNS.some((pattern) => pattern.test(normalizedPath));
+      }
+
+      function sanitizeBroadcasts(entries) {
+        if (!Array.isArray(entries)) {
+          return [];
+        }
+        return entries.filter((entry) => !isInternalBroadcast(entry));
+      }
 
       const shortenWalletReference = (value) => {
         if (!value || typeof value !== 'string') {
           return '';
         }
-        return value.length > 12 ? ${value.slice(0, 6)}…${value.slice(-4)} : value;
+        return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
       };
+
+      function updateAdminPhantomUi() {
+        if (adminPhantomStatus) {
+          if (adminPhantomPublicKey) {
+            adminPhantomStatus.textContent = `Connected: ${shortenWalletReference(adminPhantomPublicKey)}`;
+            adminPhantomStatus.classList.add('wallet-status--connected');
+          } else {
+            adminPhantomStatus.textContent = 'Not connected.';
+            adminPhantomStatus.classList.remove('wallet-status--connected');
+          }
+        }
+        if (adminDepositButton) {
+          adminDepositButton.disabled = !adminPhantomPublicKey;
+          if (!adminPhantomPublicKey) {
+            adminDepositButton.textContent = 'Send 1 SOL Retainer';
+          }
+        }
+      }
+
+      function handleAdminPhantomDisconnect() {
+        adminPhantomProvider = null;
+        adminPhantomPublicKey = '';
+        adminDepositSignature = '';
+        updateAdminPhantomUi();
+        if (adminDepositStatus) {
+          adminDepositStatus.textContent = 'Connect Phantom before sending the retainer.';
+          adminDepositStatus.classList.remove('wallet-status--connected');
+          adminDepositStatus.classList.add('wallet-status--error');
+        }
+      }
+
+      function bindAdminPhantomEvents(provider) {
+        if (!provider || typeof provider.on !== 'function') {
+          return;
+        }
+        if (adminPhantomEventsBound && provider === adminPhantomEventSource) {
+          return;
+        }
+        provider.on('disconnect', () => {
+          handleAdminPhantomDisconnect();
+        });
+        provider.on('accountChanged', (nextAccount) => {
+          if (!nextAccount) {
+            handleAdminPhantomDisconnect();
+            return;
+          }
+          let derivedKey = '';
+          if (typeof nextAccount === 'string') {
+            derivedKey = nextAccount;
+          } else if (Array.isArray(nextAccount)) {
+            const primaryAccount = nextAccount[0];
+            if (typeof primaryAccount === 'string') {
+              derivedKey = primaryAccount;
+            } else if (primaryAccount?.publicKey) {
+              derivedKey = primaryAccount.publicKey.toString?.() || String(primaryAccount.publicKey);
+            }
+          } else if (nextAccount?.publicKey) {
+            derivedKey = nextAccount.publicKey.toString?.() || String(nextAccount.publicKey);
+          }
+          adminPhantomPublicKey = derivedKey;
+          updateAdminPhantomUi();
+          if (adminDepositStatus) {
+            if (adminPhantomPublicKey) {
+              adminDepositStatus.textContent = 'Ready to dispatch the 1 SOL retainer.';
+              adminDepositStatus.classList.remove('wallet-status--error');
+              adminDepositStatus.classList.add('wallet-status--connected');
+            } else {
+              adminDepositStatus.textContent = 'Connect Phantom before sending the retainer.';
+              adminDepositStatus.classList.remove('wallet-status--connected');
+              adminDepositStatus.classList.add('wallet-status--error');
+            }
+          }
+        });
+        adminPhantomEventsBound = true;
+        adminPhantomEventSource = provider;
+      }
 
       const detectAdminPhantomProvider = () => {
         if (window.solana && window.solana.isPhantom) {
@@ -1293,19 +1426,15 @@
       };
 
       const resetAdminSolanaBridge = ({ preserveStatus } = {}) => {
-        if (!preserveStatus && adminPhantomStatus) {
-          adminPhantomStatus.textContent = 'Not connected.';
-          adminPhantomStatus.classList.remove('wallet-status--connected');
+        if (!preserveStatus) {
+          adminPhantomPublicKey = '';
         }
+        updateAdminPhantomUi();
         if (!preserveStatus && adminDepositStatus) {
           adminDepositStatus.textContent = 'Awaiting connection.';
           adminDepositStatus.classList.remove('wallet-status--connected', 'wallet-status--error');
         }
         adminDepositSignature = '';
-        if (adminDepositButton) {
-          adminDepositButton.disabled = true;
-          adminDepositButton.textContent = 'Send 1 SOL Retainer';
-        }
       };
 
       resetAdminSolanaBridge();
@@ -1348,33 +1477,26 @@
             adminPhantomPublicKey = publicKey;
             adminDepositSignature = '';
 
-            if (adminPhantomStatus) {
-              adminPhantomStatus.textContent = Connected: ${shortenWalletReference(publicKey)};
-              adminPhantomStatus.classList.add('wallet-status--connected');
-            }
-            if (adminDepositButton) {
-              adminDepositButton.disabled = false;
-              adminDepositButton.textContent = 'Send 1 SOL Retainer';
-            }
+            bindAdminPhantomEvents(provider);
+            updateAdminPhantomUi();
             if (adminDepositStatus) {
               adminDepositStatus.textContent = 'Ready to dispatch the 1 SOL retainer.';
               adminDepositStatus.classList.remove('wallet-status--error');
+              adminDepositStatus.classList.add('wallet-status--connected');
             }
           } catch (error) {
             adminPhantomProvider = null;
             adminPhantomPublicKey = '';
             adminDepositSignature = '';
+            updateAdminPhantomUi();
             if (adminPhantomStatus) {
               adminPhantomStatus.textContent = error?.message || 'Unable to connect to Phantom.';
               adminPhantomStatus.classList.remove('wallet-status--connected');
             }
             if (adminDepositStatus) {
               adminDepositStatus.textContent = 'Awaiting connection.';
+              adminDepositStatus.classList.remove('wallet-status--connected');
               adminDepositStatus.classList.add('wallet-status--error');
-            }
-            if (adminDepositButton) {
-              adminDepositButton.disabled = true;
-              adminDepositButton.textContent = 'Send 1 SOL Retainer';
             }
           } finally {
             adminPhantomConnectButton.disabled = false;
@@ -1421,6 +1543,7 @@
             adminDepositSignature = receipt?.signature || '';
             if (adminDepositStatus) {
               adminDepositStatus.classList.remove('wallet-status--error');
+              adminDepositStatus.classList.add('wallet-status--connected');
             }
             adminDepositButton.textContent = 'Retainer Sent';
           } catch (error) {
@@ -1480,6 +1603,8 @@
         publicUrl: document.getElementById('infrastructure-public-url'),
         uptime: document.getElementById('infrastructure-uptime'),
         observed: document.getElementById('infrastructure-observed'),
+        chatStatus: document.getElementById('infrastructure-chat-status'),
+        chatDetail: document.getElementById('infrastructure-chat-detail'),
         hintsList: document.getElementById('infrastructure-hints-list')
       };
       const newUserButton = document.getElementById('new-user-button');
@@ -1577,7 +1702,7 @@
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
-        return ${currency || ''} ${formatted}.trim();
+        return `${currency || ''} ${formatted}`.trim();
       }
 
       function formatBytes(bytes) {
@@ -1592,7 +1717,7 @@
           unitIndex += 1;
         }
         const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
-        return ${value.toFixed(precision)} ${units[unitIndex]};
+        return `${value.toFixed(precision)} ${units[unitIndex]}`;
       }
 
       function formatNumber(value) {
@@ -1612,15 +1737,15 @@
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const remainingSeconds = totalSeconds % 60;
         const parts = [];
-        if (days) parts.push(${days}d);
-        if (hours || parts.length) parts.push(${hours}h);
-        if (minutes || parts.length) parts.push(${minutes}m);
-        if (!parts.length) parts.push(${remainingSeconds}s);
+        if (days) parts.push(`${days}d`);
+        if (hours || parts.length) parts.push(`${hours}h`);
+        if (minutes || parts.length) parts.push(`${minutes}m`);
+        if (!parts.length) parts.push(`${remainingSeconds}s`);
         return parts.join(' ');
       }
 
       function pluralize(value, unit) {
-        return value === 1 ? unit : ${unit}s;
+        return value === 1 ? unit : `${unit}s`;
       }
 
       function formatRelativeTime(value) {
@@ -1641,7 +1766,7 @@
         for (const unit of units) {
           if (abs >= unit.ms || unit.label === 'second') {
             const valueCount = Math.max(1, Math.round(abs / unit.ms));
-            return ${valueCount} ${pluralize(valueCount, unit.label)} ${tense};
+            return `${valueCount} ${pluralize(valueCount, unit.label)} ${tense}`;
           }
         }
         return 'just now';
@@ -1655,8 +1780,8 @@
         const rss = typeof memory.rss === 'number' ? formatBytes(memory.rss) : null;
         const label = heapUsed || rss || '—';
         const detailParts = [];
-        if (heapUsed) detailParts.push(Heap ${heapUsed});
-        if (rss) detailParts.push(RSS ${rss});
+        if (heapUsed) detailParts.push(`Heap ${heapUsed}`);
+        if (rss) detailParts.push(`RSS ${rss}`);
         return { label, detail: detailParts.join(' · ') || 'Runtime memory footprint' };
       }
 
@@ -1664,20 +1789,20 @@
         if (!entry) return null;
         const btcAmount =
           typeof entry.btcAmount === 'number' && Number.isFinite(entry.btcAmount)
-            ? BTC ${entry.btcAmount.toLocaleString(undefined, {
+            ? `BTC ${entry.btcAmount.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 8
-              })}
+              })}`
             : null;
         const usdAmount =
           typeof entry.usdAmount === 'number' && Number.isFinite(entry.usdAmount)
-            ? USD ${entry.usdAmount.toLocaleString(undefined, {
+            ? `USD ${entry.usdAmount.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-              })}
+              })}`
             : null;
         if (btcAmount && usdAmount) {
-          return ${btcAmount} (${usdAmount});
+          return `${btcAmount} (${usdAmount})`;
         }
         return btcAmount || usdAmount || null;
       }
@@ -1720,6 +1845,7 @@
             throw new Error('Request failed with status ' + response.status);
           }
           const payload = await response.json();
+          payload.fileBroadcasts = sanitizeBroadcasts(payload.fileBroadcasts);
           state.data = payload;
           renderDashboard();
           if (!silent) {
@@ -1742,7 +1868,8 @@
 
         const metrics = state.data.metrics || {};
         setMetricValue(metricUsers, metrics.totalGatewayUsers || 0);
-        setMetricValue(metricAudio, countAudioAssets());
+        const broadcasts = Array.isArray(state.data.fileBroadcasts) ? state.data.fileBroadcasts : [];
+        setMetricValue(metricAudio, countAudioAssets(broadcasts));
         setMetricValue(metricPolls, metrics.totalGatewaySubmissions || 0);
         setMetricValue(metricQuestions, metrics.totalContactSubmissions || 0);
         setMetricValue(metricLogins, metrics.totalLoginEvents || 0);
@@ -1752,9 +1879,9 @@
           metricLedger,
           (metrics.totalStripeTransactions || 0) + (metrics.totalBitcoinTransactions || 0)
         );
-        setMetricValue(metricVault, metrics.totalFileBroadcasts || 0);
-        setMetricValue(metricHtml, countHtmlAssets());
-        setMetricValue(metricFiles, countMarketplaceFiles());
+        setMetricValue(metricVault, broadcasts.length);
+        setMetricValue(metricHtml, countHtmlAssets(broadcasts));
+        setMetricValue(metricFiles, countMarketplaceFiles(broadcasts));
         setMetricValue(metricTransactions, Array.isArray(state.data?.poolTransactions) ? state.data.poolTransactions.length : 0);
         setMetricValue(metricOrders, Array.isArray(state.data?.marketplaceOrders) ? state.data.marketplaceOrders.length : 0);
         setMetricValue(metricBidsMetric, metrics.totalMarketplaceBids || 0);
@@ -1763,9 +1890,9 @@
           ? state.data.gatewayUsers[0]
           : null;
         metricUsersUpdated.textContent = latestUser
-          ? Last credential update ${formatRelativeTime(latestUser.updatedAt || latestUser.createdAt)} (${formatDate(
+          ? `Last credential update ${formatRelativeTime(latestUser.updatedAt || latestUser.createdAt)} (${formatDate(
               latestUser.updatedAt || latestUser.createdAt
-            )})
+            )})`
           : 'No credential updates yet';
 
         renderInfrastructure();
@@ -1799,8 +1926,7 @@
         element.textContent = value || '0';
       }
 
-      function countAudioAssets() {
-        const broadcasts = state.data?.fileBroadcasts || [];
+      function countAudioAssets(broadcasts = state.data?.fileBroadcasts || []) {
         let count = 0;
         for (const entry of broadcasts) {
           if ((entry.category || '').toLowerCase() === 'audio') {
@@ -1810,8 +1936,7 @@
         return count;
       }
 
-      function countHtmlAssets() {
-        const broadcasts = state.data?.fileBroadcasts || [];
+      function countHtmlAssets(broadcasts = state.data?.fileBroadcasts || []) {
         let count = 0;
         for (const entry of broadcasts) {
           if (typeof entry.path === 'string' && entry.path.toLowerCase().endsWith('.html')) {
@@ -1821,8 +1946,7 @@
         return count;
       }
 
-      function countMarketplaceFiles() {
-        const broadcasts = state.data?.fileBroadcasts || [];
+      function countMarketplaceFiles(broadcasts = state.data?.fileBroadcasts || []) {
         let count = 0;
         for (const entry of broadcasts) {
           if (typeof entry.path === 'string' && entry.path.toLowerCase().includes('marketplace')) {
@@ -1841,7 +1965,7 @@
           metricServer.textContent = status.uptimeSeconds > 0 ? 'Online' : 'Offline';
         }
         if (metricServerDetail) {
-          metricServerDetail.textContent = ${formatNumber(activeSessions)} live / ${formatNumber(totalVisitors)} observed;
+          metricServerDetail.textContent = `${formatNumber(activeSessions)} live / ${formatNumber(totalVisitors)} observed`;
         }
 
         if (infrastructureFields.hostname) {
@@ -1856,7 +1980,7 @@
         if (infrastructureFields.environment) {
           const nodeVersion = status.environment?.nodeVersion;
           infrastructureFields.environment.textContent = nodeVersion
-            ? Node ${nodeVersion}
+            ? `Node ${nodeVersion}`
             : status.host?.platform || '—';
         }
         if (infrastructureFields.provider) {
@@ -1875,32 +1999,88 @@
               : '—';
         }
         if (infrastructureFields.observed) {
-          const startLabel = status.startedAt ? Started ${formatRelativeTime(status.startedAt)} : 'No start time recorded';
-          infrastructureFields.observed.textContent = ${formatNumber(activeSessions)} live · ${formatNumber(
+          const startLabel = status.startedAt ? `Started ${formatRelativeTime(status.startedAt)}` : 'No start time recorded';
+          infrastructureFields.observed.textContent = `${formatNumber(activeSessions)} live · ${formatNumber(
             totalVisitors
-          )} total · ${startLabel};
+          )} total · ${startLabel}`;
+        }
+        if (infrastructureFields.chatStatus || infrastructureFields.chatDetail) {
+          const chatServers = Array.isArray(status.chatServers) ? status.chatServers : [];
+          if (infrastructureFields.chatStatus) {
+            if (!chatServers.length) {
+              infrastructureFields.chatStatus.textContent = 'Offline';
+            } else {
+              const onlineCount = chatServers.filter((server) => {
+                const serverStatus = typeof server?.status === 'string' ? server.status.toLowerCase() : '';
+                return serverStatus === 'online' || serverStatus === 'active';
+              }).length;
+              infrastructureFields.chatStatus.textContent = `${onlineCount}/${chatServers.length} online`;
+            }
+          }
+          if (infrastructureFields.chatDetail) {
+            if (!chatServers.length) {
+              infrastructureFields.chatDetail.textContent = 'No chat nodes detected.';
+            } else {
+              const sessionTotal = chatServers.reduce((total, server) => {
+                const sessions = Number(server?.activeSessions || server?.sessions || 0);
+                return total + (Number.isFinite(sessions) ? sessions : 0);
+              }, 0);
+              const ledgered = chatServers.filter((server) => Boolean(server?.lastLedgerAt || server?.ledgeredAt)).length;
+              const leadNode = chatServers
+                .slice()
+                .sort((a, b) => {
+                  const aStatus = typeof a?.status === 'string' ? a.status.toLowerCase() : '';
+                  const bStatus = typeof b?.status === 'string' ? b.status.toLowerCase() : '';
+                  if (aStatus === bStatus) {
+                    const aSessions = Number(a?.activeSessions || 0);
+                    const bSessions = Number(b?.activeSessions || 0);
+                    return bSessions - aSessions;
+                  }
+                  if (aStatus === 'online' || aStatus === 'active') return -1;
+                  if (bStatus === 'online' || bStatus === 'active') return 1;
+                  return aStatus.localeCompare(bStatus);
+                })
+                .find((server) => server && (server.name || server.server || server.node));
+              const detailParts = [];
+              if (sessionTotal > 0) {
+                detailParts.push(`${formatNumber(sessionTotal)} live sessions`);
+              }
+              if (ledgered > 0) {
+                detailParts.push(`${formatNumber(ledgered)} ledgered`);
+              }
+              if (leadNode) {
+                const name = leadNode.name || leadNode.server || leadNode.node;
+                if (name) {
+                  detailParts.push(`${name} lead node`);
+                }
+              }
+              infrastructureFields.chatDetail.textContent = detailParts.length
+                ? detailParts.join(' · ')
+                : 'Telemetry nominal.';
+            }
+          }
         }
         if (infrastructureFields.hintsList) {
           infrastructureFields.hintsList.innerHTML = '';
           const hints = [];
           const memoryInfo = formatMemoryUsage(status.process?.memory);
           if (memoryInfo.detail && memoryInfo.detail !== 'Runtime memory footprint') {
-            hints.push(Memory ${memoryInfo.detail});
+            hints.push(`Memory ${memoryInfo.detail}`);
           }
           const dataStore = status.dataStore || {};
           if (typeof dataStore.sizeBytes === 'number' && Number.isFinite(dataStore.sizeBytes)) {
             hints.push(
-              Data ${formatBytes(dataStore.sizeBytes)} (${formatNumber(dataStore.fileCount || 0)} ${pluralize(
+              `Data ${formatBytes(dataStore.sizeBytes)} (${formatNumber(dataStore.fileCount || 0)} ${pluralize(
                 dataStore.fileCount || 0,
                 'file'
-              )})
+              )})`
             );
           }
           if (status.startedAt) {
-            hints.push(Started ${formatDate(status.startedAt)});
+            hints.push(`Started ${formatDate(status.startedAt)}`);
           }
           if (status.process?.pid) {
-            hints.push(PID ${status.process.pid});
+            hints.push(`PID ${status.process.pid}`);
           }
           if (!hints.length) {
             hints.push('No additional telemetry available.');
@@ -1941,11 +2121,14 @@
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
           return window.crypto.randomUUID();
         }
-        return admin-${Date.now()}-${Math.random().toString(16).slice(2, 10)};
+        return `admin-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
       }
 
       function ledgerMethodLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          return 'Chat Server';
+        }
         if (item.type === 'bitcoin') {
           return 'Bitcoin';
         }
@@ -1961,11 +2144,16 @@
 
       function ledgerAccountLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          const serverName = item.data.server || item.data.serverName || item.data.name || 'Chat Node';
+          const room = item.data.room || item.data.channel || item.data.cluster || '';
+          return room ? `${serverName} · ${room}` : serverName;
+        }
         if (item.type === 'bitcoin') {
           const name = item.data.cardholder || item.data.remittingContact || '';
           const wallet = item.data.btcAddress ? shortenWalletReference(item.data.btcAddress) : '';
           if (name && wallet) {
-            return ${name} (${wallet});
+            return `${name} (${wallet})`;
           }
           return name || wallet || '—';
         }
@@ -1982,6 +2170,9 @@
 
       function ledgerProjectLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          return item.data.projectReference || item.data.ledgerId || item.data.cluster || '—';
+        }
         if (item.type === 'bitcoin') {
           return item.data.projectReference || item.data.invoiceId || '—';
         }
@@ -1990,10 +2181,30 @@
 
       function ledgerAuthorizationLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          return (
+            item.data.eventId ||
+            item.data.ledgerId ||
+            item.data.sessionId ||
+            item.data.id ||
+            '—'
+          );
+        }
         if (item.type === 'bitcoin') {
           return item.data.transactionId || item.data.invoiceId || '—';
         }
         return item.data.authorizationCode || item.data.transactionId || '—';
+      }
+
+      function ledgerPriority(item) {
+        const statusLabel = (ledgerStatusLabel(item) || '').toLowerCase();
+        if (statusLabel.includes('fail') || statusLabel.includes('error') || statusLabel.includes('chargeback')) {
+          return 0;
+        }
+        if (statusLabel.includes('pending')) {
+          return 1;
+        }
+        return 2;
       }
 
       function ledgerStatusLabel(item) {
@@ -2015,10 +2226,17 @@
         const bitcoinEntries = Array.isArray(state.data?.bitcoinTransactions)
           ? state.data.bitcoinTransactions.map((entry) => ({ type: 'bitcoin', data: entry }))
           : [];
+        const chatLedgerEntries = Array.isArray(state.data?.chatServerLedger)
+          ? state.data.chatServerLedger.map((entry) => ({ type: 'chat', data: entry }))
+          : [];
 
-        const combinedEntries = [...magstripeEntries, ...bitcoinEntries].sort(
-          (a, b) => timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt)
-        );
+        const combinedEntries = [...magstripeEntries, ...bitcoinEntries, ...chatLedgerEntries].sort((a, b) => {
+          const priorityDiff = ledgerPriority(a) - ledgerPriority(b);
+          if (priorityDiff !== 0) {
+            return priorityDiff;
+          }
+          return timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt);
+        });
 
         ledgerTableBody.innerHTML = '';
         if (!combinedEntries.length) {
@@ -2053,13 +2271,23 @@
           const amountLabel = ledgerAmountLabel(item);
           const projectLabel = ledgerProjectLabel(item);
           if (statusLabel) {
-            parts.push(Status: ${statusLabel});
+            parts.push(`Status: ${statusLabel}`);
           }
           if (amountLabel && amountLabel !== '—') {
-            parts.push(Amount: ${amountLabel});
+            parts.push(`Amount: ${amountLabel}`);
           }
           if (projectLabel && projectLabel !== '—') {
-            parts.push(Ref: ${projectLabel});
+            parts.push(`Ref: ${projectLabel}`);
+          }
+          if (item.type === 'chat') {
+            const sessions = Number(item?.data?.activeSessions || item?.data?.sessions || 0);
+            if (Number.isFinite(sessions) && sessions > 0) {
+              parts.push(`Sessions: ${formatNumber(sessions)}`);
+            }
+            const region = item?.data?.region || item?.data?.cluster || item?.data?.shard;
+            if (region) {
+              parts.push(`Region: ${region}`);
+            }
           }
           metadataCell.textContent = parts.length ? parts.join(' · ') : '—';
           tr.appendChild(metadataCell);
@@ -2112,7 +2340,7 @@
           if (user.profileImageUrl) {
             const img = document.createElement('img');
             img.src = user.profileImageUrl;
-            img.alt = user.username ? ${user.username} profile : 'Profile';
+            img.alt = user.username ? `${user.username} profile` : 'Profile';
             img.style.width = '36px';
             img.style.height = '36px';
             img.style.borderRadius = '50%';
@@ -2204,13 +2432,13 @@
         const fragment = document.createDocumentFragment();
         for (const entry of audioEntries) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(entry.updatedAt || entry.createdAt)}</td>
             <td>${entry.owner || '—'}</td>
             <td>${entry.walletAddress || '—'}</td>
             <td>${entry.displayName || entry.path || '—'}</td>
             <td>${entry.path || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         audioTableBody.appendChild(fragment);
@@ -2246,11 +2474,11 @@
           }
           const metadataParts = [];
           if (submission.databaseOptIn) metadataParts.push('Opt-in: Yes');
-          if (submission.role) metadataParts.push(Role: ${submission.role});
+          if (submission.role) metadataParts.push(`Role: ${submission.role}`);
           if (submission.metadata) metadataParts.push(String(submission.metadata));
           if (submission.pollMetadata) metadataParts.push(String(submission.pollMetadata));
           const metadata = metadataParts.length ? metadataParts.join(' · ') : '—';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${origin}</td>
             <td>${truncate(question, 160)}</td>
             <td>${truncate(responseText, 160)}</td>
@@ -2263,7 +2491,7 @@
           )}">Edit</button>
               </div>
             </td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         pollsTableBody.appendChild(fragment);
@@ -2293,7 +2521,7 @@
           if (contact.source && contact.source !== contactValue) metadataParts.push(String(contact.source));
           if (contact.referer) metadataParts.push(String(contact.referer));
           const metadata = metadataParts.length ? metadataParts.join(' · ') : '—';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${contact.name || '—'}</td>
             <td>${contactValue}</td>
             <td>${truncate(contact.message || '—', 160)}</td>
@@ -2307,7 +2535,7 @@
           )}">Edit</button>
               </div>
             </td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         questionsTableBody.appendChild(fragment);
@@ -2328,12 +2556,12 @@
         const fragment = document.createDocumentFragment();
         for (const event of events) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(event.createdAt)}</td>
             <td>${event.username || '—'}</td>
             <td>${event.walletAddress || '—'}</td>
             <td>${event.meknxPassId || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         loginTableBody.appendChild(fragment);
@@ -2355,7 +2583,7 @@
         for (const upload of uploads) {
           const tr = document.createElement('tr');
           const minted = upload.mintStatus || upload.mintedAt ? 'Minted' : 'Pending';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${upload.title || '—'}</td>
             <td>${upload.walletAddress || '—'}</td>
             <td>${upload.chain || upload.network || '—'}</td>
@@ -2364,8 +2592,8 @@
             <td><span class="badge" data-variant="${minted === 'Minted' ? 'success' : 'warning'}">${minted}</span></td>
             <td>${formatDate(upload.createdAt)}</td>
             <td>${formatDate(upload.updatedAt)}</td>
-            <td>${upload.mediaUrl ? <a href="${upload.mediaUrl}" target="_blank" rel="noopener">Source</a> : '—'}</td>
-          ;
+            <td>${upload.mediaUrl ? `<a href="${upload.mediaUrl}" target="_blank" rel="noopener">Source</a>` : '—'}</td>
+          `;
           fragment.appendChild(tr);
         }
         marketplaceTableBody.appendChild(fragment);
@@ -2387,15 +2615,15 @@
         const fragment = document.createDocumentFragment();
         for (const entry of stored) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${entry.id || '—'}</td>
             <td>${entry.itemId || '—'}</td>
             <td>${entry.displayName || entry.path || '—'}</td>
             <td>${entry.mimeType || '—'}</td>
             <td>${formatBytes(entry.fileSize)}</td>
             <td>${formatDate(entry.createdAt)}</td>
-            <td>${entry.downloadUrl ? <a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a> : '—'}</td>
-          ;
+            <td>${entry.downloadUrl ? `<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>` : '—'}</td>
+          `;
           fragment.appendChild(tr);
         }
         filesTableBody.appendChild(fragment);
@@ -2436,15 +2664,15 @@
           const tr = document.createElement('tr');
           const actions = [];
           if (entry.downloadUrl) {
-            actions.push(<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>);
+            actions.push(`<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>`);
           }
           if (entry.shareUrl) {
-            actions.push(<a href="${entry.shareUrl}" target="_blank" rel="noopener">Share</a>);
+            actions.push(`<a href="${entry.shareUrl}" target="_blank" rel="noopener">Share</a>`);
           }
           if (!actions.length) {
             actions.push('—');
           }
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${entry.displayName || entry.path || '—'}</td>
             <td>${entry.category || '—'}</td>
             <td>${entry.path ? entry.path.split('/').slice(0, -1).join('/') || '/' : '/'}</td>
@@ -2452,7 +2680,7 @@
             <td>${formatBytes(entry.fileSize)}</td>
             <td>${formatDate(entry.updatedAt || entry.createdAt)}</td>
             <td>${actions.join(' · ')}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         assetTableBody.appendChild(fragment);
@@ -2466,10 +2694,10 @@
         const filterValue = assetFilter ? assetFilter.value : 'uploads';
         const filtered = filterBroadcastsForView(filterValue);
         const total = Array.isArray(allBroadcasts) ? allBroadcasts.length : 0;
-        assetSummary.textContent = ${formatNumber(filtered.length)} ${pluralize(
+        assetSummary.textContent = `${formatNumber(filtered.length)} ${pluralize(
           filtered.length,
           'asset'
-        )} shown · ${formatNumber(total)} indexed;
+        )} shown · ${formatNumber(total)} indexed`;
       }
 
       function renderHtmlAssets() {
@@ -2492,15 +2720,15 @@
           const downloadUrl = entry.downloadUrl || entry.url || entry.sourceUrl || entry.shareUrl || '';
           const shareUrl = entry.shareUrl || entry.publicUrl || '';
           const editButton = entry.path
-            ? <button class="btn" type="button" data-action="edit-html" data-path="${encodedPath}">Edit</button>
+            ? `<button class="btn" type="button" data-action="edit-html" data-path="${encodedPath}">Edit</button>`
             : '<button class="btn" type="button" disabled>Edit</button>';
           const downloadAction = downloadUrl
-            ? <a class="btn btn-outline" href="${downloadUrl}" target="_blank" rel="noopener">Download</a>
+            ? `<a class="btn btn-outline" href="${downloadUrl}" target="_blank" rel="noopener">Download</a>`
             : '<span class="text-muted">No download</span>';
           const shareAction = shareUrl
-            ? <a class="btn btn-outline" href="${shareUrl}" target="_blank" rel="noopener">Share</a>
+            ? `<a class="btn btn-outline" href="${shareUrl}" target="_blank" rel="noopener">Share</a>`
             : '<span class="text-muted">No share</span>';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${entry.path || '—'}</td>
             <td>${formatBytes(entry.fileSize)}</td>
             <td>${formatDate(entry.modifiedAt || entry.updatedAt || entry.createdAt)}</td>
@@ -2511,7 +2739,7 @@
                 ${shareAction}
               </div>
             </td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         htmlFilesTableBody.appendChild(fragment);
@@ -2532,14 +2760,14 @@
         const fragment = document.createDocumentFragment();
         for (const txn of transactions) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(txn.timestamp)}</td>
             <td>${txn.wallet || '—'}</td>
             <td>${txn.chain || '—'}</td>
             <td>${txn.token || '—'}</td>
             <td>${txn.amount != null ? txn.amount : '—'}</td>
             <td>${txn.hash || txn.transactionHash || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         transactionsTableBody.appendChild(fragment);
@@ -2560,7 +2788,7 @@
         const fragment = document.createDocumentFragment();
         for (const order of orders) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(order.createdAt)}</td>
             <td>${order.buyer || '—'}</td>
             <td>${order.seller || '—'}</td>
@@ -2570,7 +2798,7 @@
             <td>${order.status || '—'}</td>
             <td>${order.transactionHash || '—'}</td>
             <td>${order.invoice || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         ordersTableBody.appendChild(fragment);
@@ -2591,7 +2819,7 @@
         const fragment = document.createDocumentFragment();
         for (const bid of bids) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(bid.createdAt)}</td>
             <td>${bid.bidderName || '—'}</td>
             <td>${bid.assetOwner || bid.seller || '—'}</td>
@@ -2601,7 +2829,7 @@
             <td>${bid.status || '—'}</td>
             <td>${bid.transactionHash || '—'}</td>
             <td>${bid.invoice || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         bidsTableBody.appendChild(fragment);
@@ -2617,7 +2845,7 @@
           }
           if (typeof parsed === 'object' && parsed !== null) {
             return Object.entries(parsed)
-              .map(([k, v]) => ${k}: ${v})
+              .map(([k, v]) => `${k}: ${v}`)
               .join(', ');
           }
           return String(parsed);
@@ -2793,11 +3021,11 @@
         if (htmlEditorFields.pathDisplay) htmlEditorFields.pathDisplay.value = decodedPath;
         if (htmlEditorFields.size) {
           const sizeText = entry && typeof entry.fileSize === 'number' ? formatBytes(entry.fileSize) : '—';
-          htmlEditorFields.size.textContent = Size: ${sizeText};
+          htmlEditorFields.size.textContent = `Size: ${sizeText}`;
         }
         if (htmlEditorFields.updated) {
           const updatedSource = entry?.modifiedAt || entry?.updatedAt || entry?.createdAt;
-          htmlEditorFields.updated.textContent = Last Updated: ${updatedSource ? formatDate(updatedSource) : '—'};
+          htmlEditorFields.updated.textContent = `Last Updated: ${updatedSource ? formatDate(updatedSource) : '—'}`;
         }
         configureHtmlEditorActions(entry);
         if (htmlEditorFields.content) {
@@ -2806,7 +3034,7 @@
         htmlEditorOverlay.classList.add('is-open');
 
         try {
-          const response = await fetch(/api/admin/html-assets/${encodeURIComponent(decodedPath)}, {
+          const response = await fetch(`/api/admin/html-assets/${encodeURIComponent(decodedPath)}`, {
             headers: { Accept: 'application/json' }
           });
           if (!response.ok) {
@@ -2817,10 +3045,10 @@
             htmlEditorFields.content.value = payload.content || '';
           }
           if (payload?.size != null && htmlEditorFields.size) {
-            htmlEditorFields.size.textContent = Size: ${formatBytes(payload.size)};
+            htmlEditorFields.size.textContent = `Size: ${formatBytes(payload.size)}`;
           }
           if (payload?.updatedAt && htmlEditorFields.updated) {
-            htmlEditorFields.updated.textContent = Last Updated: ${formatDate(payload.updatedAt)};
+            htmlEditorFields.updated.textContent = `Last Updated: ${formatDate(payload.updatedAt)}`;
           }
           const merged = { ...entry, ...payload, path: decodedPath };
           configureHtmlEditorActions(merged);
@@ -2874,8 +3102,8 @@
 
         const endpoint =
           kind === 'question'
-            ? /api/admin/contact-submissions/${encodeURIComponent(id)}
-            : /api/admin/gateway-submissions/${encodeURIComponent(id)};
+            ? `/api/admin/contact-submissions/${encodeURIComponent(id)}`
+            : `/api/admin/gateway-submissions/${encodeURIComponent(id)}`;
 
         const originalText = submissionSubmitButton ? submissionSubmitButton.textContent : '';
         if (submissionSubmitButton) {
@@ -2997,7 +3225,7 @@
           databaseOptIn: editorFields.optIn.checked
         };
         try {
-          const response = await fetch(/api/admin/gateway-users/${encodeURIComponent(id)}, {
+          const response = await fetch(`/api/admin/gateway-users/${encodeURIComponent(id)}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify(payload)
@@ -3032,7 +3260,7 @@
       function ensureSubmissionId(submission, prefix = 'submission') {
         if (submission?.id) return submission.id;
         if (submission?._id) return submission._id;
-        const newId = ${prefix}-${generateId()};
+        const newId = `${prefix}-${generateId()}`;
         if (submission) {
           submission.id = newId;
         }
@@ -3101,10 +3329,10 @@
             }
             let message = payload.message || 'File broadcasts synchronized.';
             if (typeof payload.total === 'number' && Number.isFinite(payload.total)) {
-              message +=  ${formatNumber(payload.total)} ${pluralize(payload.total, 'asset')} tracked.;
+              message += ` ${formatNumber(payload.total)} ${pluralize(payload.total, 'asset')} tracked.`;
             }
             if (payload.lastScanCompletedAt) {
-              message +=  Last scan ${formatRelativeTime(payload.lastScanCompletedAt)}.;
+              message += ` Last scan ${formatRelativeTime(payload.lastScanCompletedAt)}.`;
             }
             setFileBroadcastStatus(message.trim(), 'success');
             await loadOverview({ silent: true }).catch(() => {});

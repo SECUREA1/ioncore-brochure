@@ -149,7 +149,7 @@ const TIMEPIECE_LEDGER_INJECTION = `
       panel.style.display = 'grid';
       panel.style.gap = '18px';
 
-      panel.innerHTML = `
+      panel.innerHTML = \`
         <div>
           <h2 id="timepiece-ledger-title" style="margin:0 0 6px;font-size:1.4rem;color:#e4efff;">Record Mint Intent</h2>
           <p data-ledger-summary style="margin:0;font-size:0.95rem;color:#9fb0c8;">Select a timepiece edition to continue.</p>
@@ -167,7 +167,7 @@ const TIMEPIECE_LEDGER_INJECTION = `
         <div style="display:flex;justify-content:flex-end;gap:12px;">
           <button type="button" data-ledger-action="cancel" style="background:rgba(15,23,42,0.6);color:#cbd5f5;border:1px solid rgba(148,163,184,0.35);padding:10px 18px;border-radius:999px;font-size:0.9rem;cursor:pointer;">Cancel</button>
           <button type="submit" data-ledger-action="confirm" style="background:linear-gradient(135deg,#5fe29b,#3ab5f6);color:#071225;border:none;padding:10px 20px;border-radius:999px;font-size:0.95rem;font-weight:600;cursor:pointer;">Record Mint Intent</button>
-        </div>`;
+        </div>\`;
 
       overlay.appendChild(panel);
       document.body.appendChild(overlay);
@@ -360,7 +360,7 @@ const defaultStore = {
   bitcoinTransactions: [],
   marketplaceUploads: [],
   marketplaceBids: [],
-  timepieceMintLedger: []
+  timepieceMintLedger: [],
   fileBroadcasts: []
 };
 
@@ -380,7 +380,7 @@ async function loadStore() {
       bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
-      timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : []
+      timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : [],
       fileBroadcasts: Array.isArray(parsed.fileBroadcasts) ? parsed.fileBroadcasts : []
     };
   } catch (error) {
@@ -2413,6 +2413,9 @@ app.get('/api/admin/overview', async (req, res) => {
         intent.itemLabel || intent.buttonLabel || intent.itemChoice || 'Timepiece mint intent',
       detail: detailParts.join(' · '),
       reference: intent
+    });
+  }
+
   for (const broadcast of fileBroadcasts) {
     const descriptor = (broadcast.lastEvent || broadcast.status || 'updated').replace(/-/g, ' ');
     const sizeLabel =
@@ -2500,6 +2503,8 @@ app.get('/api/admin/overview', async (req, res) => {
     metadata: intent.metadata,
     createdAt: intent.createdAt,
     updatedAt: intent.updatedAt
+  }));
+
   const fileBroadcastsSummary = sortByTimestampDesc(fileBroadcasts, 'updatedAt', 'createdAt').map((entry) => ({
     id: entry.id,
     path: entry.path,
@@ -2526,7 +2531,7 @@ app.get('/api/admin/overview', async (req, res) => {
       totalBitcoinTransactions: store.bitcoinTransactions.length,
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
-      totalTimepieceMintIntents: timepieceMintLedger.length
+      totalTimepieceMintIntents: timepieceMintLedger.length,
       totalFileBroadcasts: fileBroadcasts.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),

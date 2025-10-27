@@ -2600,6 +2600,11 @@ app.get('/api/admin/overview', async (req, res) => {
   }
 
   const gatewayUsers = Object.entries(store.gatewayUsers || {}).map(([id, user]) => ({ id, ...user }));
+  const loginEvents = Array.isArray(store.loginEvents) ? store.loginEvents : [];
+  const contactSubmissions = Array.isArray(store.contactSubmissions) ? store.contactSubmissions : [];
+  const gatewaySubmissions = Array.isArray(store.gatewaySubmissions) ? store.gatewaySubmissions : [];
+  const magstripeTransactions = Array.isArray(store.magstripeTransactions) ? store.magstripeTransactions : [];
+  const bitcoinTransactions = Array.isArray(store.bitcoinTransactions) ? store.bitcoinTransactions : [];
   const marketplaceUploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
   const marketplaceBids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
   const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
@@ -2608,7 +2613,7 @@ app.get('/api/admin/overview', async (req, res) => {
 
   const activityTimeline = [];
 
-  for (const event of store.loginEvents) {
+  for (const event of loginEvents) {
     activityTimeline.push({
       type: 'login',
       timestamp: event.createdAt,
@@ -2618,7 +2623,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const submission of store.gatewaySubmissions) {
+  for (const submission of gatewaySubmissions) {
     activityTimeline.push({
       type: 'gateway-submission',
       timestamp: submission.updatedAt || submission.createdAt,
@@ -2628,7 +2633,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const contact of store.contactSubmissions) {
+  for (const contact of contactSubmissions) {
     activityTimeline.push({
       type: 'contact',
       timestamp: contact.createdAt,
@@ -2638,7 +2643,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const transaction of store.magstripeTransactions) {
+  for (const transaction of magstripeTransactions) {
     activityTimeline.push({
       type: 'stripe-transaction',
       timestamp: transaction.createdAt,
@@ -2648,7 +2653,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const transaction of store.bitcoinTransactions) {
+  for (const transaction of bitcoinTransactions) {
     activityTimeline.push({
       type: 'bitcoin-transaction',
       timestamp: transaction.createdAt,
@@ -2814,22 +2819,22 @@ app.get('/api/admin/overview', async (req, res) => {
     generatedAt: new Date().toISOString(),
     metrics: {
       totalGatewayUsers: gatewayUsers.length,
-      totalGatewaySubmissions: store.gatewaySubmissions.length,
-      totalContactSubmissions: store.contactSubmissions.length,
-      totalLoginEvents: store.loginEvents.length,
-      totalStripeTransactions: store.magstripeTransactions.length,
-      totalBitcoinTransactions: store.bitcoinTransactions.length,
+      totalGatewaySubmissions: gatewaySubmissions.length,
+      totalContactSubmissions: contactSubmissions.length,
+      totalLoginEvents: loginEvents.length,
+      totalStripeTransactions: magstripeTransactions.length,
+      totalBitcoinTransactions: bitcoinTransactions.length,
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
       totalTimepieceMintIntents: timepieceMintLedger.length,
       totalFileBroadcasts: fileBroadcasts.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
-    magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
-    bitcoinTransactions: sortByTimestampDesc(store.bitcoinTransactions, 'createdAt'),
-    contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
-    gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
-    loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),
+    magstripeTransactions: sortByTimestampDesc(magstripeTransactions, 'createdAt'),
+    bitcoinTransactions: sortByTimestampDesc(bitcoinTransactions, 'createdAt'),
+    contactSubmissions: sortByTimestampDesc(contactSubmissions, 'createdAt'),
+    gatewaySubmissions: sortByTimestampDesc(gatewaySubmissions, 'updatedAt', 'createdAt'),
+    loginEvents: sortByTimestampDesc(loginEvents, 'createdAt'),
     marketplaceUploads: marketplaceUploadsSummary,
     marketplaceBids: marketplaceBidsSummary,
     timepieceMintLedger: timepieceMintLedgerSummary,

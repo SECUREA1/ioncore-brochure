@@ -1883,7 +1883,9 @@
         setMetricValue(metricMints, metrics.totalTimepieceMintIntents || 0);
         setMetricValue(
           metricLedger,
-          (metrics.totalStripeTransactions || 0) + (metrics.totalBitcoinTransactions || 0)
+          (metrics.totalStripeTransactions || 0) +
+            (metrics.totalBitcoinTransactions || 0) +
+            (metrics.totalChatLedgerEntries || 0)
         );
         setMetricValue(metricVault, broadcasts.length);
         setMetricValue(metricHtml, countHtmlAssets(broadcasts));
@@ -2255,7 +2257,7 @@
           ? state.data.chatServerLedger.map((entry) => ({ type: 'chat', data: entry }))
           : [];
 
-        const combinedEntries = [...magstripeEntries, ...bitcoinEntries]
+        const combinedEntries = [...magstripeEntries, ...bitcoinEntries, ...chatLedgerEntries]
           .map((entry) => ({
             ...entry,
             statusValue: ledgerStatusLabel(entry),
@@ -2318,6 +2320,18 @@
             const region = item?.data?.region || item?.data?.cluster || item?.data?.shard;
             if (region) {
               parts.push(`Region: ${region}`);
+            }
+            const messagePreview = item?.data?.message ? truncate(item.data.message, 120) : '';
+            if (messagePreview) {
+              parts.push(`Message: “${messagePreview}”`);
+            }
+            const author = item?.data?.user || item?.data?.username;
+            if (author) {
+              parts.push(`User: @${author}`);
+            }
+            const transport = item?.data?.transport;
+            if (transport) {
+              parts.push(`Mode: ${transport}`);
             }
           }
           metadataCell.textContent = parts.length ? parts.join(' · ') : '—';

@@ -98,7 +98,8 @@ const defaultStore = {
   marketplaceUploads: [],
   marketplaceBids: [],
   timepieceMintLedger: [],
-  fileBroadcasts: []
+  fileBroadcasts: [],
+  chatServerLedger: []
 };
 
 async function loadStore() {
@@ -118,7 +119,8 @@ async function loadStore() {
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
       timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : [],
-      fileBroadcasts: Array.isArray(parsed.fileBroadcasts) ? parsed.fileBroadcasts : []
+      fileBroadcasts: Array.isArray(parsed.fileBroadcasts) ? parsed.fileBroadcasts : [],
+      chatServerLedger: Array.isArray(parsed.chatServerLedger) ? parsed.chatServerLedger : []
     };
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
@@ -716,6 +718,63 @@ async function recordBitcoinTransaction(transaction) {
     await saveStore();
   } catch (error) {
     console.error('Failed to store bitcoin transaction', error);
+    throw error;
+  }
+}
+
+async function recordChatLedgerEntry(entry) {
+  try {
+    if (!Array.isArray(store.chatServerLedger)) {
+      store.chatServerLedger = [];
+    }
+
+    const nowIso = new Date().toISOString();
+    const ledgerId = normalizeForStorage(entry.ledgerId) || normalizeForStorage(entry.messageId) || randomUUID();
+    const createdAt = entry.createdAt && !Number.isNaN(Date.parse(entry.createdAt))
+      ? new Date(entry.createdAt).toISOString()
+      : nowIso;
+    const message = typeof entry.message === 'string' ? entry.message.slice(0, 800) : '';
+    const sanitizedMessage = normalizeForStorage(message);
+
+    const payload = {
+      createdAt,
+      updatedAt: nowIso,
+      ledgerId,
+      messageId: ledgerId,
+      server: normalizeForStorage(entry.server) || 'Ioncore Live Forum',
+      room: normalizeForStorage(entry.room),
+      user: normalizeForStorage(entry.user),
+      message: sanitizedMessage,
+      broadcast: entry.broadcast ? 1 : 0,
+      isAction: entry.isAction ? 1 : 0,
+      hasAttachment: entry.hasAttachment ? 1 : 0,
+      attachmentName: normalizeForStorage(entry.attachmentName || entry.fileName),
+      attachmentType: normalizeForStorage(entry.attachmentType || entry.fileType),
+      transport: normalizeForStorage(entry.transport),
+      clientId: normalizeForStorage(entry.clientId),
+      status: normalizeForStorage(entry.status) || 'recorded',
+      likes: Number.isFinite(entry.likes) ? Number(entry.likes) : null,
+      commentCount: Number.isFinite(entry.commentCount) ? Number(entry.commentCount) : null,
+      region: normalizeForStorage(entry.region || entry.cluster || entry.shard),
+      activeSessions: Number.isFinite(entry.activeSessions) ? Number(entry.activeSessions) : null
+    };
+
+    const existingIndex = store.chatServerLedger.findIndex((item) => item && item.ledgerId === payload.ledgerId);
+    if (existingIndex >= 0) {
+      store.chatServerLedger[existingIndex] = {
+        ...store.chatServerLedger[existingIndex],
+        ...payload,
+        updatedAt: nowIso
+      };
+      await saveStore();
+      return { created: false, entry: store.chatServerLedger[existingIndex] };
+    }
+
+    store.chatServerLedger.push(payload);
+    await saveStore();
+    return { created: true, entry: payload };
+  } catch (error) {
+    console.error('Failed to store chat ledger event', error);
     throw error;
   }
 }
@@ -1446,6 +1505,56 @@ app.post('/payments/magnetic-stripe', async (req, res) => {
   });
 });
 
+app.post('/api/chat/ledger', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const messageIdRaw = typeof body.messageId === 'string' ? body.messageId.trim() : '';
+  const textRaw = typeof body.text === 'string' ? body.text.trim() : '';
+  const user = typeof body.user === 'string' ? body.user.trim() : '';
+  const room = typeof body.room === 'string' ? body.room.trim() : '';
+  const hasAttachment = Boolean(body.hasAttachment || body.fileName || body.fileType);
+
+  if (!messageIdRaw) {
+    return res.status(400).json({ message: 'Message reference required for ledger entry.' });
+  }
+
+  if (!textRaw && !hasAttachment) {
+    return res.status(400).json({ message: 'Provide chat text or attachment metadata to log the event.' });
+  }
+
+  const entry = {
+    ledgerId: messageIdRaw,
+    messageId: messageIdRaw,
+    message: textRaw,
+    user,
+    room,
+    broadcast: body.broadcast === true,
+    isAction: body.isAction === true,
+    hasAttachment,
+    fileName: typeof body.fileName === 'string' ? body.fileName.slice(0, 180) : null,
+    fileType: typeof body.fileType === 'string' ? body.fileType.slice(0, 120) : null,
+    createdAt: typeof body.createdAt === 'string' ? body.createdAt : null,
+    transport: typeof body.transport === 'string' ? body.transport : null,
+    clientId: typeof body.clientId === 'string' ? body.clientId : null,
+    status: typeof body.status === 'string' ? body.status : 'recorded',
+    likes: Number.isFinite(body.likes) ? Number(body.likes) : null,
+    commentCount: Number.isFinite(body.commentCount) ? Number(body.commentCount) : null,
+    region: typeof body.region === 'string' ? body.region : null,
+    cluster: typeof body.cluster === 'string' ? body.cluster : null,
+    shard: typeof body.shard === 'string' ? body.shard : null,
+    activeSessions: Number.isFinite(body.activeSessions) ? Number(body.activeSessions) : null,
+    server: typeof body.server === 'string' ? body.server : null
+  };
+
+  try {
+    const result = await recordChatLedgerEntry(entry);
+    res
+      .status(result.created ? 201 : 200)
+      .json({ message: result.created ? 'Chat message logged to ledger.' : 'Chat ledger entry refreshed.' });
+  } catch (error) {
+    res.status(502).json({ message: 'Unable to record chat ledger entry. Retry shortly.' });
+  }
+});
+
 app.post('/logout', (req, res) => {
   const sessionId = getSessionIdFromCookies(req);
   destroyAuthSession(sessionId);
@@ -1985,6 +2094,7 @@ app.get('/api/admin/overview', async (req, res) => {
   const marketplaceBids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
   const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
   const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
+  const chatServerLedger = Array.isArray(store.chatServerLedger) ? store.chatServerLedger : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
   let dataDirectoryUsage = { sizeBytes: 0, fileCount: 0 };
@@ -2076,6 +2186,39 @@ app.get('/api/admin/overview', async (req, res) => {
         transaction.usdAmount != null ? transaction.usdAmount : ''
       } · Status: ${transaction.status || 'pending'}`.trim(),
       reference: transaction
+    });
+  }
+
+  for (const ledgerEntry of chatServerLedger) {
+    const headlineParts = [];
+    if (ledgerEntry.user) {
+      headlineParts.push(`@${ledgerEntry.user}`);
+    }
+    if (ledgerEntry.room) {
+      headlineParts.push(`#${ledgerEntry.room}`);
+    }
+    const detailParts = [];
+    if (ledgerEntry.message) {
+      const excerpt = ledgerEntry.message.length > 120
+        ? `${ledgerEntry.message.slice(0, 119)}…`
+        : ledgerEntry.message;
+      detailParts.push(`“${excerpt}”`);
+    }
+    if (ledgerEntry.attachmentName) {
+      detailParts.push(`Attachment: ${ledgerEntry.attachmentName}`);
+    }
+    if (ledgerEntry.transport) {
+      detailParts.push(`Mode: ${ledgerEntry.transport}`);
+    }
+    if (ledgerEntry.status) {
+      detailParts.push(`Status: ${ledgerEntry.status}`);
+    }
+    activityTimeline.push({
+      type: 'chat-ledger',
+      timestamp: ledgerEntry.createdAt,
+      headline: headlineParts.length ? headlineParts.join(' · ') : 'Chat ledger entry',
+      detail: detailParts.join(' · '),
+      reference: ledgerEntry
     });
   }
 
@@ -2239,7 +2382,8 @@ app.get('/api/admin/overview', async (req, res) => {
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
       totalTimepieceMintIntents: timepieceMintLedger.length,
-      totalFileBroadcasts: fileBroadcasts.length
+      totalFileBroadcasts: fileBroadcasts.length,
+      totalChatLedgerEntries: chatServerLedger.length
     },
     serverStatus,
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
@@ -2252,6 +2396,7 @@ app.get('/api/admin/overview', async (req, res) => {
     marketplaceBids: marketplaceBidsSummary,
     timepieceMintLedger: timepieceMintLedgerSummary,
     fileBroadcasts: fileBroadcastsSummary,
+    chatServerLedger: sortByTimestampDesc(chatServerLedger, 'createdAt'),
     activityTimeline
   });
 });

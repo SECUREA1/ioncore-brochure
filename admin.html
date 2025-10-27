@@ -1477,8 +1477,14 @@
             adminPhantomPublicKey = publicKey;
             adminDepositSignature = '';
 
-            bindAdminPhantomEvents(provider);
-            updateAdminPhantomUi();
+            if (adminPhantomStatus) {
+              adminPhantomStatus.textContent = `Connected: ${shortenWalletReference(publicKey)}`;
+              adminPhantomStatus.classList.add('wallet-status--connected');
+            }
+            if (adminDepositButton) {
+              adminDepositButton.disabled = false;
+              adminDepositButton.textContent = 'Send 1 SOL Retainer';
+            }
             if (adminDepositStatus) {
               adminDepositStatus.textContent = 'Ready to dispatch the 1 SOL retainer.';
               adminDepositStatus.classList.remove('wallet-status--error');
@@ -2196,15 +2202,34 @@
         return item.data.authorizationCode || item.data.transactionId || '—';
       }
 
-      function ledgerPriority(item) {
-        const statusLabel = (ledgerStatusLabel(item) || '').toLowerCase();
-        if (statusLabel.includes('fail') || statusLabel.includes('error') || statusLabel.includes('chargeback')) {
+      const LEDGER_STATUS_PRIORITY = new Map([
+        ['failed', 0],
+        ['disputed', 0],
+        ['chargeback', 0],
+        ['refunded', 1],
+        ['reversed', 1],
+        ['pending-confirmation', 2],
+        ['pending', 3],
+        ['processing', 4],
+        ['authorized', 4],
+        ['completed', 5],
+        ['succeeded', 5],
+        ['settled', 5]
+      ]);
+
+      function ledgerStatusPriority(status) {
+        if (!status) return 3;
+        const normalized = String(status).toLowerCase().trim();
+        if (LEDGER_STATUS_PRIORITY.has(normalized)) {
+          return LEDGER_STATUS_PRIORITY.get(normalized);
+        }
+        if (normalized.includes('fail') || normalized.includes('error')) {
           return 0;
         }
-        if (statusLabel.includes('pending')) {
-          return 1;
+        if (normalized.includes('pending')) {
+          return 3;
         }
-        return 2;
+        return 4;
       }
 
       function ledgerStatusLabel(item) {
@@ -2230,13 +2255,19 @@
           ? state.data.chatServerLedger.map((entry) => ({ type: 'chat', data: entry }))
           : [];
 
-        const combinedEntries = [...magstripeEntries, ...bitcoinEntries, ...chatLedgerEntries].sort((a, b) => {
-          const priorityDiff = ledgerPriority(a) - ledgerPriority(b);
-          if (priorityDiff !== 0) {
-            return priorityDiff;
-          }
-          return timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt);
-        });
+        const combinedEntries = [...magstripeEntries, ...bitcoinEntries]
+          .map((entry) => ({
+            ...entry,
+            statusValue: ledgerStatusLabel(entry),
+            createdValue: timestampValue(entry?.data?.createdAt)
+          }))
+          .sort((a, b) => {
+            const priorityDelta = ledgerStatusPriority(a.statusValue) - ledgerStatusPriority(b.statusValue);
+            if (priorityDelta !== 0) {
+              return priorityDelta;
+            }
+            return (b.createdValue || 0) - (a.createdValue || 0);
+          });
 
         ledgerTableBody.innerHTML = '';
         if (!combinedEntries.length) {
@@ -2266,7 +2297,7 @@
           tr.appendChild(hashCell);
 
           const metadataCell = document.createElement('td');
-          const statusLabel = ledgerStatusLabel(item);
+          const statusLabel = item.statusValue ?? ledgerStatusLabel(item);
           const parts = [];
           const amountLabel = ledgerAmountLabel(item);
           const projectLabel = ledgerProjectLabel(item);

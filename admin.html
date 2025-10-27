@@ -67,6 +67,60 @@
         gap: 18px;
       }
 
+      .server-tile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+      }
+
+      .server-tile {
+        padding: 24px;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--tile-glow-rest);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .server-tile::after {
+        content: '';
+        position: absolute;
+        inset: auto -40% -40% auto;
+        width: 140px;
+        height: 140px;
+        background: radial-gradient(circle, rgba(106, 255, 59, 0.18) 0%, rgba(106, 255, 59, 0) 70%);
+        pointer-events: none;
+        opacity: 0.8;
+      }
+
+      .server-tile h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-muted);
+      }
+
+      .server-tile .tile-value {
+        font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--text-high);
+        z-index: 1;
+      }
+
+      .server-tile .tile-meta {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        z-index: 1;
+      }
+
       .metric-card {
         padding: 24px;
         border-radius: 22px;
@@ -404,6 +458,10 @@
           flex: 1 1 100%;
         }
 
+        .server-tile-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
         .editor-panel {
           padding: 24px;
         }
@@ -508,6 +566,48 @@
             <h3>File Broadcasts</h3>
             <strong id="metric-file-broadcasts">0</strong>
             <p class="text-muted">Tracked creations, media, and mint events.</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="server-telemetry-title" id="server-telemetry">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Server Telemetry</span>
+            <h2 id="server-telemetry-title">Live Runtime Signals</h2>
+            <p>Monitor Node uptime, datastore footprint, and broadcast indexing cadence.</p>
+          </div>
+        </div>
+        <div class="server-tile-grid" role="list">
+          <article class="server-tile" role="listitem" data-tile="sessions">
+            <h3>Live Sessions</h3>
+            <div class="tile-value" id="server-tile-live">0</div>
+            <p class="tile-meta" id="server-tile-live-meta">Active visitors this minute.</p>
+          </article>
+          <article class="server-tile" role="listitem" data-tile="visits">
+            <h3>Total Visits</h3>
+            <div class="tile-value" id="server-tile-visits">0</div>
+            <p class="tile-meta" id="server-tile-visits-meta">Sessions registered since boot.</p>
+          </article>
+          <article class="server-tile" role="listitem" data-tile="uptime">
+            <h3>Uptime</h3>
+            <div class="tile-value" id="server-tile-uptime">—</div>
+            <p class="tile-meta" id="server-tile-uptime-meta">Server start pending.</p>
+          </article>
+          <article class="server-tile" role="listitem" data-tile="memory">
+            <h3>Runtime Memory</h3>
+            <div class="tile-value" id="server-tile-memory">—</div>
+            <p class="tile-meta" id="server-tile-memory-meta">Heap / RSS footprint.</p>
+          </article>
+          <article class="server-tile" role="listitem" data-tile="datastore">
+            <h3>Datastore Footprint</h3>
+            <div class="tile-value" id="server-tile-data">—</div>
+            <p class="tile-meta" id="server-tile-data-meta">0 files tracked.</p>
+          </article>
+          <article class="server-tile" role="listitem" data-tile="broadcasts">
+            <h3>Broadcast Index</h3>
+            <div class="tile-value" id="server-tile-scan">—</div>
+            <p class="tile-meta" id="server-tile-scan-meta">Awaiting initial scan.</p>
           </article>
         </div>
       </section>
@@ -1080,6 +1180,18 @@
       const metricMarketplaceBids = document.getElementById('metric-marketplace-bids');
       const metricTimepieceMints = document.getElementById('metric-timepiece-mints');
       const metricFileBroadcasts = document.getElementById('metric-file-broadcasts');
+      const serverTileLive = document.getElementById('server-tile-live');
+      const serverTileLiveMeta = document.getElementById('server-tile-live-meta');
+      const serverTileVisits = document.getElementById('server-tile-visits');
+      const serverTileVisitsMeta = document.getElementById('server-tile-visits-meta');
+      const serverTileUptime = document.getElementById('server-tile-uptime');
+      const serverTileUptimeMeta = document.getElementById('server-tile-uptime-meta');
+      const serverTileMemory = document.getElementById('server-tile-memory');
+      const serverTileMemoryMeta = document.getElementById('server-tile-memory-meta');
+      const serverTileData = document.getElementById('server-tile-data');
+      const serverTileDataMeta = document.getElementById('server-tile-data-meta');
+      const serverTileScan = document.getElementById('server-tile-scan');
+      const serverTileScanMeta = document.getElementById('server-tile-scan-meta');
 
       function formatDate(value) {
         if (!value) return '—';
@@ -1118,6 +1230,71 @@
         }
         const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
         return `${value.toFixed(precision)} ${units[unitIndex]}`;
+      }
+
+      function formatNumber(value) {
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+          return '0';
+        }
+        return value.toLocaleString();
+      }
+
+      function formatDuration(seconds) {
+        if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) {
+          return '—';
+        }
+        const totalSeconds = Math.floor(seconds);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const remainingSeconds = totalSeconds % 60;
+        const parts = [];
+        if (days) parts.push(`${days}d`);
+        if (hours || parts.length) parts.push(`${hours}h`);
+        if (minutes || parts.length) parts.push(`${minutes}m`);
+        if (!parts.length) parts.push(`${remainingSeconds}s`);
+        return parts.join(' ');
+      }
+
+      function pluralize(value, unit) {
+        return value === 1 ? unit : `${unit}s`;
+      }
+
+      function formatRelativeTime(value) {
+        if (!value) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return formatDate(value);
+        }
+        const diff = Date.now() - date.getTime();
+        const tense = diff >= 0 ? 'ago' : 'from now';
+        const abs = Math.abs(diff);
+        const units = [
+          { label: 'day', ms: 86400000 },
+          { label: 'hour', ms: 3600000 },
+          { label: 'minute', ms: 60000 },
+          { label: 'second', ms: 1000 }
+        ];
+        for (const unit of units) {
+          if (abs >= unit.ms || unit.label === 'second') {
+            const valueCount = Math.max(1, Math.round(abs / unit.ms));
+            return `${valueCount} ${pluralize(valueCount, unit.label)} ${tense}`;
+          }
+        }
+        return 'just now';
+      }
+
+      function formatMemoryUsage(memory) {
+        if (!memory || typeof memory !== 'object') {
+          return { label: '—', detail: 'Memory data unavailable.' };
+        }
+        const heapUsed = typeof memory.heapUsed === 'number' ? formatBytes(memory.heapUsed) : null;
+        const rss = typeof memory.rss === 'number' ? formatBytes(memory.rss) : null;
+        const label = heapUsed || rss || '—';
+        const detailParts = [];
+        if (heapUsed) detailParts.push(`Heap ${heapUsed}`);
+        if (rss) detailParts.push(`RSS ${rss}`);
+        return { label, detail: detailParts.join(' · ') || 'Runtime memory footprint' };
       }
 
       function formatBitcoinAmount(entry) {
@@ -1220,9 +1397,12 @@
 
         const latestUser = state.data.gatewayUsers[0];
         metricUsersUpdated.textContent = latestUser
-          ? 'Last credential update ' + formatDate(latestUser.updatedAt || latestUser.createdAt)
+          ? `Last credential update ${formatRelativeTime(latestUser.updatedAt || latestUser.createdAt)} (${formatDate(
+              latestUser.updatedAt || latestUser.createdAt
+            )})`
           : 'No credential updates yet';
 
+        renderServerTiles();
         renderUsers();
         renderStripe();
         renderGateway();
@@ -1232,7 +1412,124 @@
         renderMarketplaceBids();
         renderTimepieceLedger();
         renderFileBroadcasts();
+        updateFileBroadcastBanner();
         renderTimeline();
+      }
+
+      function renderServerTiles() {
+        if (!serverTileLive) {
+          return;
+        }
+        const status = state.data?.serverStatus || {};
+        const activeSessions =
+          typeof status.activeSessions === 'number' && Number.isFinite(status.activeSessions)
+            ? status.activeSessions
+            : 0;
+        serverTileLive.textContent = formatNumber(activeSessions);
+        if (serverTileLiveMeta) {
+          serverTileLiveMeta.textContent =
+            activeSessions === 1 ? 'Visitor connected now.' : 'Visitors connected now.';
+        }
+
+        const totalVisitors =
+          typeof status.totalVisitors === 'number' && Number.isFinite(status.totalVisitors)
+            ? status.totalVisitors
+            : 0;
+        if (serverTileVisits) {
+          serverTileVisits.textContent = formatNumber(totalVisitors);
+        }
+        if (serverTileVisitsMeta) {
+          serverTileVisitsMeta.textContent =
+            totalVisitors === 1 ? 'Session recorded since boot.' : 'Sessions recorded since boot.';
+        }
+
+        const uptimeSeconds =
+          typeof status.uptimeSeconds === 'number' && Number.isFinite(status.uptimeSeconds)
+            ? status.uptimeSeconds
+            : null;
+        if (serverTileUptime) {
+          serverTileUptime.textContent = uptimeSeconds != null ? formatDuration(uptimeSeconds) : '—';
+        }
+        if (serverTileUptimeMeta) {
+          serverTileUptimeMeta.textContent = status.startedAt
+            ? `Started ${formatRelativeTime(status.startedAt)} (${formatDate(status.startedAt)})`
+            : 'Server start pending.';
+        }
+
+        const memoryInfo = formatMemoryUsage(status.process?.memory);
+        if (serverTileMemory) {
+          serverTileMemory.textContent = memoryInfo.label;
+        }
+        if (serverTileMemoryMeta) {
+          const nodeVersion = status.environment?.nodeVersion;
+          serverTileMemoryMeta.textContent = nodeVersion
+            ? `${memoryInfo.detail} · Node ${nodeVersion}`
+            : memoryInfo.detail;
+        }
+
+        const dataStore = status.dataStore || {};
+        const dataSize =
+          typeof dataStore.sizeBytes === 'number' && Number.isFinite(dataStore.sizeBytes)
+            ? formatBytes(dataStore.sizeBytes)
+            : '—';
+        if (serverTileData) {
+          serverTileData.textContent = dataSize;
+        }
+        if (serverTileDataMeta) {
+          const fileCount =
+            typeof dataStore.fileCount === 'number' && Number.isFinite(dataStore.fileCount)
+              ? dataStore.fileCount
+              : 0;
+          const directory = dataStore.path || 'data';
+          serverTileDataMeta.textContent = `${formatNumber(fileCount)} ${pluralize(fileCount, 'file')} in ${directory}`;
+        }
+
+        const broadcasts = status.fileBroadcasts || {};
+        if (serverTileScan) {
+          serverTileScan.textContent = broadcasts.lastScanCompletedAt
+            ? formatRelativeTime(broadcasts.lastScanCompletedAt)
+            : 'Never';
+        }
+        if (serverTileScanMeta) {
+          const trackedTotal =
+            typeof broadcasts.total === 'number' && Number.isFinite(broadcasts.total)
+              ? broadcasts.total
+              : 0;
+          serverTileScanMeta.textContent = `${formatNumber(trackedTotal)} ${pluralize(trackedTotal, 'asset')} tracked`;
+        }
+      }
+
+      function updateFileBroadcastBanner() {
+        if (!fileBroadcastsStatus) {
+          return;
+        }
+        const shouldUpdate =
+          !fileBroadcastsStatus.classList.contains('is-visible') || fileBroadcastsStatus.dataset.variant === 'info';
+        if (!shouldUpdate) {
+          return;
+        }
+        const broadcastStatus = state.data?.serverStatus?.fileBroadcasts || {};
+        const total =
+          typeof broadcastStatus.total === 'number' && Number.isFinite(broadcastStatus.total)
+            ? broadcastStatus.total
+            : 0;
+        if (broadcastStatus.lastScanCompletedAt) {
+          setFileBroadcastStatus(
+            `Last scan ${formatRelativeTime(broadcastStatus.lastScanCompletedAt)} (${formatDate(
+              broadcastStatus.lastScanCompletedAt
+            )}). ${formatNumber(total)} ${pluralize(total, 'asset')} indexed.`,
+            'info'
+          );
+          return;
+        }
+        if (total > 0) {
+          setFileBroadcastStatus(
+            `${formatNumber(total)} ${pluralize(total, 'asset')} tracked across monitored directories.`,
+            'info'
+          );
+        } else {
+          setFileBroadcastStatus('No file broadcasts indexed yet.', 'info');
+        }
       }
 
       function renderUsers() {
@@ -1947,7 +2244,14 @@
             if (!response.ok) {
               throw new Error((payload && payload.message) || 'Failed to reindex file broadcasts.');
             }
-            setFileBroadcastStatus(payload.message || 'File broadcasts synchronized.', 'success');
+            let message = payload.message || 'File broadcasts synchronized.';
+            if (typeof payload.total === 'number' && Number.isFinite(payload.total)) {
+              message += ` ${formatNumber(payload.total)} ${pluralize(payload.total, 'asset')} tracked.`;
+            }
+            if (payload.lastScanCompletedAt) {
+              message += ` Last scan ${formatRelativeTime(payload.lastScanCompletedAt)}.`;
+            }
+            setFileBroadcastStatus(message.trim(), 'success');
             await loadOverview({ silent: true }).catch(() => {});
           } catch (error) {
             console.error('File broadcast rescan failed', error);

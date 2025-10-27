@@ -49,10 +49,125 @@ const TIMEPIECE_LEDGER_INJECTION = `
       if (!address) return 'unknown';
       const value = String(address).trim();
       if (/^0x[a-fA-F0-9]{40}$/.test(value)) return 'evm';
-      if (/^(addr1|stake1)/i.test(value)) return 'cardano';
+      if (/^(addr|stake)(?:_test)?1/i.test(value)) return 'cardano';
       if (/^(bc1|tb1)/i.test(value) || /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(value)) return 'bitcoin';
       if (/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(value)) return 'solana';
       return 'unknown';
+    }
+
+    const BECH32_CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+
+    function bech32Polymod(values) {
+      let chk = 1;
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        const top = chk >>> 25;
+        chk = ((chk & 0x1ffffff) << 5) ^ value;
+        if (top & 1) chk ^= 0x3b6a57b2;
+        if (top & 2) chk ^= 0x26508e6d;
+        if (top & 4) chk ^= 0x1ea119fa;
+        if (top & 8) chk ^= 0x3d4233dd;
+        if (top & 16) chk ^= 0x2a1462b3;
+      }
+      return chk;
+    }
+
+    function bech32HrpExpand(hrp) {
+      const ret = [];
+      for (let i = 0; i < hrp.length; i++) {
+        ret.push(hrp.charCodeAt(i) >>> 5);
+      }
+      ret.push(0);
+      for (let i = 0; i < hrp.length; i++) {
+        ret.push(hrp.charCodeAt(i) & 31);
+      }
+      return ret;
+    }
+
+    function bech32CreateChecksum(hrp, data) {
+      const values = bech32HrpExpand(hrp).concat(data).concat([0, 0, 0, 0, 0, 0]);
+      const mod = bech32Polymod(values) ^ 1;
+      const result = [];
+      for (let i = 0; i < 6; i++) {
+        result.push((mod >>> (5 * (5 - i))) & 31);
+      }
+      return result;
+    }
+
+    function bech32Encode(hrp, data) {
+      const combined = data.concat(bech32CreateChecksum(hrp, data));
+      let out = hrp + '1';
+      for (let i = 0; i < combined.length; i++) {
+        out += BECH32_CHARSET.charAt(combined[i]);
+      }
+      return out;
+    }
+
+    function convertBits(data, fromBits, toBits, pad) {
+      let acc = 0;
+      let bits = 0;
+      const maxv = (1 << toBits) - 1;
+      const result = [];
+      for (let i = 0; i < data.length; i++) {
+        const value = data[i];
+        if (value < 0 || value >>> fromBits !== 0) {
+          return null;
+        }
+        acc = (acc << fromBits) | value;
+        bits += fromBits;
+        while (bits >= toBits) {
+          bits -= toBits;
+          result.push((acc >>> bits) & maxv);
+        }
+      }
+      if (pad) {
+        if (bits > 0) {
+          result.push((acc << (toBits - bits)) & maxv);
+        }
+      } else if (bits >= fromBits || ((acc << (toBits - bits)) & maxv) !== 0) {
+        return null;
+      }
+      return result;
+    }
+
+    function hexToBytes(hex) {
+      if (!hex) return new Uint8Array(0);
+      const normalized = hex.startsWith('0x') ? hex.slice(2) : hex;
+      if (normalized.length % 2 !== 0) {
+        throw new Error('Invalid hex string length');
+      }
+      const out = new Uint8Array(normalized.length / 2);
+      for (let i = 0; i < out.length; i++) {
+        out[i] = parseInt(normalized.substr(i * 2, 2), 16);
+      }
+      return out;
+    }
+
+    function cardanoNetworkLabel(networkId) {
+      if (networkId === 1) return 'cardano-mainnet';
+      if (networkId === 0) return 'cardano-testnet';
+      return 'cardano';
+    }
+
+    function encodeCardanoAddressFromHex(hex, fallbackNetworkId) {
+      try {
+        const bytes = hexToBytes(hex);
+        if (!bytes.length) return '';
+        const header = bytes[0];
+        const type = header >>> 4;
+        const networkNibble = header & 0x0f;
+        const networkId = typeof fallbackNetworkId === 'number' && fallbackNetworkId >= 0 ? fallbackNetworkId : networkNibble;
+        const isReward = type >= 5;
+        const hrp = networkId === 1 ? (isReward ? 'stake' : 'addr') : isReward ? 'stake_test' : 'addr_test';
+        const data = convertBits(Array.from(bytes), 8, 5, true);
+        if (!data) {
+          return hex;
+        }
+        return bech32Encode(hrp, data);
+      } catch (error) {
+        console.warn('Failed to encode bech32 address from hex', error);
+        return String(hex || '');
+      }
     }
 
     function getMintSelection(button) {
@@ -159,6 +274,10 @@ const TIMEPIECE_LEDGER_INJECTION = `
           Wallet Address
           <input name="walletAddress" type="text" autocomplete="off" spellcheck="false" placeholder="Paste wallet address" style="border-radius:12px;border:1px solid rgba(148,163,184,0.35);padding:12px 14px;background:rgba(15,23,42,0.92);color:#f8fbff;font-size:0.95rem;" required />
         </label>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+          <button type="button" data-choice-connect style="background:rgba(59,130,246,0.16);color:#7dd3fc;border:1px solid rgba(125,211,252,0.35);padding:9px 18px;border-radius:999px;font-size:0.85rem;font-weight:600;cursor:pointer;">Connect Choice Wallet</button>
+          <span data-choice-status style="font-size:0.85rem;color:#9fb0c8;">Choice wallet not connected.</span>
+        </div>
         <label style="display:grid;gap:6px;color:#9fb0c8;font-size:0.9rem;">
           Contact or Notes (optional)
           <input name="contactDetail" type="text" autocomplete="off" placeholder="Telegram, email, or phone" style="border-radius:12px;border:1px solid rgba(148,163,184,0.25);padding:12px 14px;background:rgba(15,23,42,0.75);color:#e2e8f0;font-size:0.95rem;" />
@@ -190,6 +309,128 @@ const TIMEPIECE_LEDGER_INJECTION = `
       const confirmBtn = form.querySelector('[data-ledger-action="confirm"]');
       const storageKey = 'ioncore:timepiece:lastWallet';
       const contactKey = 'ioncore:timepiece:lastContact';
+      const choiceConnectBtn = form.querySelector('[data-choice-connect]');
+      const choiceStatus = form.querySelector('[data-choice-status]');
+      const choiceState = { connected: false, address: '', networkLabel: '' };
+
+      function updateChoiceStatus(message, tone) {
+        if (!choiceStatus) return;
+        choiceStatus.textContent = message;
+        if (tone === 'positive') {
+          choiceStatus.style.color = '#6beacb';
+        } else if (tone === 'negative') {
+          choiceStatus.style.color = '#fca5a5';
+        } else {
+          choiceStatus.style.color = '#9fb0c8';
+        }
+      }
+
+      function resetChoiceState() {
+        choiceState.connected = false;
+        choiceState.address = '';
+        choiceState.networkLabel = '';
+        if (choiceConnectBtn) {
+          choiceConnectBtn.textContent = 'Connect Choice Wallet';
+        }
+        updateChoiceStatus('Choice wallet not connected.');
+        delete form.dataset.walletNetworkOverride;
+        walletInput.removeAttribute('data-choice-address');
+      }
+
+      function applyChoiceSelection(address, networkLabel) {
+        if (!address) return;
+        choiceState.connected = true;
+        choiceState.address = address;
+        choiceState.networkLabel = networkLabel || 'cardano';
+        form.dataset.walletNetworkOverride = choiceState.networkLabel;
+        walletInput.value = address;
+        walletInput.setAttribute('data-choice-address', address);
+        if (choiceConnectBtn) {
+          choiceConnectBtn.textContent = 'Reconnect Choice Wallet';
+        }
+        let readableLabel = '';
+        if (networkLabel) {
+          if (networkLabel.indexOf('cardano-') === 0) {
+            readableLabel = networkLabel.slice('cardano-'.length);
+          } else if (networkLabel !== 'cardano') {
+            readableLabel = networkLabel;
+          }
+        }
+        const networkSuffix = readableLabel ? ' (' + readableLabel + ')' : '';
+        updateChoiceStatus('Connected to Choice wallet' + networkSuffix + '.', 'positive');
+      }
+
+      async function connectChoiceWallet(options) {
+        const opts = options || {};
+        if (!choiceConnectBtn) {
+          return;
+        }
+        const provider = window.cardano && window.cardano.choice;
+        if (!provider) {
+          if (opts.silent) {
+            resetChoiceState();
+          } else {
+            updateChoiceStatus('Choice wallet extension not detected.', 'negative');
+            showToast('Choice wallet extension not detected.', 'error');
+          }
+          return;
+        }
+        try {
+          choiceConnectBtn.disabled = true;
+          choiceConnectBtn.textContent = 'Connecting…';
+          updateChoiceStatus('Connecting to Choice wallet…');
+          const api = await provider.enable();
+          const networkId = typeof api.getNetworkId === 'function' ? await api.getNetworkId() : undefined;
+          const networkLabel = cardanoNetworkLabel(networkId);
+          let addressHex = null;
+          if (typeof api.getUsedAddresses === 'function') {
+            const used = await api.getUsedAddresses();
+            if (Array.isArray(used) && used.length > 0) {
+              addressHex = used[0];
+            }
+          }
+          if (!addressHex && typeof api.getChangeAddress === 'function') {
+            addressHex = await api.getChangeAddress();
+          }
+          if (!addressHex && typeof api.getRewardAddresses === 'function') {
+            const rewards = await api.getRewardAddresses();
+            if (Array.isArray(rewards) && rewards.length > 0) {
+              addressHex = rewards[0];
+            }
+          }
+          if (!addressHex) {
+            throw new Error('No addresses available in Choice wallet.');
+          }
+          let addressHexString = '';
+          if (typeof addressHex === 'string') {
+            addressHexString = addressHex;
+          } else if (addressHex && typeof addressHex === 'object' && typeof addressHex.length === 'number') {
+            addressHexString = Array.from(addressHex)
+              .map((byte) => byte.toString(16).padStart(2, '0'))
+              .join('');
+          }
+          const bech32 = encodeCardanoAddressFromHex(addressHexString, networkId);
+          if (!bech32) {
+            throw new Error('Unable to read Choice wallet address.');
+          }
+          applyChoiceSelection(bech32, networkLabel);
+          if (!opts.silent) {
+            showToast('Choice wallet connected.', 'success');
+          }
+        } catch (error) {
+          console.error('Choice wallet connect failed', error);
+          const message = error && error.message ? error.message : 'Unable to connect to Choice wallet.';
+          if (opts.silent) {
+            resetChoiceState();
+          } else {
+            updateChoiceStatus(message, 'negative');
+            showToast(message, 'error');
+          }
+        } finally {
+          choiceConnectBtn.disabled = false;
+          choiceConnectBtn.textContent = choiceState.connected ? 'Reconnect Choice Wallet' : 'Connect Choice Wallet';
+        }
+      }
 
       function closeOverlay() {
         overlay.style.opacity = '0';
@@ -208,11 +449,32 @@ const TIMEPIECE_LEDGER_INJECTION = `
           edition.textContent = '';
           edition.style.display = 'none';
         }
-        walletInput.value = window.localStorage.getItem(storageKey) || '';
+        if (choiceState.connected && choiceState.address) {
+          applyChoiceSelection(choiceState.address, choiceState.networkLabel);
+        } else {
+          resetChoiceState();
+          walletInput.value = window.localStorage.getItem(storageKey) || '';
+        }
         contactInput.value = window.localStorage.getItem(contactKey) || '';
         overlay.style.opacity = '1';
         overlay.style.pointerEvents = 'auto';
-        window.setTimeout(() => walletInput.focus(), 40);
+        if (choiceState.connected) {
+          window.setTimeout(() => contactInput.focus(), 40);
+        } else {
+          window.setTimeout(() => walletInput.focus(), 40);
+        }
+        if (choiceConnectBtn && window.cardano && window.cardano.choice && typeof window.cardano.choice.isEnabled === 'function') {
+          window.cardano.choice
+            .isEnabled()
+            .then((enabled) => {
+              if (enabled && !choiceState.connected) {
+                connectChoiceWallet({ silent: true });
+              }
+            })
+            .catch(() => {
+              // ignore preflight errors
+            });
+        }
       }
 
       overlay.addEventListener('click', (event) => {
@@ -230,6 +492,30 @@ const TIMEPIECE_LEDGER_INJECTION = `
       cancelBtn.addEventListener('click', (event) => {
         event.preventDefault();
         closeOverlay();
+      });
+
+      if (choiceConnectBtn) {
+        choiceConnectBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          connectChoiceWallet({ silent: false });
+        });
+      }
+
+      walletInput.addEventListener('input', () => {
+        if (!walletInput.value.trim()) {
+          updateChoiceStatus('Choice wallet not connected.');
+        }
+        if (choiceState.connected && walletInput.value.trim() !== choiceState.address) {
+          choiceState.connected = false;
+          choiceState.address = '';
+          choiceState.networkLabel = '';
+          if (choiceConnectBtn) {
+            choiceConnectBtn.textContent = 'Connect Choice Wallet';
+          }
+          updateChoiceStatus('Choice wallet not connected.');
+          delete form.dataset.walletNetworkOverride;
+          walletInput.removeAttribute('data-choice-address');
+        }
       });
 
       form.addEventListener('submit', async (event) => {
@@ -254,13 +540,14 @@ const TIMEPIECE_LEDGER_INJECTION = `
             },
             body: JSON.stringify({
               walletAddress,
-              walletNetwork: detectWalletNetwork(walletAddress),
+              walletNetwork: form.dataset.walletNetworkOverride || detectWalletNetwork(walletAddress),
               itemChoice: selectionData.choice || '',
               itemLabel: selectionData.label || '',
               buttonLabel: selectionData.buttonText || '',
               editionNote: selectionData.edition || '',
               contactDetail,
-              mintSource: window.location.pathname || ''
+              mintSource: window.location.pathname || '',
+              walletProvider: choiceState.connected ? 'choice-cardano' : ''
             })
           });
           if (!response.ok) {
@@ -1541,6 +1828,7 @@ app.post('/api/timepieces/mints', async (req, res) => {
   const editionNote = normalizeForStorage(body.editionNote);
   const contactDetail = normalizeForStorage(body.contactDetail);
   const mintSource = normalizeForStorage(body.mintSource);
+  const walletProvider = normalizeForStorage(body.walletProvider);
 
   let walletNetwork = normalizeForStorage(body.walletNetwork);
   if (!walletNetwork) {
@@ -1567,6 +1855,7 @@ app.post('/api/timepieces/mints', async (req, res) => {
     editionNote,
     contactDetail,
     mintSource,
+    walletProvider,
     referer: normalizeForStorage(req.get('referer') || req.get('referrer')),
     userAgent: normalizeForStorage(req.get('user-agent')),
     ipAddress: normalizeForStorage(getClientIp(req)),
@@ -2497,6 +2786,7 @@ app.get('/api/admin/overview', async (req, res) => {
     editionNote: intent.editionNote,
     contactDetail: intent.contactDetail,
     mintSource: intent.mintSource,
+    walletProvider: intent.walletProvider,
     referer: intent.referer,
     userAgent: intent.userAgent,
     ipAddress: intent.ipAddress,

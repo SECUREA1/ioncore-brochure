@@ -1519,6 +1519,9 @@
         if (entry?.buttonLabel && entry.buttonLabel !== entry.itemLabel) {
           notes.push(entry.buttonLabel);
         }
+        if (entry?.walletProvider) {
+          notes.push(`Wallet: ${entry.walletProvider}`);
+        }
         if (entry?.referer && entry.referer !== entry?.mintSource) {
           notes.push(`Ref: ${entry.referer}`);
         }
@@ -1526,6 +1529,32 @@
           notes.push(entry.userAgent);
         }
         return truncate(notes.join(' · '));
+      }
+
+      function formatNetworkLabel(value) {
+        if (!value) {
+          return '—';
+        }
+        const normalized = String(value).toLowerCase();
+        if (normalized === 'cardano-mainnet') {
+          return 'Cardano · Mainnet';
+        }
+        if (normalized === 'cardano-testnet') {
+          return 'Cardano · Testnet';
+        }
+        if (normalized === 'cardano') {
+          return 'Cardano';
+        }
+        if (normalized === 'solana-mainnet-beta') {
+          return 'Solana · Mainnet Beta';
+        }
+        if (normalized === 'solana-devnet') {
+          return 'Solana · Devnet';
+        }
+        if (normalized === 'evm') {
+          return 'EVM';
+        }
+        return String(value).toUpperCase();
       }
 
       function renderMarketplaceUploads() {
@@ -1674,7 +1703,7 @@
           tr.appendChild(walletCell);
 
           const networkCell = document.createElement('td');
-          networkCell.textContent = entry.walletNetwork ? entry.walletNetwork.toUpperCase() : '—';
+          networkCell.textContent = formatNetworkLabel(entry.walletNetwork);
           tr.appendChild(networkCell);
 
           const itemCell = document.createElement('td');
@@ -1701,6 +1730,8 @@
         }
 
         timepieceLedgerTableBody.appendChild(fragment);
+      }
+
       function renderFileBroadcasts() {
         const broadcasts = state.data?.fileBroadcasts || [];
         if (fileBroadcastsEmpty) {

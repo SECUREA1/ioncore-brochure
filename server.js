@@ -38,559 +38,6 @@ const ADMIN_PROMO_SECTION = `
     <a href="/admin.html" class="btn" style="margin-top:38px;display:inline-flex;padding:16px 34px;border-radius:999px;background:#6aff3b;color:#030712;font-weight:700;font-size:1.05rem;text-decoration:none;">Launch Admin Control Center</a>
   </section>
 `;
-const TIMEPIECE_LEDGER_INJECTION = `
-  <script>(function(){
-    if (window.__ioncoreTimepieceLedgerInitialized) {
-      return;
-    }
-    window.__ioncoreTimepieceLedgerInitialized = true;
-
-    function detectWalletNetwork(address) {
-      if (!address) return 'unknown';
-      const value = String(address).trim();
-      if (/^0x[a-fA-F0-9]{40}$/.test(value)) return 'evm';
-      if (/^(addr|stake)(?:_test)?1/i.test(value)) return 'cardano';
-      if (/^(bc1|tb1)/i.test(value) || /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(value)) return 'bitcoin';
-      if (/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(value)) return 'solana';
-      return 'unknown';
-    }
-
-    const BECH32_CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
-
-    function bech32Polymod(values) {
-      let chk = 1;
-      for (let i = 0; i < values.length; i++) {
-        const value = values[i];
-        const top = chk >>> 25;
-        chk = ((chk & 0x1ffffff) << 5) ^ value;
-        if (top & 1) chk ^= 0x3b6a57b2;
-        if (top & 2) chk ^= 0x26508e6d;
-        if (top & 4) chk ^= 0x1ea119fa;
-        if (top & 8) chk ^= 0x3d4233dd;
-        if (top & 16) chk ^= 0x2a1462b3;
-      }
-      return chk;
-    }
-
-    function bech32HrpExpand(hrp) {
-      const ret = [];
-      for (let i = 0; i < hrp.length; i++) {
-        ret.push(hrp.charCodeAt(i) >>> 5);
-      }
-      ret.push(0);
-      for (let i = 0; i < hrp.length; i++) {
-        ret.push(hrp.charCodeAt(i) & 31);
-      }
-      return ret;
-    }
-
-    function bech32CreateChecksum(hrp, data) {
-      const values = bech32HrpExpand(hrp).concat(data).concat([0, 0, 0, 0, 0, 0]);
-      const mod = bech32Polymod(values) ^ 1;
-      const result = [];
-      for (let i = 0; i < 6; i++) {
-        result.push((mod >>> (5 * (5 - i))) & 31);
-      }
-      return result;
-    }
-
-    function bech32Encode(hrp, data) {
-      const combined = data.concat(bech32CreateChecksum(hrp, data));
-      let out = hrp + '1';
-      for (let i = 0; i < combined.length; i++) {
-        out += BECH32_CHARSET.charAt(combined[i]);
-      }
-      return out;
-    }
-
-    function convertBits(data, fromBits, toBits, pad) {
-      let acc = 0;
-      let bits = 0;
-      const maxv = (1 << toBits) - 1;
-      const result = [];
-      for (let i = 0; i < data.length; i++) {
-        const value = data[i];
-        if (value < 0 || value >>> fromBits !== 0) {
-          return null;
-        }
-        acc = (acc << fromBits) | value;
-        bits += fromBits;
-        while (bits >= toBits) {
-          bits -= toBits;
-          result.push((acc >>> bits) & maxv);
-        }
-      }
-      if (pad) {
-        if (bits > 0) {
-          result.push((acc << (toBits - bits)) & maxv);
-        }
-      } else if (bits >= fromBits || ((acc << (toBits - bits)) & maxv) !== 0) {
-        return null;
-      }
-      return result;
-    }
-
-    function hexToBytes(hex) {
-      if (!hex) return new Uint8Array(0);
-      const normalized = hex.startsWith('0x') ? hex.slice(2) : hex;
-      if (normalized.length % 2 !== 0) {
-        throw new Error('Invalid hex string length');
-      }
-      const out = new Uint8Array(normalized.length / 2);
-      for (let i = 0; i < out.length; i++) {
-        out[i] = parseInt(normalized.substr(i * 2, 2), 16);
-      }
-      return out;
-    }
-
-    function cardanoNetworkLabel(networkId) {
-      if (networkId === 1) return 'cardano-mainnet';
-      if (networkId === 0) return 'cardano-testnet';
-      return 'cardano';
-    }
-
-    function encodeCardanoAddressFromHex(hex, fallbackNetworkId) {
-      try {
-        const bytes = hexToBytes(hex);
-        if (!bytes.length) return '';
-        const header = bytes[0];
-        const type = header >>> 4;
-        const networkNibble = header & 0x0f;
-        const networkId = typeof fallbackNetworkId === 'number' && fallbackNetworkId >= 0 ? fallbackNetworkId : networkNibble;
-        const isReward = type >= 5;
-        const hrp = networkId === 1 ? (isReward ? 'stake' : 'addr') : isReward ? 'stake_test' : 'addr_test';
-        const data = convertBits(Array.from(bytes), 8, 5, true);
-        if (!data) {
-          return hex;
-        }
-        return bech32Encode(hrp, data);
-      } catch (error) {
-        console.warn('Failed to encode bech32 address from hex', error);
-        return String(hex || '');
-      }
-    }
-
-    function getMintSelection(button) {
-      const checked = document.querySelector("input[name='mint_pick']:checked");
-      let bubble = checked ? checked.closest('.mint-bubble') : null;
-      if (!bubble) {
-        const fallbackInput = document.querySelector("input[name='mint_pick']");
-        bubble = fallbackInput ? fallbackInput.closest('.mint-bubble') : null;
-      }
-      const choice = bubble && bubble.dataset ? bubble.dataset.choice || '' : '';
-      let label = '';
-      if (bubble) {
-        const titleEl = bubble.querySelector('div > div');
-        if (titleEl && titleEl.textContent) {
-          label = titleEl.textContent.trim();
-        }
-      }
-      const buttonText = button && button.textContent ? button.textContent.trim() : '';
-      if (!label && buttonText) {
-        label = buttonText.replace(/^Mint\s*/i, '').trim();
-      }
-      let edition = '';
-      if (bubble) {
-        const detailEl = bubble.querySelector('div > div:nth-of-type(2)');
-        if (detailEl && detailEl.textContent) {
-          edition = detailEl.textContent.trim();
-        }
-      }
-      return { choice, label, edition, buttonText };
-    }
-
-    function createToast() {
-      const existing = document.getElementById('timepiece-ledger-toast');
-      if (existing) return existing;
-      const toast = document.createElement('div');
-      toast.id = 'timepiece-ledger-toast';
-      toast.setAttribute('role', 'status');
-      toast.setAttribute('aria-live', 'polite');
-      toast.style.position = 'fixed';
-      toast.style.left = '50%';
-      toast.style.bottom = '32px';
-      toast.style.transform = 'translateX(-50%)';
-      toast.style.padding = '14px 22px';
-      toast.style.borderRadius = '999px';
-      toast.style.background = 'rgba(13,25,36,0.92)';
-      toast.style.color = '#e9f2ff';
-      toast.style.fontSize = '0.95rem';
-      toast.style.fontWeight = '600';
-      toast.style.boxShadow = '0 18px 48px rgba(3,7,18,0.35)';
-      toast.style.opacity = '0';
-      toast.style.pointerEvents = 'none';
-      toast.style.transition = 'opacity 0.25s ease';
-      document.body.appendChild(toast);
-      return toast;
-    }
-
-    function showToast(message, variant) {
-      const toast = createToast();
-      toast.textContent = message;
-      toast.style.background = variant === 'error' ? 'rgba(185,45,73,0.92)' : 'rgba(13,25,36,0.92)';
-      toast.style.opacity = '1';
-      window.setTimeout(() => {
-        toast.style.opacity = '0';
-      }, variant === 'error' ? 4200 : 2600);
-    }
-
-    function buildOverlay() {
-      const existing = document.getElementById('timepiece-ledger-overlay');
-      if (existing) return existing;
-      const overlay = document.createElement('div');
-      overlay.id = 'timepiece-ledger-overlay';
-      overlay.setAttribute('role', 'presentation');
-      overlay.style.position = 'fixed';
-      overlay.style.inset = '0';
-      overlay.style.background = 'rgba(3,7,18,0.76)';
-      overlay.style.backdropFilter = 'blur(8px)';
-      overlay.style.display = 'flex';
-      overlay.style.alignItems = 'center';
-      overlay.style.justifyContent = 'center';
-      overlay.style.padding = '24px';
-      overlay.style.zIndex = '920';
-      overlay.style.opacity = '0';
-      overlay.style.pointerEvents = 'none';
-      overlay.style.transition = 'opacity 0.25s ease';
-
-      const panel = document.createElement('form');
-      panel.id = 'timepiece-ledger-form';
-      panel.setAttribute('aria-labelledby', 'timepiece-ledger-title');
-      panel.style.background = 'rgba(10,15,24,0.95)';
-      panel.style.borderRadius = '22px';
-      panel.style.padding = '28px';
-      panel.style.border = '1px solid rgba(94,234,212,0.24)';
-      panel.style.width = 'min(420px, 100%)';
-      panel.style.display = 'grid';
-      panel.style.gap = '18px';
-
-      panel.innerHTML = \`
-        <div>
-          <h2 id="timepiece-ledger-title" style="margin:0 0 6px;font-size:1.4rem;color:#e4efff;">Record Mint Intent</h2>
-          <p data-ledger-summary style="margin:0;font-size:0.95rem;color:#9fb0c8;">Select a timepiece edition to continue.</p>
-          <p data-ledger-edition style="margin:6px 0 0;font-size:0.85rem;color:#6beacb;display:none;"></p>
-        </div>
-        <label style="display:grid;gap:6px;color:#9fb0c8;font-size:0.9rem;">
-          Wallet Address
-          <input name="walletAddress" type="text" autocomplete="off" spellcheck="false" placeholder="Paste wallet address" style="border-radius:12px;border:1px solid rgba(148,163,184,0.35);padding:12px 14px;background:rgba(15,23,42,0.92);color:#f8fbff;font-size:0.95rem;" required />
-        </label>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-          <button type="button" data-choice-connect style="background:rgba(59,130,246,0.16);color:#7dd3fc;border:1px solid rgba(125,211,252,0.35);padding:9px 18px;border-radius:999px;font-size:0.85rem;font-weight:600;cursor:pointer;">Connect Choice Wallet</button>
-          <span data-choice-status style="font-size:0.85rem;color:#9fb0c8;">Choice wallet not connected.</span>
-        </div>
-        <label style="display:grid;gap:6px;color:#9fb0c8;font-size:0.9rem;">
-          Contact or Notes (optional)
-          <input name="contactDetail" type="text" autocomplete="off" placeholder="Telegram, email, or phone" style="border-radius:12px;border:1px solid rgba(148,163,184,0.25);padding:12px 14px;background:rgba(15,23,42,0.75);color:#e2e8f0;font-size:0.95rem;" />
-        </label>
-        <p data-ledger-error style="min-height:20px;margin:0;font-size:0.85rem;color:#fda4af;"></p>
-        <div style="display:flex;justify-content:flex-end;gap:12px;">
-          <button type="button" data-ledger-action="cancel" style="background:rgba(15,23,42,0.6);color:#cbd5f5;border:1px solid rgba(148,163,184,0.35);padding:10px 18px;border-radius:999px;font-size:0.9rem;cursor:pointer;">Cancel</button>
-          <button type="submit" data-ledger-action="confirm" style="background:linear-gradient(135deg,#5fe29b,#3ab5f6);color:#071225;border:none;padding:10px 20px;border-radius:999px;font-size:0.95rem;font-weight:600;cursor:pointer;">Record Mint Intent</button>
-        </div>\`;
-
-      overlay.appendChild(panel);
-      document.body.appendChild(overlay);
-      return overlay;
-    }
-
-    function initLedgerCapture() {
-      const mintButton = document.getElementById('mint-btn');
-      if (!mintButton) {
-        return;
-      }
-      const overlay = buildOverlay();
-      const form = document.getElementById('timepiece-ledger-form');
-      const summary = form.querySelector('[data-ledger-summary]');
-      const edition = form.querySelector('[data-ledger-edition]');
-      const walletInput = form.querySelector('input[name="walletAddress"]');
-      const contactInput = form.querySelector('input[name="contactDetail"]');
-      const errorEl = form.querySelector('[data-ledger-error]');
-      const cancelBtn = form.querySelector('[data-ledger-action="cancel"]');
-      const confirmBtn = form.querySelector('[data-ledger-action="confirm"]');
-      const storageKey = 'ioncore:timepiece:lastWallet';
-      const contactKey = 'ioncore:timepiece:lastContact';
-      const choiceConnectBtn = form.querySelector('[data-choice-connect]');
-      const choiceStatus = form.querySelector('[data-choice-status]');
-      const choiceState = { connected: false, address: '', networkLabel: '' };
-
-      function updateChoiceStatus(message, tone) {
-        if (!choiceStatus) return;
-        choiceStatus.textContent = message;
-        if (tone === 'positive') {
-          choiceStatus.style.color = '#6beacb';
-        } else if (tone === 'negative') {
-          choiceStatus.style.color = '#fca5a5';
-        } else {
-          choiceStatus.style.color = '#9fb0c8';
-        }
-      }
-
-      function resetChoiceState() {
-        choiceState.connected = false;
-        choiceState.address = '';
-        choiceState.networkLabel = '';
-        if (choiceConnectBtn) {
-          choiceConnectBtn.textContent = 'Connect Choice Wallet';
-        }
-        updateChoiceStatus('Choice wallet not connected.');
-        delete form.dataset.walletNetworkOverride;
-        walletInput.removeAttribute('data-choice-address');
-      }
-
-      function applyChoiceSelection(address, networkLabel) {
-        if (!address) return;
-        choiceState.connected = true;
-        choiceState.address = address;
-        choiceState.networkLabel = networkLabel || 'cardano';
-        form.dataset.walletNetworkOverride = choiceState.networkLabel;
-        walletInput.value = address;
-        walletInput.setAttribute('data-choice-address', address);
-        if (choiceConnectBtn) {
-          choiceConnectBtn.textContent = 'Reconnect Choice Wallet';
-        }
-        let readableLabel = '';
-        if (networkLabel) {
-          if (networkLabel.indexOf('cardano-') === 0) {
-            readableLabel = networkLabel.slice('cardano-'.length);
-          } else if (networkLabel !== 'cardano') {
-            readableLabel = networkLabel;
-          }
-        }
-        const networkSuffix = readableLabel ? ' (' + readableLabel + ')' : '';
-        updateChoiceStatus('Connected to Choice wallet' + networkSuffix + '.', 'positive');
-      }
-
-      async function connectChoiceWallet(options) {
-        const opts = options || {};
-        if (!choiceConnectBtn) {
-          return;
-        }
-        const provider = window.cardano && window.cardano.choice;
-        if (!provider) {
-          if (opts.silent) {
-            resetChoiceState();
-          } else {
-            updateChoiceStatus('Choice wallet extension not detected.', 'negative');
-            showToast('Choice wallet extension not detected.', 'error');
-          }
-          return;
-        }
-        try {
-          choiceConnectBtn.disabled = true;
-          choiceConnectBtn.textContent = 'Connecting…';
-          updateChoiceStatus('Connecting to Choice wallet…');
-          const api = await provider.enable();
-          const networkId = typeof api.getNetworkId === 'function' ? await api.getNetworkId() : undefined;
-          const networkLabel = cardanoNetworkLabel(networkId);
-          let addressHex = null;
-          if (typeof api.getUsedAddresses === 'function') {
-            const used = await api.getUsedAddresses();
-            if (Array.isArray(used) && used.length > 0) {
-              addressHex = used[0];
-            }
-          }
-          if (!addressHex && typeof api.getChangeAddress === 'function') {
-            addressHex = await api.getChangeAddress();
-          }
-          if (!addressHex && typeof api.getRewardAddresses === 'function') {
-            const rewards = await api.getRewardAddresses();
-            if (Array.isArray(rewards) && rewards.length > 0) {
-              addressHex = rewards[0];
-            }
-          }
-          if (!addressHex) {
-            throw new Error('No addresses available in Choice wallet.');
-          }
-          let addressHexString = '';
-          if (typeof addressHex === 'string') {
-            addressHexString = addressHex;
-          } else if (addressHex && typeof addressHex === 'object' && typeof addressHex.length === 'number') {
-            addressHexString = Array.from(addressHex)
-              .map((byte) => byte.toString(16).padStart(2, '0'))
-              .join('');
-          }
-          const bech32 = encodeCardanoAddressFromHex(addressHexString, networkId);
-          if (!bech32) {
-            throw new Error('Unable to read Choice wallet address.');
-          }
-          applyChoiceSelection(bech32, networkLabel);
-          if (!opts.silent) {
-            showToast('Choice wallet connected.', 'success');
-          }
-        } catch (error) {
-          console.error('Choice wallet connect failed', error);
-          const message = error && error.message ? error.message : 'Unable to connect to Choice wallet.';
-          if (opts.silent) {
-            resetChoiceState();
-          } else {
-            updateChoiceStatus(message, 'negative');
-            showToast(message, 'error');
-          }
-        } finally {
-          choiceConnectBtn.disabled = false;
-          choiceConnectBtn.textContent = choiceState.connected ? 'Reconnect Choice Wallet' : 'Connect Choice Wallet';
-        }
-      }
-
-      function closeOverlay() {
-        overlay.style.opacity = '0';
-        overlay.style.pointerEvents = 'none';
-        overlay.removeAttribute('data-selection');
-        errorEl.textContent = '';
-      }
-
-      function openOverlay(selection) {
-        overlay.dataset.selection = JSON.stringify(selection);
-        summary.textContent = selection.label || selection.buttonText || 'Selected edition';
-        if (selection.edition) {
-          edition.textContent = selection.edition;
-          edition.style.display = '';
-        } else {
-          edition.textContent = '';
-          edition.style.display = 'none';
-        }
-        if (choiceState.connected && choiceState.address) {
-          applyChoiceSelection(choiceState.address, choiceState.networkLabel);
-        } else {
-          resetChoiceState();
-          walletInput.value = window.localStorage.getItem(storageKey) || '';
-        }
-        contactInput.value = window.localStorage.getItem(contactKey) || '';
-        overlay.style.opacity = '1';
-        overlay.style.pointerEvents = 'auto';
-        if (choiceState.connected) {
-          window.setTimeout(() => contactInput.focus(), 40);
-        } else {
-          window.setTimeout(() => walletInput.focus(), 40);
-        }
-        if (choiceConnectBtn && window.cardano && window.cardano.choice && typeof window.cardano.choice.isEnabled === 'function') {
-          window.cardano.choice
-            .isEnabled()
-            .then((enabled) => {
-              if (enabled && !choiceState.connected) {
-                connectChoiceWallet({ silent: true });
-              }
-            })
-            .catch(() => {
-              // ignore preflight errors
-            });
-        }
-      }
-
-      overlay.addEventListener('click', (event) => {
-        if (event.target === overlay) {
-          closeOverlay();
-        }
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && overlay.style.pointerEvents === 'auto') {
-          closeOverlay();
-        }
-      });
-
-      cancelBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        closeOverlay();
-      });
-
-      if (choiceConnectBtn) {
-        choiceConnectBtn.addEventListener('click', (event) => {
-          event.preventDefault();
-          connectChoiceWallet({ silent: false });
-        });
-      }
-
-      walletInput.addEventListener('input', () => {
-        if (!walletInput.value.trim()) {
-          updateChoiceStatus('Choice wallet not connected.');
-        }
-        if (choiceState.connected && walletInput.value.trim() !== choiceState.address) {
-          choiceState.connected = false;
-          choiceState.address = '';
-          choiceState.networkLabel = '';
-          if (choiceConnectBtn) {
-            choiceConnectBtn.textContent = 'Connect Choice Wallet';
-          }
-          updateChoiceStatus('Choice wallet not connected.');
-          delete form.dataset.walletNetworkOverride;
-          walletInput.removeAttribute('data-choice-address');
-        }
-      });
-
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const selectionData = overlay.dataset.selection ? JSON.parse(overlay.dataset.selection) : {};
-        const walletAddress = walletInput.value.trim();
-        const contactDetail = contactInput.value.trim();
-        if (!walletAddress) {
-          errorEl.textContent = 'Enter a wallet address to log this mint intent.';
-          walletInput.focus();
-          return;
-        }
-        errorEl.textContent = '';
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Recording…';
-        try {
-          const response = await fetch('/api/timepieces/mints', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json'
-            },
-            body: JSON.stringify({
-              walletAddress,
-              walletNetwork: form.dataset.walletNetworkOverride || detectWalletNetwork(walletAddress),
-              itemChoice: selectionData.choice || '',
-              itemLabel: selectionData.label || '',
-              buttonLabel: selectionData.buttonText || '',
-              editionNote: selectionData.edition || '',
-              contactDetail,
-              mintSource: window.location.pathname || '',
-              walletProvider: choiceState.connected ? 'choice-cardano' : ''
-            })
-          });
-          if (!response.ok) {
-            const payload = await response.json().catch(() => null);
-            const message = payload && payload.message ? payload.message : 'Unable to record mint intent right now.';
-            throw new Error(message);
-          }
-          window.localStorage.setItem(storageKey, walletAddress);
-          if (contactDetail) {
-            window.localStorage.setItem(contactKey, contactDetail);
-          } else {
-            window.localStorage.removeItem(contactKey);
-          }
-          closeOverlay();
-          showToast('Mint intent recorded. Ioncore ledger updated.', 'success');
-        } catch (error) {
-          console.error('Failed to record mint ledger entry', error);
-          errorEl.textContent = error?.message || 'Unable to record mint intent right now.';
-        } finally {
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = 'Record Mint Intent';
-        }
-      });
-
-      mintButton.addEventListener('click', (event) => {
-        const selection = getMintSelection(mintButton);
-        if (!selection.choice && !selection.label) {
-          showToast('Select a timepiece edition before minting.', 'error');
-          event.preventDefault();
-          return;
-        }
-        event.preventDefault();
-        openOverlay(selection);
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initLedgerCapture);
-    } else {
-      initLedgerCapture();
-    }
-  })();</script>
-`;
 const CARDANO_POLICY_ID =
   process.env.CARDANO_POLICY_ID || 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
 
@@ -616,28 +63,6 @@ await fs.mkdir(DATA_DIR, { recursive: true });
 
 const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
 
-const FILE_BROADCAST_SCAN_INTERVAL_MS = 1000 * 60;
-const FILE_BROADCAST_IGNORE_DIRS = new Set(['node_modules', 'data', '.git', '.github', '.cache', '.next']);
-const FILE_AUDIO_EXTENSIONS = new Set(['.mp3', '.wav', '.ogg', '.m4a', '.flac']);
-const FILE_VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.webm', '.mkv', '.avi']);
-const FILE_IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico']);
-const FILE_DOCUMENT_EXTENSIONS = new Set(['.html', '.htm', '.md', '.txt', '.pdf']);
-const FILE_SCRIPT_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.ts']);
-const FILE_ARCHIVE_EXTENSIONS = new Set(['.zip', '.tar', '.gz']);
-
-const FILE_TRACK_EXTENSIONS = new Set(
-  [
-    ...FILE_AUDIO_EXTENSIONS,
-    ...FILE_VIDEO_EXTENSIONS,
-    ...FILE_IMAGE_EXTENSIONS,
-    ...FILE_DOCUMENT_EXTENSIONS,
-    ...FILE_SCRIPT_EXTENSIONS,
-    ...FILE_ARCHIVE_EXTENSIONS,
-    '.json',
-    '.css'
-  ].map((ext) => ext.toLowerCase())
-);
-
 const defaultStore = {
   loginEvents: [],
   contactSubmissions: [],
@@ -646,9 +71,7 @@ const defaultStore = {
   magstripeTransactions: [],
   bitcoinTransactions: [],
   marketplaceUploads: [],
-  marketplaceBids: [],
-  timepieceMintLedger: [],
-  fileBroadcasts: []
+  marketplaceBids: []
 };
 
 async function loadStore() {
@@ -666,9 +89,7 @@ async function loadStore() {
       magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : [],
       bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
-      marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
-      timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : [],
-      fileBroadcasts: Array.isArray(parsed.fileBroadcasts) ? parsed.fileBroadcasts : []
+      marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : []
     };
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
@@ -703,196 +124,6 @@ async function saveStore() {
     throw error;
   }
 }
-
-function formatFileSize(bytes) {
-  if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) {
-    return null;
-  }
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let value = bytes;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-  const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
-  return `${value.toFixed(precision)} ${units[unitIndex]}`;
-}
-
-function shouldTrackFile(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  return FILE_TRACK_EXTENSIONS.has(ext);
-}
-
-function categorizeFileBroadcast(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  if (FILE_AUDIO_EXTENSIONS.has(ext)) return 'audio';
-  if (FILE_VIDEO_EXTENSIONS.has(ext)) return 'video';
-  if (FILE_IMAGE_EXTENSIONS.has(ext)) return 'image';
-  if (FILE_DOCUMENT_EXTENSIONS.has(ext)) return 'document';
-  if (FILE_SCRIPT_EXTENSIONS.has(ext)) return 'script';
-  if (FILE_ARCHIVE_EXTENSIONS.has(ext)) return 'archive';
-  if (ext === '.json') return 'data';
-  if (ext === '.css') return 'stylesheet';
-  return ext ? ext.replace('.', '') : 'asset';
-}
-
-async function collectTrackableFiles(dir, root = dir, results = []) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.name.startsWith('.')) {
-      if (entry.isDirectory()) {
-        if (entry.name === '.well-known') {
-          // allow .well-known directories to pass through
-        } else {
-          continue;
-        }
-      } else {
-        continue;
-      }
-    }
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (FILE_BROADCAST_IGNORE_DIRS.has(entry.name)) {
-        continue;
-      }
-      await collectTrackableFiles(fullPath, root, results);
-    } else if (entry.isFile() && shouldTrackFile(fullPath)) {
-      let stats;
-      try {
-        stats = await fs.stat(fullPath);
-      } catch (error) {
-        console.warn('Unable to stat file for broadcast tracking', fullPath, error);
-        continue;
-      }
-      results.push({
-        path: fullPath,
-        relPath: path.relative(root, fullPath).split(path.sep).join('/'),
-        size: stats.size,
-        modifiedAt: new Date(stats.mtimeMs).toISOString()
-      });
-    }
-  }
-  return results;
-}
-
-let lastFileBroadcastScan = 0;
-
-async function syncFileBroadcasts(options = {}) {
-  const { force = false } = options || {};
-  const now = Date.now();
-  if (!force && now - lastFileBroadcastScan < FILE_BROADCAST_SCAN_INTERVAL_MS) {
-    return false;
-  }
-
-  const files = await collectTrackableFiles(__dirname, __dirname, []);
-  lastFileBroadcastScan = Date.now();
-
-  if (!Array.isArray(store.fileBroadcasts)) {
-    store.fileBroadcasts = [];
-  }
-
-  const existingByPath = new Map();
-  for (const entry of store.fileBroadcasts) {
-    if (entry && typeof entry.path === 'string') {
-      existingByPath.set(entry.path, entry);
-    }
-  }
-
-  const seenIds = new Set();
-  let changed = false;
-  const timestamp = new Date().toISOString();
-
-  for (const file of files) {
-    const relPath = file.relPath;
-    const existing = existingByPath.get(relPath);
-    if (!existing) {
-      const record = {
-        id: randomUUID(),
-        path: relPath,
-        displayName: path.basename(relPath),
-        category: categorizeFileBroadcast(relPath),
-        status: 'active',
-        lastEvent: 'discovered',
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        indexedAt: timestamp,
-        fileSize: file.size,
-        modifiedAt: file.modifiedAt,
-        removedAt: null
-      };
-      store.fileBroadcasts.push(record);
-      existingByPath.set(relPath, record);
-      seenIds.add(record.id);
-      changed = true;
-      continue;
-    }
-
-    if (!existing.id) {
-      existing.id = randomUUID();
-      changed = true;
-    }
-
-    const sizeChanged = existing.fileSize !== file.size;
-    const modifiedChanged = existing.modifiedAt !== file.modifiedAt;
-    const statusChanged = existing.status === 'removed';
-
-    if (sizeChanged || modifiedChanged || statusChanged) {
-      existing.fileSize = file.size;
-      existing.modifiedAt = file.modifiedAt;
-      existing.updatedAt = timestamp;
-      existing.status = 'active';
-      existing.lastEvent = statusChanged ? 'restored' : 'updated';
-      if (!existing.createdAt) {
-        existing.createdAt = timestamp;
-      }
-      changed = true;
-    }
-
-    if (!existing.indexedAt) {
-      existing.indexedAt = existing.createdAt || timestamp;
-    }
-    if (!existing.displayName) {
-      existing.displayName = path.basename(relPath);
-    }
-    const category = categorizeFileBroadcast(relPath);
-    if (existing.category !== category) {
-      existing.category = category;
-      changed = true;
-    }
-
-    seenIds.add(existing.id);
-  }
-
-  for (const entry of store.fileBroadcasts) {
-    if (!entry) {
-      continue;
-    }
-    if (!entry.id) {
-      entry.id = randomUUID();
-      changed = true;
-    }
-    if (!seenIds.has(entry.id) && entry.status !== 'removed') {
-      entry.status = 'removed';
-      entry.lastEvent = 'removed';
-      entry.updatedAt = timestamp;
-      entry.removedAt = timestamp;
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    try {
-      await saveStore();
-    } catch (error) {
-      console.error('Failed to persist file broadcast updates', error);
-    }
-  }
-
-  return changed;
-}
-
-await syncFileBroadcasts({ force: true });
 
 function normalizeForStorage(value) {
   if (typeof value !== 'string') {
@@ -955,49 +186,6 @@ function sanitizeUrl(value) {
     }
   } catch (error) {
     return null;
-  }
-  return null;
-}
-
-function inferWalletNetwork(address) {
-  if (typeof address !== 'string') {
-    return 'unknown';
-  }
-  const value = address.trim();
-  if (!value) {
-    return 'unknown';
-  }
-  if (/^0x[a-fA-F0-9]{40}$/.test(value)) {
-    return 'evm';
-  }
-  if (/^(addr1|stake1)/i.test(value)) {
-    return 'cardano';
-  }
-  if (/^(bc1|tb1)/i.test(value) || /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(value)) {
-    return 'bitcoin';
-  }
-  if (/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(value)) {
-    return 'solana';
-  }
-  return 'unknown';
-}
-
-function getClientIp(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded.trim()) {
-    return forwarded.split(',')[0].trim();
-  }
-  if (Array.isArray(forwarded) && forwarded.length > 0) {
-    return String(forwarded[0]).split(',')[0].trim();
-  }
-  if (req.ip) {
-    return req.ip;
-  }
-  if (req.connection && req.connection.remoteAddress) {
-    return req.connection.remoteAddress;
-  }
-  if (req.socket && req.socket.remoteAddress) {
-    return req.socket.remoteAddress;
   }
   return null;
 }
@@ -1815,71 +1003,6 @@ app.post('/gateway', async (req, res) => {
   });
 });
 
-app.post('/api/timepieces/mints', async (req, res) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const walletAddress = normalizeForStorage(body.walletAddress);
-  if (!walletAddress) {
-    return res.status(400).json({ message: 'Wallet address required to record mint intent.' });
-  }
-
-  const itemChoice = normalizeForStorage(body.itemChoice);
-  const itemLabel = normalizeForStorage(body.itemLabel);
-  const buttonLabel = normalizeForStorage(body.buttonLabel);
-  const editionNote = normalizeForStorage(body.editionNote);
-  const contactDetail = normalizeForStorage(body.contactDetail);
-  const mintSource = normalizeForStorage(body.mintSource);
-  const walletProvider = normalizeForStorage(body.walletProvider);
-
-  let walletNetwork = normalizeForStorage(body.walletNetwork);
-  if (!walletNetwork) {
-    walletNetwork = inferWalletNetwork(walletAddress);
-  }
-
-  const metadataPayload = {};
-  if (body.rawSelection && typeof body.rawSelection === 'object') {
-    metadataPayload.rawSelection = body.rawSelection;
-  }
-  if (body.ledgerNotes && typeof body.ledgerNotes === 'string' && body.ledgerNotes.trim()) {
-    metadataPayload.ledgerNotes = body.ledgerNotes.trim();
-  }
-
-  const metadata = Object.keys(metadataPayload).length > 0 ? serializeMetadata(metadataPayload) : null;
-  const nowIso = new Date().toISOString();
-  const record = {
-    id: randomUUID(),
-    walletAddress,
-    walletNetwork: walletNetwork || inferWalletNetwork(walletAddress),
-    itemChoice,
-    itemLabel,
-    buttonLabel,
-    editionNote,
-    contactDetail,
-    mintSource,
-    walletProvider,
-    referer: normalizeForStorage(req.get('referer') || req.get('referrer')),
-    userAgent: normalizeForStorage(req.get('user-agent')),
-    ipAddress: normalizeForStorage(getClientIp(req)),
-    createdAt: nowIso,
-    updatedAt: nowIso,
-    metadata
-  };
-
-  store.timepieceMintLedger.push(record);
-  const MAX_LEDGER_RECORDS = 500;
-  if (store.timepieceMintLedger.length > MAX_LEDGER_RECORDS) {
-    store.timepieceMintLedger.splice(0, store.timepieceMintLedger.length - MAX_LEDGER_RECORDS);
-  }
-
-  try {
-    await saveStore();
-  } catch (error) {
-    console.error('Failed to persist timepiece mint ledger entry', error);
-    return res.status(500).json({ message: 'Unable to record mint intent. Please try again shortly.' });
-  }
-
-  res.status(201).json({ message: 'Mint intent recorded successfully.' });
-});
-
 app.get('/api/payments/bitcoin/config', (req, res) => {
   res.json({
     btcAddress: BITCOIN_ADDRESS,
@@ -2437,7 +1560,6 @@ function isPublicRoute(req) {
       '/access/cardano',
       '/contact',
       '/gateway',
-      '/api/timepieces/mints',
       '/api/marketplace/uploads',
       '/api/marketplace/bids'
     ].includes(req.path)
@@ -2544,14 +1666,6 @@ app.get('/timepieces', async (req, res) => {
         html += ADMIN_PROMO_SECTION;
       }
     }
-    if (!html.includes('timepiece-ledger-overlay')) {
-      const closingTagMatch = html.match(/<\/body>/i);
-      if (closingTagMatch) {
-        html = html.replace(/<\/body>/i, `${TIMEPIECE_LEDGER_INJECTION}</body>`);
-      } else {
-        html += TIMEPIECE_LEDGER_INJECTION;
-      }
-    }
     res.type('html').send(html);
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);
@@ -2592,28 +1706,15 @@ app.get('/admin', async (req, res) => {
   }
 });
 
-app.get('/api/admin/overview', async (req, res) => {
-  try {
-    await syncFileBroadcasts();
-  } catch (error) {
-    console.error('File broadcast synchronization failed', error);
-  }
-
+app.get('/api/admin/overview', (req, res) => {
   const gatewayUsers = Object.entries(store.gatewayUsers || {}).map(([id, user]) => ({ id, ...user }));
-  const loginEvents = Array.isArray(store.loginEvents) ? store.loginEvents : [];
-  const contactSubmissions = Array.isArray(store.contactSubmissions) ? store.contactSubmissions : [];
-  const gatewaySubmissions = Array.isArray(store.gatewaySubmissions) ? store.gatewaySubmissions : [];
-  const magstripeTransactions = Array.isArray(store.magstripeTransactions) ? store.magstripeTransactions : [];
-  const bitcoinTransactions = Array.isArray(store.bitcoinTransactions) ? store.bitcoinTransactions : [];
   const marketplaceUploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
   const marketplaceBids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
-  const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
-  const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
   const activityTimeline = [];
 
-  for (const event of loginEvents) {
+  for (const event of store.loginEvents) {
     activityTimeline.push({
       type: 'login',
       timestamp: event.createdAt,
@@ -2623,7 +1724,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const submission of gatewaySubmissions) {
+  for (const submission of store.gatewaySubmissions) {
     activityTimeline.push({
       type: 'gateway-submission',
       timestamp: submission.updatedAt || submission.createdAt,
@@ -2633,7 +1734,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const contact of contactSubmissions) {
+  for (const contact of store.contactSubmissions) {
     activityTimeline.push({
       type: 'contact',
       timestamp: contact.createdAt,
@@ -2643,7 +1744,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const transaction of magstripeTransactions) {
+  for (const transaction of store.magstripeTransactions) {
     activityTimeline.push({
       type: 'stripe-transaction',
       timestamp: transaction.createdAt,
@@ -2653,7 +1754,7 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
-  for (const transaction of bitcoinTransactions) {
+  for (const transaction of store.bitcoinTransactions) {
     activityTimeline.push({
       type: 'bitcoin-transaction',
       timestamp: transaction.createdAt,
@@ -2685,43 +1786,6 @@ app.get('/api/admin/overview', async (req, res) => {
         ? `On ${asset.title || 'upload'} by ${asset.username || asset.walletAddress || 'creator'}`
         : `Asset reference ${bid.assetId}`,
       reference: bid
-    });
-  }
-
-  for (const intent of timepieceMintLedger) {
-    const networkLabel = intent.walletNetwork ? intent.walletNetwork.toUpperCase() : '';
-    const detailParts = [];
-    if (intent.walletAddress) {
-      detailParts.push(`Wallet: ${intent.walletAddress}`);
-    }
-    if (networkLabel) {
-      detailParts.push(`Network: ${networkLabel}`);
-    }
-    if (intent.contactDetail) {
-      detailParts.push(`Contact: ${intent.contactDetail}`);
-    }
-    activityTimeline.push({
-      type: 'timepiece-mint',
-      timestamp: intent.updatedAt || intent.createdAt,
-      headline:
-        intent.itemLabel || intent.buttonLabel || intent.itemChoice || 'Timepiece mint intent',
-      detail: detailParts.join(' · '),
-      reference: intent
-    });
-  }
-
-  for (const broadcast of fileBroadcasts) {
-    const descriptor = (broadcast.lastEvent || broadcast.status || 'updated').replace(/-/g, ' ');
-    const sizeLabel =
-      typeof broadcast.fileSize === 'number' && Number.isFinite(broadcast.fileSize)
-        ? ` · ${formatFileSize(broadcast.fileSize)}`
-        : '';
-    activityTimeline.push({
-      type: 'file-broadcast',
-      timestamp: broadcast.updatedAt || broadcast.createdAt,
-      headline: `${descriptor} ${broadcast.displayName || broadcast.path || 'asset'}`.trim(),
-      detail: `${broadcast.path || 'Unknown path'}${sizeLabel}`,
-      reference: broadcast
     });
   }
 
@@ -2781,79 +1845,28 @@ app.get('/api/admin/overview', async (req, res) => {
     };
   });
 
-  const timepieceMintLedgerSummary = sortByTimestampDesc(timepieceMintLedger, 'updatedAt', 'createdAt').map((intent) => ({
-    id: intent.id,
-    walletAddress: intent.walletAddress,
-    walletNetwork: intent.walletNetwork,
-    itemChoice: intent.itemChoice,
-    itemLabel: intent.itemLabel,
-    buttonLabel: intent.buttonLabel,
-    editionNote: intent.editionNote,
-    contactDetail: intent.contactDetail,
-    mintSource: intent.mintSource,
-    walletProvider: intent.walletProvider,
-    referer: intent.referer,
-    userAgent: intent.userAgent,
-    ipAddress: intent.ipAddress,
-    metadata: intent.metadata,
-    createdAt: intent.createdAt,
-    updatedAt: intent.updatedAt
-  }));
-
-  const fileBroadcastsSummary = sortByTimestampDesc(fileBroadcasts, 'updatedAt', 'createdAt').map((entry) => ({
-    id: entry.id,
-    path: entry.path,
-    displayName: entry.displayName || path.basename(entry.path || 'asset'),
-    category: entry.category || categorizeFileBroadcast(entry.path || ''),
-    status: entry.status || 'active',
-    lastEvent: entry.lastEvent || entry.status || 'updated',
-    createdAt: entry.createdAt,
-    updatedAt: entry.updatedAt,
-    indexedAt: entry.indexedAt || entry.createdAt,
-    removedAt: entry.removedAt || null,
-    fileSize: entry.fileSize ?? null,
-    modifiedAt: entry.modifiedAt || null
-  }));
-
   res.json({
     generatedAt: new Date().toISOString(),
     metrics: {
       totalGatewayUsers: gatewayUsers.length,
-      totalGatewaySubmissions: gatewaySubmissions.length,
-      totalContactSubmissions: contactSubmissions.length,
-      totalLoginEvents: loginEvents.length,
-      totalStripeTransactions: magstripeTransactions.length,
-      totalBitcoinTransactions: bitcoinTransactions.length,
+      totalGatewaySubmissions: store.gatewaySubmissions.length,
+      totalContactSubmissions: store.contactSubmissions.length,
+      totalLoginEvents: store.loginEvents.length,
+      totalStripeTransactions: store.magstripeTransactions.length,
+      totalBitcoinTransactions: store.bitcoinTransactions.length,
       totalMarketplaceUploads: marketplaceUploads.length,
-      totalMarketplaceBids: marketplaceBids.length,
-      totalTimepieceMintIntents: timepieceMintLedger.length,
-      totalFileBroadcasts: fileBroadcasts.length
+      totalMarketplaceBids: marketplaceBids.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
-    magstripeTransactions: sortByTimestampDesc(magstripeTransactions, 'createdAt'),
-    bitcoinTransactions: sortByTimestampDesc(bitcoinTransactions, 'createdAt'),
-    contactSubmissions: sortByTimestampDesc(contactSubmissions, 'createdAt'),
-    gatewaySubmissions: sortByTimestampDesc(gatewaySubmissions, 'updatedAt', 'createdAt'),
-    loginEvents: sortByTimestampDesc(loginEvents, 'createdAt'),
+    magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
+    bitcoinTransactions: sortByTimestampDesc(store.bitcoinTransactions, 'createdAt'),
+    contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
+    gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
+    loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),
     marketplaceUploads: marketplaceUploadsSummary,
     marketplaceBids: marketplaceBidsSummary,
-    timepieceMintLedger: timepieceMintLedgerSummary,
-    fileBroadcasts: fileBroadcastsSummary,
     activityTimeline
   });
-});
-
-app.post('/api/admin/file-broadcasts/rescan', async (req, res) => {
-  try {
-    const changed = await syncFileBroadcasts({ force: true });
-    res.json({
-      message: changed ? 'File broadcasts synchronized.' : 'No changes detected in tracked files.',
-      total: Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts.length : 0
-    });
-  } catch (error) {
-    console.error('Failed to rescan file broadcasts', error);
-    res.status(500).json({ message: 'Unable to rescan file broadcasts. Retry shortly.' });
-  }
 });
 
 app.patch('/api/admin/gateway-users/:id', async (req, res) => {

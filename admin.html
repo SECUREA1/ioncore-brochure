@@ -121,6 +121,21 @@
         z-index: 1;
       }
 
+      .tile-meta-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 6px;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+      }
+
+      .tile-meta-list li strong {
+        color: var(--text-high);
+        font-weight: 600;
+      }
+
       .metric-card {
         padding: 24px;
         border-radius: 22px;
@@ -161,6 +176,10 @@
 
       .section-header p {
         margin: 0;
+        color: var(--text-muted);
+      }
+
+      .text-muted {
         color: var(--text-muted);
       }
 
@@ -263,6 +282,26 @@
 
       .data-table tbody tr:nth-child(even) {
         background: rgba(255, 255, 255, 0.02);
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        border-radius: 22px;
+      }
+
+      .table-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .table-actions .btn,
+      .table-actions a {
+        font-size: 0.85rem;
+        padding: 8px 14px;
+        border-radius: 14px;
+        white-space: nowrap;
       }
 
       .empty-state {
@@ -528,174 +567,177 @@
         </div>
         <div class="admin-card-grid" id="metrics-grid">
           <article class="metric-card">
+            <h3>Server Status</h3>
+            <strong id="metric-server">—</strong>
+            <p id="metric-server-detail" class="text-muted"></p>
+          </article>
+          <article class="metric-card">
             <h3>Gateway Users</h3>
             <strong id="metric-users">0</strong>
             <p id="metric-users-updated" class="text-muted"></p>
           </article>
           <article class="metric-card">
-            <h3>Stripe / Magstripe</h3>
-            <strong id="metric-stripe">0</strong>
-            <p class="text-muted">Encrypted ledger of card &amp; bitcoin activity.</p>
+            <h3>Audio Uploads</h3>
+            <strong id="metric-audio">0</strong>
+            <p class="text-muted">Vault-captured sound files awaiting review.</p>
           </article>
           <article class="metric-card">
-            <h3>Poll &amp; Gateway Submissions</h3>
+            <h3>Poll Submissions</h3>
             <strong id="metric-polls">0</strong>
-            <p class="text-muted">Opt-ins, polls, and questionnaire intel.</p>
+            <p class="text-muted">Gateway program and opt-in responses.</p>
           </article>
           <article class="metric-card">
-            <h3>Contact &amp; Login Signals</h3>
-            <strong id="metric-contact">0</strong>
-            <p class="text-muted">Direct inquiries and authentication events.</p>
+            <h3>Question Box Entries</h3>
+            <strong id="metric-questions">0</strong>
+            <p class="text-muted">Inbound mission intelligence requests.</p>
           </article>
           <article class="metric-card">
-            <h3>Marketplace Uploads</h3>
-            <strong id="metric-marketplace-uploads">0</strong>
-            <p class="text-muted">Community submissions awaiting review.</p>
+            <h3>Login Events</h3>
+            <strong id="metric-logins">0</strong>
+            <p class="text-muted">Wallet &amp; credential authentications.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Marketplace Assets</h3>
+            <strong id="metric-marketplace-items">0</strong>
+            <p class="text-muted">Active listings across the exchange.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Minted Assets</h3>
+            <strong id="metric-mints">0</strong>
+            <p class="text-muted">Timepiece intents and ledgered mints.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Ledger Events</h3>
+            <strong id="metric-ledger">0</strong>
+            <p class="text-muted">Card, crypto, and treasury transactions.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Creation Vault Files</h3>
+            <strong id="metric-vault">0</strong>
+            <p class="text-muted">Indexed assets in secure storage.</p>
+          </article>
+          <article class="metric-card">
+            <h3>HTML Assets</h3>
+            <strong id="metric-html">0</strong>
+            <p class="text-muted">Templates ready for deployment.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Stored Marketplace Files</h3>
+            <strong id="metric-files">0</strong>
+            <p class="text-muted">Linked collateral backing listings.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Pool Transactions</h3>
+            <strong id="metric-transactions">0</strong>
+            <p class="text-muted">Liquidity flow tracked in pools.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Marketplace Orders</h3>
+            <strong id="metric-orders">0</strong>
+            <p class="text-muted">Executed contracts and invoices.</p>
           </article>
           <article class="metric-card">
             <h3>Marketplace Bids</h3>
-            <strong id="metric-marketplace-bids">0</strong>
-            <p class="text-muted">Offers and negotiations in flight.</p>
-          </article>
-          <article class="metric-card">
-            <h3>Timepiece Mints</h3>
-            <strong id="metric-timepiece-mints">0</strong>
-            <p class="text-muted">Ledgered mint intents across editions.</p>
-          </article>
-          <article class="metric-card">
-            <h3>File Broadcasts</h3>
-            <strong id="metric-file-broadcasts">0</strong>
-            <p class="text-muted">Tracked creations, media, and mint events.</p>
+            <strong id="metric-bids">0</strong>
+            <p class="text-muted">Active negotiations &amp; offers.</p>
           </article>
         </div>
       </section>
 
-      <section aria-labelledby="server-telemetry-title" id="server-telemetry">
+      <section aria-labelledby="infrastructure-title" id="infrastructure">
         <div class="section-header">
           <div>
-            <span class="eyebrow">Server Telemetry</span>
-            <h2 id="server-telemetry-title">Live Runtime Signals</h2>
-            <p>Monitor Node uptime, datastore footprint, and broadcast indexing cadence.</p>
+            <span class="eyebrow">Server &amp; Cloud Status</span>
+            <h2 id="infrastructure-title">Infrastructure Footprint</h2>
+            <p>Track runtime host data, deployment metadata, and active access signals.</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn" type="button" id="refresh-infrastructure">Refresh Status</button>
           </div>
         </div>
         <div class="server-tile-grid" role="list">
-          <article class="server-tile" role="listitem" data-tile="sessions">
-            <h3>Live Sessions</h3>
-            <div class="tile-value" id="server-tile-live">0</div>
-            <p class="tile-meta" id="server-tile-live-meta">Active visitors this minute.</p>
+          <article class="server-tile" role="listitem">
+            <h3>Hostname</h3>
+            <div class="tile-value" id="infrastructure-hostname">—</div>
+            <p class="tile-meta">Active node identifier.</p>
           </article>
-          <article class="server-tile" role="listitem" data-tile="visits">
-            <h3>Total Visits</h3>
-            <div class="tile-value" id="server-tile-visits">0</div>
-            <p class="tile-meta" id="server-tile-visits-meta">Sessions registered since boot.</p>
+          <article class="server-tile" role="listitem">
+            <h3>IP Address</h3>
+            <div class="tile-value" id="infrastructure-ip">—</div>
+            <p class="tile-meta">Latest resolved address.</p>
           </article>
-          <article class="server-tile" role="listitem" data-tile="uptime">
+          <article class="server-tile" role="listitem">
+            <h3>Deployment</h3>
+            <div class="tile-value" id="infrastructure-deployment">—</div>
+            <p class="tile-meta">Package build &amp; release tag.</p>
+          </article>
+          <article class="server-tile" role="listitem">
+            <h3>Environment</h3>
+            <div class="tile-value" id="infrastructure-environment">—</div>
+            <p class="tile-meta">Runtime stack details.</p>
+          </article>
+          <article class="server-tile" role="listitem">
+            <h3>Provider</h3>
+            <div class="tile-value" id="infrastructure-provider">—</div>
+            <p class="tile-meta">Infrastructure origin.</p>
+          </article>
+          <article class="server-tile" role="listitem">
+            <h3>Public Endpoint</h3>
+            <div class="tile-value">
+              <a id="infrastructure-public-url" href="#" target="_blank" rel="noopener">—</a>
+            </div>
+            <p class="tile-meta">External access URL.</p>
+          </article>
+          <article class="server-tile" role="listitem">
             <h3>Uptime</h3>
-            <div class="tile-value" id="server-tile-uptime">—</div>
-            <p class="tile-meta" id="server-tile-uptime-meta">Server start pending.</p>
+            <div class="tile-value" id="infrastructure-uptime">—</div>
+            <p class="tile-meta">Time since last restart.</p>
           </article>
-          <article class="server-tile" role="listitem" data-tile="memory">
-            <h3>Runtime Memory</h3>
-            <div class="tile-value" id="server-tile-memory">—</div>
-            <p class="tile-meta" id="server-tile-memory-meta">Heap / RSS footprint.</p>
+          <article class="server-tile" role="listitem">
+            <h3>Observed</h3>
+            <div class="tile-value" id="infrastructure-observed">—</div>
+            <p class="tile-meta">Live sessions and total visitors.</p>
           </article>
-          <article class="server-tile" role="listitem" data-tile="datastore">
-            <h3>Datastore Footprint</h3>
-            <div class="tile-value" id="server-tile-data">—</div>
-            <p class="tile-meta" id="server-tile-data-meta">0 files tracked.</p>
-          </article>
-          <article class="server-tile" role="listitem" data-tile="broadcasts">
-            <h3>Broadcast Index</h3>
-            <div class="tile-value" id="server-tile-scan">—</div>
-            <p class="tile-meta" id="server-tile-scan-meta">Awaiting initial scan.</p>
+          <article class="server-tile" role="listitem">
+            <h3>Signals</h3>
+            <ul id="infrastructure-hints-list" class="tile-meta-list" aria-live="polite"></ul>
           </article>
         </div>
       </section>
 
-      <section aria-labelledby="timeline-title">
+      <section aria-labelledby="timeline-title" id="timeline-section">
         <div class="section-header">
           <div>
-            <span class="eyebrow">Unified Chronicle</span>
-            <h2 id="timeline-title">Activity Timeline</h2>
-            <p>Recent submissions, credential edits, and Stripe operations.</p>
+            <span class="eyebrow">Timeline</span>
+            <h2 id="timeline-title">Mission Activity</h2>
+            <p>Live chronicle of submissions, credentials, and ledger executions.</p>
           </div>
         </div>
         <div id="timeline" class="timeline-list" aria-live="polite"></div>
       </section>
 
-      <section aria-labelledby="file-broadcasts-title" id="file-broadcasts">
+      <section aria-labelledby="ledger-title" id="ledger-section">
         <div class="section-header">
           <div>
-            <span class="eyebrow">Creation Ledger</span>
-            <h2 id="file-broadcasts-title">File Broadcast Intelligence</h2>
-            <p>Monitor audio drops, minted media, and server-side asset processing in real time.</p>
-          </div>
-          <div class="section-actions">
-            <button class="btn" type="button" id="rescan-file-broadcasts">Rescan Broadcasts</button>
-          </div>
-        </div>
-        <div class="status-banner" id="file-broadcasts-status" role="status" aria-live="polite"></div>
-        <div class="table-wrapper">
-          <table class="data-table" id="file-broadcasts-table">
-            <thead>
-              <tr>
-                <th scope="col">Asset</th>
-                <th scope="col">Category</th>
-                <th scope="col">Event</th>
-                <th scope="col">Size</th>
-                <th scope="col">Modified</th>
-                <th scope="col">Indexed</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div class="empty-state" id="file-broadcasts-empty">No file broadcasts logged yet.</div>
-        </div>
-      </section>
-
-      <section aria-labelledby="marketplace-title" id="marketplace-admin">
-        <div class="section-header">
-          <div>
-            <span class="eyebrow">Marketplace Catalogue</span>
-            <h2 id="marketplace-title">Uploads &amp; Bid Intelligence</h2>
-            <p>Audit user-submitted marketplace assets and review open bids in one command center.</p>
+            <span class="eyebrow">Ledger</span>
+            <h2 id="ledger-title">Treasury Events</h2>
+            <p>Unified record of card, crypto, and vault settlements.</p>
           </div>
         </div>
         <div class="table-wrapper">
-          <table class="data-table" id="marketplace-table">
-            <thead>
-              <tr>
-                <th scope="col">Submitted</th>
-                <th scope="col">Title</th>
-                <th scope="col">Creator</th>
-                <th scope="col">Wallet</th>
-                <th scope="col">Media</th>
-                <th scope="col">Bids</th>
-                <th scope="col">Top Bid</th>
-                <th scope="col">Last Bid</th>
-                <th scope="col">Description</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div class="empty-state" id="marketplace-empty">No marketplace uploads recorded.</div>
-        </div>
-        <div class="table-wrapper">
-          <table class="data-table" id="bids-table">
+          <table class="data-table" id="ledger-table">
             <thead>
               <tr>
                 <th scope="col">Timestamp</th>
-                <th scope="col">Asset</th>
-                <th scope="col">Bidder</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Wallet</th>
-                <th scope="col">Contact</th>
-                <th scope="col">Message</th>
+                <th scope="col">Event</th>
+                <th scope="col">Reference</th>
+                <th scope="col">Hash</th>
+                <th scope="col">Metadata</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
-          <div class="empty-state" id="bids-empty">No marketplace bids registered.</div>
+          <div class="empty-state" id="ledger-empty">No ledger activity detected.</div>
         </div>
       </section>
 
@@ -716,12 +758,13 @@
             <thead>
               <tr>
                 <th scope="col">Username</th>
-                <th scope="col">Name</th>
-                <th scope="col">Email</th>
-                <th scope="col">Role</th>
-                <th scope="col">Status</th>
-                <th scope="col">Credential Review</th>
-                <th scope="col">Notes</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Profile Pic</th>
+                <th scope="col">Audio Uploads</th>
+                <th scope="col">Snapshot</th>
+                <th scope="col">Created</th>
+                <th scope="col">Updated</th>
+                <th scope="col">Last Login</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -731,111 +774,85 @@
         </div>
       </section>
 
-      <section aria-labelledby="stripe-title">
+      <section aria-labelledby="audio-title" id="audio-uploads">
         <div class="section-header">
           <div>
-            <span class="eyebrow">Payments Intelligence</span>
-            <h2 id="stripe-title">Stripe &amp; Magstripe Ledger</h2>
-            <p>Review transaction status, authorization codes, and project references.</p>
+            <span class="eyebrow">Audio Uploads</span>
+            <h2 id="audio-title">Vault Intake</h2>
+            <p>Review recently ingested sonic assets and their origins.</p>
           </div>
         </div>
         <div class="table-wrapper">
-          <table class="data-table" id="stripe-table">
+          <table class="data-table" id="audio-table">
             <thead>
               <tr>
                 <th scope="col">Timestamp</th>
-                <th scope="col">Method</th>
-                <th scope="col">Account</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Status</th>
-                <th scope="col">Project</th>
-                <th scope="col">Authorization</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div class="empty-state" id="stripe-empty">No Stripe, magstripe, or bitcoin transactions recorded.</div>
-        </div>
-      </section>
-
-      <section aria-labelledby="timepiece-ledger-title" id="timepiece-ledger-section">
-        <div class="section-header">
-          <div>
-            <span class="eyebrow">Limited Editions</span>
-            <h2 id="timepiece-ledger-title">Timepiece Mint Ledger</h2>
-            <p>Review wallets requesting Ioncore timepiece minting and capture follow-up details.</p>
-          </div>
-        </div>
-        <div class="table-wrapper">
-          <table class="data-table" id="timepiece-ledger-table">
-            <thead>
-              <tr>
-                <th scope="col">Timestamp</th>
+                <th scope="col">Username</th>
                 <th scope="col">Wallet</th>
-                <th scope="col">Network</th>
-                <th scope="col">Item</th>
-                <th scope="col">Edition</th>
-                <th scope="col">Contact</th>
+                <th scope="col">Filename</th>
                 <th scope="col">Source</th>
-                <th scope="col">Notes</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
-          <div class="empty-state" id="timepiece-ledger-empty">No mint intents recorded.</div>
+          <div class="empty-state" id="audio-empty">No audio uploads recorded.</div>
         </div>
       </section>
 
-      <section aria-labelledby="polls-title">
+      <section aria-labelledby="polls-title" id="poll-responses">
         <div class="section-header">
           <div>
-            <span class="eyebrow">Engagement Streams</span>
-            <h2 id="polls-title">Polls, Gateway Submissions &amp; Contact Signals</h2>
-            <p>Track poll selections, opt-ins, and outreach history from the field.</p>
+            <span class="eyebrow">Poll Responses</span>
+            <h2 id="polls-title">Program &amp; Survey Intelligence</h2>
+            <p>Monitor gateway polls, opt-ins, and structured feedback.</p>
           </div>
         </div>
-        <div class="admin-card-grid">
-          <article class="metric-card">
-            <h3>Gateway Submissions</h3>
-            <div class="chips-row" id="gateway-counts"></div>
-            <div class="table-wrapper">
-              <table class="data-table" id="gateway-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Timestamp</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Role</th>
-                    <th scope="col">Selections</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-              <div class="empty-state" id="gateway-empty">No gateway submissions yet.</div>
-            </div>
-          </article>
-          <article class="metric-card">
-            <h3>Contact Inbox</h3>
-            <div class="table-wrapper">
-              <table class="data-table" id="contact-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Timestamp</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Message</th>
-                    <th scope="col">Source</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-              <div class="empty-state" id="contact-empty">No contact submissions logged.</div>
-            </div>
-          </article>
+        <div class="table-wrapper">
+          <table class="data-table" id="polls-table">
+            <thead>
+              <tr>
+                <th scope="col">Origin</th>
+                <th scope="col">Question</th>
+                <th scope="col">Response</th>
+                <th scope="col">Metadata</th>
+                <th scope="col">Updated</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="polls-empty">No poll intelligence logged.</div>
         </div>
       </section>
 
-      <section aria-labelledby="login-title">
+      <section aria-labelledby="questions-title" id="question-inbox">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Inbound Questions</span>
+            <h2 id="questions-title">Mission Request Queue</h2>
+            <p>Capture and prioritize contact desk inquiries and tags.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="questions-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Message</th>
+                <th scope="col">Tags</th>
+                <th scope="col">Metadata</th>
+                <th scope="col">Updated</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="questions-empty">No inbound questions logged.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="login-title" id="login-events">
         <div class="section-header">
           <div>
             <span class="eyebrow">Authentication History</span>
@@ -848,16 +865,216 @@
             <thead>
               <tr>
                 <th scope="col">Timestamp</th>
-                <th scope="col">Method</th>
                 <th scope="col">Username</th>
                 <th scope="col">Wallet</th>
-                <th scope="col">Result</th>
-                <th scope="col">Metadata</th>
+                <th scope="col">User ID</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
           <div class="empty-state" id="login-empty">No login activity captured.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="marketplace-title" id="marketplace-items">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Marketplace Items</span>
+            <h2 id="marketplace-title">Active Asset Catalogue</h2>
+            <p>Audit listings, pricing signals, and mint readiness.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="marketplace-table">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Chain</th>
+                <th scope="col">Token</th>
+                <th scope="col">Price</th>
+                <th scope="col">Minted</th>
+                <th scope="col">Created</th>
+                <th scope="col">Updated</th>
+                <th scope="col">Source</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="marketplace-empty">No marketplace items recorded.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="files-title" id="stored-files">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Stored Marketplace Files</span>
+            <h2 id="files-title">Collateral Repository</h2>
+            <p>Linked asset bundles and supporting documentation.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="files-table">
+            <thead>
+              <tr>
+                <th scope="col">File ID</th>
+                <th scope="col">Item ID</th>
+                <th scope="col">Filename</th>
+                <th scope="col">MIME</th>
+                <th scope="col">Size</th>
+                <th scope="col">Created</th>
+                <th scope="col">Download</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="files-empty">No stored marketplace files catalogued.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="asset-title" id="generated-assets">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Generated Assets &amp; Uploads</span>
+            <h2 id="asset-title">Creation Vault</h2>
+            <p>Filter tracked assets by type and dispatch secure actions.</p>
+          </div>
+          <div class="section-actions">
+            <select id="asset-filter" aria-label="Filter vault assets">
+              <option value="uploads">Uploads</option>
+              <option value="audio">Audio</option>
+              <option value="images">Images</option>
+              <option value="mints">Mints</option>
+            </select>
+            <button class="btn" type="button" id="rescan-file-broadcasts">Reindex Vault</button>
+          </div>
+        </div>
+        <p id="asset-summary" class="text-muted"></p>
+        <div class="status-banner" id="file-broadcasts-status" role="status" aria-live="polite"></div>
+        <div class="table-wrapper">
+          <table class="data-table" id="asset-table">
+            <thead>
+              <tr>
+                <th scope="col">Filename</th>
+                <th scope="col">Category</th>
+                <th scope="col">Folder</th>
+                <th scope="col">MIME</th>
+                <th scope="col">Size</th>
+                <th scope="col">Updated</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="asset-empty">No vault assets match the current filter.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="html-assets-title" id="html-assets">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">HTML Assets</span>
+            <h2 id="html-assets-title">Template Library</h2>
+            <p>Review deployable HTML artifacts and share links.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="html-files-table">
+            <thead>
+              <tr>
+                <th scope="col">Path</th>
+                <th scope="col">Size</th>
+                <th scope="col">Last Modified</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="html-files-empty">No HTML assets catalogued.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="transactions-title" id="pool-transactions">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Pool Transactions</span>
+            <h2 id="transactions-title">Liquidity Events</h2>
+            <p>Monitor pool-side token transfers and transaction hashes.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="transactions-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Wallet</th>
+                <th scope="col">Chain</th>
+                <th scope="col">Token</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Transaction Hash</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="transactions-empty">No pool transactions recorded.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="orders-title" id="marketplace-orders">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Marketplace Orders</span>
+            <h2 id="orders-title">Orderbook Intelligence</h2>
+            <p>Track executed orders, settlement states, and invoices.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="orders-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Buyer</th>
+                <th scope="col">Seller</th>
+                <th scope="col">Chain</th>
+                <th scope="col">Token</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+                <th scope="col">Transaction Hash</th>
+                <th scope="col">Invoice</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="orders-empty">No marketplace orders recorded.</div>
+        </div>
+      </section>
+
+      <section aria-labelledby="bids-title" id="marketplace-bids">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Marketplace Bids</span>
+            <h2 id="bids-title">Offer Intelligence</h2>
+            <p>Review inbound bids, chain data, and settlement references.</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="bids-table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Bidder</th>
+                <th scope="col">Seller</th>
+                <th scope="col">Chain</th>
+                <th scope="col">Token</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+                <th scope="col">Transaction Hash</th>
+                <th scope="col">Invoice</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="bids-empty">No marketplace bids registered.</div>
         </div>
       </section>
     </main>
@@ -927,6 +1144,94 @@
       </form>
     </div>
 
+    <div class="editor-overlay" id="submission-editor" role="dialog" aria-modal="true" aria-labelledby="submission-editor-title">
+      <form class="editor-panel" id="submission-editor-form">
+        <header>
+          <div>
+            <span class="eyebrow">Submission Review</span>
+            <h2 id="submission-editor-title">Update Submission</h2>
+          </div>
+          <button class="btn" type="button" data-close-submission>Close</button>
+        </header>
+        <input type="hidden" id="submission-id" name="id" />
+        <input type="hidden" id="submission-kind" name="kind" />
+        <section data-section="poll">
+          <label>
+            Origin
+            <input type="text" id="submission-origin" name="origin" />
+          </label>
+          <label>
+            Question
+            <input type="text" id="submission-question" name="question" />
+          </label>
+          <label>
+            Response
+            <textarea id="submission-response" name="response"></textarea>
+          </label>
+          <label>
+            Metadata
+            <textarea id="submission-poll-metadata" name="pollMetadata"></textarea>
+          </label>
+        </section>
+        <section data-section="question">
+          <label>
+            Name
+            <input type="text" id="submission-name" name="name" />
+          </label>
+          <label>
+            Contact
+            <input type="text" id="submission-contact" name="contact" />
+          </label>
+          <label>
+            Message
+            <textarea id="submission-message" name="message"></textarea>
+          </label>
+          <label>
+            Tags
+            <input type="text" id="submission-tags" name="tags" />
+          </label>
+          <label>
+            Metadata
+            <textarea id="submission-question-metadata" name="questionMetadata"></textarea>
+          </label>
+        </section>
+        <footer>
+          <button class="btn" type="button" data-close-submission>Cancel</button>
+          <button class="btn" type="submit">Save Submission</button>
+        </footer>
+      </form>
+    </div>
+
+    <div class="editor-overlay" id="html-editor" role="dialog" aria-modal="true" aria-labelledby="html-editor-title">
+      <form class="editor-panel" id="html-editor-form">
+        <header>
+          <div>
+            <span class="eyebrow">HTML Editor</span>
+            <h2 id="html-editor-title">Template Inspector</h2>
+          </div>
+          <button class="btn" type="button" data-close-html-editor>Close</button>
+        </header>
+        <input type="hidden" id="html-editor-path" name="path" />
+        <label>
+          File Path
+          <input type="text" id="html-editor-path-display" name="pathDisplay" readonly />
+        </label>
+        <div style="display: grid; gap: 12px;">
+          <div id="html-editor-size">Size: —</div>
+          <div id="html-editor-updated">Last Updated: —</div>
+        </div>
+        <label>
+          Content
+          <textarea id="html-editor-content" name="content" style="min-height: 240px;"></textarea>
+        </label>
+        <footer>
+          <button class="btn" type="button" id="html-editor-download">Download</button>
+          <button class="btn" type="button" id="html-editor-share">Share</button>
+          <button class="btn" type="button" data-close-html-editor>Done</button>
+        </footer>
+      </form>
+    </div>
+
     <script src="/scripts/solana-deposit.js"></script>
     <script>
       const state = {
@@ -938,9 +1243,8 @@
       const statusBanner = document.getElementById('status-banner');
       const generatedAt = document.getElementById('generated-at');
       const refreshButton = document.getElementById('refresh-dashboard');
+      const refreshInfrastructureButton = document.getElementById('refresh-infrastructure');
       const searchInput = document.getElementById('user-search');
-      const usersTableBody = document.querySelector('#users-table tbody');
-      const usersEmpty = document.getElementById('users-empty');
       const adminPhantomConnectButton = document.getElementById('admin-phantom-connect');
       const adminPhantomStatus = document.getElementById('admin-phantom-status');
       const adminDepositButton = document.getElementById('admin-solana-deposit');
@@ -1136,26 +1440,48 @@
           }
         });
       }
-      const stripeTableBody = document.querySelector('#stripe-table tbody');
-      const stripeEmpty = document.getElementById('stripe-empty');
-      const gatewayTableBody = document.querySelector('#gateway-table tbody');
-      const gatewayEmpty = document.getElementById('gateway-empty');
-      const gatewayCounts = document.getElementById('gateway-counts');
-      const contactTableBody = document.querySelector('#contact-table tbody');
-      const contactEmpty = document.getElementById('contact-empty');
+      const ledgerTableBody = document.querySelector('#ledger-table tbody');
+      const ledgerEmpty = document.getElementById('ledger-empty');
       const loginTableBody = document.querySelector('#login-table tbody');
       const loginEmpty = document.getElementById('login-empty');
+      const usersTableBody = document.querySelector('#users-table tbody');
+      const usersEmpty = document.getElementById('users-empty');
+      const audioTableBody = document.querySelector('#audio-table tbody');
+      const audioEmpty = document.getElementById('audio-empty');
+      const pollsTableBody = document.querySelector('#polls-table tbody');
+      const pollsEmpty = document.getElementById('polls-empty');
+      const questionsTableBody = document.querySelector('#questions-table tbody');
+      const questionsEmpty = document.getElementById('questions-empty');
       const marketplaceTableBody = document.querySelector('#marketplace-table tbody');
       const marketplaceEmpty = document.getElementById('marketplace-empty');
+      const filesTableBody = document.querySelector('#files-table tbody');
+      const filesEmpty = document.getElementById('files-empty');
+      const assetTableBody = document.querySelector('#asset-table tbody');
+      const assetEmpty = document.getElementById('asset-empty');
+      const assetFilter = document.getElementById('asset-filter');
+      const assetSummary = document.getElementById('asset-summary');
+      const htmlFilesTableBody = document.querySelector('#html-files-table tbody');
+      const htmlFilesEmpty = document.getElementById('html-files-empty');
+      const transactionsTableBody = document.querySelector('#transactions-table tbody');
+      const transactionsEmpty = document.getElementById('transactions-empty');
+      const ordersTableBody = document.querySelector('#orders-table tbody');
+      const ordersEmpty = document.getElementById('orders-empty');
       const bidsTableBody = document.querySelector('#bids-table tbody');
       const bidsEmpty = document.getElementById('bids-empty');
-      const timepieceLedgerTableBody = document.querySelector('#timepiece-ledger-table tbody');
-      const timepieceLedgerEmpty = document.getElementById('timepiece-ledger-empty');
-      const fileBroadcastsTableBody = document.querySelector('#file-broadcasts-table tbody');
-      const fileBroadcastsEmpty = document.getElementById('file-broadcasts-empty');
+      const timelineList = document.getElementById('timeline');
       const fileBroadcastsStatus = document.getElementById('file-broadcasts-status');
       const rescanFileBroadcastsButton = document.getElementById('rescan-file-broadcasts');
-      const timelineList = document.getElementById('timeline');
+      const infrastructureFields = {
+        hostname: document.getElementById('infrastructure-hostname'),
+        ip: document.getElementById('infrastructure-ip'),
+        deployment: document.getElementById('infrastructure-deployment'),
+        environment: document.getElementById('infrastructure-environment'),
+        provider: document.getElementById('infrastructure-provider'),
+        publicUrl: document.getElementById('infrastructure-public-url'),
+        uptime: document.getElementById('infrastructure-uptime'),
+        observed: document.getElementById('infrastructure-observed'),
+        hintsList: document.getElementById('infrastructure-hints-list')
+      };
       const newUserButton = document.getElementById('new-user-button');
       const editorOverlay = document.getElementById('user-editor');
       const editorForm = document.getElementById('user-editor-form');
@@ -1171,27 +1497,64 @@
         notes: document.getElementById('editor-notes'),
         optIn: document.getElementById('editor-optin')
       };
+      const submissionOverlay = document.getElementById('submission-editor');
+      const submissionForm = document.getElementById('submission-editor-form');
+      const submissionSections = submissionForm
+        ? {
+            poll: submissionForm.querySelector('[data-section="poll"]'),
+            question: submissionForm.querySelector('[data-section="question"]')
+          }
+        : {};
+      const submissionFields = {
+        id: document.getElementById('submission-id'),
+        kind: document.getElementById('submission-kind'),
+        origin: document.getElementById('submission-origin'),
+        question: document.getElementById('submission-question'),
+        response: document.getElementById('submission-response'),
+        pollMetadata: document.getElementById('submission-poll-metadata'),
+        name: document.getElementById('submission-name'),
+        contact: document.getElementById('submission-contact'),
+        message: document.getElementById('submission-message'),
+        tags: document.getElementById('submission-tags'),
+        questionMetadata: document.getElementById('submission-question-metadata')
+      };
+      const submissionSubmitButton = submissionForm
+        ? submissionForm.querySelector('button[type="submit"]')
+        : null;
+      const closeSubmissionButtons = submissionForm
+        ? submissionForm.querySelectorAll('[data-close-submission]')
+        : [];
+      const htmlEditorOverlay = document.getElementById('html-editor');
+      const htmlEditorForm = document.getElementById('html-editor-form');
+      const closeHtmlEditorButtons = htmlEditorForm
+        ? htmlEditorForm.querySelectorAll('[data-close-html-editor]')
+        : [];
+      const htmlEditorFields = {
+        path: document.getElementById('html-editor-path'),
+        pathDisplay: document.getElementById('html-editor-path-display'),
+        size: document.getElementById('html-editor-size'),
+        updated: document.getElementById('html-editor-updated'),
+        content: document.getElementById('html-editor-content'),
+        download: document.getElementById('html-editor-download'),
+        share: document.getElementById('html-editor-share')
+      };
+      const metricServer = document.getElementById('metric-server');
+      const metricServerDetail = document.getElementById('metric-server-detail');
       const metricUsers = document.getElementById('metric-users');
       const metricUsersUpdated = document.getElementById('metric-users-updated');
-      const metricStripe = document.getElementById('metric-stripe');
+      const metricAudio = document.getElementById('metric-audio');
       const metricPolls = document.getElementById('metric-polls');
-      const metricContact = document.getElementById('metric-contact');
-      const metricMarketplaceUploads = document.getElementById('metric-marketplace-uploads');
-      const metricMarketplaceBids = document.getElementById('metric-marketplace-bids');
-      const metricTimepieceMints = document.getElementById('metric-timepiece-mints');
-      const metricFileBroadcasts = document.getElementById('metric-file-broadcasts');
-      const serverTileLive = document.getElementById('server-tile-live');
-      const serverTileLiveMeta = document.getElementById('server-tile-live-meta');
-      const serverTileVisits = document.getElementById('server-tile-visits');
-      const serverTileVisitsMeta = document.getElementById('server-tile-visits-meta');
-      const serverTileUptime = document.getElementById('server-tile-uptime');
-      const serverTileUptimeMeta = document.getElementById('server-tile-uptime-meta');
-      const serverTileMemory = document.getElementById('server-tile-memory');
-      const serverTileMemoryMeta = document.getElementById('server-tile-memory-meta');
-      const serverTileData = document.getElementById('server-tile-data');
-      const serverTileDataMeta = document.getElementById('server-tile-data-meta');
-      const serverTileScan = document.getElementById('server-tile-scan');
-      const serverTileScanMeta = document.getElementById('server-tile-scan-meta');
+      const metricQuestions = document.getElementById('metric-questions');
+      const metricLogins = document.getElementById('metric-logins');
+      const metricMarketplaceItems = document.getElementById('metric-marketplace-items');
+      const metricMints = document.getElementById('metric-mints');
+      const metricLedger = document.getElementById('metric-ledger');
+      const metricVault = document.getElementById('metric-vault');
+      const metricHtml = document.getElementById('metric-html');
+      const metricFiles = document.getElementById('metric-files');
+      const metricTransactions = document.getElementById('metric-transactions');
+      const metricOrders = document.getElementById('metric-orders');
+      const metricBidsMetric = document.getElementById('metric-bids');
 
       function formatDate(value) {
         if (!value) return '—';
@@ -1377,207 +1740,177 @@
 
         generatedAt.textContent = 'Synced ' + formatDate(state.data.generatedAt);
 
-        metricUsers.textContent = state.data.metrics.totalGatewayUsers;
-        const stripeTransactions = Number(state.data.metrics.totalStripeTransactions || 0);
-        const bitcoinTransactions = Number(state.data.metrics.totalBitcoinTransactions || 0);
-        metricStripe.textContent = stripeTransactions + bitcoinTransactions;
-        metricPolls.textContent = state.data.metrics.totalGatewaySubmissions;
-        metricContact.textContent = state.data.metrics.totalContactSubmissions +
-          ' / ' + state.data.metrics.totalLoginEvents + ' logins';
-        const uploadsMetric = state.data.metrics.totalMarketplaceUploads;
-        const bidsMetric = state.data.metrics.totalMarketplaceBids;
-        metricMarketplaceUploads.textContent = typeof uploadsMetric === 'number' ? uploadsMetric : 0;
-        metricMarketplaceBids.textContent = typeof bidsMetric === 'number' ? bidsMetric : 0;
-        const timepieceMintMetric = state.data.metrics.totalTimepieceMintIntents;
-        if (metricTimepieceMints) {
-          metricTimepieceMints.textContent = typeof timepieceMintMetric === 'number' ? timepieceMintMetric : 0;
-        }
-        const broadcastsMetric = Number(state.data.metrics.totalFileBroadcasts || 0);
-        metricFileBroadcasts.textContent = Number.isFinite(broadcastsMetric) ? broadcastsMetric : 0;
+        const metrics = state.data.metrics || {};
+        setMetricValue(metricUsers, metrics.totalGatewayUsers || 0);
+        setMetricValue(metricAudio, countAudioAssets());
+        setMetricValue(metricPolls, metrics.totalGatewaySubmissions || 0);
+        setMetricValue(metricQuestions, metrics.totalContactSubmissions || 0);
+        setMetricValue(metricLogins, metrics.totalLoginEvents || 0);
+        setMetricValue(metricMarketplaceItems, metrics.totalMarketplaceUploads || 0);
+        setMetricValue(metricMints, metrics.totalTimepieceMintIntents || 0);
+        setMetricValue(
+          metricLedger,
+          (metrics.totalStripeTransactions || 0) + (metrics.totalBitcoinTransactions || 0)
+        );
+        setMetricValue(metricVault, metrics.totalFileBroadcasts || 0);
+        setMetricValue(metricHtml, countHtmlAssets());
+        setMetricValue(metricFiles, countMarketplaceFiles());
+        setMetricValue(metricTransactions, Array.isArray(state.data?.poolTransactions) ? state.data.poolTransactions.length : 0);
+        setMetricValue(metricOrders, Array.isArray(state.data?.marketplaceOrders) ? state.data.marketplaceOrders.length : 0);
+        setMetricValue(metricBidsMetric, metrics.totalMarketplaceBids || 0);
 
-        const latestUser = state.data.gatewayUsers[0];
+        const latestUser = Array.isArray(state.data.gatewayUsers) && state.data.gatewayUsers.length
+          ? state.data.gatewayUsers[0]
+          : null;
         metricUsersUpdated.textContent = latestUser
           ? `Last credential update ${formatRelativeTime(latestUser.updatedAt || latestUser.createdAt)} (${formatDate(
               latestUser.updatedAt || latestUser.createdAt
             )})`
           : 'No credential updates yet';
 
-        renderServerTiles();
-        renderUsers();
-        renderStripe();
-        renderGateway();
-        renderContacts();
-        renderLogins();
-        renderMarketplaceUploads();
-        renderMarketplaceBids();
-        renderTimepieceLedger();
-        renderFileBroadcasts();
-        updateFileBroadcastBanner();
+        renderInfrastructure();
         renderTimeline();
+        renderLedger();
+        renderUsers();
+        renderAudioUploads();
+        renderPollResponses();
+        renderQuestions();
+        renderLogins();
+        renderMarketplaceItems();
+        renderStoredFiles();
+        renderVaultAssets();
+        renderHtmlAssets();
+        renderTransactions();
+        renderOrders();
+        renderBids();
       }
 
-      function renderServerTiles() {
-        if (!serverTileLive) {
+      function setMetricValue(element, value) {
+        if (!element) return;
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          element.textContent = formatNumber(value);
           return;
         }
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+          element.textContent = formatNumber(numeric);
+          return;
+        }
+        element.textContent = value || '0';
+      }
+
+      function countAudioAssets() {
+        const broadcasts = state.data?.fileBroadcasts || [];
+        let count = 0;
+        for (const entry of broadcasts) {
+          if ((entry.category || '').toLowerCase() === 'audio') {
+            count += 1;
+          }
+        }
+        return count;
+      }
+
+      function countHtmlAssets() {
+        const broadcasts = state.data?.fileBroadcasts || [];
+        let count = 0;
+        for (const entry of broadcasts) {
+          if (typeof entry.path === 'string' && entry.path.toLowerCase().endsWith('.html')) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+
+      function countMarketplaceFiles() {
+        const broadcasts = state.data?.fileBroadcasts || [];
+        let count = 0;
+        for (const entry of broadcasts) {
+          if (typeof entry.path === 'string' && entry.path.toLowerCase().includes('marketplace')) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+
+      function renderInfrastructure() {
         const status = state.data?.serverStatus || {};
-        const activeSessions =
-          typeof status.activeSessions === 'number' && Number.isFinite(status.activeSessions)
-            ? status.activeSessions
-            : 0;
-        serverTileLive.textContent = formatNumber(activeSessions);
-        if (serverTileLiveMeta) {
-          serverTileLiveMeta.textContent =
-            activeSessions === 1 ? 'Visitor connected now.' : 'Visitors connected now.';
+        const activeSessions = typeof status.activeSessions === 'number' ? status.activeSessions : 0;
+        const totalVisitors = typeof status.totalVisitors === 'number' ? status.totalVisitors : 0;
+
+        if (metricServer) {
+          metricServer.textContent = status.uptimeSeconds > 0 ? 'Online' : 'Offline';
+        }
+        if (metricServerDetail) {
+          metricServerDetail.textContent = `${formatNumber(activeSessions)} live / ${formatNumber(totalVisitors)} observed`;
         }
 
-        const totalVisitors =
-          typeof status.totalVisitors === 'number' && Number.isFinite(status.totalVisitors)
-            ? status.totalVisitors
-            : 0;
-        if (serverTileVisits) {
-          serverTileVisits.textContent = formatNumber(totalVisitors);
+        if (infrastructureFields.hostname) {
+          infrastructureFields.hostname.textContent = status.host?.hostname || '—';
         }
-        if (serverTileVisitsMeta) {
-          serverTileVisitsMeta.textContent =
-            totalVisitors === 1 ? 'Session recorded since boot.' : 'Sessions recorded since boot.';
+        if (infrastructureFields.ip) {
+          infrastructureFields.ip.textContent = status.network?.ip || '—';
         }
-
-        const uptimeSeconds =
-          typeof status.uptimeSeconds === 'number' && Number.isFinite(status.uptimeSeconds)
-            ? status.uptimeSeconds
-            : null;
-        if (serverTileUptime) {
-          serverTileUptime.textContent = uptimeSeconds != null ? formatDuration(uptimeSeconds) : '—';
+        if (infrastructureFields.deployment) {
+          infrastructureFields.deployment.textContent = status.deployment?.label || 'Admin Control Center';
         }
-        if (serverTileUptimeMeta) {
-          serverTileUptimeMeta.textContent = status.startedAt
-            ? `Started ${formatRelativeTime(status.startedAt)} (${formatDate(status.startedAt)})`
-            : 'Server start pending.';
-        }
-
-        const memoryInfo = formatMemoryUsage(status.process?.memory);
-        if (serverTileMemory) {
-          serverTileMemory.textContent = memoryInfo.label;
-        }
-        if (serverTileMemoryMeta) {
+        if (infrastructureFields.environment) {
           const nodeVersion = status.environment?.nodeVersion;
-          serverTileMemoryMeta.textContent = nodeVersion
-            ? `${memoryInfo.detail} · Node ${nodeVersion}`
-            : memoryInfo.detail;
+          infrastructureFields.environment.textContent = nodeVersion
+            ? `Node ${nodeVersion}`
+            : status.host?.platform || '—';
         }
-
-        const dataStore = status.dataStore || {};
-        const dataSize =
-          typeof dataStore.sizeBytes === 'number' && Number.isFinite(dataStore.sizeBytes)
-            ? formatBytes(dataStore.sizeBytes)
-            : '—';
-        if (serverTileData) {
-          serverTileData.textContent = dataSize;
+        if (infrastructureFields.provider) {
+          infrastructureFields.provider.textContent = status.provider?.name || 'Self-Hosted';
         }
-        if (serverTileDataMeta) {
-          const fileCount =
-            typeof dataStore.fileCount === 'number' && Number.isFinite(dataStore.fileCount)
-              ? dataStore.fileCount
-              : 0;
-          const directory = dataStore.path || 'data';
-          serverTileDataMeta.textContent = `${formatNumber(fileCount)} ${pluralize(fileCount, 'file')} in ${directory}`;
+        if (infrastructureFields.publicUrl) {
+          const defaultUrl = typeof window !== 'undefined' ? window.location.origin : '#';
+          const href = status.publicUrl || defaultUrl;
+          infrastructureFields.publicUrl.textContent = href;
+          infrastructureFields.publicUrl.href = href;
         }
-
-        const broadcasts = status.fileBroadcasts || {};
-        if (serverTileScan) {
-          serverTileScan.textContent = broadcasts.lastScanCompletedAt
-            ? formatRelativeTime(broadcasts.lastScanCompletedAt)
-            : 'Never';
+        if (infrastructureFields.uptime) {
+          infrastructureFields.uptime.textContent =
+            typeof status.uptimeSeconds === 'number' && Number.isFinite(status.uptimeSeconds)
+              ? formatDuration(status.uptimeSeconds)
+              : '—';
         }
-        if (serverTileScanMeta) {
-          const trackedTotal =
-            typeof broadcasts.total === 'number' && Number.isFinite(broadcasts.total)
-              ? broadcasts.total
-              : 0;
-          serverTileScanMeta.textContent = `${formatNumber(trackedTotal)} ${pluralize(trackedTotal, 'asset')} tracked`;
+        if (infrastructureFields.observed) {
+          const startLabel = status.startedAt ? `Started ${formatRelativeTime(status.startedAt)}` : 'No start time recorded';
+          infrastructureFields.observed.textContent = `${formatNumber(activeSessions)} live · ${formatNumber(
+            totalVisitors
+          )} total · ${startLabel}`;
         }
-      }
-
-      function updateFileBroadcastBanner() {
-        if (!fileBroadcastsStatus) {
-          return;
+        if (infrastructureFields.hintsList) {
+          infrastructureFields.hintsList.innerHTML = '';
+          const hints = [];
+          const memoryInfo = formatMemoryUsage(status.process?.memory);
+          if (memoryInfo.detail && memoryInfo.detail !== 'Runtime memory footprint') {
+            hints.push(`Memory ${memoryInfo.detail}`);
+          }
+          const dataStore = status.dataStore || {};
+          if (typeof dataStore.sizeBytes === 'number' && Number.isFinite(dataStore.sizeBytes)) {
+            hints.push(
+              `Data ${formatBytes(dataStore.sizeBytes)} (${formatNumber(dataStore.fileCount || 0)} ${pluralize(
+                dataStore.fileCount || 0,
+                'file'
+              )})`
+            );
+          }
+          if (status.startedAt) {
+            hints.push(`Started ${formatDate(status.startedAt)}`);
+          }
+          if (status.process?.pid) {
+            hints.push(`PID ${status.process.pid}`);
+          }
+          if (!hints.length) {
+            hints.push('No additional telemetry available.');
+          }
+          for (const hint of hints) {
+            const li = document.createElement('li');
+            li.textContent = hint;
+            infrastructureFields.hintsList.appendChild(li);
+          }
         }
-        const shouldUpdate =
-          !fileBroadcastsStatus.classList.contains('is-visible') || fileBroadcastsStatus.dataset.variant === 'info';
-        if (!shouldUpdate) {
-          return;
-        }
-        const broadcastStatus = state.data?.serverStatus?.fileBroadcasts || {};
-        const total =
-          typeof broadcastStatus.total === 'number' && Number.isFinite(broadcastStatus.total)
-            ? broadcastStatus.total
-            : 0;
-        if (broadcastStatus.lastScanCompletedAt) {
-          setFileBroadcastStatus(
-            `Last scan ${formatRelativeTime(broadcastStatus.lastScanCompletedAt)} (${formatDate(
-              broadcastStatus.lastScanCompletedAt
-            )}). ${formatNumber(total)} ${pluralize(total, 'asset')} indexed.`,
-            'info'
-          );
-          return;
-        }
-        if (total > 0) {
-          setFileBroadcastStatus(
-            `${formatNumber(total)} ${pluralize(total, 'asset')} tracked across monitored directories.`,
-            'info'
-          );
-        } else {
-          setFileBroadcastStatus('No file broadcasts indexed yet.', 'info');
-        }
-      }
-
-      function renderUsers() {
-        const users = (state.data?.gatewayUsers || []).filter((user) => {
-          if (!state.search) return true;
-          const haystack = [
-            user.username,
-            user.name,
-            user.email,
-            user.role,
-            user.notes,
-            user.credentialStatus
-          ]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
-          return haystack.includes(state.search);
-        });
-
-        usersTableBody.innerHTML = '';
-
-        if (!users.length) {
-          usersEmpty.style.display = 'block';
-          return;
-        }
-
-        usersEmpty.style.display = 'none';
-
-        const fragment = document.createDocumentFragment();
-        for (const user of users) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${user.username || '—'}</td>
-            <td>${user.name || '—'}</td>
-            <td>${user.email || '—'}</td>
-            <td>${user.role || '—'}</td>
-            <td>
-              <span class="badge" data-variant="${badgeVariant(user.credentialStatus)}">
-                ${user.credentialStatus || 'Unclassified'}
-              </span>
-            </td>
-            <td>${formatDate(user.lastCredentialReview || user.updatedAt || user.createdAt)}</td>
-            <td>${truncate(user.notes)}</td>
-            <td><button class="btn" data-action="edit" data-user="${encodeURIComponent(user.id)}">Edit</button></td>
-          `;
-          fragment.appendChild(tr);
-        }
-        usersTableBody.appendChild(fragment);
       }
 
       function badgeVariant(status) {
@@ -1672,7 +2005,10 @@
         return item.type === 'bitcoin' ? 'pending-confirmation' : 'pending';
       }
 
-      function renderStripe() {
+      function renderLedger() {
+        if (!ledgerTableBody || !ledgerEmpty) {
+          return;
+        }
         const magstripeEntries = Array.isArray(state.data?.magstripeTransactions)
           ? state.data.magstripeTransactions.map((entry) => ({ type: 'magstripe', data: entry }))
           : [];
@@ -1684,14 +2020,14 @@
           (a, b) => timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt)
         );
 
-        stripeTableBody.innerHTML = '';
+        ledgerTableBody.innerHTML = '';
         if (!combinedEntries.length) {
-          stripeEmpty.style.display = 'block';
+          ledgerEmpty.style.display = 'block';
           return;
         }
-        stripeEmpty.style.display = 'none';
-        const fragment = document.createDocumentFragment();
+        ledgerEmpty.style.display = 'none';
 
+        const fragment = document.createDocumentFragment();
         for (const item of combinedEntries) {
           const tr = document.createElement('tr');
 
@@ -1699,73 +2035,576 @@
           timestampCell.textContent = formatDate(item?.data?.createdAt);
           tr.appendChild(timestampCell);
 
-          const methodCell = document.createElement('td');
-          methodCell.textContent = ledgerMethodLabel(item);
-          tr.appendChild(methodCell);
+          const eventCell = document.createElement('td');
+          eventCell.textContent = ledgerMethodLabel(item);
+          tr.appendChild(eventCell);
 
-          const accountCell = document.createElement('td');
-          accountCell.textContent = ledgerAccountLabel(item);
-          tr.appendChild(accountCell);
+          const referenceCell = document.createElement('td');
+          referenceCell.textContent = ledgerAccountLabel(item);
+          tr.appendChild(referenceCell);
 
-          const amountCell = document.createElement('td');
-          amountCell.textContent = ledgerAmountLabel(item);
-          tr.appendChild(amountCell);
+          const hashCell = document.createElement('td');
+          hashCell.textContent = ledgerAuthorizationLabel(item);
+          tr.appendChild(hashCell);
 
-          const statusCell = document.createElement('td');
-          const statusBadge = document.createElement('span');
+          const metadataCell = document.createElement('td');
           const statusLabel = ledgerStatusLabel(item);
-          statusBadge.className = 'badge';
-          statusBadge.dataset.variant = badgeVariant(statusLabel);
-          statusBadge.textContent = statusLabel;
-          statusCell.appendChild(statusBadge);
-          tr.appendChild(statusCell);
-
-          const projectCell = document.createElement('td');
-          projectCell.textContent = ledgerProjectLabel(item);
-          tr.appendChild(projectCell);
-
-          const authorizationCell = document.createElement('td');
-          authorizationCell.textContent = ledgerAuthorizationLabel(item);
-          tr.appendChild(authorizationCell);
+          const parts = [];
+          const amountLabel = ledgerAmountLabel(item);
+          const projectLabel = ledgerProjectLabel(item);
+          if (statusLabel) {
+            parts.push(`Status: ${statusLabel}`);
+          }
+          if (amountLabel && amountLabel !== '—') {
+            parts.push(`Amount: ${amountLabel}`);
+          }
+          if (projectLabel && projectLabel !== '—') {
+            parts.push(`Ref: ${projectLabel}`);
+          }
+          metadataCell.textContent = parts.length ? parts.join(' · ') : '—';
+          tr.appendChild(metadataCell);
 
           fragment.appendChild(tr);
         }
 
-        stripeTableBody.appendChild(fragment);
+        ledgerTableBody.appendChild(fragment);
       }
 
-      function renderGateway() {
-        const submissions = state.data?.gatewaySubmissions || [];
-        gatewayTableBody.innerHTML = '';
-        gatewayCounts.innerHTML = '';
-        if (!submissions.length) {
-          gatewayEmpty.style.display = 'block';
+      function renderUsers() {
+        const users = (state.data?.gatewayUsers || []).filter((user) => {
+          if (!state.search) return true;
+          const haystack = [
+            user.username,
+            user.name,
+            user.email,
+            user.role,
+            user.notes,
+            user.credentialStatus
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          return haystack.includes(state.search);
+        });
+
+        usersTableBody.innerHTML = '';
+
+        if (!users.length) {
+          usersEmpty.style.display = 'block';
           return;
         }
-        gatewayEmpty.style.display = 'none';
 
-        const roleCounts = new Map();
-        for (const submission of submissions) {
-          const key = (submission.role || 'Unspecified').trim();
-          roleCounts.set(key, (roleCounts.get(key) || 0) + 1);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(submission.updatedAt || submission.createdAt)}</td>
-            <td>${submission.name || '—'}</td>
-            <td>${submission.email || '—'}</td>
-            <td>${submission.role || '—'}</td>
-            <td>${truncate(parseSelections(submission.selections))}</td>
-          `;
-          gatewayTableBody.appendChild(tr);
-        }
+        usersEmpty.style.display = 'none';
 
         const fragment = document.createDocumentFragment();
-        for (const [role, count] of roleCounts.entries()) {
-          const span = document.createElement('span');
-          span.textContent = `${role}: ${count}`;
-          fragment.appendChild(span);
+        for (const user of users) {
+          const tr = document.createElement('tr');
+
+          const usernameCell = document.createElement('td');
+          usernameCell.textContent = user.username || '—';
+          tr.appendChild(usernameCell);
+
+          const walletCell = document.createElement('td');
+          walletCell.textContent = user.walletAddress || '—';
+          tr.appendChild(walletCell);
+
+          const avatarCell = document.createElement('td');
+          if (user.profileImageUrl) {
+            const img = document.createElement('img');
+            img.src = user.profileImageUrl;
+            img.alt = user.username ? `${user.username} profile` : 'Profile';
+            img.style.width = '36px';
+            img.style.height = '36px';
+            img.style.borderRadius = '50%';
+            avatarCell.appendChild(img);
+          } else {
+            avatarCell.textContent = '—';
+          }
+          tr.appendChild(avatarCell);
+
+          const audioCell = document.createElement('td');
+          audioCell.textContent = formatNumber(getUserAudioUploadCount(user));
+          tr.appendChild(audioCell);
+
+          const snapshotCell = document.createElement('td');
+          const snapshotSource = user.notes || formatSelectionsForEditor(user.selections) || user.role || '—';
+          snapshotCell.textContent = truncate(snapshotSource, 160);
+          tr.appendChild(snapshotCell);
+
+          const createdCell = document.createElement('td');
+          createdCell.textContent = formatDate(user.createdAt);
+          tr.appendChild(createdCell);
+
+          const updatedCell = document.createElement('td');
+          updatedCell.textContent = formatDate(user.updatedAt);
+          tr.appendChild(updatedCell);
+
+          const lastLoginCell = document.createElement('td');
+          const lastLogin = findLastLoginForUser(user);
+          lastLoginCell.textContent = lastLogin ? formatDate(lastLogin.createdAt) : '—';
+          tr.appendChild(lastLoginCell);
+
+          const actionCell = document.createElement('td');
+          const editButton = document.createElement('button');
+          editButton.className = 'btn';
+          editButton.dataset.action = 'edit';
+          editButton.dataset.user = encodeURIComponent(user.id || '');
+          editButton.textContent = 'Edit';
+          actionCell.appendChild(editButton);
+          tr.appendChild(actionCell);
+
+          fragment.appendChild(tr);
         }
-        gatewayCounts.appendChild(fragment);
+
+        usersTableBody.appendChild(fragment);
+      }
+
+      function findLastLoginForUser(user) {
+        if (!user) return null;
+        const events = state.data?.loginEvents || [];
+        const username = user.username ? user.username.toLowerCase() : '';
+        let latest = null;
+        for (const event of events) {
+          if (username && event.username && event.username.toLowerCase() === username) {
+            if (!latest || timestampValue(event.createdAt) > timestampValue(latest.createdAt)) {
+              latest = event;
+            }
+          }
+        }
+        return latest;
+      }
+
+      function getUserAudioUploadCount(user) {
+        if (!user || !user.username) return 0;
+        const handle = user.username.toLowerCase();
+        const broadcasts = state.data?.fileBroadcasts || [];
+        let count = 0;
+        for (const entry of broadcasts) {
+          if ((entry.category || '').toLowerCase() !== 'audio') continue;
+          if (typeof entry.path === 'string' && entry.path.toLowerCase().includes(handle)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+
+      function renderAudioUploads() {
+        if (!audioTableBody || !audioEmpty) {
+          return;
+        }
+        const broadcasts = state.data?.fileBroadcasts || [];
+        const audioEntries = broadcasts.filter((entry) => (entry.category || '').toLowerCase() === 'audio');
+        audioTableBody.innerHTML = '';
+        if (!audioEntries.length) {
+          audioEmpty.style.display = 'block';
+          return;
+        }
+        audioEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const entry of audioEntries) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(entry.updatedAt || entry.createdAt)}</td>
+            <td>${entry.owner || '—'}</td>
+            <td>${entry.walletAddress || '—'}</td>
+            <td>${entry.displayName || entry.path || '—'}</td>
+            <td>${entry.path || '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        audioTableBody.appendChild(fragment);
+      }
+
+      function renderPollResponses() {
+        if (!pollsTableBody || !pollsEmpty) {
+          return;
+        }
+        const submissions = state.data?.gatewaySubmissions || [];
+        pollsTableBody.innerHTML = '';
+        if (!submissions.length) {
+          pollsEmpty.style.display = 'block';
+          return;
+        }
+        pollsEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const submission of submissions) {
+          const tr = document.createElement('tr');
+          const submissionId = ensureSubmissionId(submission, 'gateway');
+          const origin =
+            submission.origin || submission.referer || submission.ipAddress || submission.source || '—';
+          const question =
+            submission.question || submission.prompt || submission.topic || submission.role || 'Gateway Program';
+          let responseText = '—';
+          if (submission.response) {
+            responseText = submission.response;
+          } else if (submission.answer) {
+            responseText = submission.answer;
+          } else if (submission.selections) {
+            responseText = parseSelections(submission.selections);
+          }
+          const metadataParts = [];
+          if (submission.databaseOptIn) metadataParts.push('Opt-in: Yes');
+          if (submission.role) metadataParts.push(`Role: ${submission.role}`);
+          if (submission.metadata) metadataParts.push(String(submission.metadata));
+          if (submission.pollMetadata) metadataParts.push(String(submission.pollMetadata));
+          const metadata = metadataParts.length ? metadataParts.join(' · ') : '—';
+          tr.innerHTML = `
+            <td>${origin}</td>
+            <td>${truncate(question, 160)}</td>
+            <td>${truncate(responseText, 160)}</td>
+            <td>${truncate(metadata, 160)}</td>
+            <td>${formatDate(submission.updatedAt || submission.createdAt)}</td>
+            <td>
+              <div class="table-actions">
+                <button class="btn" type="button" data-action="edit-submission" data-kind="poll" data-submission="${encodeURIComponent(
+            submissionId
+          )}">Edit</button>
+              </div>
+            </td>
+          `;
+          fragment.appendChild(tr);
+        }
+        pollsTableBody.appendChild(fragment);
+      }
+
+      function renderQuestions() {
+        if (!questionsTableBody || !questionsEmpty) {
+          return;
+        }
+        const contacts = state.data?.contactSubmissions || [];
+        questionsTableBody.innerHTML = '';
+        if (!contacts.length) {
+          questionsEmpty.style.display = 'block';
+          return;
+        }
+        questionsEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const contact of contacts) {
+          const tr = document.createElement('tr');
+          const submissionId = ensureSubmissionId(contact, 'contact');
+          const contactValue =
+            contact.contact || contact.email || contact.phone || contact.source || contact.wallet || '—';
+          const tags = parseSelections(contact.tags);
+          const metadataParts = [];
+          if (contact.metadata) metadataParts.push(String(contact.metadata));
+          if (contact.source && contact.source !== contactValue) metadataParts.push(String(contact.source));
+          if (contact.referer) metadataParts.push(String(contact.referer));
+          const metadata = metadataParts.length ? metadataParts.join(' · ') : '—';
+          tr.innerHTML = `
+            <td>${contact.name || '—'}</td>
+            <td>${contactValue}</td>
+            <td>${truncate(contact.message || '—', 160)}</td>
+            <td>${truncate(tags || '—', 160)}</td>
+            <td>${truncate(metadata, 160)}</td>
+            <td>${formatDate(contact.updatedAt || contact.createdAt)}</td>
+            <td>
+              <div class="table-actions">
+                <button class="btn" type="button" data-action="edit-submission" data-kind="question" data-submission="${encodeURIComponent(
+            submissionId
+          )}">Edit</button>
+              </div>
+            </td>
+          `;
+          fragment.appendChild(tr);
+        }
+        questionsTableBody.appendChild(fragment);
+      }
+
+      function renderLogins() {
+        if (!loginTableBody || !loginEmpty) {
+          return;
+        }
+        const events = state.data?.loginEvents || [];
+        loginTableBody.innerHTML = '';
+        if (!events.length) {
+          loginEmpty.style.display = 'block';
+          return;
+        }
+        loginEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const event of events) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(event.createdAt)}</td>
+            <td>${event.username || '—'}</td>
+            <td>${event.walletAddress || '—'}</td>
+            <td>${event.meknxPassId || '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        loginTableBody.appendChild(fragment);
+      }
+
+      function renderMarketplaceItems() {
+        if (!marketplaceTableBody || !marketplaceEmpty) {
+          return;
+        }
+        const uploads = state.data?.marketplaceUploads || [];
+        marketplaceTableBody.innerHTML = '';
+        if (!uploads.length) {
+          marketplaceEmpty.style.display = 'block';
+          return;
+        }
+        marketplaceEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const upload of uploads) {
+          const tr = document.createElement('tr');
+          const minted = upload.mintStatus || upload.mintedAt ? 'Minted' : 'Pending';
+          tr.innerHTML = `
+            <td>${upload.title || '—'}</td>
+            <td>${upload.walletAddress || '—'}</td>
+            <td>${upload.chain || upload.network || '—'}</td>
+            <td>${upload.token || '—'}</td>
+            <td>${upload.price ? String(upload.price) : '—'}</td>
+            <td><span class="badge" data-variant="${minted === 'Minted' ? 'success' : 'warning'}">${minted}</span></td>
+            <td>${formatDate(upload.createdAt)}</td>
+            <td>${formatDate(upload.updatedAt)}</td>
+            <td>${upload.mediaUrl ? `<a href="${upload.mediaUrl}" target="_blank" rel="noopener">Source</a>` : '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        marketplaceTableBody.appendChild(fragment);
+      }
+
+      function renderStoredFiles() {
+        if (!filesTableBody || !filesEmpty) {
+          return;
+        }
+        const broadcasts = state.data?.fileBroadcasts || [];
+        const stored = broadcasts.filter((entry) => typeof entry.path === 'string' && entry.path.toLowerCase().includes('marketplace'));
+        filesTableBody.innerHTML = '';
+        if (!stored.length) {
+          filesEmpty.style.display = 'block';
+          return;
+        }
+        filesEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const entry of stored) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${entry.id || '—'}</td>
+            <td>${entry.itemId || '—'}</td>
+            <td>${entry.displayName || entry.path || '—'}</td>
+            <td>${entry.mimeType || '—'}</td>
+            <td>${formatBytes(entry.fileSize)}</td>
+            <td>${formatDate(entry.createdAt)}</td>
+            <td>${entry.downloadUrl ? `<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>` : '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        filesTableBody.appendChild(fragment);
+      }
+
+      function filterBroadcastsForView(filterValue) {
+        const broadcasts = state.data?.fileBroadcasts || [];
+        if (filterValue === 'audio') {
+          return broadcasts.filter((entry) => (entry.category || '').toLowerCase() === 'audio');
+        }
+        if (filterValue === 'images') {
+          return broadcasts.filter((entry) => (entry.category || '').toLowerCase() === 'image');
+        }
+        if (filterValue === 'mints') {
+          return broadcasts.filter((entry) =>
+            typeof entry.path === 'string' && entry.path.toLowerCase().includes('mint')
+          );
+        }
+        return broadcasts;
+      }
+
+      function renderVaultAssets() {
+        if (!assetTableBody || !assetEmpty) {
+          return;
+        }
+        const filterValue = assetFilter ? assetFilter.value : 'uploads';
+        const broadcasts = filterBroadcastsForView(filterValue);
+        assetTableBody.innerHTML = '';
+        if (!broadcasts.length) {
+          assetEmpty.style.display = 'block';
+          updateVaultSummary(state.data?.fileBroadcasts || []);
+          return;
+        }
+        assetEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const entry of broadcasts) {
+          const tr = document.createElement('tr');
+          const actions = [];
+          if (entry.downloadUrl) {
+            actions.push(`<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>`);
+          }
+          if (entry.shareUrl) {
+            actions.push(`<a href="${entry.shareUrl}" target="_blank" rel="noopener">Share</a>`);
+          }
+          if (!actions.length) {
+            actions.push('—');
+          }
+          tr.innerHTML = `
+            <td>${entry.displayName || entry.path || '—'}</td>
+            <td>${entry.category || '—'}</td>
+            <td>${entry.path ? entry.path.split('/').slice(0, -1).join('/') || '/' : '/'}</td>
+            <td>${entry.mimeType || '—'}</td>
+            <td>${formatBytes(entry.fileSize)}</td>
+            <td>${formatDate(entry.updatedAt || entry.createdAt)}</td>
+            <td>${actions.join(' · ')}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        assetTableBody.appendChild(fragment);
+        updateVaultSummary(state.data?.fileBroadcasts || []);
+      }
+
+      function updateVaultSummary(allBroadcasts) {
+        if (!assetSummary) {
+          return;
+        }
+        const filterValue = assetFilter ? assetFilter.value : 'uploads';
+        const filtered = filterBroadcastsForView(filterValue);
+        const total = Array.isArray(allBroadcasts) ? allBroadcasts.length : 0;
+        assetSummary.textContent = `${formatNumber(filtered.length)} ${pluralize(
+          filtered.length,
+          'asset'
+        )} shown · ${formatNumber(total)} indexed`;
+      }
+
+      function renderHtmlAssets() {
+        if (!htmlFilesTableBody || !htmlFilesEmpty) {
+          return;
+        }
+        const broadcasts = state.data?.fileBroadcasts || [];
+        const htmlEntries = broadcasts.filter((entry) => typeof entry.path === 'string' && entry.path.toLowerCase().endsWith('.html'));
+        htmlFilesTableBody.innerHTML = '';
+        if (!htmlEntries.length) {
+          htmlFilesEmpty.style.display = 'block';
+          return;
+        }
+        htmlFilesEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const entry of htmlEntries) {
+          const tr = document.createElement('tr');
+          const encodedPath = entry.path ? encodeURIComponent(entry.path) : '';
+          const downloadUrl = entry.downloadUrl || entry.url || entry.sourceUrl || entry.shareUrl || '';
+          const shareUrl = entry.shareUrl || entry.publicUrl || '';
+          const editButton = entry.path
+            ? `<button class="btn" type="button" data-action="edit-html" data-path="${encodedPath}">Edit</button>`
+            : '<button class="btn" type="button" disabled>Edit</button>';
+          const downloadAction = downloadUrl
+            ? `<a class="btn btn-outline" href="${downloadUrl}" target="_blank" rel="noopener">Download</a>`
+            : '<span class="text-muted">No download</span>';
+          const shareAction = shareUrl
+            ? `<a class="btn btn-outline" href="${shareUrl}" target="_blank" rel="noopener">Share</a>`
+            : '<span class="text-muted">No share</span>';
+          tr.innerHTML = `
+            <td>${entry.path || '—'}</td>
+            <td>${formatBytes(entry.fileSize)}</td>
+            <td>${formatDate(entry.modifiedAt || entry.updatedAt || entry.createdAt)}</td>
+            <td>
+              <div class="table-actions">
+                ${editButton}
+                ${downloadAction}
+                ${shareAction}
+              </div>
+            </td>
+          `;
+          fragment.appendChild(tr);
+        }
+        htmlFilesTableBody.appendChild(fragment);
+      }
+
+      function renderTransactions() {
+        if (!transactionsTableBody || !transactionsEmpty) {
+          return;
+        }
+        const transactions = state.data?.poolTransactions || [];
+        transactionsTableBody.innerHTML = '';
+        if (!transactions.length) {
+          transactionsEmpty.style.display = 'block';
+          return;
+        }
+        transactionsEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const txn of transactions) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(txn.timestamp)}</td>
+            <td>${txn.wallet || '—'}</td>
+            <td>${txn.chain || '—'}</td>
+            <td>${txn.token || '—'}</td>
+            <td>${txn.amount != null ? txn.amount : '—'}</td>
+            <td>${txn.hash || txn.transactionHash || '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        transactionsTableBody.appendChild(fragment);
+      }
+
+      function renderOrders() {
+        if (!ordersTableBody || !ordersEmpty) {
+          return;
+        }
+        const orders = state.data?.marketplaceOrders || [];
+        ordersTableBody.innerHTML = '';
+        if (!orders.length) {
+          ordersEmpty.style.display = 'block';
+          return;
+        }
+        ordersEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const order of orders) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(order.createdAt)}</td>
+            <td>${order.buyer || '—'}</td>
+            <td>${order.seller || '—'}</td>
+            <td>${order.chain || '—'}</td>
+            <td>${order.token || '—'}</td>
+            <td>${order.amount != null ? order.amount : '—'}</td>
+            <td>${order.status || '—'}</td>
+            <td>${order.transactionHash || '—'}</td>
+            <td>${order.invoice || '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        ordersTableBody.appendChild(fragment);
+      }
+
+      function renderBids() {
+        if (!bidsTableBody || !bidsEmpty) {
+          return;
+        }
+        const bids = state.data?.marketplaceBids || [];
+        bidsTableBody.innerHTML = '';
+        if (!bids.length) {
+          bidsEmpty.style.display = 'block';
+          return;
+        }
+        bidsEmpty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        for (const bid of bids) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDate(bid.createdAt)}</td>
+            <td>${bid.bidderName || '—'}</td>
+            <td>${bid.assetOwner || bid.seller || '—'}</td>
+            <td>${bid.chain || '—'}</td>
+            <td>${bid.currency || bid.token || '—'}</td>
+            <td>${bid.amount != null ? bid.amount : '—'}</td>
+            <td>${bid.status || '—'}</td>
+            <td>${bid.transactionHash || '—'}</td>
+            <td>${bid.invoice || '—'}</td>
+          `;
+          fragment.appendChild(tr);
+        }
+        bidsTableBody.appendChild(fragment);
       }
 
       function parseSelections(value) {
@@ -1784,303 +2623,6 @@
           return String(parsed);
         } catch (error) {
           return value;
-        }
-      }
-
-      function renderMarketplaceUploads() {
-        const uploads = state.data?.marketplaceUploads || [];
-        marketplaceTableBody.innerHTML = '';
-        if (!uploads.length) {
-          marketplaceEmpty.style.display = 'block';
-          return;
-        }
-        marketplaceEmpty.style.display = 'none';
-
-        const fragment = document.createDocumentFragment();
-        for (const upload of uploads) {
-          const tr = document.createElement('tr');
-
-          const submittedCell = document.createElement('td');
-          submittedCell.textContent = formatDate(upload.createdAt);
-          tr.appendChild(submittedCell);
-
-          const titleCell = document.createElement('td');
-          titleCell.textContent = upload.title || '—';
-          tr.appendChild(titleCell);
-
-          const creatorCell = document.createElement('td');
-          creatorCell.textContent = upload.username || '—';
-          tr.appendChild(creatorCell);
-
-          const walletCell = document.createElement('td');
-          walletCell.textContent = upload.walletAddress || '—';
-          tr.appendChild(walletCell);
-
-          const mediaCell = document.createElement('td');
-          if (upload.mediaUrl) {
-            const link = document.createElement('a');
-            link.href = upload.mediaUrl;
-            link.textContent = 'Preview';
-            link.target = '_blank';
-            link.rel = 'noopener';
-            mediaCell.appendChild(link);
-          } else {
-            mediaCell.textContent = '—';
-          }
-          tr.appendChild(mediaCell);
-
-          const bidsCell = document.createElement('td');
-          bidsCell.textContent = String(upload.bidCount || 0);
-          tr.appendChild(bidsCell);
-
-          const topBidCell = document.createElement('td');
-          if (typeof upload.highestBidAmount === 'number' && Number.isFinite(upload.highestBidAmount)) {
-            topBidCell.textContent = `${upload.highestBidCurrency || ''} ${upload.highestBidAmount.toLocaleString(undefined, {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 2
-            })}`.trim();
-          } else {
-            topBidCell.textContent = '—';
-          }
-          tr.appendChild(topBidCell);
-
-          const lastBidCell = document.createElement('td');
-          lastBidCell.textContent = upload.lastBidAt ? formatDate(upload.lastBidAt) : '—';
-          tr.appendChild(lastBidCell);
-
-          const descriptionCell = document.createElement('td');
-          descriptionCell.textContent = truncate(upload.description);
-          tr.appendChild(descriptionCell);
-
-          fragment.appendChild(tr);
-        }
-
-        marketplaceTableBody.appendChild(fragment);
-      }
-
-      function renderMarketplaceBids() {
-        const bids = state.data?.marketplaceBids || [];
-        bidsTableBody.innerHTML = '';
-        if (!bids.length) {
-          bidsEmpty.style.display = 'block';
-          return;
-        }
-        bidsEmpty.style.display = 'none';
-
-        const fragment = document.createDocumentFragment();
-        for (const bid of bids) {
-          const tr = document.createElement('tr');
-
-          const timestampCell = document.createElement('td');
-          timestampCell.textContent = formatDate(bid.createdAt);
-          tr.appendChild(timestampCell);
-
-          const assetCell = document.createElement('td');
-          assetCell.textContent = bid.assetTitle || bid.assetId || '—';
-          tr.appendChild(assetCell);
-
-          const bidderCell = document.createElement('td');
-          bidderCell.textContent = bid.bidderName || '—';
-          tr.appendChild(bidderCell);
-
-          const amountCell = document.createElement('td');
-          if (typeof bid.amount === 'number' && Number.isFinite(bid.amount)) {
-            amountCell.textContent = `${bid.currency || ''} ${bid.amount.toLocaleString(undefined, {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 2
-            })}`.trim();
-          } else {
-            amountCell.textContent = '—';
-          }
-          tr.appendChild(amountCell);
-
-          const walletCell = document.createElement('td');
-          walletCell.textContent = bid.bidderWallet || '—';
-          tr.appendChild(walletCell);
-
-          const contactCell = document.createElement('td');
-          contactCell.textContent = bid.bidderContact || '—';
-          tr.appendChild(contactCell);
-
-          const messageCell = document.createElement('td');
-          messageCell.textContent = truncate(bid.message);
-          tr.appendChild(messageCell);
-
-          fragment.appendChild(tr);
-        }
-
-        bidsTableBody.appendChild(fragment);
-      }
-
-      function parseMintMetadata(value) {
-        if (!value) return null;
-        if (typeof value === 'object') return value;
-        if (typeof value === 'string') {
-          try {
-            return JSON.parse(value);
-          } catch (error) {
-            return null;
-          }
-        }
-        return null;
-      }
-
-      function formatMintNotes(entry) {
-        const notes = [];
-        const metadata = parseMintMetadata(entry?.metadata);
-        if (metadata && typeof metadata === 'object') {
-          if (metadata.ledgerNotes) {
-            notes.push(metadata.ledgerNotes);
-          }
-          if (metadata.rawSelection) {
-            if (typeof metadata.rawSelection === 'string') {
-              notes.push(metadata.rawSelection);
-            } else {
-              try {
-                notes.push(JSON.stringify(metadata.rawSelection));
-              } catch (error) {
-                notes.push(String(metadata.rawSelection));
-              }
-            }
-          }
-        }
-        if (entry?.buttonLabel && entry.buttonLabel !== entry.itemLabel) {
-          notes.push(entry.buttonLabel);
-        }
-        if (entry?.referer && entry.referer !== entry?.mintSource) {
-          notes.push(`Ref: ${entry.referer}`);
-        }
-        if (!notes.length && entry?.userAgent) {
-          notes.push(entry.userAgent);
-        }
-        return truncate(notes.join(' · '));
-      }
-
-      function renderTimepieceLedger() {
-        if (!timepieceLedgerTableBody || !timepieceLedgerEmpty) {
-          return;
-        }
-        const entries = state.data?.timepieceMintLedger || [];
-        timepieceLedgerTableBody.innerHTML = '';
-        if (!entries.length) {
-          timepieceLedgerEmpty.style.display = 'block';
-          return;
-        }
-        timepieceLedgerEmpty.style.display = 'none';
-
-        const fragment = document.createDocumentFragment();
-        for (const entry of entries) {
-          const tr = document.createElement('tr');
-          const timestampCell = document.createElement('td');
-          timestampCell.textContent = formatDate(entry.updatedAt || entry.createdAt);
-          tr.appendChild(timestampCell);
-
-          const walletCell = document.createElement('td');
-          walletCell.textContent = entry.walletAddress || '—';
-          tr.appendChild(walletCell);
-
-          const networkCell = document.createElement('td');
-          networkCell.textContent = entry.walletNetwork ? entry.walletNetwork.toUpperCase() : '—';
-          tr.appendChild(networkCell);
-
-          const itemCell = document.createElement('td');
-          itemCell.textContent = entry.itemLabel || entry.buttonLabel || entry.itemChoice || '—';
-          tr.appendChild(itemCell);
-
-          const editionCell = document.createElement('td');
-          editionCell.textContent = entry.editionNote || '—';
-          tr.appendChild(editionCell);
-
-          const contactCell = document.createElement('td');
-          contactCell.textContent = entry.contactDetail || '—';
-          tr.appendChild(contactCell);
-
-          const sourceCell = document.createElement('td');
-          sourceCell.textContent = entry.mintSource || entry.referer || '—';
-          tr.appendChild(sourceCell);
-
-          const notesCell = document.createElement('td');
-          notesCell.textContent = formatMintNotes(entry);
-          tr.appendChild(notesCell);
-
-          fragment.appendChild(tr);
-        }
-
-        timepieceLedgerTableBody.appendChild(fragment);
-      }
-
-      function renderFileBroadcasts() {
-        if (!fileBroadcastsTableBody) {
-          return;
-        }
-        const broadcasts = state.data?.fileBroadcasts || [];
-        if (fileBroadcastsEmpty) {
-          fileBroadcastsEmpty.style.display = broadcasts.length ? 'none' : 'block';
-        }
-        fileBroadcastsTableBody.innerHTML = '';
-        if (!broadcasts.length) {
-          return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        for (const broadcast of broadcasts) {
-          const tr = document.createElement('tr');
-          const statusLabel = (broadcast.lastEvent || broadcast.status || 'updated').replace(/-/g, ' ');
-          const variant = badgeVariant(statusLabel);
-          tr.innerHTML = `
-            <td>${broadcast.path || '—'}</td>
-            <td>${broadcast.category || '—'}</td>
-            <td><span class="badge" data-variant="${variant}">${statusLabel}</span></td>
-            <td>${formatBytes(broadcast.fileSize)}</td>
-            <td>${formatDate(broadcast.modifiedAt || broadcast.updatedAt || broadcast.createdAt)}</td>
-            <td>${formatDate(broadcast.updatedAt || broadcast.indexedAt || broadcast.createdAt)}</td>
-          `;
-          fragment.appendChild(tr);
-        }
-
-        fileBroadcastsTableBody.appendChild(fragment);
-      }
-
-      function renderContacts() {
-        const contacts = state.data?.contactSubmissions || [];
-        contactTableBody.innerHTML = '';
-        if (!contacts.length) {
-          contactEmpty.style.display = 'block';
-          return;
-        }
-        contactEmpty.style.display = 'none';
-        for (const contact of contacts) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(contact.createdAt)}</td>
-            <td>${contact.name || '—'}</td>
-            <td>${contact.email || '—'}</td>
-            <td>${truncate(contact.message, 160)}</td>
-            <td>${contact.source || '—'}</td>
-          `;
-          contactTableBody.appendChild(tr);
-        }
-      }
-
-      function renderLogins() {
-        const events = state.data?.loginEvents || [];
-        loginTableBody.innerHTML = '';
-        if (!events.length) {
-          loginEmpty.style.display = 'block';
-          return;
-        }
-        loginEmpty.style.display = 'none';
-        for (const event of events) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(event.createdAt)}</td>
-            <td>${event.method || 'credentials'}</td>
-            <td>${event.username || '—'}</td>
-            <td>${event.walletAddress ? `${event.walletAddress} (${event.walletProvider || 'wallet'})` : '—'}</td>
-            <td><span class="badge" data-variant="${event.success ? 'success' : 'danger'}">${event.success ? 'Success' : 'Failed'}</span></td>
-            <td>${truncate(event.metadata)}</td>
-          `;
-          loginTableBody.appendChild(tr);
         }
       }
 
@@ -2115,6 +2657,283 @@
           container.appendChild(detail);
           timelineList.appendChild(container);
         }
+      }
+
+      function toggleSubmissionSections(kind) {
+        if (!submissionSections.poll || !submissionSections.question) {
+          return;
+        }
+        const normalized = kind === 'question' ? 'question' : 'poll';
+        submissionSections.poll.style.display = normalized === 'poll' ? 'grid' : 'none';
+        submissionSections.question.style.display = normalized === 'question' ? 'grid' : 'none';
+      }
+
+      function resetSubmissionEditor() {
+        if (!submissionForm) {
+          return;
+        }
+        if (submissionFields.id) submissionFields.id.value = '';
+        if (submissionFields.kind) submissionFields.kind.value = 'poll';
+        if (submissionFields.origin) submissionFields.origin.value = '';
+        if (submissionFields.question) submissionFields.question.value = '';
+        if (submissionFields.response) submissionFields.response.value = '';
+        if (submissionFields.pollMetadata) submissionFields.pollMetadata.value = '';
+        if (submissionFields.name) submissionFields.name.value = '';
+        if (submissionFields.contact) submissionFields.contact.value = '';
+        if (submissionFields.message) submissionFields.message.value = '';
+        if (submissionFields.tags) submissionFields.tags.value = '';
+        if (submissionFields.questionMetadata) submissionFields.questionMetadata.value = '';
+        toggleSubmissionSections('poll');
+      }
+
+      function openSubmissionEditor(kind, submission) {
+        if (!submissionOverlay || !submissionForm) {
+          return;
+        }
+        const normalized = kind === 'question' ? 'question' : 'poll';
+        resetSubmissionEditor();
+        const submissionId = ensureSubmissionId(
+          submission,
+          normalized === 'question' ? 'contact' : 'gateway'
+        );
+        if (submissionFields.kind) submissionFields.kind.value = normalized;
+        if (submissionFields.id) submissionFields.id.value = submissionId;
+        toggleSubmissionSections(normalized);
+
+        if (normalized === 'poll') {
+          if (submissionFields.origin)
+            submissionFields.origin.value =
+              submission.origin || submission.referer || submission.ipAddress || submission.source || '';
+          if (submissionFields.question)
+            submissionFields.question.value =
+              submission.question || submission.prompt || submission.topic || submission.role || '';
+          if (submissionFields.response)
+            submissionFields.response.value =
+              submission.response || submission.answer || parseSelections(submission.selections) || '';
+          if (submissionFields.pollMetadata)
+            submissionFields.pollMetadata.value =
+              submission.metadata || submission.pollMetadata || submission.notes || '';
+        } else {
+          if (submissionFields.name) submissionFields.name.value = submission.name || '';
+          if (submissionFields.contact)
+            submissionFields.contact.value =
+              submission.contact || submission.email || submission.phone || submission.source || '';
+          if (submissionFields.message) submissionFields.message.value = submission.message || '';
+          if (submissionFields.tags)
+            submissionFields.tags.value =
+              Array.isArray(submission.tags) ? submission.tags.join(', ') : submission.tags || '';
+          if (submissionFields.questionMetadata)
+            submissionFields.questionMetadata.value =
+              submission.metadata || submission.questionMetadata || submission.referer || '';
+        }
+
+        submissionOverlay.classList.add('is-open');
+        const focusTarget =
+          normalized === 'question'
+            ? submissionFields.name || submissionFields.contact
+            : submissionFields.origin || submissionFields.question;
+        if (focusTarget && typeof focusTarget.focus === 'function') {
+          focusTarget.focus();
+        }
+      }
+
+      function closeSubmissionEditor() {
+        if (!submissionOverlay) {
+          return;
+        }
+        submissionOverlay.classList.remove('is-open');
+        resetSubmissionEditor();
+      }
+
+      function configureHtmlEditorActions(entry) {
+        const downloadUrl = entry?.downloadUrl || entry?.url || entry?.sourceUrl || '';
+        const shareUrl = entry?.shareUrl || entry?.publicUrl || entry?.url || '';
+        if (htmlEditorFields.download) {
+          if (downloadUrl) {
+            htmlEditorFields.download.disabled = false;
+            htmlEditorFields.download.dataset.href = downloadUrl;
+          } else {
+            htmlEditorFields.download.disabled = true;
+            delete htmlEditorFields.download.dataset.href;
+          }
+        }
+        if (htmlEditorFields.share) {
+          if (shareUrl) {
+            htmlEditorFields.share.disabled = false;
+            htmlEditorFields.share.dataset.href = shareUrl;
+          } else {
+            htmlEditorFields.share.disabled = true;
+            delete htmlEditorFields.share.dataset.href;
+          }
+        }
+      }
+
+      function resetHtmlEditor() {
+        if (htmlEditorFields.path) htmlEditorFields.path.value = '';
+        if (htmlEditorFields.pathDisplay) htmlEditorFields.pathDisplay.value = '';
+        if (htmlEditorFields.content) htmlEditorFields.content.value = '';
+        if (htmlEditorFields.size) htmlEditorFields.size.textContent = 'Size: —';
+        if (htmlEditorFields.updated) htmlEditorFields.updated.textContent = 'Last Updated: —';
+        configureHtmlEditorActions(null);
+      }
+
+      async function openHtmlEditor(path) {
+        if (!htmlEditorOverlay) {
+          return;
+        }
+        if (!path) {
+          setStatus('Unable to locate the selected HTML asset.', 'error');
+          return;
+        }
+
+        const decodedPath = decodeURIComponent(path);
+        resetHtmlEditor();
+        const entry = (state.data?.fileBroadcasts || []).find((item) => item.path === decodedPath) || null;
+        if (htmlEditorFields.path) htmlEditorFields.path.value = decodedPath;
+        if (htmlEditorFields.pathDisplay) htmlEditorFields.pathDisplay.value = decodedPath;
+        if (htmlEditorFields.size) {
+          const sizeText = entry && typeof entry.fileSize === 'number' ? formatBytes(entry.fileSize) : '—';
+          htmlEditorFields.size.textContent = `Size: ${sizeText}`;
+        }
+        if (htmlEditorFields.updated) {
+          const updatedSource = entry?.modifiedAt || entry?.updatedAt || entry?.createdAt;
+          htmlEditorFields.updated.textContent = `Last Updated: ${updatedSource ? formatDate(updatedSource) : '—'}`;
+        }
+        configureHtmlEditorActions(entry);
+        if (htmlEditorFields.content) {
+          htmlEditorFields.content.value = 'Loading template…';
+        }
+        htmlEditorOverlay.classList.add('is-open');
+
+        try {
+          const response = await fetch(`/api/admin/html-assets/${encodeURIComponent(decodedPath)}`, {
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
+          }
+          const payload = await response.json().catch(() => ({}));
+          if (payload && htmlEditorFields.content) {
+            htmlEditorFields.content.value = payload.content || '';
+          }
+          if (payload?.size != null && htmlEditorFields.size) {
+            htmlEditorFields.size.textContent = `Size: ${formatBytes(payload.size)}`;
+          }
+          if (payload?.updatedAt && htmlEditorFields.updated) {
+            htmlEditorFields.updated.textContent = `Last Updated: ${formatDate(payload.updatedAt)}`;
+          }
+          const merged = { ...entry, ...payload, path: decodedPath };
+          configureHtmlEditorActions(merged);
+        } catch (error) {
+          console.error('Failed to load HTML asset', error);
+          if (htmlEditorFields.content) {
+            htmlEditorFields.content.value = '';
+          }
+          setStatus('Unable to load HTML asset content. Please retry.', 'error');
+        }
+      }
+
+      function closeHtmlEditor() {
+        if (!htmlEditorOverlay) {
+          return;
+        }
+        htmlEditorOverlay.classList.remove('is-open');
+        resetHtmlEditor();
+      }
+
+      async function submitSubmissionEditor(event) {
+        if (event) {
+          event.preventDefault();
+        }
+        if (!submissionForm) {
+          return;
+        }
+
+        const kind = submissionFields.kind?.value === 'question' ? 'question' : 'poll';
+        const id = (submissionFields.id?.value || '').trim();
+        if (!id) {
+          setStatus('Submission identifier missing. Unable to save changes.', 'error');
+          return;
+        }
+
+        const payload =
+          kind === 'question'
+            ? {
+                name: submissionFields.name?.value?.trim() || '',
+                contact: submissionFields.contact?.value?.trim() || '',
+                message: submissionFields.message?.value?.trim() || '',
+                tags: submissionFields.tags?.value?.trim() || '',
+                metadata: submissionFields.questionMetadata?.value?.trim() || ''
+              }
+            : {
+                origin: submissionFields.origin?.value?.trim() || '',
+                question: submissionFields.question?.value?.trim() || '',
+                response: submissionFields.response?.value?.trim() || '',
+                metadata: submissionFields.pollMetadata?.value?.trim() || ''
+              };
+
+        const endpoint =
+          kind === 'question'
+            ? `/api/admin/contact-submissions/${encodeURIComponent(id)}`
+            : `/api/admin/gateway-submissions/${encodeURIComponent(id)}`;
+
+        const originalText = submissionSubmitButton ? submissionSubmitButton.textContent : '';
+        if (submissionSubmitButton) {
+          submissionSubmitButton.disabled = true;
+          submissionSubmitButton.textContent = 'Saving…';
+        }
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) {
+            throw new Error('Update failed with status ' + response.status);
+          }
+          await response.json().catch(() => ({}));
+          closeSubmissionEditor();
+          await loadOverview({ silent: true });
+          setStatus('Submission updated successfully.', 'success');
+        } catch (error) {
+          console.error('Failed to update submission', error);
+          setStatus(error?.message || 'Unable to update submission. Please retry.', 'error');
+        } finally {
+          if (submissionSubmitButton) {
+            submissionSubmitButton.disabled = false;
+            submissionSubmitButton.textContent = originalText || 'Save Submission';
+          }
+        }
+      }
+
+      function handleSubmissionTableAction(event) {
+        const button = event.target.closest('[data-action="edit-submission"]');
+        if (!button) {
+          return;
+        }
+        const kind = button.getAttribute('data-kind') === 'question' ? 'question' : 'poll';
+        const encodedId = button.getAttribute('data-submission');
+        const id = encodedId ? decodeURIComponent(encodedId) : '';
+        const record = resolveSubmissionRecord(id, kind);
+        if (!record) {
+          setStatus('Unable to locate the selected submission.', 'error');
+          return;
+        }
+        openSubmissionEditor(kind, record);
+      }
+
+      function handleHtmlTableAction(event) {
+        const button = event.target.closest('[data-action="edit-html"]');
+        if (!button) {
+          return;
+        }
+        const encodedPath = button.getAttribute('data-path');
+        if (!encodedPath) {
+          setStatus('Unable to locate the selected HTML asset.', 'error');
+          return;
+        }
+        openHtmlEditor(encodedPath);
       }
 
       function openEditor(user = null) {
@@ -2210,6 +3029,24 @@
         return newId;
       }
 
+      function ensureSubmissionId(submission, prefix = 'submission') {
+        if (submission?.id) return submission.id;
+        if (submission?._id) return submission._id;
+        const newId = `${prefix}-${generateId()}`;
+        if (submission) {
+          submission.id = newId;
+        }
+        return newId;
+      }
+
+      function resolveSubmissionRecord(id, kind) {
+        if (!state.data || !id) return null;
+        if (kind === 'question') {
+          return (state.data.contactSubmissions || []).find((item) => item.id === id || item._id === id) || null;
+        }
+        return (state.data.gatewaySubmissions || []).find((item) => item.id === id || item._id === id) || null;
+      }
+
       usersTableBody.addEventListener('click', (event) => {
         const action = event.target.closest('[data-action="edit"]');
         if (!action) return;
@@ -2223,10 +3060,28 @@
         openEditor(user);
       });
 
+      if (pollsTableBody) {
+        pollsTableBody.addEventListener('click', handleSubmissionTableAction);
+      }
+
+      if (questionsTableBody) {
+        questionsTableBody.addEventListener('click', handleSubmissionTableAction);
+      }
+
+      if (htmlFilesTableBody) {
+        htmlFilesTableBody.addEventListener('click', handleHtmlTableAction);
+      }
+
       searchInput.addEventListener('input', (event) => {
         state.search = event.target.value.trim().toLowerCase();
         renderUsers();
       });
+
+      if (assetFilter) {
+        assetFilter.addEventListener('change', () => {
+          renderVaultAssets();
+        });
+      }
 
       if (rescanFileBroadcastsButton) {
         rescanFileBroadcastsButton.addEventListener('click', async () => {
@@ -2266,6 +3121,12 @@
         loadOverview();
       });
 
+      if (refreshInfrastructureButton) {
+        refreshInfrastructureButton.addEventListener('click', () => {
+          loadOverview();
+        });
+      }
+
       newUserButton.addEventListener('click', () => {
         const randomId = generateId();
         editorFields.id.value = randomId;
@@ -2281,9 +3142,75 @@
 
       editorForm.addEventListener('submit', submitEditor);
 
+      if (submissionForm) {
+        submissionForm.addEventListener('submit', submitSubmissionEditor);
+      }
+
+      if (closeSubmissionButtons.length) {
+        closeSubmissionButtons.forEach((button) =>
+          button.addEventListener('click', () => closeSubmissionEditor())
+        );
+      }
+
+      if (submissionOverlay) {
+        submissionOverlay.addEventListener('click', (event) => {
+          if (event.target === submissionOverlay) {
+            closeSubmissionEditor();
+          }
+        });
+      }
+
+      if (closeHtmlEditorButtons.length) {
+        closeHtmlEditorButtons.forEach((button) =>
+          button.addEventListener('click', () => closeHtmlEditor())
+        );
+      }
+
+      if (htmlEditorOverlay) {
+        htmlEditorOverlay.addEventListener('click', (event) => {
+          if (event.target === htmlEditorOverlay) {
+            closeHtmlEditor();
+          }
+        });
+      }
+
+      if (htmlEditorFields.download) {
+        htmlEditorFields.download.addEventListener('click', () => {
+          const href = htmlEditorFields.download.dataset.href;
+          if (href) {
+            window.open(href, '_blank', 'noopener');
+          }
+        });
+      }
+
+      if (htmlEditorFields.share) {
+        htmlEditorFields.share.addEventListener('click', () => {
+          const href = htmlEditorFields.share.dataset.href;
+          if (href) {
+            window.open(href, '_blank', 'noopener');
+          }
+        });
+      }
+
       document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && state.editorOpen) {
+        if (event.key !== 'Escape') {
+          return;
+        }
+        let handled = false;
+        if (htmlEditorOverlay && htmlEditorOverlay.classList.contains('is-open')) {
+          closeHtmlEditor();
+          handled = true;
+        }
+        if (submissionOverlay && submissionOverlay.classList.contains('is-open')) {
+          closeSubmissionEditor();
+          handled = true;
+        }
+        if (editorOverlay && editorOverlay.classList.contains('is-open')) {
           closeEditor();
+          handled = true;
+        }
+        if (!handled && statusBanner?.classList.contains('is-visible')) {
+          setStatus('');
         }
       });
 

@@ -699,6 +699,11 @@
             <p class="tile-meta">Live sessions and total visitors.</p>
           </article>
           <article class="server-tile" role="listitem">
+            <h3>Chat Servers</h3>
+            <div class="tile-value" id="infrastructure-chat-status">—</div>
+            <p class="tile-meta" id="infrastructure-chat-detail">Awaiting telemetry.</p>
+          </article>
+          <article class="server-tile" role="listitem">
             <h3>Signals</h3>
             <ul id="infrastructure-hints-list" class="tile-meta-list" aria-live="polite"></ul>
           </article>
@@ -1264,6 +1269,58 @@
       let adminPhantomProvider = null;
       let adminPhantomPublicKey = '';
       let adminDepositSignature = '';
+      let adminPhantomEventsBound = false;
+      let adminPhantomEventSource = null;
+
+      const INTERNAL_BROADCAST_PATTERNS = [
+        /^node_modules\//i,
+        /^data\//i,
+        /^scripts?\//i,
+        /^config\//i,
+        /^\.well-known\//i,
+        /^package(-lock)?\.json$/i,
+        /^server\.js$/i,
+        /^track\.py$/i
+      ];
+
+      const INTERNAL_BROADCAST_TAGS = ['internal', 'system', 'private'];
+
+      function isInternalBroadcast(entry) {
+        if (!entry) {
+          return false;
+        }
+        if (entry.internal === true || entry.isInternal === true) {
+          return true;
+        }
+        const visibility = typeof entry.visibility === 'string' ? entry.visibility.toLowerCase() : '';
+        if (visibility && (visibility === 'internal' || visibility === 'private')) {
+          return true;
+        }
+        const category = typeof entry.category === 'string' ? entry.category.toLowerCase() : '';
+        if (category && INTERNAL_BROADCAST_TAGS.some((tag) => category.includes(tag))) {
+          return true;
+        }
+        if (Array.isArray(entry.tags)) {
+          for (const tag of entry.tags) {
+            if (typeof tag === 'string' && INTERNAL_BROADCAST_TAGS.some((needle) => tag.toLowerCase().includes(needle))) {
+              return true;
+            }
+          }
+        }
+        const path = typeof entry.path === 'string' ? entry.path.trim() : '';
+        if (!path) {
+          return false;
+        }
+        const normalizedPath = path.replace(/^\/+/, '');
+        return INTERNAL_BROADCAST_PATTERNS.some((pattern) => pattern.test(normalizedPath));
+      }
+
+      function sanitizeBroadcasts(entries) {
+        if (!Array.isArray(entries)) {
+          return [];
+        }
+        return entries.filter((entry) => !isInternalBroadcast(entry));
+      }
 
       const shortenWalletReference = (value) => {
         if (!value || typeof value !== 'string') {
@@ -1271,6 +1328,82 @@
         }
         return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
       };
+
+      function updateAdminPhantomUi() {
+        if (adminPhantomStatus) {
+          if (adminPhantomPublicKey) {
+            adminPhantomStatus.textContent = `Connected: ${shortenWalletReference(adminPhantomPublicKey)}`;
+            adminPhantomStatus.classList.add('wallet-status--connected');
+          } else {
+            adminPhantomStatus.textContent = 'Not connected.';
+            adminPhantomStatus.classList.remove('wallet-status--connected');
+          }
+        }
+        if (adminDepositButton) {
+          adminDepositButton.disabled = !adminPhantomPublicKey;
+          if (!adminPhantomPublicKey) {
+            adminDepositButton.textContent = 'Send 1 SOL Retainer';
+          }
+        }
+      }
+
+      function handleAdminPhantomDisconnect() {
+        adminPhantomProvider = null;
+        adminPhantomPublicKey = '';
+        adminDepositSignature = '';
+        updateAdminPhantomUi();
+        if (adminDepositStatus) {
+          adminDepositStatus.textContent = 'Connect Phantom before sending the retainer.';
+          adminDepositStatus.classList.remove('wallet-status--connected');
+          adminDepositStatus.classList.add('wallet-status--error');
+        }
+      }
+
+      function bindAdminPhantomEvents(provider) {
+        if (!provider || typeof provider.on !== 'function') {
+          return;
+        }
+        if (adminPhantomEventsBound && provider === adminPhantomEventSource) {
+          return;
+        }
+        provider.on('disconnect', () => {
+          handleAdminPhantomDisconnect();
+        });
+        provider.on('accountChanged', (nextAccount) => {
+          if (!nextAccount) {
+            handleAdminPhantomDisconnect();
+            return;
+          }
+          let derivedKey = '';
+          if (typeof nextAccount === 'string') {
+            derivedKey = nextAccount;
+          } else if (Array.isArray(nextAccount)) {
+            const primaryAccount = nextAccount[0];
+            if (typeof primaryAccount === 'string') {
+              derivedKey = primaryAccount;
+            } else if (primaryAccount?.publicKey) {
+              derivedKey = primaryAccount.publicKey.toString?.() || String(primaryAccount.publicKey);
+            }
+          } else if (nextAccount?.publicKey) {
+            derivedKey = nextAccount.publicKey.toString?.() || String(nextAccount.publicKey);
+          }
+          adminPhantomPublicKey = derivedKey;
+          updateAdminPhantomUi();
+          if (adminDepositStatus) {
+            if (adminPhantomPublicKey) {
+              adminDepositStatus.textContent = 'Ready to dispatch the 1 SOL retainer.';
+              adminDepositStatus.classList.remove('wallet-status--error');
+              adminDepositStatus.classList.add('wallet-status--connected');
+            } else {
+              adminDepositStatus.textContent = 'Connect Phantom before sending the retainer.';
+              adminDepositStatus.classList.remove('wallet-status--connected');
+              adminDepositStatus.classList.add('wallet-status--error');
+            }
+          }
+        });
+        adminPhantomEventsBound = true;
+        adminPhantomEventSource = provider;
+      }
 
       const detectAdminPhantomProvider = () => {
         if (window.solana && window.solana.isPhantom) {
@@ -1293,19 +1426,15 @@
       };
 
       const resetAdminSolanaBridge = ({ preserveStatus } = {}) => {
-        if (!preserveStatus && adminPhantomStatus) {
-          adminPhantomStatus.textContent = 'Not connected.';
-          adminPhantomStatus.classList.remove('wallet-status--connected');
+        if (!preserveStatus) {
+          adminPhantomPublicKey = '';
         }
+        updateAdminPhantomUi();
         if (!preserveStatus && adminDepositStatus) {
           adminDepositStatus.textContent = 'Awaiting connection.';
           adminDepositStatus.classList.remove('wallet-status--connected', 'wallet-status--error');
         }
         adminDepositSignature = '';
-        if (adminDepositButton) {
-          adminDepositButton.disabled = true;
-          adminDepositButton.textContent = 'Send 1 SOL Retainer';
-        }
       };
 
       resetAdminSolanaBridge();
@@ -1359,22 +1488,21 @@
             if (adminDepositStatus) {
               adminDepositStatus.textContent = 'Ready to dispatch the 1 SOL retainer.';
               adminDepositStatus.classList.remove('wallet-status--error');
+              adminDepositStatus.classList.add('wallet-status--connected');
             }
           } catch (error) {
             adminPhantomProvider = null;
             adminPhantomPublicKey = '';
             adminDepositSignature = '';
+            updateAdminPhantomUi();
             if (adminPhantomStatus) {
               adminPhantomStatus.textContent = error?.message || 'Unable to connect to Phantom.';
               adminPhantomStatus.classList.remove('wallet-status--connected');
             }
             if (adminDepositStatus) {
               adminDepositStatus.textContent = 'Awaiting connection.';
+              adminDepositStatus.classList.remove('wallet-status--connected');
               adminDepositStatus.classList.add('wallet-status--error');
-            }
-            if (adminDepositButton) {
-              adminDepositButton.disabled = true;
-              adminDepositButton.textContent = 'Send 1 SOL Retainer';
             }
           } finally {
             adminPhantomConnectButton.disabled = false;
@@ -1421,6 +1549,7 @@
             adminDepositSignature = receipt?.signature || '';
             if (adminDepositStatus) {
               adminDepositStatus.classList.remove('wallet-status--error');
+              adminDepositStatus.classList.add('wallet-status--connected');
             }
             adminDepositButton.textContent = 'Retainer Sent';
           } catch (error) {
@@ -1480,6 +1609,8 @@
         publicUrl: document.getElementById('infrastructure-public-url'),
         uptime: document.getElementById('infrastructure-uptime'),
         observed: document.getElementById('infrastructure-observed'),
+        chatStatus: document.getElementById('infrastructure-chat-status'),
+        chatDetail: document.getElementById('infrastructure-chat-detail'),
         hintsList: document.getElementById('infrastructure-hints-list')
       };
       const newUserButton = document.getElementById('new-user-button');
@@ -1720,6 +1851,7 @@
             throw new Error('Request failed with status ' + response.status);
           }
           const payload = await response.json();
+          payload.fileBroadcasts = sanitizeBroadcasts(payload.fileBroadcasts);
           state.data = payload;
           renderDashboard();
           if (!silent) {
@@ -1742,7 +1874,8 @@
 
         const metrics = state.data.metrics || {};
         setMetricValue(metricUsers, metrics.totalGatewayUsers || 0);
-        setMetricValue(metricAudio, countAudioAssets());
+        const broadcasts = Array.isArray(state.data.fileBroadcasts) ? state.data.fileBroadcasts : [];
+        setMetricValue(metricAudio, countAudioAssets(broadcasts));
         setMetricValue(metricPolls, metrics.totalGatewaySubmissions || 0);
         setMetricValue(metricQuestions, metrics.totalContactSubmissions || 0);
         setMetricValue(metricLogins, metrics.totalLoginEvents || 0);
@@ -1752,9 +1885,9 @@
           metricLedger,
           (metrics.totalStripeTransactions || 0) + (metrics.totalBitcoinTransactions || 0)
         );
-        setMetricValue(metricVault, metrics.totalFileBroadcasts || 0);
-        setMetricValue(metricHtml, countHtmlAssets());
-        setMetricValue(metricFiles, countMarketplaceFiles());
+        setMetricValue(metricVault, broadcasts.length);
+        setMetricValue(metricHtml, countHtmlAssets(broadcasts));
+        setMetricValue(metricFiles, countMarketplaceFiles(broadcasts));
         setMetricValue(metricTransactions, Array.isArray(state.data?.poolTransactions) ? state.data.poolTransactions.length : 0);
         setMetricValue(metricOrders, Array.isArray(state.data?.marketplaceOrders) ? state.data.marketplaceOrders.length : 0);
         setMetricValue(metricBidsMetric, metrics.totalMarketplaceBids || 0);
@@ -1799,8 +1932,7 @@
         element.textContent = value || '0';
       }
 
-      function countAudioAssets() {
-        const broadcasts = state.data?.fileBroadcasts || [];
+      function countAudioAssets(broadcasts = state.data?.fileBroadcasts || []) {
         let count = 0;
         for (const entry of broadcasts) {
           if ((entry.category || '').toLowerCase() === 'audio') {
@@ -1810,8 +1942,7 @@
         return count;
       }
 
-      function countHtmlAssets() {
-        const broadcasts = state.data?.fileBroadcasts || [];
+      function countHtmlAssets(broadcasts = state.data?.fileBroadcasts || []) {
         let count = 0;
         for (const entry of broadcasts) {
           if (typeof entry.path === 'string' && entry.path.toLowerCase().endsWith('.html')) {
@@ -1821,8 +1952,7 @@
         return count;
       }
 
-      function countMarketplaceFiles() {
-        const broadcasts = state.data?.fileBroadcasts || [];
+      function countMarketplaceFiles(broadcasts = state.data?.fileBroadcasts || []) {
         let count = 0;
         for (const entry of broadcasts) {
           if (typeof entry.path === 'string' && entry.path.toLowerCase().includes('marketplace')) {
@@ -1879,6 +2009,62 @@
           infrastructureFields.observed.textContent = `${formatNumber(activeSessions)} live · ${formatNumber(
             totalVisitors
           )} total · ${startLabel}`;
+        }
+        if (infrastructureFields.chatStatus || infrastructureFields.chatDetail) {
+          const chatServers = Array.isArray(status.chatServers) ? status.chatServers : [];
+          if (infrastructureFields.chatStatus) {
+            if (!chatServers.length) {
+              infrastructureFields.chatStatus.textContent = 'Offline';
+            } else {
+              const onlineCount = chatServers.filter((server) => {
+                const serverStatus = typeof server?.status === 'string' ? server.status.toLowerCase() : '';
+                return serverStatus === 'online' || serverStatus === 'active';
+              }).length;
+              infrastructureFields.chatStatus.textContent = `${onlineCount}/${chatServers.length} online`;
+            }
+          }
+          if (infrastructureFields.chatDetail) {
+            if (!chatServers.length) {
+              infrastructureFields.chatDetail.textContent = 'No chat nodes detected.';
+            } else {
+              const sessionTotal = chatServers.reduce((total, server) => {
+                const sessions = Number(server?.activeSessions || server?.sessions || 0);
+                return total + (Number.isFinite(sessions) ? sessions : 0);
+              }, 0);
+              const ledgered = chatServers.filter((server) => Boolean(server?.lastLedgerAt || server?.ledgeredAt)).length;
+              const leadNode = chatServers
+                .slice()
+                .sort((a, b) => {
+                  const aStatus = typeof a?.status === 'string' ? a.status.toLowerCase() : '';
+                  const bStatus = typeof b?.status === 'string' ? b.status.toLowerCase() : '';
+                  if (aStatus === bStatus) {
+                    const aSessions = Number(a?.activeSessions || 0);
+                    const bSessions = Number(b?.activeSessions || 0);
+                    return bSessions - aSessions;
+                  }
+                  if (aStatus === 'online' || aStatus === 'active') return -1;
+                  if (bStatus === 'online' || bStatus === 'active') return 1;
+                  return aStatus.localeCompare(bStatus);
+                })
+                .find((server) => server && (server.name || server.server || server.node));
+              const detailParts = [];
+              if (sessionTotal > 0) {
+                detailParts.push(`${formatNumber(sessionTotal)} live sessions`);
+              }
+              if (ledgered > 0) {
+                detailParts.push(`${formatNumber(ledgered)} ledgered`);
+              }
+              if (leadNode) {
+                const name = leadNode.name || leadNode.server || leadNode.node;
+                if (name) {
+                  detailParts.push(`${name} lead node`);
+                }
+              }
+              infrastructureFields.chatDetail.textContent = detailParts.length
+                ? detailParts.join(' · ')
+                : 'Telemetry nominal.';
+            }
+          }
         }
         if (infrastructureFields.hintsList) {
           infrastructureFields.hintsList.innerHTML = '';
@@ -1946,6 +2132,9 @@
 
       function ledgerMethodLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          return 'Chat Server';
+        }
         if (item.type === 'bitcoin') {
           return 'Bitcoin';
         }
@@ -1961,6 +2150,11 @@
 
       function ledgerAccountLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          const serverName = item.data.server || item.data.serverName || item.data.name || 'Chat Node';
+          const room = item.data.room || item.data.channel || item.data.cluster || '';
+          return room ? `${serverName} · ${room}` : serverName;
+        }
         if (item.type === 'bitcoin') {
           const name = item.data.cardholder || item.data.remittingContact || '';
           const wallet = item.data.btcAddress ? shortenWalletReference(item.data.btcAddress) : '';
@@ -1982,6 +2176,9 @@
 
       function ledgerProjectLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          return item.data.projectReference || item.data.ledgerId || item.data.cluster || '—';
+        }
         if (item.type === 'bitcoin') {
           return item.data.projectReference || item.data.invoiceId || '—';
         }
@@ -1990,6 +2187,15 @@
 
       function ledgerAuthorizationLabel(item) {
         if (!item || !item.data) return '—';
+        if (item.type === 'chat') {
+          return (
+            item.data.eventId ||
+            item.data.ledgerId ||
+            item.data.sessionId ||
+            item.data.id ||
+            '—'
+          );
+        }
         if (item.type === 'bitcoin') {
           return item.data.transactionId || item.data.invoiceId || '—';
         }
@@ -2044,6 +2250,9 @@
           : [];
         const bitcoinEntries = Array.isArray(state.data?.bitcoinTransactions)
           ? state.data.bitcoinTransactions.map((entry) => ({ type: 'bitcoin', data: entry }))
+          : [];
+        const chatLedgerEntries = Array.isArray(state.data?.chatServerLedger)
+          ? state.data.chatServerLedger.map((entry) => ({ type: 'chat', data: entry }))
           : [];
 
         const combinedEntries = [...magstripeEntries, ...bitcoinEntries]
@@ -2100,6 +2309,16 @@
           }
           if (projectLabel && projectLabel !== '—') {
             parts.push(`Ref: ${projectLabel}`);
+          }
+          if (item.type === 'chat') {
+            const sessions = Number(item?.data?.activeSessions || item?.data?.sessions || 0);
+            if (Number.isFinite(sessions) && sessions > 0) {
+              parts.push(`Sessions: ${formatNumber(sessions)}`);
+            }
+            const region = item?.data?.region || item?.data?.cluster || item?.data?.shard;
+            if (region) {
+              parts.push(`Region: ${region}`);
+            }
           }
           metadataCell.textContent = parts.length ? parts.join(' · ') : '—';
           tr.appendChild(metadataCell);

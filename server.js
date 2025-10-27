@@ -38,6 +38,272 @@ const ADMIN_PROMO_SECTION = `
     <a href="/admin.html" class="btn" style="margin-top:38px;display:inline-flex;padding:16px 34px;border-radius:999px;background:#6aff3b;color:#030712;font-weight:700;font-size:1.05rem;text-decoration:none;">Launch Admin Control Center</a>
   </section>
 `;
+const TIMEPIECE_LEDGER_INJECTION = `
+  <script>(function(){
+    if (window.__ioncoreTimepieceLedgerInitialized) {
+      return;
+    }
+    window.__ioncoreTimepieceLedgerInitialized = true;
+
+    function detectWalletNetwork(address) {
+      if (!address) return 'unknown';
+      const value = String(address).trim();
+      if (/^0x[a-fA-F0-9]{40}$/.test(value)) return 'evm';
+      if (/^(addr1|stake1)/i.test(value)) return 'cardano';
+      if (/^(bc1|tb1)/i.test(value) || /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(value)) return 'bitcoin';
+      if (/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(value)) return 'solana';
+      return 'unknown';
+    }
+
+    function getMintSelection(button) {
+      const checked = document.querySelector("input[name='mint_pick']:checked");
+      let bubble = checked ? checked.closest('.mint-bubble') : null;
+      if (!bubble) {
+        const fallbackInput = document.querySelector("input[name='mint_pick']");
+        bubble = fallbackInput ? fallbackInput.closest('.mint-bubble') : null;
+      }
+      const choice = bubble && bubble.dataset ? bubble.dataset.choice || '' : '';
+      let label = '';
+      if (bubble) {
+        const titleEl = bubble.querySelector('div > div');
+        if (titleEl && titleEl.textContent) {
+          label = titleEl.textContent.trim();
+        }
+      }
+      const buttonText = button && button.textContent ? button.textContent.trim() : '';
+      if (!label && buttonText) {
+        label = buttonText.replace(/^Mint\s*/i, '').trim();
+      }
+      let edition = '';
+      if (bubble) {
+        const detailEl = bubble.querySelector('div > div:nth-of-type(2)');
+        if (detailEl && detailEl.textContent) {
+          edition = detailEl.textContent.trim();
+        }
+      }
+      return { choice, label, edition, buttonText };
+    }
+
+    function createToast() {
+      const existing = document.getElementById('timepiece-ledger-toast');
+      if (existing) return existing;
+      const toast = document.createElement('div');
+      toast.id = 'timepiece-ledger-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.style.position = 'fixed';
+      toast.style.left = '50%';
+      toast.style.bottom = '32px';
+      toast.style.transform = 'translateX(-50%)';
+      toast.style.padding = '14px 22px';
+      toast.style.borderRadius = '999px';
+      toast.style.background = 'rgba(13,25,36,0.92)';
+      toast.style.color = '#e9f2ff';
+      toast.style.fontSize = '0.95rem';
+      toast.style.fontWeight = '600';
+      toast.style.boxShadow = '0 18px 48px rgba(3,7,18,0.35)';
+      toast.style.opacity = '0';
+      toast.style.pointerEvents = 'none';
+      toast.style.transition = 'opacity 0.25s ease';
+      document.body.appendChild(toast);
+      return toast;
+    }
+
+    function showToast(message, variant) {
+      const toast = createToast();
+      toast.textContent = message;
+      toast.style.background = variant === 'error' ? 'rgba(185,45,73,0.92)' : 'rgba(13,25,36,0.92)';
+      toast.style.opacity = '1';
+      window.setTimeout(() => {
+        toast.style.opacity = '0';
+      }, variant === 'error' ? 4200 : 2600);
+    }
+
+    function buildOverlay() {
+      const existing = document.getElementById('timepiece-ledger-overlay');
+      if (existing) return existing;
+      const overlay = document.createElement('div');
+      overlay.id = 'timepiece-ledger-overlay';
+      overlay.setAttribute('role', 'presentation');
+      overlay.style.position = 'fixed';
+      overlay.style.inset = '0';
+      overlay.style.background = 'rgba(3,7,18,0.76)';
+      overlay.style.backdropFilter = 'blur(8px)';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.padding = '24px';
+      overlay.style.zIndex = '920';
+      overlay.style.opacity = '0';
+      overlay.style.pointerEvents = 'none';
+      overlay.style.transition = 'opacity 0.25s ease';
+
+      const panel = document.createElement('form');
+      panel.id = 'timepiece-ledger-form';
+      panel.setAttribute('aria-labelledby', 'timepiece-ledger-title');
+      panel.style.background = 'rgba(10,15,24,0.95)';
+      panel.style.borderRadius = '22px';
+      panel.style.padding = '28px';
+      panel.style.border = '1px solid rgba(94,234,212,0.24)';
+      panel.style.width = 'min(420px, 100%)';
+      panel.style.display = 'grid';
+      panel.style.gap = '18px';
+
+      panel.innerHTML = `
+        <div>
+          <h2 id="timepiece-ledger-title" style="margin:0 0 6px;font-size:1.4rem;color:#e4efff;">Record Mint Intent</h2>
+          <p data-ledger-summary style="margin:0;font-size:0.95rem;color:#9fb0c8;">Select a timepiece edition to continue.</p>
+          <p data-ledger-edition style="margin:6px 0 0;font-size:0.85rem;color:#6beacb;display:none;"></p>
+        </div>
+        <label style="display:grid;gap:6px;color:#9fb0c8;font-size:0.9rem;">
+          Wallet Address
+          <input name="walletAddress" type="text" autocomplete="off" spellcheck="false" placeholder="Paste wallet address" style="border-radius:12px;border:1px solid rgba(148,163,184,0.35);padding:12px 14px;background:rgba(15,23,42,0.92);color:#f8fbff;font-size:0.95rem;" required />
+        </label>
+        <label style="display:grid;gap:6px;color:#9fb0c8;font-size:0.9rem;">
+          Contact or Notes (optional)
+          <input name="contactDetail" type="text" autocomplete="off" placeholder="Telegram, email, or phone" style="border-radius:12px;border:1px solid rgba(148,163,184,0.25);padding:12px 14px;background:rgba(15,23,42,0.75);color:#e2e8f0;font-size:0.95rem;" />
+        </label>
+        <p data-ledger-error style="min-height:20px;margin:0;font-size:0.85rem;color:#fda4af;"></p>
+        <div style="display:flex;justify-content:flex-end;gap:12px;">
+          <button type="button" data-ledger-action="cancel" style="background:rgba(15,23,42,0.6);color:#cbd5f5;border:1px solid rgba(148,163,184,0.35);padding:10px 18px;border-radius:999px;font-size:0.9rem;cursor:pointer;">Cancel</button>
+          <button type="submit" data-ledger-action="confirm" style="background:linear-gradient(135deg,#5fe29b,#3ab5f6);color:#071225;border:none;padding:10px 20px;border-radius:999px;font-size:0.95rem;font-weight:600;cursor:pointer;">Record Mint Intent</button>
+        </div>`;
+
+      overlay.appendChild(panel);
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function initLedgerCapture() {
+      const mintButton = document.getElementById('mint-btn');
+      if (!mintButton) {
+        return;
+      }
+      const overlay = buildOverlay();
+      const form = document.getElementById('timepiece-ledger-form');
+      const summary = form.querySelector('[data-ledger-summary]');
+      const edition = form.querySelector('[data-ledger-edition]');
+      const walletInput = form.querySelector('input[name="walletAddress"]');
+      const contactInput = form.querySelector('input[name="contactDetail"]');
+      const errorEl = form.querySelector('[data-ledger-error]');
+      const cancelBtn = form.querySelector('[data-ledger-action="cancel"]');
+      const confirmBtn = form.querySelector('[data-ledger-action="confirm"]');
+      const storageKey = 'ioncore:timepiece:lastWallet';
+      const contactKey = 'ioncore:timepiece:lastContact';
+
+      function closeOverlay() {
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+        overlay.removeAttribute('data-selection');
+        errorEl.textContent = '';
+      }
+
+      function openOverlay(selection) {
+        overlay.dataset.selection = JSON.stringify(selection);
+        summary.textContent = selection.label || selection.buttonText || 'Selected edition';
+        if (selection.edition) {
+          edition.textContent = selection.edition;
+          edition.style.display = '';
+        } else {
+          edition.textContent = '';
+          edition.style.display = 'none';
+        }
+        walletInput.value = window.localStorage.getItem(storageKey) || '';
+        contactInput.value = window.localStorage.getItem(contactKey) || '';
+        overlay.style.opacity = '1';
+        overlay.style.pointerEvents = 'auto';
+        window.setTimeout(() => walletInput.focus(), 40);
+      }
+
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+          closeOverlay();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && overlay.style.pointerEvents === 'auto') {
+          closeOverlay();
+        }
+      });
+
+      cancelBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeOverlay();
+      });
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const selectionData = overlay.dataset.selection ? JSON.parse(overlay.dataset.selection) : {};
+        const walletAddress = walletInput.value.trim();
+        const contactDetail = contactInput.value.trim();
+        if (!walletAddress) {
+          errorEl.textContent = 'Enter a wallet address to log this mint intent.';
+          walletInput.focus();
+          return;
+        }
+        errorEl.textContent = '';
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Recording…';
+        try {
+          const response = await fetch('/api/timepieces/mints', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            },
+            body: JSON.stringify({
+              walletAddress,
+              walletNetwork: detectWalletNetwork(walletAddress),
+              itemChoice: selectionData.choice || '',
+              itemLabel: selectionData.label || '',
+              buttonLabel: selectionData.buttonText || '',
+              editionNote: selectionData.edition || '',
+              contactDetail,
+              mintSource: window.location.pathname || ''
+            })
+          });
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            const message = payload && payload.message ? payload.message : 'Unable to record mint intent right now.';
+            throw new Error(message);
+          }
+          window.localStorage.setItem(storageKey, walletAddress);
+          if (contactDetail) {
+            window.localStorage.setItem(contactKey, contactDetail);
+          } else {
+            window.localStorage.removeItem(contactKey);
+          }
+          closeOverlay();
+          showToast('Mint intent recorded. Ioncore ledger updated.', 'success');
+        } catch (error) {
+          console.error('Failed to record mint ledger entry', error);
+          errorEl.textContent = error?.message || 'Unable to record mint intent right now.';
+        } finally {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Record Mint Intent';
+        }
+      });
+
+      mintButton.addEventListener('click', (event) => {
+        const selection = getMintSelection(mintButton);
+        if (!selection.choice && !selection.label) {
+          showToast('Select a timepiece edition before minting.', 'error');
+          event.preventDefault();
+          return;
+        }
+        event.preventDefault();
+        openOverlay(selection);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLedgerCapture);
+    } else {
+      initLedgerCapture();
+    }
+  })();</script>
+`;
 const CARDANO_POLICY_ID =
   process.env.CARDANO_POLICY_ID || 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
 
@@ -94,6 +360,7 @@ const defaultStore = {
   bitcoinTransactions: [],
   marketplaceUploads: [],
   marketplaceBids: [],
+  timepieceMintLedger: []
   fileBroadcasts: []
 };
 
@@ -113,6 +380,7 @@ async function loadStore() {
       bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
+      timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : []
       fileBroadcasts: Array.isArray(parsed.fileBroadcasts) ? parsed.fileBroadcasts : []
     };
   } catch (error) {
@@ -400,6 +668,49 @@ function sanitizeUrl(value) {
     }
   } catch (error) {
     return null;
+  }
+  return null;
+}
+
+function inferWalletNetwork(address) {
+  if (typeof address !== 'string') {
+    return 'unknown';
+  }
+  const value = address.trim();
+  if (!value) {
+    return 'unknown';
+  }
+  if (/^0x[a-fA-F0-9]{40}$/.test(value)) {
+    return 'evm';
+  }
+  if (/^(addr1|stake1)/i.test(value)) {
+    return 'cardano';
+  }
+  if (/^(bc1|tb1)/i.test(value) || /^[13][a-km-zA-HJ-NP-Z1-9]{25,39}$/.test(value)) {
+    return 'bitcoin';
+  }
+  if (/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(value)) {
+    return 'solana';
+  }
+  return 'unknown';
+}
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',')[0].trim();
+  }
+  if (Array.isArray(forwarded) && forwarded.length > 0) {
+    return String(forwarded[0]).split(',')[0].trim();
+  }
+  if (req.ip) {
+    return req.ip;
+  }
+  if (req.connection && req.connection.remoteAddress) {
+    return req.connection.remoteAddress;
+  }
+  if (req.socket && req.socket.remoteAddress) {
+    return req.socket.remoteAddress;
   }
   return null;
 }
@@ -1217,6 +1528,69 @@ app.post('/gateway', async (req, res) => {
   });
 });
 
+app.post('/api/timepieces/mints', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const walletAddress = normalizeForStorage(body.walletAddress);
+  if (!walletAddress) {
+    return res.status(400).json({ message: 'Wallet address required to record mint intent.' });
+  }
+
+  const itemChoice = normalizeForStorage(body.itemChoice);
+  const itemLabel = normalizeForStorage(body.itemLabel);
+  const buttonLabel = normalizeForStorage(body.buttonLabel);
+  const editionNote = normalizeForStorage(body.editionNote);
+  const contactDetail = normalizeForStorage(body.contactDetail);
+  const mintSource = normalizeForStorage(body.mintSource);
+
+  let walletNetwork = normalizeForStorage(body.walletNetwork);
+  if (!walletNetwork) {
+    walletNetwork = inferWalletNetwork(walletAddress);
+  }
+
+  const metadataPayload = {};
+  if (body.rawSelection && typeof body.rawSelection === 'object') {
+    metadataPayload.rawSelection = body.rawSelection;
+  }
+  if (body.ledgerNotes && typeof body.ledgerNotes === 'string' && body.ledgerNotes.trim()) {
+    metadataPayload.ledgerNotes = body.ledgerNotes.trim();
+  }
+
+  const metadata = Object.keys(metadataPayload).length > 0 ? serializeMetadata(metadataPayload) : null;
+  const nowIso = new Date().toISOString();
+  const record = {
+    id: randomUUID(),
+    walletAddress,
+    walletNetwork: walletNetwork || inferWalletNetwork(walletAddress),
+    itemChoice,
+    itemLabel,
+    buttonLabel,
+    editionNote,
+    contactDetail,
+    mintSource,
+    referer: normalizeForStorage(req.get('referer') || req.get('referrer')),
+    userAgent: normalizeForStorage(req.get('user-agent')),
+    ipAddress: normalizeForStorage(getClientIp(req)),
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    metadata
+  };
+
+  store.timepieceMintLedger.push(record);
+  const MAX_LEDGER_RECORDS = 500;
+  if (store.timepieceMintLedger.length > MAX_LEDGER_RECORDS) {
+    store.timepieceMintLedger.splice(0, store.timepieceMintLedger.length - MAX_LEDGER_RECORDS);
+  }
+
+  try {
+    await saveStore();
+  } catch (error) {
+    console.error('Failed to persist timepiece mint ledger entry', error);
+    return res.status(500).json({ message: 'Unable to record mint intent. Please try again shortly.' });
+  }
+
+  res.status(201).json({ message: 'Mint intent recorded successfully.' });
+});
+
 app.get('/api/payments/bitcoin/config', (req, res) => {
   res.json({
     btcAddress: BITCOIN_ADDRESS,
@@ -1774,6 +2148,7 @@ function isPublicRoute(req) {
       '/access/cardano',
       '/contact',
       '/gateway',
+      '/api/timepieces/mints',
       '/api/marketplace/uploads',
       '/api/marketplace/bids'
     ].includes(req.path)
@@ -1880,6 +2255,14 @@ app.get('/timepieces', async (req, res) => {
         html += ADMIN_PROMO_SECTION;
       }
     }
+    if (!html.includes('timepiece-ledger-overlay')) {
+      const closingTagMatch = html.match(/<\/body>/i);
+      if (closingTagMatch) {
+        html = html.replace(/<\/body>/i, `${TIMEPIECE_LEDGER_INJECTION}</body>`);
+      } else {
+        html += TIMEPIECE_LEDGER_INJECTION;
+      }
+    }
     res.type('html').send(html);
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);
@@ -1930,6 +2313,7 @@ app.get('/api/admin/overview', async (req, res) => {
   const gatewayUsers = Object.entries(store.gatewayUsers || {}).map(([id, user]) => ({ id, ...user }));
   const marketplaceUploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
   const marketplaceBids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
+  const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
   const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
@@ -2010,6 +2394,25 @@ app.get('/api/admin/overview', async (req, res) => {
     });
   }
 
+  for (const intent of timepieceMintLedger) {
+    const networkLabel = intent.walletNetwork ? intent.walletNetwork.toUpperCase() : '';
+    const detailParts = [];
+    if (intent.walletAddress) {
+      detailParts.push(`Wallet: ${intent.walletAddress}`);
+    }
+    if (networkLabel) {
+      detailParts.push(`Network: ${networkLabel}`);
+    }
+    if (intent.contactDetail) {
+      detailParts.push(`Contact: ${intent.contactDetail}`);
+    }
+    activityTimeline.push({
+      type: 'timepiece-mint',
+      timestamp: intent.updatedAt || intent.createdAt,
+      headline:
+        intent.itemLabel || intent.buttonLabel || intent.itemChoice || 'Timepiece mint intent',
+      detail: detailParts.join(' · '),
+      reference: intent
   for (const broadcast of fileBroadcasts) {
     const descriptor = (broadcast.lastEvent || broadcast.status || 'updated').replace(/-/g, ' ');
     const sizeLabel =
@@ -2081,6 +2484,22 @@ app.get('/api/admin/overview', async (req, res) => {
     };
   });
 
+  const timepieceMintLedgerSummary = sortByTimestampDesc(timepieceMintLedger, 'updatedAt', 'createdAt').map((intent) => ({
+    id: intent.id,
+    walletAddress: intent.walletAddress,
+    walletNetwork: intent.walletNetwork,
+    itemChoice: intent.itemChoice,
+    itemLabel: intent.itemLabel,
+    buttonLabel: intent.buttonLabel,
+    editionNote: intent.editionNote,
+    contactDetail: intent.contactDetail,
+    mintSource: intent.mintSource,
+    referer: intent.referer,
+    userAgent: intent.userAgent,
+    ipAddress: intent.ipAddress,
+    metadata: intent.metadata,
+    createdAt: intent.createdAt,
+    updatedAt: intent.updatedAt
   const fileBroadcastsSummary = sortByTimestampDesc(fileBroadcasts, 'updatedAt', 'createdAt').map((entry) => ({
     id: entry.id,
     path: entry.path,
@@ -2107,6 +2526,7 @@ app.get('/api/admin/overview', async (req, res) => {
       totalBitcoinTransactions: store.bitcoinTransactions.length,
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
+      totalTimepieceMintIntents: timepieceMintLedger.length
       totalFileBroadcasts: fileBroadcasts.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
@@ -2117,6 +2537,7 @@ app.get('/api/admin/overview', async (req, res) => {
     loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),
     marketplaceUploads: marketplaceUploadsSummary,
     marketplaceBids: marketplaceBidsSummary,
+    timepieceMintLedger: timepieceMintLedgerSummary,
     fileBroadcasts: fileBroadcastsSummary,
     activityTimeline
   });

@@ -329,6 +329,28 @@ await fs.mkdir(DATA_DIR, { recursive: true });
 
 const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
 
+const FILE_BROADCAST_SCAN_INTERVAL_MS = 1000 * 60;
+const FILE_BROADCAST_IGNORE_DIRS = new Set(['node_modules', 'data', '.git', '.github', '.cache', '.next']);
+const FILE_AUDIO_EXTENSIONS = new Set(['.mp3', '.wav', '.ogg', '.m4a', '.flac']);
+const FILE_VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.webm', '.mkv', '.avi']);
+const FILE_IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico']);
+const FILE_DOCUMENT_EXTENSIONS = new Set(['.html', '.htm', '.md', '.txt', '.pdf']);
+const FILE_SCRIPT_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.ts']);
+const FILE_ARCHIVE_EXTENSIONS = new Set(['.zip', '.tar', '.gz']);
+
+const FILE_TRACK_EXTENSIONS = new Set(
+  [
+    ...FILE_AUDIO_EXTENSIONS,
+    ...FILE_VIDEO_EXTENSIONS,
+    ...FILE_IMAGE_EXTENSIONS,
+    ...FILE_DOCUMENT_EXTENSIONS,
+    ...FILE_SCRIPT_EXTENSIONS,
+    ...FILE_ARCHIVE_EXTENSIONS,
+    '.json',
+    '.css'
+  ].map((ext) => ext.toLowerCase())
+);
+
 const defaultStore = {
   loginEvents: [],
   contactSubmissions: [],
@@ -339,6 +361,7 @@ const defaultStore = {
   marketplaceUploads: [],
   marketplaceBids: [],
   timepieceMintLedger: []
+  fileBroadcasts: []
 };
 
 async function loadStore() {
@@ -358,6 +381,7 @@ async function loadStore() {
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
       timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : []
+      fileBroadcasts: Array.isArray(parsed.fileBroadcasts) ? parsed.fileBroadcasts : []
     };
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
@@ -392,6 +416,196 @@ async function saveStore() {
     throw error;
   }
 }
+
+function formatFileSize(bytes) {
+  if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) {
+    return null;
+  }
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
+  return `${value.toFixed(precision)} ${units[unitIndex]}`;
+}
+
+function shouldTrackFile(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return FILE_TRACK_EXTENSIONS.has(ext);
+}
+
+function categorizeFileBroadcast(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (FILE_AUDIO_EXTENSIONS.has(ext)) return 'audio';
+  if (FILE_VIDEO_EXTENSIONS.has(ext)) return 'video';
+  if (FILE_IMAGE_EXTENSIONS.has(ext)) return 'image';
+  if (FILE_DOCUMENT_EXTENSIONS.has(ext)) return 'document';
+  if (FILE_SCRIPT_EXTENSIONS.has(ext)) return 'script';
+  if (FILE_ARCHIVE_EXTENSIONS.has(ext)) return 'archive';
+  if (ext === '.json') return 'data';
+  if (ext === '.css') return 'stylesheet';
+  return ext ? ext.replace('.', '') : 'asset';
+}
+
+async function collectTrackableFiles(dir, root = dir, results = []) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.name.startsWith('.')) {
+      if (entry.isDirectory()) {
+        if (entry.name === '.well-known') {
+          // allow .well-known directories to pass through
+        } else {
+          continue;
+        }
+      } else {
+        continue;
+      }
+    }
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (FILE_BROADCAST_IGNORE_DIRS.has(entry.name)) {
+        continue;
+      }
+      await collectTrackableFiles(fullPath, root, results);
+    } else if (entry.isFile() && shouldTrackFile(fullPath)) {
+      let stats;
+      try {
+        stats = await fs.stat(fullPath);
+      } catch (error) {
+        console.warn('Unable to stat file for broadcast tracking', fullPath, error);
+        continue;
+      }
+      results.push({
+        path: fullPath,
+        relPath: path.relative(root, fullPath).split(path.sep).join('/'),
+        size: stats.size,
+        modifiedAt: new Date(stats.mtimeMs).toISOString()
+      });
+    }
+  }
+  return results;
+}
+
+let lastFileBroadcastScan = 0;
+
+async function syncFileBroadcasts(options = {}) {
+  const { force = false } = options || {};
+  const now = Date.now();
+  if (!force && now - lastFileBroadcastScan < FILE_BROADCAST_SCAN_INTERVAL_MS) {
+    return false;
+  }
+
+  const files = await collectTrackableFiles(__dirname, __dirname, []);
+  lastFileBroadcastScan = Date.now();
+
+  if (!Array.isArray(store.fileBroadcasts)) {
+    store.fileBroadcasts = [];
+  }
+
+  const existingByPath = new Map();
+  for (const entry of store.fileBroadcasts) {
+    if (entry && typeof entry.path === 'string') {
+      existingByPath.set(entry.path, entry);
+    }
+  }
+
+  const seenIds = new Set();
+  let changed = false;
+  const timestamp = new Date().toISOString();
+
+  for (const file of files) {
+    const relPath = file.relPath;
+    const existing = existingByPath.get(relPath);
+    if (!existing) {
+      const record = {
+        id: randomUUID(),
+        path: relPath,
+        displayName: path.basename(relPath),
+        category: categorizeFileBroadcast(relPath),
+        status: 'active',
+        lastEvent: 'discovered',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        indexedAt: timestamp,
+        fileSize: file.size,
+        modifiedAt: file.modifiedAt,
+        removedAt: null
+      };
+      store.fileBroadcasts.push(record);
+      existingByPath.set(relPath, record);
+      seenIds.add(record.id);
+      changed = true;
+      continue;
+    }
+
+    if (!existing.id) {
+      existing.id = randomUUID();
+      changed = true;
+    }
+
+    const sizeChanged = existing.fileSize !== file.size;
+    const modifiedChanged = existing.modifiedAt !== file.modifiedAt;
+    const statusChanged = existing.status === 'removed';
+
+    if (sizeChanged || modifiedChanged || statusChanged) {
+      existing.fileSize = file.size;
+      existing.modifiedAt = file.modifiedAt;
+      existing.updatedAt = timestamp;
+      existing.status = 'active';
+      existing.lastEvent = statusChanged ? 'restored' : 'updated';
+      if (!existing.createdAt) {
+        existing.createdAt = timestamp;
+      }
+      changed = true;
+    }
+
+    if (!existing.indexedAt) {
+      existing.indexedAt = existing.createdAt || timestamp;
+    }
+    if (!existing.displayName) {
+      existing.displayName = path.basename(relPath);
+    }
+    const category = categorizeFileBroadcast(relPath);
+    if (existing.category !== category) {
+      existing.category = category;
+      changed = true;
+    }
+
+    seenIds.add(existing.id);
+  }
+
+  for (const entry of store.fileBroadcasts) {
+    if (!entry) {
+      continue;
+    }
+    if (!entry.id) {
+      entry.id = randomUUID();
+      changed = true;
+    }
+    if (!seenIds.has(entry.id) && entry.status !== 'removed') {
+      entry.status = 'removed';
+      entry.lastEvent = 'removed';
+      entry.updatedAt = timestamp;
+      entry.removedAt = timestamp;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    try {
+      await saveStore();
+    } catch (error) {
+      console.error('Failed to persist file broadcast updates', error);
+    }
+  }
+
+  return changed;
+}
+
+await syncFileBroadcasts({ force: true });
 
 function normalizeForStorage(value) {
   if (typeof value !== 'string') {
@@ -2089,11 +2303,18 @@ app.get('/admin', async (req, res) => {
   }
 });
 
-app.get('/api/admin/overview', (req, res) => {
+app.get('/api/admin/overview', async (req, res) => {
+  try {
+    await syncFileBroadcasts();
+  } catch (error) {
+    console.error('File broadcast synchronization failed', error);
+  }
+
   const gatewayUsers = Object.entries(store.gatewayUsers || {}).map(([id, user]) => ({ id, ...user }));
   const marketplaceUploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
   const marketplaceBids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
   const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
+  const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
   const activityTimeline = [];
@@ -2192,6 +2413,18 @@ app.get('/api/admin/overview', (req, res) => {
         intent.itemLabel || intent.buttonLabel || intent.itemChoice || 'Timepiece mint intent',
       detail: detailParts.join(' · '),
       reference: intent
+  for (const broadcast of fileBroadcasts) {
+    const descriptor = (broadcast.lastEvent || broadcast.status || 'updated').replace(/-/g, ' ');
+    const sizeLabel =
+      typeof broadcast.fileSize === 'number' && Number.isFinite(broadcast.fileSize)
+        ? ` · ${formatFileSize(broadcast.fileSize)}`
+        : '';
+    activityTimeline.push({
+      type: 'file-broadcast',
+      timestamp: broadcast.updatedAt || broadcast.createdAt,
+      headline: `${descriptor} ${broadcast.displayName || broadcast.path || 'asset'}`.trim(),
+      detail: `${broadcast.path || 'Unknown path'}${sizeLabel}`,
+      reference: broadcast
     });
   }
 
@@ -2267,6 +2500,19 @@ app.get('/api/admin/overview', (req, res) => {
     metadata: intent.metadata,
     createdAt: intent.createdAt,
     updatedAt: intent.updatedAt
+  const fileBroadcastsSummary = sortByTimestampDesc(fileBroadcasts, 'updatedAt', 'createdAt').map((entry) => ({
+    id: entry.id,
+    path: entry.path,
+    displayName: entry.displayName || path.basename(entry.path || 'asset'),
+    category: entry.category || categorizeFileBroadcast(entry.path || ''),
+    status: entry.status || 'active',
+    lastEvent: entry.lastEvent || entry.status || 'updated',
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+    indexedAt: entry.indexedAt || entry.createdAt,
+    removedAt: entry.removedAt || null,
+    fileSize: entry.fileSize ?? null,
+    modifiedAt: entry.modifiedAt || null
   }));
 
   res.json({
@@ -2281,6 +2527,7 @@ app.get('/api/admin/overview', (req, res) => {
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
       totalTimepieceMintIntents: timepieceMintLedger.length
+      totalFileBroadcasts: fileBroadcasts.length
     },
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
     magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
@@ -2291,8 +2538,22 @@ app.get('/api/admin/overview', (req, res) => {
     marketplaceUploads: marketplaceUploadsSummary,
     marketplaceBids: marketplaceBidsSummary,
     timepieceMintLedger: timepieceMintLedgerSummary,
+    fileBroadcasts: fileBroadcastsSummary,
     activityTimeline
   });
+});
+
+app.post('/api/admin/file-broadcasts/rescan', async (req, res) => {
+  try {
+    const changed = await syncFileBroadcasts({ force: true });
+    res.json({
+      message: changed ? 'File broadcasts synchronized.' : 'No changes detected in tracked files.',
+      total: Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts.length : 0
+    });
+  } catch (error) {
+    console.error('Failed to rescan file broadcasts', error);
+    res.status(500).json({ message: 'Unable to rescan file broadcasts. Retry shortly.' });
+  }
 });
 
 app.patch('/api/admin/gateway-users/:id', async (req, res) => {

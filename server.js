@@ -86,6 +86,8 @@ const FILE_TRACK_EXTENSIONS = new Set(
   ].map((ext) => ext.toLowerCase())
 );
 
+const FILE_BROADCAST_ROOT = DATA_DIR;
+
 const defaultStore = {
   loginEvents: [],
   contactSubmissions: [],
@@ -278,7 +280,13 @@ async function syncFileBroadcasts(options = {}) {
     return false;
   }
 
-  const files = await collectTrackableFiles(__dirname, __dirname, []);
+  let files = [];
+  try {
+    files = await collectTrackableFiles(FILE_BROADCAST_ROOT, FILE_BROADCAST_ROOT, []);
+  } catch (error) {
+    console.error('Failed to enumerate broadcast files', error);
+    files = [];
+  }
   lastFileBroadcastScan = Date.now();
 
   if (!Array.isArray(store.fileBroadcasts)) {
@@ -384,9 +392,6 @@ async function syncFileBroadcasts(options = {}) {
 
   return changed;
 }
-
-await syncFileBroadcasts({ force: true });
-
 function normalizeForStorage(value) {
   if (typeof value !== 'string') {
     return value == null ? null : String(value);

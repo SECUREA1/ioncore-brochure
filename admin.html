@@ -1269,7 +1269,7 @@
         if (!value || typeof value !== 'string') {
           return '';
         }
-        return value.length > 12 ? ${value.slice(0, 6)}…${value.slice(-4)} : value;
+        return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
       };
 
       const detectAdminPhantomProvider = () => {
@@ -1349,7 +1349,7 @@
             adminDepositSignature = '';
 
             if (adminPhantomStatus) {
-              adminPhantomStatus.textContent = Connected: ${shortenWalletReference(publicKey)};
+              adminPhantomStatus.textContent = `Connected: ${shortenWalletReference(publicKey)}`;
               adminPhantomStatus.classList.add('wallet-status--connected');
             }
             if (adminDepositButton) {
@@ -1577,7 +1577,7 @@
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
-        return ${currency || ''} ${formatted}.trim();
+        return `${currency || ''} ${formatted}`.trim();
       }
 
       function formatBytes(bytes) {
@@ -1592,7 +1592,7 @@
           unitIndex += 1;
         }
         const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
-        return ${value.toFixed(precision)} ${units[unitIndex]};
+        return `${value.toFixed(precision)} ${units[unitIndex]}`;
       }
 
       function formatNumber(value) {
@@ -1612,15 +1612,15 @@
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const remainingSeconds = totalSeconds % 60;
         const parts = [];
-        if (days) parts.push(${days}d);
-        if (hours || parts.length) parts.push(${hours}h);
-        if (minutes || parts.length) parts.push(${minutes}m);
-        if (!parts.length) parts.push(${remainingSeconds}s);
+        if (days) parts.push(`${days}d`);
+        if (hours || parts.length) parts.push(`${hours}h`);
+        if (minutes || parts.length) parts.push(`${minutes}m`);
+        if (!parts.length) parts.push(`${remainingSeconds}s`);
         return parts.join(' ');
       }
 
       function pluralize(value, unit) {
-        return value === 1 ? unit : ${unit}s;
+        return value === 1 ? unit : `${unit}s`;
       }
 
       function formatRelativeTime(value) {
@@ -1641,7 +1641,7 @@
         for (const unit of units) {
           if (abs >= unit.ms || unit.label === 'second') {
             const valueCount = Math.max(1, Math.round(abs / unit.ms));
-            return ${valueCount} ${pluralize(valueCount, unit.label)} ${tense};
+            return `${valueCount} ${pluralize(valueCount, unit.label)} ${tense}`;
           }
         }
         return 'just now';
@@ -1655,8 +1655,8 @@
         const rss = typeof memory.rss === 'number' ? formatBytes(memory.rss) : null;
         const label = heapUsed || rss || '—';
         const detailParts = [];
-        if (heapUsed) detailParts.push(Heap ${heapUsed});
-        if (rss) detailParts.push(RSS ${rss});
+        if (heapUsed) detailParts.push(`Heap ${heapUsed}`);
+        if (rss) detailParts.push(`RSS ${rss}`);
         return { label, detail: detailParts.join(' · ') || 'Runtime memory footprint' };
       }
 
@@ -1664,20 +1664,20 @@
         if (!entry) return null;
         const btcAmount =
           typeof entry.btcAmount === 'number' && Number.isFinite(entry.btcAmount)
-            ? BTC ${entry.btcAmount.toLocaleString(undefined, {
+            ? `BTC ${entry.btcAmount.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 8
-              })}
+              })}`
             : null;
         const usdAmount =
           typeof entry.usdAmount === 'number' && Number.isFinite(entry.usdAmount)
-            ? USD ${entry.usdAmount.toLocaleString(undefined, {
+            ? `USD ${entry.usdAmount.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-              })}
+              })}`
             : null;
         if (btcAmount && usdAmount) {
-          return ${btcAmount} (${usdAmount});
+          return `${btcAmount} (${usdAmount})`;
         }
         return btcAmount || usdAmount || null;
       }
@@ -1763,9 +1763,9 @@
           ? state.data.gatewayUsers[0]
           : null;
         metricUsersUpdated.textContent = latestUser
-          ? Last credential update ${formatRelativeTime(latestUser.updatedAt || latestUser.createdAt)} (${formatDate(
+          ? `Last credential update ${formatRelativeTime(latestUser.updatedAt || latestUser.createdAt)} (${formatDate(
               latestUser.updatedAt || latestUser.createdAt
-            )})
+            )})`
           : 'No credential updates yet';
 
         renderInfrastructure();
@@ -1841,7 +1841,7 @@
           metricServer.textContent = status.uptimeSeconds > 0 ? 'Online' : 'Offline';
         }
         if (metricServerDetail) {
-          metricServerDetail.textContent = ${formatNumber(activeSessions)} live / ${formatNumber(totalVisitors)} observed;
+          metricServerDetail.textContent = `${formatNumber(activeSessions)} live / ${formatNumber(totalVisitors)} observed`;
         }
 
         if (infrastructureFields.hostname) {
@@ -1856,7 +1856,7 @@
         if (infrastructureFields.environment) {
           const nodeVersion = status.environment?.nodeVersion;
           infrastructureFields.environment.textContent = nodeVersion
-            ? Node ${nodeVersion}
+            ? `Node ${nodeVersion}`
             : status.host?.platform || '—';
         }
         if (infrastructureFields.provider) {
@@ -1875,32 +1875,32 @@
               : '—';
         }
         if (infrastructureFields.observed) {
-          const startLabel = status.startedAt ? Started ${formatRelativeTime(status.startedAt)} : 'No start time recorded';
-          infrastructureFields.observed.textContent = ${formatNumber(activeSessions)} live · ${formatNumber(
+          const startLabel = status.startedAt ? `Started ${formatRelativeTime(status.startedAt)}` : 'No start time recorded';
+          infrastructureFields.observed.textContent = `${formatNumber(activeSessions)} live · ${formatNumber(
             totalVisitors
-          )} total · ${startLabel};
+          )} total · ${startLabel}`;
         }
         if (infrastructureFields.hintsList) {
           infrastructureFields.hintsList.innerHTML = '';
           const hints = [];
           const memoryInfo = formatMemoryUsage(status.process?.memory);
           if (memoryInfo.detail && memoryInfo.detail !== 'Runtime memory footprint') {
-            hints.push(Memory ${memoryInfo.detail});
+            hints.push(`Memory ${memoryInfo.detail}`);
           }
           const dataStore = status.dataStore || {};
           if (typeof dataStore.sizeBytes === 'number' && Number.isFinite(dataStore.sizeBytes)) {
             hints.push(
-              Data ${formatBytes(dataStore.sizeBytes)} (${formatNumber(dataStore.fileCount || 0)} ${pluralize(
+              `Data ${formatBytes(dataStore.sizeBytes)} (${formatNumber(dataStore.fileCount || 0)} ${pluralize(
                 dataStore.fileCount || 0,
                 'file'
-              )})
+              )})`
             );
           }
           if (status.startedAt) {
-            hints.push(Started ${formatDate(status.startedAt)});
+            hints.push(`Started ${formatDate(status.startedAt)}`);
           }
           if (status.process?.pid) {
-            hints.push(PID ${status.process.pid});
+            hints.push(`PID ${status.process.pid}`);
           }
           if (!hints.length) {
             hints.push('No additional telemetry available.');
@@ -1941,7 +1941,7 @@
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
           return window.crypto.randomUUID();
         }
-        return admin-${Date.now()}-${Math.random().toString(16).slice(2, 10)};
+        return `admin-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
       }
 
       function ledgerMethodLabel(item) {
@@ -1965,7 +1965,7 @@
           const name = item.data.cardholder || item.data.remittingContact || '';
           const wallet = item.data.btcAddress ? shortenWalletReference(item.data.btcAddress) : '';
           if (name && wallet) {
-            return ${name} (${wallet});
+            return `${name} (${wallet})`;
           }
           return name || wallet || '—';
         }
@@ -1996,6 +1996,36 @@
         return item.data.authorizationCode || item.data.transactionId || '—';
       }
 
+      const LEDGER_STATUS_PRIORITY = new Map([
+        ['failed', 0],
+        ['disputed', 0],
+        ['chargeback', 0],
+        ['refunded', 1],
+        ['reversed', 1],
+        ['pending-confirmation', 2],
+        ['pending', 3],
+        ['processing', 4],
+        ['authorized', 4],
+        ['completed', 5],
+        ['succeeded', 5],
+        ['settled', 5]
+      ]);
+
+      function ledgerStatusPriority(status) {
+        if (!status) return 3;
+        const normalized = String(status).toLowerCase().trim();
+        if (LEDGER_STATUS_PRIORITY.has(normalized)) {
+          return LEDGER_STATUS_PRIORITY.get(normalized);
+        }
+        if (normalized.includes('fail') || normalized.includes('error')) {
+          return 0;
+        }
+        if (normalized.includes('pending')) {
+          return 3;
+        }
+        return 4;
+      }
+
       function ledgerStatusLabel(item) {
         if (!item || !item.data) return 'pending';
         const status = item.data.status;
@@ -2016,9 +2046,19 @@
           ? state.data.bitcoinTransactions.map((entry) => ({ type: 'bitcoin', data: entry }))
           : [];
 
-        const combinedEntries = [...magstripeEntries, ...bitcoinEntries].sort(
-          (a, b) => timestampValue(b?.data?.createdAt) - timestampValue(a?.data?.createdAt)
-        );
+        const combinedEntries = [...magstripeEntries, ...bitcoinEntries]
+          .map((entry) => ({
+            ...entry,
+            statusValue: ledgerStatusLabel(entry),
+            createdValue: timestampValue(entry?.data?.createdAt)
+          }))
+          .sort((a, b) => {
+            const priorityDelta = ledgerStatusPriority(a.statusValue) - ledgerStatusPriority(b.statusValue);
+            if (priorityDelta !== 0) {
+              return priorityDelta;
+            }
+            return (b.createdValue || 0) - (a.createdValue || 0);
+          });
 
         ledgerTableBody.innerHTML = '';
         if (!combinedEntries.length) {
@@ -2048,18 +2088,18 @@
           tr.appendChild(hashCell);
 
           const metadataCell = document.createElement('td');
-          const statusLabel = ledgerStatusLabel(item);
+          const statusLabel = item.statusValue ?? ledgerStatusLabel(item);
           const parts = [];
           const amountLabel = ledgerAmountLabel(item);
           const projectLabel = ledgerProjectLabel(item);
           if (statusLabel) {
-            parts.push(Status: ${statusLabel});
+            parts.push(`Status: ${statusLabel}`);
           }
           if (amountLabel && amountLabel !== '—') {
-            parts.push(Amount: ${amountLabel});
+            parts.push(`Amount: ${amountLabel}`);
           }
           if (projectLabel && projectLabel !== '—') {
-            parts.push(Ref: ${projectLabel});
+            parts.push(`Ref: ${projectLabel}`);
           }
           metadataCell.textContent = parts.length ? parts.join(' · ') : '—';
           tr.appendChild(metadataCell);
@@ -2112,7 +2152,7 @@
           if (user.profileImageUrl) {
             const img = document.createElement('img');
             img.src = user.profileImageUrl;
-            img.alt = user.username ? ${user.username} profile : 'Profile';
+            img.alt = user.username ? `${user.username} profile` : 'Profile';
             img.style.width = '36px';
             img.style.height = '36px';
             img.style.borderRadius = '50%';
@@ -2204,13 +2244,13 @@
         const fragment = document.createDocumentFragment();
         for (const entry of audioEntries) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(entry.updatedAt || entry.createdAt)}</td>
             <td>${entry.owner || '—'}</td>
             <td>${entry.walletAddress || '—'}</td>
             <td>${entry.displayName || entry.path || '—'}</td>
             <td>${entry.path || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         audioTableBody.appendChild(fragment);
@@ -2246,11 +2286,11 @@
           }
           const metadataParts = [];
           if (submission.databaseOptIn) metadataParts.push('Opt-in: Yes');
-          if (submission.role) metadataParts.push(Role: ${submission.role});
+          if (submission.role) metadataParts.push(`Role: ${submission.role}`);
           if (submission.metadata) metadataParts.push(String(submission.metadata));
           if (submission.pollMetadata) metadataParts.push(String(submission.pollMetadata));
           const metadata = metadataParts.length ? metadataParts.join(' · ') : '—';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${origin}</td>
             <td>${truncate(question, 160)}</td>
             <td>${truncate(responseText, 160)}</td>
@@ -2263,7 +2303,7 @@
           )}">Edit</button>
               </div>
             </td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         pollsTableBody.appendChild(fragment);
@@ -2293,7 +2333,7 @@
           if (contact.source && contact.source !== contactValue) metadataParts.push(String(contact.source));
           if (contact.referer) metadataParts.push(String(contact.referer));
           const metadata = metadataParts.length ? metadataParts.join(' · ') : '—';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${contact.name || '—'}</td>
             <td>${contactValue}</td>
             <td>${truncate(contact.message || '—', 160)}</td>
@@ -2307,7 +2347,7 @@
           )}">Edit</button>
               </div>
             </td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         questionsTableBody.appendChild(fragment);
@@ -2328,12 +2368,12 @@
         const fragment = document.createDocumentFragment();
         for (const event of events) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(event.createdAt)}</td>
             <td>${event.username || '—'}</td>
             <td>${event.walletAddress || '—'}</td>
             <td>${event.meknxPassId || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         loginTableBody.appendChild(fragment);
@@ -2355,7 +2395,7 @@
         for (const upload of uploads) {
           const tr = document.createElement('tr');
           const minted = upload.mintStatus || upload.mintedAt ? 'Minted' : 'Pending';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${upload.title || '—'}</td>
             <td>${upload.walletAddress || '—'}</td>
             <td>${upload.chain || upload.network || '—'}</td>
@@ -2364,8 +2404,8 @@
             <td><span class="badge" data-variant="${minted === 'Minted' ? 'success' : 'warning'}">${minted}</span></td>
             <td>${formatDate(upload.createdAt)}</td>
             <td>${formatDate(upload.updatedAt)}</td>
-            <td>${upload.mediaUrl ? <a href="${upload.mediaUrl}" target="_blank" rel="noopener">Source</a> : '—'}</td>
-          ;
+            <td>${upload.mediaUrl ? `<a href="${upload.mediaUrl}" target="_blank" rel="noopener">Source</a>` : '—'}</td>
+          `;
           fragment.appendChild(tr);
         }
         marketplaceTableBody.appendChild(fragment);
@@ -2387,15 +2427,15 @@
         const fragment = document.createDocumentFragment();
         for (const entry of stored) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${entry.id || '—'}</td>
             <td>${entry.itemId || '—'}</td>
             <td>${entry.displayName || entry.path || '—'}</td>
             <td>${entry.mimeType || '—'}</td>
             <td>${formatBytes(entry.fileSize)}</td>
             <td>${formatDate(entry.createdAt)}</td>
-            <td>${entry.downloadUrl ? <a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a> : '—'}</td>
-          ;
+            <td>${entry.downloadUrl ? `<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>` : '—'}</td>
+          `;
           fragment.appendChild(tr);
         }
         filesTableBody.appendChild(fragment);
@@ -2436,15 +2476,15 @@
           const tr = document.createElement('tr');
           const actions = [];
           if (entry.downloadUrl) {
-            actions.push(<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>);
+            actions.push(`<a href="${entry.downloadUrl}" target="_blank" rel="noopener">Download</a>`);
           }
           if (entry.shareUrl) {
-            actions.push(<a href="${entry.shareUrl}" target="_blank" rel="noopener">Share</a>);
+            actions.push(`<a href="${entry.shareUrl}" target="_blank" rel="noopener">Share</a>`);
           }
           if (!actions.length) {
             actions.push('—');
           }
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${entry.displayName || entry.path || '—'}</td>
             <td>${entry.category || '—'}</td>
             <td>${entry.path ? entry.path.split('/').slice(0, -1).join('/') || '/' : '/'}</td>
@@ -2452,7 +2492,7 @@
             <td>${formatBytes(entry.fileSize)}</td>
             <td>${formatDate(entry.updatedAt || entry.createdAt)}</td>
             <td>${actions.join(' · ')}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         assetTableBody.appendChild(fragment);
@@ -2466,10 +2506,10 @@
         const filterValue = assetFilter ? assetFilter.value : 'uploads';
         const filtered = filterBroadcastsForView(filterValue);
         const total = Array.isArray(allBroadcasts) ? allBroadcasts.length : 0;
-        assetSummary.textContent = ${formatNumber(filtered.length)} ${pluralize(
+        assetSummary.textContent = `${formatNumber(filtered.length)} ${pluralize(
           filtered.length,
           'asset'
-        )} shown · ${formatNumber(total)} indexed;
+        )} shown · ${formatNumber(total)} indexed`;
       }
 
       function renderHtmlAssets() {
@@ -2492,15 +2532,15 @@
           const downloadUrl = entry.downloadUrl || entry.url || entry.sourceUrl || entry.shareUrl || '';
           const shareUrl = entry.shareUrl || entry.publicUrl || '';
           const editButton = entry.path
-            ? <button class="btn" type="button" data-action="edit-html" data-path="${encodedPath}">Edit</button>
+            ? `<button class="btn" type="button" data-action="edit-html" data-path="${encodedPath}">Edit</button>`
             : '<button class="btn" type="button" disabled>Edit</button>';
           const downloadAction = downloadUrl
-            ? <a class="btn btn-outline" href="${downloadUrl}" target="_blank" rel="noopener">Download</a>
+            ? `<a class="btn btn-outline" href="${downloadUrl}" target="_blank" rel="noopener">Download</a>`
             : '<span class="text-muted">No download</span>';
           const shareAction = shareUrl
-            ? <a class="btn btn-outline" href="${shareUrl}" target="_blank" rel="noopener">Share</a>
+            ? `<a class="btn btn-outline" href="${shareUrl}" target="_blank" rel="noopener">Share</a>`
             : '<span class="text-muted">No share</span>';
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${entry.path || '—'}</td>
             <td>${formatBytes(entry.fileSize)}</td>
             <td>${formatDate(entry.modifiedAt || entry.updatedAt || entry.createdAt)}</td>
@@ -2511,7 +2551,7 @@
                 ${shareAction}
               </div>
             </td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         htmlFilesTableBody.appendChild(fragment);
@@ -2532,14 +2572,14 @@
         const fragment = document.createDocumentFragment();
         for (const txn of transactions) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(txn.timestamp)}</td>
             <td>${txn.wallet || '—'}</td>
             <td>${txn.chain || '—'}</td>
             <td>${txn.token || '—'}</td>
             <td>${txn.amount != null ? txn.amount : '—'}</td>
             <td>${txn.hash || txn.transactionHash || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         transactionsTableBody.appendChild(fragment);
@@ -2560,7 +2600,7 @@
         const fragment = document.createDocumentFragment();
         for (const order of orders) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(order.createdAt)}</td>
             <td>${order.buyer || '—'}</td>
             <td>${order.seller || '—'}</td>
@@ -2570,7 +2610,7 @@
             <td>${order.status || '—'}</td>
             <td>${order.transactionHash || '—'}</td>
             <td>${order.invoice || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         ordersTableBody.appendChild(fragment);
@@ -2591,7 +2631,7 @@
         const fragment = document.createDocumentFragment();
         for (const bid of bids) {
           const tr = document.createElement('tr');
-          tr.innerHTML = 
+          tr.innerHTML = `
             <td>${formatDate(bid.createdAt)}</td>
             <td>${bid.bidderName || '—'}</td>
             <td>${bid.assetOwner || bid.seller || '—'}</td>
@@ -2601,7 +2641,7 @@
             <td>${bid.status || '—'}</td>
             <td>${bid.transactionHash || '—'}</td>
             <td>${bid.invoice || '—'}</td>
-          ;
+          `;
           fragment.appendChild(tr);
         }
         bidsTableBody.appendChild(fragment);
@@ -2617,7 +2657,7 @@
           }
           if (typeof parsed === 'object' && parsed !== null) {
             return Object.entries(parsed)
-              .map(([k, v]) => ${k}: ${v})
+              .map(([k, v]) => `${k}: ${v}`)
               .join(', ');
           }
           return String(parsed);
@@ -2793,11 +2833,11 @@
         if (htmlEditorFields.pathDisplay) htmlEditorFields.pathDisplay.value = decodedPath;
         if (htmlEditorFields.size) {
           const sizeText = entry && typeof entry.fileSize === 'number' ? formatBytes(entry.fileSize) : '—';
-          htmlEditorFields.size.textContent = Size: ${sizeText};
+          htmlEditorFields.size.textContent = `Size: ${sizeText}`;
         }
         if (htmlEditorFields.updated) {
           const updatedSource = entry?.modifiedAt || entry?.updatedAt || entry?.createdAt;
-          htmlEditorFields.updated.textContent = Last Updated: ${updatedSource ? formatDate(updatedSource) : '—'};
+          htmlEditorFields.updated.textContent = `Last Updated: ${updatedSource ? formatDate(updatedSource) : '—'}`;
         }
         configureHtmlEditorActions(entry);
         if (htmlEditorFields.content) {
@@ -2806,7 +2846,7 @@
         htmlEditorOverlay.classList.add('is-open');
 
         try {
-          const response = await fetch(/api/admin/html-assets/${encodeURIComponent(decodedPath)}, {
+          const response = await fetch(`/api/admin/html-assets/${encodeURIComponent(decodedPath)}`, {
             headers: { Accept: 'application/json' }
           });
           if (!response.ok) {
@@ -2817,10 +2857,10 @@
             htmlEditorFields.content.value = payload.content || '';
           }
           if (payload?.size != null && htmlEditorFields.size) {
-            htmlEditorFields.size.textContent = Size: ${formatBytes(payload.size)};
+            htmlEditorFields.size.textContent = `Size: ${formatBytes(payload.size)}`;
           }
           if (payload?.updatedAt && htmlEditorFields.updated) {
-            htmlEditorFields.updated.textContent = Last Updated: ${formatDate(payload.updatedAt)};
+            htmlEditorFields.updated.textContent = `Last Updated: ${formatDate(payload.updatedAt)}`;
           }
           const merged = { ...entry, ...payload, path: decodedPath };
           configureHtmlEditorActions(merged);
@@ -2874,8 +2914,8 @@
 
         const endpoint =
           kind === 'question'
-            ? /api/admin/contact-submissions/${encodeURIComponent(id)}
-            : /api/admin/gateway-submissions/${encodeURIComponent(id)};
+            ? `/api/admin/contact-submissions/${encodeURIComponent(id)}`
+            : `/api/admin/gateway-submissions/${encodeURIComponent(id)}`;
 
         const originalText = submissionSubmitButton ? submissionSubmitButton.textContent : '';
         if (submissionSubmitButton) {
@@ -2997,7 +3037,7 @@
           databaseOptIn: editorFields.optIn.checked
         };
         try {
-          const response = await fetch(/api/admin/gateway-users/${encodeURIComponent(id)}, {
+          const response = await fetch(`/api/admin/gateway-users/${encodeURIComponent(id)}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify(payload)
@@ -3032,7 +3072,7 @@
       function ensureSubmissionId(submission, prefix = 'submission') {
         if (submission?.id) return submission.id;
         if (submission?._id) return submission._id;
-        const newId = ${prefix}-${generateId()};
+        const newId = `${prefix}-${generateId()}`;
         if (submission) {
           submission.id = newId;
         }
@@ -3101,10 +3141,10 @@
             }
             let message = payload.message || 'File broadcasts synchronized.';
             if (typeof payload.total === 'number' && Number.isFinite(payload.total)) {
-              message +=  ${formatNumber(payload.total)} ${pluralize(payload.total, 'asset')} tracked.;
+              message += ` ${formatNumber(payload.total)} ${pluralize(payload.total, 'asset')} tracked.`;
             }
             if (payload.lastScanCompletedAt) {
-              message +=  Last scan ${formatRelativeTime(payload.lastScanCompletedAt)}.;
+              message += ` Last scan ${formatRelativeTime(payload.lastScanCompletedAt)}.`;
             }
             setFileBroadcastStatus(message.trim(), 'success');
             await loadOverview({ silent: true }).catch(() => {});

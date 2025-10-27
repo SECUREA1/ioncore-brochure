@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
+import os from 'os';
 import unzipper from 'unzipper';
 import { randomUUID } from 'crypto';
 import { executeMeknxGate, isThirdwebConfigured } from './integrations/thirdweb-client.js';
@@ -164,6 +165,51 @@ function formatFileSize(bytes) {
   }
   const precision = unitIndex === 0 ? 0 : unitIndex === 1 ? 1 : 2;
   return `${value.toFixed(precision)} ${units[unitIndex]}`;
+}
+
+async function getDirectoryUsage(dir) {
+  const stack = [dir];
+  let sizeBytes = 0;
+  let fileCount = 0;
+
+  while (stack.length) {
+    const current = stack.pop();
+    let entries;
+    try {
+      entries = await fs.readdir(current, { withFileTypes: true });
+    } catch (error) {
+      if (error && error.code === 'ENOENT') {
+        continue;
+      }
+      throw error;
+    }
+
+    for (const entry of entries) {
+      if (entry.isSymbolicLink && entry.isSymbolicLink()) {
+        continue;
+      }
+
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        continue;
+      }
+
+      if (!entry.isFile()) {
+        continue;
+      }
+
+      try {
+        const stats = await fs.stat(fullPath);
+        sizeBytes += stats.size;
+        fileCount += 1;
+      } catch (error) {
+        console.warn('Unable to measure file size for directory usage', fullPath, error);
+      }
+    }
+  }
+
+  return { sizeBytes, fileCount };
 }
 
 function shouldTrackFile(filePath) {
@@ -1936,6 +1982,44 @@ app.get('/api/admin/overview', async (req, res) => {
   const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
+  let dataDirectoryUsage = { sizeBytes: 0, fileCount: 0 };
+  try {
+    dataDirectoryUsage = await getDirectoryUsage(DATA_DIR);
+  } catch (error) {
+    console.error('Unable to inspect data directory usage', error);
+  }
+
+  const uptimeSeconds = Math.max(0, Math.floor(process.uptime()));
+  const startedAt = new Date(Date.now() - uptimeSeconds * 1000).toISOString();
+  const lastBroadcastScan = lastFileBroadcastScan ? new Date(lastFileBroadcastScan).toISOString() : null;
+
+  const serverStatus = {
+    activeSessions: metrics.live,
+    totalVisitors: metrics.viewed,
+    uptimeSeconds,
+    startedAt,
+    host: {
+      hostname: os.hostname(),
+      platform: os.platform()
+    },
+    environment: {
+      nodeVersion: process.version
+    },
+    process: {
+      pid: process.pid,
+      memory: process.memoryUsage()
+    },
+    dataStore: {
+      path: path.relative(__dirname, DATA_DIR) || 'data',
+      fileCount: dataDirectoryUsage.fileCount,
+      sizeBytes: dataDirectoryUsage.sizeBytes
+    },
+    fileBroadcasts: {
+      total: fileBroadcasts.length,
+      lastScanCompletedAt: lastBroadcastScan
+    }
+  };
+
   const activityTimeline = [];
 
   for (const event of store.loginEvents) {
@@ -2152,6 +2236,7 @@ app.get('/api/admin/overview', async (req, res) => {
       totalTimepieceMintIntents: timepieceMintLedger.length,
       totalFileBroadcasts: fileBroadcasts.length
     },
+    serverStatus,
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
     magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
     bitcoinTransactions: sortByTimestampDesc(store.bitcoinTransactions, 'createdAt'),
@@ -2171,7 +2256,8 @@ app.post('/api/admin/file-broadcasts/rescan', async (req, res) => {
     const changed = await syncFileBroadcasts({ force: true });
     res.json({
       message: changed ? 'File broadcasts synchronized.' : 'No changes detected in tracked files.',
-      total: Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts.length : 0
+      total: Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts.length : 0,
+      lastScanCompletedAt: lastFileBroadcastScan ? new Date(lastFileBroadcastScan).toISOString() : null
     });
   } catch (error) {
     console.error('Failed to rescan file broadcasts', error);

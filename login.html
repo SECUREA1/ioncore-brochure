@@ -859,6 +859,196 @@
       min-width: 160px;
     }
 
+    body.popup-open {
+      overflow: hidden;
+    }
+
+    .wallet-popup {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1rem, 3vw, 2rem);
+      background: rgba(6, 12, 24, 0.72);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.32s ease;
+      z-index: 24;
+    }
+
+    .wallet-popup.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .wallet-popup[hidden] {
+      display: none;
+    }
+
+    .wallet-popup__dialog {
+      position: relative;
+      width: min(720px, 100%);
+      max-height: min(90vh, 780px);
+      overflow-y: auto;
+      background: rgba(10, 16, 32, 0.96);
+      border: 1px solid rgba(72, 255, 226, 0.22);
+      border-radius: 20px;
+      padding: clamp(1.5rem, 3vw, 2.25rem);
+      box-shadow: 0 32px 64px rgba(4, 8, 18, 0.58);
+    }
+
+    .wallet-popup__header {
+      position: relative;
+      padding-right: 3rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .wallet-popup__title {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.6vw, 1.8rem);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .wallet-popup__subtitle {
+      margin: 0.35rem 0 0;
+      font-size: 0.88rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.88);
+    }
+
+    .wallet-popup__intro {
+      margin: 0 0 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: rgba(226, 232, 240, 0.82);
+    }
+
+    .wallet-popup__close {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(226, 232, 240, 0.28);
+      background: rgba(15, 23, 42, 0.42);
+      color: rgba(226, 232, 240, 0.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .wallet-popup__close:hover,
+    .wallet-popup__close:focus-visible {
+      outline: none;
+      background: rgba(72, 255, 226, 0.16);
+      border-color: rgba(72, 255, 226, 0.55);
+      color: #f8fafc;
+    }
+
+    .wallet-popup__body {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .wallet-popup__section {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.35);
+    }
+
+    .wallet-popup__section > .wallet-connect-row {
+      margin: 0;
+    }
+
+    .ionc-token-list {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      border: 1px solid rgba(106, 255, 59, 0.24);
+      border-radius: 14px;
+      background: rgba(11, 18, 36, 0.65);
+      box-shadow: inset 0 0 0 1px rgba(72, 255, 226, 0.12);
+    }
+
+    .ionc-token-list__title {
+      margin: 0 0 0.85rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ioncore-neon);
+    }
+
+    .ionc-token-list__items {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .ionc-token-list__item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.65rem 0.8rem;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .ionc-token-list__item--empty {
+      text-align: center;
+      font-style: italic;
+      color: rgba(226, 232, 240, 0.72);
+      border-style: dashed;
+      border-color: rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.42);
+    }
+
+    .ionc-token-list__amount {
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+    }
+
+    .ionc-token-list__account {
+      font-size: 0.82rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.74);
+    }
+
+    @media (max-width: 720px) {
+      .wallet-popup {
+        padding: 0.85rem;
+      }
+
+      .wallet-popup__dialog {
+        width: 100%;
+        max-height: calc(100vh - 1.5rem);
+        border-radius: 16px;
+      }
+
+      .wallet-popup__body {
+        gap: 1.1rem;
+      }
+
+      .wallet-popup__section {
+        padding: 1rem;
+      }
+    }
+
     .wallet-status--connected {
       color: rgba(165, 255, 214, 0.92);
     }
@@ -2270,41 +2460,79 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
-          <div class="wallet-connect-row wallet-connect-row--input" id="solana-deposit-config">
-            <label class="wallet-input-label" for="solana-deposit-amount">
-              Access Retainer Amount
-              <span>1 – 1000 SOL</span>
-            </label>
-            <div class="wallet-input-control">
-              <input
-                type="number"
-                id="solana-deposit-amount"
-                min="1"
-                max="1000"
-                step="1"
-                value="1"
-                inputmode="decimal"
-                aria-describedby="solana-deposit-help"
-              >
-              <div id="solana-deposit-help" class="wallet-input-sublabel">
-                1 SOL mints 1,000 IONC tokens to your clearance ledger. Approved transfers log to the Ioncore admin vault in real time.
-              </div>
-              <div class="wallet-input-actions">
-                <button type="button" id="solana-deposit-send" class="action-button">Send SOL Retainer</button>
-                <button
-                  type="button"
-                  id="solana-deposit-verify"
-                  class="action-button action-button--outline"
-                  disabled
-                >
-                  Verify Receipt
+          <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
+            <div class="wallet-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="solana-ionc-popup-title">
+              <header class="wallet-popup__header">
+                <h3 id="solana-ionc-popup-title" class="wallet-popup__title">Solana IONC Clearance</h3>
+                <p class="wallet-popup__subtitle">Secure Phantom session</p>
+                <button type="button" class="wallet-popup__close" id="solana-ionc-close" aria-label="Close Solana clearance panel">
+                  &times;
                 </button>
+              </header>
+              <p class="wallet-popup__intro">
+                All Solana access-retainer actions and IONC verifications run inside this secure panel once your Phantom wallet is connected.
+              </p>
+              <div class="wallet-popup__body">
+                <div class="wallet-popup__section">
+                  <div class="wallet-connect-row wallet-connect-row--input" id="solana-deposit-config">
+                    <label class="wallet-input-label" for="solana-deposit-amount">
+                      Access Retainer Amount
+                      <span>1 – 1000 SOL</span>
+                    </label>
+                    <div class="wallet-input-control">
+                      <input
+                        type="number"
+                        id="solana-deposit-amount"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        value="1"
+                        inputmode="decimal"
+                        aria-describedby="solana-deposit-help"
+                        data-popup-focus
+                      >
+                      <div id="solana-deposit-help" class="wallet-input-sublabel">
+                        1 SOL mints 1,000 IONC tokens to your clearance ledger. Approved transfers log to the Ioncore admin vault in real time.
+                      </div>
+                      <div class="wallet-input-actions">
+                        <button type="button" id="solana-deposit-send" class="action-button">Send SOL Retainer</button>
+                        <button
+                          type="button"
+                          id="solana-deposit-verify"
+                          class="action-button action-button--outline"
+                          disabled
+                        >
+                          Verify Receipt
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="wallet-popup__section">
+                  <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
+                    <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
+                      Access retainer pending. Select your SOL amount, connect Phantom, then click Send to authorize the transfer.
+                    </div>
+                  </div>
+                </div>
+                <div class="wallet-popup__section">
+                  <div class="access-module" id="ionc-module" hidden>
+                    <div class="module-header">
+                      <h3>IONC Token Gate</h3>
+                      <span class="module-tag module-tag--solana">Solana</span>
+                    </div>
+                    <p class="module-copy">Phantom sessions must confirm an IONC access token minted to the connected wallet before entry.</p>
+                    <div class="module-actions">
+                      <button type="button" id="ionc-verify-button" class="action-button action-button--outline">Verify IONC Token</button>
+                      <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
+                    </div>
+                    <div id="ionc-token-list-container" class="ionc-token-list" hidden>
+                      <h4 class="ionc-token-list__title">Detected IONC Holdings</h4>
+                      <ul id="ionc-token-list" class="ionc-token-list__items"></ul>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
-            <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
-              Access retainer pending. Select your SOL amount, connect Phantom, then click Send to authorize the transfer.
             </div>
           </div>
           <div class="wallet-connect-row">
@@ -2343,17 +2571,6 @@
             <div class="module-actions">
               <button type="button" id="meknx-action-button" class="action-button">Start Clearance</button>
               <div id="meknx-inline-status" class="inline-status">MEKNX clearance pending.</div>
-            </div>
-          </div>
-          <div class="access-module" id="ionc-module" hidden>
-            <div class="module-header">
-              <h3>IONC Token Gate</h3>
-              <span class="module-tag module-tag--solana">Solana</span>
-            </div>
-            <p class="module-copy">Phantom sessions must confirm an IONC access token minted to the connected wallet before entry.</p>
-            <div class="module-actions">
-              <button type="button" id="ionc-verify-button" class="action-button action-button--outline">Verify IONC Token</button>
-              <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
             </div>
           </div>
           <div class="access-module" id="cardano-module" hidden>
@@ -2470,6 +2687,10 @@
     const solanaDepositAmountHiddenInput = document.getElementById('solana-deposit-amount-hidden');
     const solanaDepositSendButton = document.getElementById('solana-deposit-send');
     const solanaDepositVerifyButton = document.getElementById('solana-deposit-verify');
+    const solanaIoncPopup = document.getElementById('solana-ionc-popup');
+    const solanaIoncCloseButton = document.getElementById('solana-ionc-close');
+    const ioncTokenListContainer = document.getElementById('ionc-token-list-container');
+    const ioncTokenListElement = document.getElementById('ionc-token-list');
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
@@ -2512,6 +2733,39 @@
         : 1_000_000_000;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
+    let solanaIoncLastFocus = null;
+
+    function formatTokenAmount(amount) {
+      if (!Number.isFinite(amount)) {
+        return '0';
+      }
+      if (amount >= 100) {
+        return amount.toFixed(2);
+      }
+      if (amount >= 1) {
+        return amount.toFixed(4);
+      }
+      return amount.toFixed(6);
+    }
+
+    function formatUsd(value) {
+      if (!Number.isFinite(value)) {
+        return '$0.00';
+      }
+      return value.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function shortenIdentifier(value) {
+      if (!value || value.length <= 10) {
+        return value || '';
+      }
+      return `${value.slice(0, 6)}…${value.slice(-4)}`;
+    }
 
     const meknxState = {
       status: 'pending',
@@ -2523,7 +2777,8 @@
 
     const ioncState = {
       verified: false,
-      tokens: 0
+      tokens: 0,
+      holdings: []
     };
 
     const cardanoState = {
@@ -2532,6 +2787,60 @@
       walletType: '',
       api: null
     };
+
+    function renderIoncTokenHoldings(accounts = ioncState.holdings, { showEmpty = true } = {}) {
+      if (!ioncTokenListElement || !ioncTokenListContainer) {
+        return;
+      }
+
+      ioncTokenListElement.innerHTML = '';
+
+      const normalized = Array.isArray(accounts)
+        ? accounts.filter((entry) => Number.isFinite(entry?.amount) && entry.amount > 0)
+        : [];
+
+      if (normalized.length === 0) {
+        if (showEmpty) {
+          ioncTokenListContainer.hidden = false;
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'ionc-token-list__item ionc-token-list__item--empty';
+          emptyItem.textContent = 'No IONC holdings detected for this wallet.';
+          ioncTokenListElement.appendChild(emptyItem);
+        } else {
+          ioncTokenListContainer.hidden = true;
+        }
+        return;
+      }
+
+      ioncTokenListContainer.hidden = false;
+
+      normalized.forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = 'ionc-token-list__item';
+
+        const amountElement = document.createElement('span');
+        amountElement.className = 'ionc-token-list__amount';
+        amountElement.textContent = `${formatTokenAmount(entry.amount)} IONC`;
+
+        const detailElement = document.createElement('span');
+        detailElement.className = 'ionc-token-list__account';
+        const source = entry.accountAddress || entry.address || entry.owner || '';
+        const detailParts = [];
+        if (source) {
+          detailParts.push(shortenIdentifier(source));
+        }
+        if (entry.mint && entry.mint !== IONC_TOKEN_MINT) {
+          detailParts.push(`Mint ${shortenIdentifier(entry.mint)}`);
+        }
+        detailElement.textContent = detailParts.length ? detailParts.join(' • ') : 'IONC clearance vault';
+
+        item.appendChild(amountElement);
+        item.appendChild(detailElement);
+        ioncTokenListElement.appendChild(item);
+      });
+    }
+
+    renderIoncTokenHoldings([], { showEmpty: false });
 
     const solanaDepositState = {
       signature: '',
@@ -2544,6 +2853,89 @@
       provider: null,
       publicKey: ''
     };
+
+    const isSolanaIoncPopupOpen = () =>
+      Boolean(solanaIoncPopup && !solanaIoncPopup.hidden && solanaIoncPopup.classList.contains('is-visible'));
+
+    const openSolanaIoncPopup = () => {
+      if (!solanaIoncPopup || isSolanaIoncPopupOpen()) {
+        return;
+      }
+      solanaIoncLastFocus = document.activeElement;
+      solanaIoncPopup.hidden = false;
+      solanaIoncPopup.setAttribute('aria-hidden', 'false');
+      bodyElement.classList.add('popup-open');
+      renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = false;
+      }
+      requestAnimationFrame(() => {
+        solanaIoncPopup.classList.add('is-visible');
+        const focusTarget =
+          solanaIoncPopup.querySelector('[data-popup-focus]') ||
+          solanaIoncPopup.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusTarget && typeof focusTarget.focus === 'function') {
+          focusTarget.focus({ preventScroll: true });
+        }
+      });
+    };
+
+    const closeSolanaIoncPopup = ({ restoreFocus = true } = {}) => {
+      if (!solanaIoncPopup || solanaIoncPopup.hidden) {
+        return;
+      }
+
+      solanaIoncPopup.classList.remove('is-visible');
+      solanaIoncPopup.setAttribute('aria-hidden', 'true');
+      bodyElement.classList.remove('popup-open');
+
+      const finalize = () => {
+        solanaIoncPopup.hidden = true;
+        if (solanaDepositRow) {
+          solanaDepositRow.hidden = true;
+        }
+        if (restoreFocus && solanaIoncLastFocus && typeof solanaIoncLastFocus.focus === 'function') {
+          solanaIoncLastFocus.focus({ preventScroll: true });
+        }
+        solanaIoncLastFocus = null;
+      };
+
+      const computedStyle = window.getComputedStyle(solanaIoncPopup);
+      const duration = Number.parseFloat(computedStyle.transitionDuration) || 0;
+      const delay = Number.parseFloat(computedStyle.transitionDelay) || 0;
+
+      if (duration + delay > 0) {
+        const handleTransitionEnd = (event) => {
+          if (event.target === solanaIoncPopup) {
+            solanaIoncPopup.removeEventListener('transitionend', handleTransitionEnd);
+            finalize();
+          }
+        };
+        solanaIoncPopup.addEventListener('transitionend', handleTransitionEnd);
+      } else {
+        finalize();
+      }
+    };
+
+    if (solanaIoncPopup) {
+      solanaIoncPopup.addEventListener('click', (event) => {
+        if (event.target === solanaIoncPopup) {
+          closeSolanaIoncPopup();
+        }
+      });
+    }
+
+    if (solanaIoncCloseButton) {
+      solanaIoncCloseButton.addEventListener('click', () => {
+        closeSolanaIoncPopup();
+      });
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isSolanaIoncPopupOpen()) {
+        closeSolanaIoncPopup();
+      }
+    });
 
     const CARDANO_WALLET_CANDIDATES = [
       { key: 'lace', label: 'Lace' },
@@ -2630,9 +3022,11 @@
     const resetIoncState = (options = {}) => {
       ioncState.verified = false;
       ioncState.tokens = 0;
+      ioncState.holdings = [];
       if (ioncVerifiedInput) {
         ioncVerifiedInput.value = '';
       }
+      renderIoncTokenHoldings([], { showEmpty: false });
       if (!options.silent) {
         setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
       }
@@ -2687,21 +3081,26 @@
         return;
       }
 
+      const tokenTotal = Number.isFinite(ioncState.tokens) ? ioncState.tokens : 0;
+      const formattedTotal = formatTokenAmount(tokenTotal);
+      const tokenLabel = tokenTotal === 1 ? 'token' : 'tokens';
+
       if (ioncState.verified) {
         setInlineStatus(
           ioncInlineStatus,
-          `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
+          `IONC verification complete. Tokens detected: ${formattedTotal}.`,
           'success'
         );
-      } else if (ioncState.tokens > 0) {
-        const tokenLabel = ioncState.tokens === 1 ? 'token' : 'tokens';
+      } else if (tokenTotal > 0) {
         setInlineStatus(
           ioncInlineStatus,
-          `Detected ${ioncState.tokens} IONC access ${tokenLabel}. Verify to continue.`
+          `Detected ${formattedTotal} IONC access ${tokenLabel}. Verify to continue.`
         );
       } else {
         setInlineStatus(ioncInlineStatus, 'Phantom session detected. Verify IONC token to continue.');
       }
+
+      renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
     };
 
     const syncCardanoModuleVisibility = () => {
@@ -2791,17 +3190,23 @@
       }
     };
 
-    const markIoncVerified = (tokens) => {
+    const markIoncVerified = (tokens, holdings = ioncState.holdings) => {
       ioncState.verified = true;
-      ioncState.tokens = typeof tokens === 'number' ? tokens : ioncState.tokens;
+      if (Number.isFinite(tokens)) {
+        ioncState.tokens = tokens;
+      }
+      if (Array.isArray(holdings) && holdings.length > 0) {
+        ioncState.holdings = holdings;
+      }
       if (ioncVerifiedInput) {
         ioncVerifiedInput.value = 'true';
       }
       setInlineStatus(
         ioncInlineStatus,
-        `IONC verification complete. Tokens detected: ${ioncState.tokens}.`,
+        `IONC verification complete. Tokens detected: ${formatTokenAmount(ioncState.tokens)}.`,
         'success'
       );
+      renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
     };
 
     let audioContext;
@@ -2951,13 +3356,6 @@
       playFailureBoomSound(0.24);
     };
 
-    const shortenIdentifier = (value) => {
-      if (!value || value.length <= 10) {
-        return value || '';
-      }
-      return `${value.slice(0, 6)}…${value.slice(-4)}`;
-    };
-
     const normaliseMeknxToken = (value) => {
       if (!value) return '';
       return value.toUpperCase().replace(/[^A-Z0-9-]/g, '').replace(/-{2,}/g, '-');
@@ -3057,7 +3455,7 @@
       return sanitized;
     };
 
-    const clearSolanaDepositState = ({ keepVisible = false } = {}) => {
+    const clearSolanaDepositState = ({ keepVisible = isSolanaIoncPopupOpen() } = {}) => {
       solanaDepositState.signature = '';
       solanaDepositState.lamports = MIN_SOL_DEPOSIT_LAMPORTS;
       solanaDepositState.completed = false;
@@ -3321,31 +3719,6 @@
       walletValueState.usdValue = usdValue;
       walletValueState.checkedAt = Date.now();
       return { ...walletValueState };
-    };
-
-    const formatTokenAmount = (amount) => {
-      if (!Number.isFinite(amount)) {
-        return '0';
-      }
-      if (amount >= 100) {
-        return amount.toFixed(2);
-      }
-      if (amount >= 1) {
-        return amount.toFixed(4);
-      }
-      return amount.toFixed(6);
-    };
-
-    const formatUsd = (value) => {
-      if (!Number.isFinite(value)) {
-        return '$0.00';
-      }
-      return value.toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
     };
 
     const waitForWalletInjection = async (detector, { interval = 200, timeout = 2200 } = {}) => {
@@ -3704,11 +4077,14 @@
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
       syncCardanoModuleVisibility();
+      if (isSolanaIoncPopupOpen()) {
+        closeSolanaIoncPopup({ restoreFocus: false });
+      }
     };
 
     const checkIonCTokenBalance = async (publicKey) => {
       if (!publicKey) {
-        return false;
+        return { hasToken: false, accounts: [] };
       }
 
       const response = await fetch(SOLANA_RPC_ENDPOINT, {
@@ -3738,15 +4114,29 @@
         throw new Error(data.error?.message || 'RPC error verifying IONC token.');
       }
 
-      const accounts = data?.result?.value || [];
-      return accounts.some((entry) => {
-        const tokenAmount = entry?.account?.data?.parsed?.info?.tokenAmount;
-        if (!tokenAmount) {
-          return false;
-        }
-        const precise = Number.parseFloat(tokenAmount.uiAmountString || tokenAmount.uiAmount || '0');
-        return Number.isFinite(precise) && precise > 0;
-      });
+      const rawAccounts = Array.isArray(data?.result?.value) ? data.result.value : [];
+      const accounts = rawAccounts
+        .map((entry) => {
+          const info = entry?.account?.data?.parsed?.info || {};
+          const tokenAmount = info?.tokenAmount || {};
+          let amount = tokenAmount.uiAmount;
+          if (!Number.isFinite(amount)) {
+            amount = Number.parseFloat(tokenAmount.uiAmountString || tokenAmount.amount || '0');
+          }
+          return {
+            accountAddress: entry?.pubkey || info?.address || info?.owner || '',
+            mint: info?.mint || IONC_TOKEN_MINT,
+            amount: Number.isFinite(amount) ? amount : 0,
+            rawAmount: tokenAmount?.amount || '0',
+            decimals: Number.parseInt(tokenAmount?.decimals, 10) || 0
+          };
+        })
+        .filter((entry) => Number.isFinite(entry.amount) && entry.amount > 0);
+
+      return {
+        hasToken: accounts.length > 0,
+        accounts
+      };
     };
 
     const enforceIoncRequirement = async (publicKey) => {
@@ -3754,20 +4144,33 @@
         throw new Error('No wallet account returned.');
       }
 
-      const hasToken = await checkIonCTokenBalance(publicKey);
+      const { hasToken, accounts } = await checkIonCTokenBalance(publicKey);
 
       if (!hasToken) {
+        ioncState.holdings = [];
+        ioncState.tokens = 0;
+        renderIoncTokenHoldings([], { showEmpty: true });
         if (ioncVerifiedInput) {
           ioncVerifiedInput.value = '';
         }
         throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
       }
 
+      const totalTokens = accounts.reduce((sum, entry) => {
+        const value = Number.isFinite(entry.amount) ? entry.amount : 0;
+        return sum + value;
+      }, 0);
+
+      ioncState.tokens = totalTokens;
+      ioncState.holdings = accounts;
+      renderIoncTokenHoldings(accounts, { showEmpty: true });
+      syncIoncModuleVisibility();
+
       if (ioncVerifiedInput) {
         ioncVerifiedInput.value = 'true';
       }
 
-      return true;
+      return { hasToken, accounts, total: totalTokens };
     };
 
     const connectCardanoWallet = (button, statusElement) => {
@@ -3844,6 +4247,9 @@
           syncIoncModuleVisibility();
           syncCardanoModuleVisibility();
           indicateWalletConnection(`cardano-${walletKey}`, accountAddress, walletLabel);
+          if (isSolanaIoncPopupOpen()) {
+            closeSolanaIoncPopup({ restoreFocus: false });
+          }
 
           const continuationMessage =
             meknxState.status === 'verified' || meknxState.status === 'minted'
@@ -4303,6 +4709,9 @@
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
             indicateWalletConnection('evm', account);
+            if (isSolanaIoncPopupOpen()) {
+              closeSolanaIoncPopup({ restoreFocus: false });
+            }
             updateStatus('Wallet channel established. Run MEKNX clearance to continue.', 'success');
           } catch (error) {
             resetWalletIndicators();
@@ -4353,7 +4762,7 @@
               phantomStatus.textContent = 'Verifying IONC token…';
             }
             updateStatus('Verifying IONC token holdings…');
-            await enforceIoncRequirement(publicKey);
+            const ioncHoldings = await enforceIoncRequirement(publicKey);
             const solanaValueSnapshot = await ensureWalletUsdValue({
               provider: 'solana',
               address: publicKey,
@@ -4364,6 +4773,9 @@
             if (solanaDepositRow) {
               solanaDepositRow.hidden = false;
             }
+            const detectedTokens = Number.isFinite(ioncHoldings?.total) ? ioncHoldings.total : ioncState.tokens;
+            const formattedTokenCount = formatTokenAmount(detectedTokens);
+            const ioncTokenLabel = detectedTokens === 1 ? 'token' : 'tokens';
             if (walletAddressInput) {
               walletAddressInput.value = publicKey;
             }
@@ -4375,6 +4787,7 @@
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
             indicateWalletConnection('solana', publicKey);
+            openSolanaIoncPopup();
             const solanaValueMessage = solanaValueSnapshot
               ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
               : '';
@@ -4387,15 +4800,16 @@
             const depositMessage = hasReceipt
               ? ` ${depositAmountLabel} access retainer submitted (${shortenIdentifier(solanaDepositState.signature)}).`
               : ` Click "Send ${depositAmountLabel}" to authorize the access retainer transfer.`;
+            const ioncHoldingsMessage = ` Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}.`;
             updateStatus(
-              `Phantom channel ready.${solanaValueMessage}${depositMessage} Complete MEKNX and IONC verification to continue.`,
+              `Phantom channel ready.${solanaValueMessage}${ioncHoldingsMessage}${depositMessage} Complete MEKNX and IONC verification to continue.`,
               'success'
             );
             const inlineStatusMessage = hasReceipt
-              ? `IONC holdings confirmed. ${depositAmountLabel} access retainer submitted (${shortenIdentifier(
+              ? `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. ${depositAmountLabel} access retainer submitted (${shortenIdentifier(
                   solanaDepositState.signature
                 )}). Submit to enter the vault.`
-              : `IONC holdings confirmed. Send ${depositAmountLabel} access retainer to continue.`;
+              : `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. Send ${depositAmountLabel} access retainer to continue.`;
             setInlineStatus(ioncInlineStatus, inlineStatusMessage, 'success');
           } catch (error) {
             resetWalletIndicators();
@@ -4545,8 +4959,9 @@
             }
 
             const data = await response.json();
-            const tokens = typeof data.tokens === 'number' ? data.tokens : ioncState.tokens;
-            markIoncVerified(tokens);
+            const tokens = Number.isFinite(data.tokens) ? data.tokens : ioncState.tokens;
+            const holdings = Array.isArray(data.accounts) ? data.accounts : ioncState.holdings;
+            markIoncVerified(tokens, holdings);
             syncIoncModuleVisibility();
             const successMessage =
               data && data.message

@@ -2496,36 +2496,7 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
-          <div class="wallet-connect-row" hidden aria-hidden="true">
-            <button type="button" id="open-solana-actions" class="wallet-connect-button wallet-connect-button--solana-panel">
-              <span class="wallet-connect-button__icon" aria-hidden="true">
-                <svg viewBox="0 0 32 32" role="img" aria-label="Solana command matrix">
-                  <defs>
-                    <linearGradient id="solana-d" x1="6" y1="9" x2="26" y2="9" gradientUnits="userSpaceOnUse">
-                      <stop offset="0" stop-color="#19fb9b" />
-                      <stop offset="1" stop-color="#a855f7" />
-                    </linearGradient>
-                    <linearGradient id="solana-e" x1="6" y1="16" x2="26" y2="16" gradientUnits="userSpaceOnUse">
-                      <stop offset="0" stop-color="#14f195" />
-                      <stop offset="1" stop-color="#9945ff" />
-                    </linearGradient>
-                    <linearGradient id="solana-f" x1="6" y1="23" x2="26" y2="23" gradientUnits="userSpaceOnUse">
-                      <stop offset="0" stop-color="#00ffa3" />
-                      <stop offset="1" stop-color="#dc1fff" />
-                    </linearGradient>
-                  </defs>
-                  <path fill="url(#solana-d)" d="M6 8.2 10.8 4H26l-4.8 4.2H6Z" />
-                  <path fill="url(#solana-e)" d="M6 15.1 10.8 11h15.2l-4.8 4.1H6Z" />
-                  <path fill="url(#solana-f)" d="M6 22 10.8 17.8H26l-4.8 4.2H6Z" />
-                </svg>
-              </span>
-              <span class="wallet-connect-button__label">Open Solana Actions</span>
-              <span class="wallet-connect-button__crest">
-                <img src="battery.svg" alt="Ioncore Energy emblem">
-              </span>
-            </button>
-            <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock Solana clearance controls.</div>
-          </div>
+          <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock Solana clearance controls.</div>
           <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
             <div class="wallet-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="solana-ionc-popup-title">
               <header class="wallet-popup__header">
@@ -3135,7 +3106,7 @@
       updateSolanaSessionDetails();
       if (solanaSessionState.publicKey) {
         updateSolanaActionStatus('Phantom session active. Select an action to continue.');
-        updateSolanaOpenStatus('Phantom session active. Open the Solana clearance panel to manage options.', 'success');
+        updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
       } else {
         updateSolanaActionStatus('Connect Phantom to continue.', 'notice');
         updateSolanaOpenStatus('Solana clearance panel open. Approve Phantom to continue.', 'notice');
@@ -3167,7 +3138,7 @@
         }
         const hasSession = Boolean(solanaSessionState.publicKey);
         if (hasSession) {
-          updateSolanaOpenStatus('Phantom session active. Open the Solana clearance panel to manage options.', 'success');
+          updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
         } else {
           setSolanaActionsVisibility(false);
           updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
@@ -3224,7 +3195,7 @@
         openSolanaIoncPopup();
         if (solanaSessionState.publicKey) {
           updateSolanaActionStatus('Phantom session active. Select an action to continue.', 'success');
-          updateSolanaOpenStatus('Phantom session active. Open the Solana clearance panel to manage options.', 'success');
+          updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
           return;
         }
 
@@ -3835,7 +3806,7 @@
       updateSolanaActionStatus('Phantom session active. Select an action to continue.');
       if (publicKey) {
         setSolanaActionsVisibility(true);
-        updateSolanaOpenStatus('Phantom session active. Open the Solana clearance panel to manage options.', 'success');
+        updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
       } else {
         setSolanaActionsVisibility(false);
         updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
@@ -4394,29 +4365,34 @@
     };
 
     const getSolanaBalanceLamports = async (publicKey) => {
-      const response = await fetch(SOLANA_RPC_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'solana-balance-check',
-          method: 'getBalance',
-          params: [publicKey]
-        })
-      });
+      try {
+        const response = await fetch(SOLANA_RPC_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'solana-balance-check',
+            method: 'getBalance',
+            params: [publicKey]
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Unable to retrieve SOL balance.');
-      }
+        if (!response.ok) {
+          throw new Error(`Solana RPC responded with ${response.status}.`);
+        }
 
-      const data = await response.json();
-      const lamports = data?.result?.value;
-      if (!Number.isFinite(lamports)) {
-        throw new Error('Invalid SOL balance response.');
+        const data = await response.json();
+        const lamports = data?.result?.value;
+        if (!Number.isFinite(lamports)) {
+          throw new Error('Invalid SOL balance response.');
+        }
+        return lamports;
+      } catch (error) {
+        console.warn('Unable to automatically retrieve SOL balance.', error);
+        return null;
       }
-      return lamports;
     };
 
     const getCardanoBalanceLovelace = async (api) => {
@@ -4444,6 +4420,13 @@
           statusElement.textContent = 'Assessing SOL balance value…';
         }
         const lamports = await getSolanaBalanceLamports(address);
+        if (!Number.isFinite(lamports)) {
+          if (statusElement) {
+            statusElement.textContent = 'Phantom wallet connected. SOL balance unavailable right now.';
+            statusElement.classList.add('wallet-status--connected');
+          }
+          return null;
+        }
         const solBalance = lamports / 1_000_000_000;
         const solPrice = await fetchTokenPriceUsd('solana');
         const usdValue = solBalance * solPrice;
@@ -5214,7 +5197,7 @@
               phantomStatus.classList.add('wallet-status--connected');
             }
             updateStatus('Phantom wallet connected. Loading Solana account data…', 'success');
-            updateSolanaOpenStatus('Phantom wallet connected. Open the Solana clearance panel to manage options.', 'success');
+            updateSolanaOpenStatus('Phantom wallet connected. Solana clearance controls ready.', 'success');
             if (walletAddressInput) {
               walletAddressInput.value = publicKey;
             }

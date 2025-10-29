@@ -895,6 +895,14 @@
       font-size: 0.82rem;
     }
 
+    .wallet-session-details__meta {
+      margin-left: auto;
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.88);
+    }
+
     body.popup-open {
       overflow: hidden;
     }
@@ -2647,7 +2655,12 @@
             </button>
             <div id="cardano-status" class="wallet-status">Not connected.</div>
           </div>
-          <div class="access-module" id="meknx-module">
+          <div class="access-module" id="meknx-module" hidden>
+            <div id="meknx-session-details" class="wallet-session-details" hidden aria-hidden="true">
+              <span class="wallet-session-details__label">Connected wallet</span>
+              <code id="meknx-session-address" class="wallet-session-details__value"></code>
+              <span id="meknx-session-provider" class="wallet-session-details__meta" hidden></span>
+            </div>
             <div class="module-header">
               <h3>MEKNX Clearance</h3>
               <span class="module-tag">Required</span>
@@ -2793,6 +2806,10 @@
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
+    const meknxModule = document.getElementById('meknx-module');
+    const meknxSessionDetailsElement = document.getElementById('meknx-session-details');
+    const meknxSessionAddressElement = document.getElementById('meknx-session-address');
+    const meknxSessionProviderElement = document.getElementById('meknx-session-provider');
     const ioncModule = document.getElementById('ionc-module');
     const cardanoModule = document.getElementById('cardano-module');
     const ioncVerifyButton = document.getElementById('ionc-verify-button');
@@ -3206,6 +3223,8 @@
       { key: 'typhoncip30', label: 'Typhon' }
     ];
 
+    const cardanoWalletLabelMap = new Map(CARDANO_WALLET_CANDIDATES.map(({ key, label }) => [key, label]));
+
     const detectCardanoWallet = () => {
       const cardano = window.cardano;
       if (!cardano) {
@@ -3329,6 +3348,70 @@
       }
       resetIoncState({ silent: options.silent });
     };
+
+    const resolveProviderMetaLabel = (providerValue) => {
+      if (!providerValue) {
+        return '';
+      }
+      if (providerValue === 'evm') {
+        return 'MetaMask (EVM)';
+      }
+      if (providerValue === 'solana') {
+        return 'Phantom (Solana)';
+      }
+      if (providerValue.startsWith('cardano-')) {
+        const key = providerValue.replace('cardano-', '');
+        const walletLabel = cardanoWalletLabelMap.get(key);
+        return walletLabel ? `Cardano (${walletLabel})` : 'Cardano';
+      }
+      return providerValue.toUpperCase();
+    };
+
+    const syncMeknxModuleVisibility = () => {
+      if (!meknxModule) return;
+      const providerValue = walletProviderInput ? walletProviderInput.value || '' : '';
+      const addressValue = walletAddressInput ? walletAddressInput.value || '' : '';
+      const isConnected = Boolean(providerValue && addressValue);
+
+      meknxModule.hidden = !isConnected;
+
+      if (!meknxSessionDetailsElement) {
+        return;
+      }
+
+      if (!isConnected) {
+        meknxSessionDetailsElement.hidden = true;
+        meknxSessionDetailsElement.setAttribute('aria-hidden', 'true');
+        if (meknxSessionAddressElement) {
+          meknxSessionAddressElement.textContent = '';
+        }
+        if (meknxSessionProviderElement) {
+          meknxSessionProviderElement.textContent = '';
+          meknxSessionProviderElement.setAttribute('hidden', 'hidden');
+        }
+        return;
+      }
+
+      meknxSessionDetailsElement.hidden = false;
+      meknxSessionDetailsElement.setAttribute('aria-hidden', 'false');
+
+      if (meknxSessionAddressElement) {
+        meknxSessionAddressElement.textContent = addressValue;
+      }
+
+      if (meknxSessionProviderElement) {
+        const providerLabel = resolveProviderMetaLabel(providerValue);
+        if (providerLabel) {
+          meknxSessionProviderElement.textContent = `• ${providerLabel}`;
+          meknxSessionProviderElement.removeAttribute('hidden');
+        } else {
+          meknxSessionProviderElement.textContent = '';
+          meknxSessionProviderElement.setAttribute('hidden', 'hidden');
+        }
+      }
+    };
+
+    syncMeknxModuleVisibility();
 
     const syncIoncModuleVisibility = () => {
       if (!ioncModule) return;
@@ -4377,6 +4460,7 @@
       clearSolanaDepositState();
       clearSolanaSession();
       resetMeknxState();
+      syncMeknxModuleVisibility();
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
       syncCardanoModuleVisibility();
@@ -4679,6 +4763,8 @@
         clearSolanaDepositState();
         clearSolanaSession();
       }
+
+      syncMeknxModuleVisibility();
     };
 
     const updateStatus = (message, tone = 'neutral') => {
@@ -4894,6 +4980,7 @@
             } else {
               syncIoncModuleVisibility();
               syncCardanoModuleVisibility();
+              syncMeknxModuleVisibility();
             }
           } else if (activeMode === 'meknx') {
             if (!meknxPassIdInput || !meknxPassIdInput.value) {

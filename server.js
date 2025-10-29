@@ -1926,8 +1926,10 @@ app.get('/api/marketplace', (req, res) => {
 });
 
 function isPublicRoute(req) {
+  const method = typeof req.method === 'string' ? req.method.toUpperCase() : 'GET';
+
   if (
-    req.method === 'POST' &&
+    method === 'POST' &&
     [
       '/login',
       '/logout',
@@ -1943,7 +1945,9 @@ function isPublicRoute(req) {
     return true;
   }
 
-  if (req.method === 'GET') {
+  const isReadOnlyRequest = method === 'GET' || method === 'HEAD';
+
+  if (isReadOnlyRequest) {
     const publicHtml = new Set([
       '/login',
       '/login.html',

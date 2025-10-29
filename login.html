@@ -622,6 +622,10 @@
       margin-top: 1.15rem;
     }
 
+    .wallet-connect-row--tight {
+      margin-top: 0;
+    }
+
     .wallet-connect-row--status {
       align-items: flex-start;
       margin-top: 0.35rem;
@@ -2463,7 +2467,7 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
-          <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock the Ioncore Secure Client Access Card panel.</div>
+          <div id="solana-open-status" class="wallet-status wallet-status--notice" hidden></div>
           <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
             <div class="wallet-popup__dialog" role="region" aria-labelledby="solana-ionc-popup-title">
               <header class="wallet-popup__header">
@@ -2561,7 +2565,7 @@
               </div>
             </div>
           </div>
-          <div class="wallet-connect-row">
+          <div class="wallet-connect-row wallet-connect-row--tight">
             <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
               <span class="wallet-connect-button__icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" role="img" aria-label="Cardano wallet emblem">
@@ -2942,8 +2946,21 @@
       }
     };
 
-    const updateSolanaOpenStatus = (message, tone = 'notice') => {
+    const updateSolanaOpenStatus = (message = '', tone = 'notice') => {
       if (!solanaOpenStatus) return;
+
+      const normalizedMessage = typeof message === 'string' ? message.trim() : '';
+
+      if (!normalizedMessage) {
+        solanaOpenStatus.textContent = '';
+        solanaOpenStatus.hidden = true;
+        solanaOpenStatus.setAttribute('aria-hidden', 'true');
+        solanaOpenStatus.classList.remove('wallet-status--notice', 'wallet-status--connected', 'wallet-status--error');
+        return;
+      }
+
+      solanaOpenStatus.hidden = false;
+      solanaOpenStatus.setAttribute('aria-hidden', 'false');
       solanaOpenStatus.textContent = message;
       setWalletStatusTone(solanaOpenStatus, tone);
     };
@@ -3046,7 +3063,7 @@
 
     resetSolanaActionState();
     updateSolanaSessionDetails();
-    updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
+    updateSolanaOpenStatus('');
     setSolanaActionsVisibility(false);
 
     const isSolanaIoncPopupOpen = () =>
@@ -3103,7 +3120,7 @@
           updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
         } else {
           setSolanaActionsVisibility(false);
-          updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
+          updateSolanaOpenStatus('');
           solanaIntentActive = false;
           syncIoncModuleVisibility();
         }
@@ -3744,7 +3761,7 @@
       resetSolanaActionState();
       setSolanaActionsVisibility(false);
       solanaIntentActive = false;
-      updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
+      updateSolanaOpenStatus('');
     };
 
     const setSolanaSession = (provider, publicKey) => {
@@ -3758,7 +3775,7 @@
         updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
       } else {
         setSolanaActionsVisibility(false);
-        updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
+        updateSolanaOpenStatus('');
       }
     };
 
@@ -4446,7 +4463,7 @@
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
       syncCardanoModuleVisibility();
       setSolanaActionsVisibility(false);
-      updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
+      updateSolanaOpenStatus('');
       if (isSolanaIoncPopupOpen()) {
         closeSolanaIoncPopup({ restoreFocus: false });
       }
@@ -5235,7 +5252,7 @@
             }
             updateStatus(message, 'error');
             updateSolanaActionStatus(message, 'error');
-            updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.', 'notice');
+            updateSolanaOpenStatus('', 'notice');
             setSolanaActionsVisibility(false);
             const normalizedMessage = String(message || '').toLowerCase();
             const shouldTriggerFailure = /not detected|no wallet account returned|access denied|denied|rejected/.test(

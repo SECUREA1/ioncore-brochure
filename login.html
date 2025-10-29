@@ -2789,6 +2789,12 @@
       provider: '',
       address: ''
     };
+    const cardanoModuleStateTracker = {
+      visible: false,
+      provider: '',
+      address: '',
+      clearanceStatus: ''
+    };
 
     function formatTokenAmount(amount) {
       if (!Number.isFinite(amount)) {
@@ -3438,14 +3444,33 @@
 
     const syncCardanoModuleVisibility = () => {
       if (!cardanoModule) return;
+
       const provider = walletProviderInput ? walletProviderInput.value || '' : '';
-      const shouldShow = provider.startsWith('cardano');
+      const address = walletAddressInput ? walletAddressInput.value || '' : '';
+      const hasCardanoSession = provider.startsWith('cardano') && Boolean(address);
+      const clearanceStatus = meknxState.status;
+      const clearanceComplete = clearanceStatus === 'verified' || clearanceStatus === 'minted';
+      const shouldShow = hasCardanoSession && clearanceComplete;
+
       cardanoModule.hidden = !shouldShow;
       cardanoModule.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
 
       if (!shouldShow) {
-        resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
-        setInlineStatus(cardanoInlineStatus, 'Awaiting policy verification.');
+        if (!hasCardanoSession) {
+          resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+          setInlineStatus(cardanoInlineStatus, 'Connect a Cardano wallet to unlock policy verification.');
+        } else if (!clearanceComplete) {
+          setInlineStatus(
+            cardanoInlineStatus,
+            'Complete MEKNX clearance to unlock Cardano policy verification.',
+            'error'
+          );
+        }
+
+        cardanoModuleStateTracker.visible = false;
+        cardanoModuleStateTracker.provider = '';
+        cardanoModuleStateTracker.address = '';
+        cardanoModuleStateTracker.clearanceStatus = clearanceStatus;
         return;
       }
 
@@ -3462,6 +3487,26 @@
           cardanoInlineStatus,
           `Confirm holdings under policy ${policyLabel} to continue.`
         );
+      }
+
+      const becameVisible =
+        !cardanoModuleStateTracker.visible ||
+        cardanoModuleStateTracker.provider !== provider ||
+        cardanoModuleStateTracker.address !== address ||
+        cardanoModuleStateTracker.clearanceStatus !== clearanceStatus;
+
+      cardanoModuleStateTracker.visible = true;
+      cardanoModuleStateTracker.provider = provider;
+      cardanoModuleStateTracker.address = address;
+      cardanoModuleStateTracker.clearanceStatus = clearanceStatus;
+
+      if (becameVisible) {
+        if (typeof cardanoModule.scrollIntoView === 'function') {
+          cardanoModule.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (cardanoVerifyButton && typeof cardanoVerifyButton.focus === 'function') {
+          cardanoVerifyButton.focus();
+        }
       }
     };
 

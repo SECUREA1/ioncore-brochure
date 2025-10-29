@@ -805,8 +805,8 @@ function pruneSessions() {
   }
 }
 
-const AUTH_USER = process.env.BASIC_AUTH_USER || 'investor';
-const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'burrito';
+const AUTH_USER = process.env.BASIC_AUTH_USER || 'guest';
+const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'batmanwow';
 
 const COOKIE_NAME = 'ioncore_session';
 const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours

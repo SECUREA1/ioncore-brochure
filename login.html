@@ -2463,7 +2463,9 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
-          <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock the Ioncore Secure Client Access Card panel.</div>
+          <div class="wallet-connect-row wallet-connect-row--status">
+            <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock the Ioncore Secure Client Access Card panel.</div>
+          </div>
           <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
             <div class="wallet-popup__dialog" role="region" aria-labelledby="solana-ionc-popup-title">
               <header class="wallet-popup__header">
@@ -2503,22 +2505,22 @@
                   <div class="wallet-connect-row wallet-connect-row--input" id="solana-deposit-config">
                     <label class="wallet-input-label" for="solana-deposit-amount">
                       Access Card Order (SOL)
-                      <span>5 – 1000 SOL</span>
+                      <span>0.01 – 1000 SOL (verification) • 5 – 1000 SOL (purchase)</span>
                     </label>
                     <div class="wallet-input-control">
                       <input
                         type="number"
                         id="solana-deposit-amount"
-                        min="5"
+                        min="0.01"
                         max="1000"
-                        step="1"
+                        step="0.01"
                         value="5"
                         inputmode="decimal"
                         aria-describedby="solana-deposit-help"
                         data-popup-focus
                       >
                       <div id="solana-deposit-help" class="wallet-input-sublabel">
-                        Every 5 SOL order prepares one physical access card and encodes 2,000 IONC onto the chip for delivery. Approved purchases log to the Ioncore admin vault in real time.
+                        Access cards issue 1,000 IONC per 1&nbsp;SOL. Verification accepts 0.01&nbsp;–&nbsp;1000&nbsp;SOL, while physical card fulfillment requires at least 5&nbsp;SOL. Approved purchases log to the Ioncore admin vault in real time.
                       </div>
                       <div class="wallet-input-actions">
                         <button type="button" id="solana-deposit-send" class="action-button">Purchase Access Card</button>
@@ -2537,7 +2539,7 @@
                 <div class="wallet-popup__section">
                   <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
                     <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
-                      Access card purchase pending. Select your SOL amount, connect Phantom, then click Purchase to authorize the transaction.
+                      Access card purchase pending. Select your SOL amount (1,000 IONC per 1&nbsp;SOL), connect Phantom, then click Purchase to authorize the transaction.
                     </div>
                   </div>
                 </div>
@@ -2772,6 +2774,8 @@
     const ACCESS_CARD_PRICE_SOL = 5;
     const MIN_SOL_DEPOSIT_SOL = ACCESS_CARD_PRICE_SOL;
     const MAX_SOL_DEPOSIT_SOL = 1000;
+    const SOLANA_VERIFY_MIN_SOL = 0.01;
+    const SOLANA_IONC_RATIO = 1000;
     const MIN_SOL_DEPOSIT_LAMPORTS =
       IoncoreSolanaModule && typeof IoncoreSolanaModule.LAMPORTS_PER_SOL === 'number'
         ? IoncoreSolanaModule.LAMPORTS_PER_SOL * MIN_SOL_DEPOSIT_SOL
@@ -2785,6 +2789,12 @@
       provider: '',
       address: ''
     };
+
+    const getActiveSolanaAction = () => (solanaActionSelect ? solanaActionSelect.value : '');
+    const getActiveSolanaMinSol = () =>
+      getActiveSolanaAction() === 'verify' ? SOLANA_VERIFY_MIN_SOL : MIN_SOL_DEPOSIT_SOL;
+    const convertSolToLamports = (amount) =>
+      Math.round(amount * (IoncoreSolanaModule?.LAMPORTS_PER_SOL || 1_000_000_000));
 
     function formatTokenAmount(amount) {
       if (!Number.isFinite(amount)) {
@@ -2920,7 +2930,7 @@
 
     const solanaDepositState = {
       signature: '',
-      lamports: MIN_SOL_DEPOSIT_LAMPORTS,
+      lamports: convertSolToLamports(MIN_SOL_DEPOSIT_SOL),
       completed: false,
       amountSol: MIN_SOL_DEPOSIT_SOL
     };
@@ -3041,6 +3051,7 @@
       if (solanaActionSelect) {
         solanaActionSelect.value = '';
       }
+      updateSolanaAmountConstraints();
       updateSolanaActionStatus('Select an access card action to continue.');
     };
 
@@ -3170,13 +3181,19 @@
     if (solanaActionSelect) {
       solanaActionSelect.addEventListener('change', () => {
         const action = solanaActionSelect.value;
+        updateSolanaAmountConstraints();
+        const sanitized = syncSolanaAmountSelection();
         if (!action) {
           updateSolanaActionStatus('Select an access card action to continue.');
           return;
         }
         const selectedOption = solanaActionSelect.options[solanaActionSelect.selectedIndex];
         const label = selectedOption && selectedOption.textContent ? selectedOption.textContent.trim() : 'action';
-        updateSolanaActionStatus(`Selected: ${label}. Click Continue to proceed.`);
+        if (action === 'verify') {
+          updateSolanaActionStatus(`Selected: ${label}. ${describeIoncAllocation(sanitized)} Click Continue to proceed.`);
+        } else {
+          updateSolanaActionStatus(`Selected: ${label}. Click Continue to proceed.`);
+        }
       });
     }
 
@@ -3198,6 +3215,7 @@
         }
 
         if (action === 'verify') {
+          const selectedAmount = syncSolanaAmountSelection();
           if (ioncState.verified) {
             updateSolanaActionStatus('IONC tokens already verified. Submit to enter the vault.', 'success');
             return;
@@ -3209,7 +3227,9 @@
             );
             return;
           }
-          updateSolanaActionStatus('Verifying IONC token with the connected wallet…');
+          updateSolanaActionStatus(
+            `Verifying IONC token with the connected wallet. ${describeIoncAllocation(selectedAmount)}`
+          );
           if (ioncVerifyButton) {
             ioncVerifyButton.click();
           }
@@ -3690,17 +3710,35 @@
       walletValueState.checkedAt = 0;
     };
 
-    const sanitizeSolanaAmount = (value = MIN_SOL_DEPOSIT_SOL) => {
+    const sanitizeSolanaAmount = (value = getActiveSolanaMinSol(), options = {}) => {
       const numeric =
         typeof value === 'number'
           ? value
           : Number.parseFloat(String(value).replace(/[^0-9.]/g, ''));
+      const min = Number.isFinite(options.min) ? options.min : getActiveSolanaMinSol();
+      const max = Number.isFinite(options.max) ? options.max : MAX_SOL_DEPOSIT_SOL;
       if (!Number.isFinite(numeric)) {
-        return MIN_SOL_DEPOSIT_SOL;
+        return min;
       }
-      const clamped = Math.min(Math.max(numeric, MIN_SOL_DEPOSIT_SOL), MAX_SOL_DEPOSIT_SOL);
+      const clamped = Math.min(Math.max(numeric, min), max);
       return Number.parseFloat(clamped.toFixed(3));
     };
+
+    const formatIoncAllocation = (amountSol) => {
+      const normalized = sanitizeSolanaAmount(amountSol, {
+        min: SOLANA_VERIFY_MIN_SOL,
+        max: MAX_SOL_DEPOSIT_SOL
+      });
+      const tokens = normalized * SOLANA_IONC_RATIO;
+      const formattedTokens = tokens.toLocaleString('en-US', {
+        minimumFractionDigits: tokens < 1 ? 4 : 0,
+        maximumFractionDigits: tokens < 1 ? 4 : 2
+      });
+      return `${formattedTokens} IONC`;
+    };
+
+    const describeIoncAllocation = (amountSol) =>
+      `Allocation: ${formatIoncAllocation(amountSol)} (1,000 IONC per SOL).`;
 
     const formatSolDepositLabel = (amount) => {
       const safeAmount = sanitizeSolanaAmount(amount);
@@ -3708,6 +3746,15 @@
         minimumFractionDigits: 0,
         maximumFractionDigits: 3
       })} SOL`;
+    };
+
+    const updateSolanaAmountConstraints = () => {
+      if (!solanaDepositAmountInput) {
+        return;
+      }
+      const min = getActiveSolanaMinSol();
+      solanaDepositAmountInput.min = min.toString();
+      solanaDepositAmountInput.step = min < 1 ? '0.01' : '1';
     };
 
     const updateSolanaActionButtons = () => {
@@ -3764,7 +3811,7 @@
 
     const getSelectedSolanaAmount = () => {
       if (!solanaDepositAmountInput) {
-        return MIN_SOL_DEPOSIT_SOL;
+        return getActiveSolanaMinSol();
       }
       const sanitized = sanitizeSolanaAmount(solanaDepositAmountInput.value);
       solanaDepositAmountInput.value = sanitized.toString();
@@ -3772,6 +3819,7 @@
     };
 
     const syncSolanaAmountSelection = () => {
+      updateSolanaAmountConstraints();
       const sanitized = getSelectedSolanaAmount();
       const amountChanged = solanaDepositState.amountSol !== sanitized;
       if (solanaDepositState.completed && amountChanged) {
@@ -3780,10 +3828,17 @@
       } else if (!solanaDepositState.completed) {
         solanaDepositState.amountSol = sanitized;
       }
+      if (!solanaDepositState.completed) {
+        solanaDepositState.lamports = convertSolToLamports(sanitized);
+      }
       if (!solanaDepositState.completed && solanaDepositStatus) {
-        solanaDepositStatus.textContent = `Access card purchase pending. Select ${formatSolDepositLabel(
-          sanitized
-        )} and use Purchase once your Phantom session is active.`;
+        const amountLabel = formatSolDepositLabel(sanitized);
+        const action = getActiveSolanaAction();
+        if (action === 'verify') {
+          solanaDepositStatus.textContent = `Verification amount set to ${amountLabel}. ${describeIoncAllocation(sanitized)}`;
+        } else {
+          solanaDepositStatus.textContent = `Access card purchase pending. Select ${amountLabel} and use Purchase once your Phantom session is active.`;
+        }
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -3792,11 +3847,12 @@
 
     const clearSolanaDepositState = ({ keepVisible = isSolanaIoncPopupOpen() } = {}) => {
       solanaDepositState.signature = '';
-      solanaDepositState.lamports = MIN_SOL_DEPOSIT_LAMPORTS;
       solanaDepositState.completed = false;
-      solanaDepositState.amountSol = sanitizeSolanaAmount(
-        solanaDepositAmountInput ? solanaDepositAmountInput.value : MIN_SOL_DEPOSIT_SOL
+      const baselineAmount = sanitizeSolanaAmount(
+        solanaDepositAmountInput ? solanaDepositAmountInput.value : getActiveSolanaMinSol()
       );
+      solanaDepositState.amountSol = baselineAmount;
+      solanaDepositState.lamports = convertSolToLamports(baselineAmount);
       if (solanaDepositSignatureInput) {
         solanaDepositSignatureInput.value = '';
       }
@@ -3811,8 +3867,11 @@
       }
       if (solanaDepositStatus) {
         const pendingAmount = formatSolDepositLabel(solanaDepositState.amountSol);
+        const action = getActiveSolanaAction();
         solanaDepositStatus.textContent =
-          `Access card purchase pending. Select ${pendingAmount} and use Purchase once your Phantom session is active.`;
+          action === 'verify'
+            ? `Verification amount set to ${pendingAmount}. ${describeIoncAllocation(solanaDepositState.amountSol)}`
+            : `Access card purchase pending. Select ${pendingAmount} and use Purchase once your Phantom session is active.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -3820,17 +3879,20 @@
 
     const markSolanaDepositComplete = (
       signature,
-      lamports = MIN_SOL_DEPOSIT_LAMPORTS,
+      lamports = convertSolToLamports(
+        Number.isFinite(solanaDepositState.amountSol) ? solanaDepositState.amountSol : MIN_SOL_DEPOSIT_SOL
+      ),
       amountSol = solanaDepositState.amountSol
     ) => {
       if (!signature) {
         return;
       }
       solanaDepositState.signature = signature;
-      solanaDepositState.lamports = lamports || MIN_SOL_DEPOSIT_LAMPORTS;
+      solanaDepositState.lamports = lamports || convertSolToLamports(MIN_SOL_DEPOSIT_SOL);
       solanaDepositState.completed = true;
       const normalizedAmount = sanitizeSolanaAmount(
-        amountSol || solanaDepositState.lamports / (IoncoreSolanaModule?.LAMPORTS_PER_SOL || 1_000_000_000)
+        amountSol || solanaDepositState.lamports / (IoncoreSolanaModule?.LAMPORTS_PER_SOL || 1_000_000_000),
+        { min: SOLANA_VERIFY_MIN_SOL }
       );
       solanaDepositState.amountSol = normalizedAmount;
       if (solanaDepositSignatureInput) {
@@ -4695,12 +4757,12 @@
         }
         clearSolanaDepositState();
         clearSolanaSession();
-      } else if (providerLabel === 'solana') {
-        if (phantomStatus) {
-          phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
-          phantomStatus.classList.add('wallet-status--connected');
-        }
-        if (metamaskStatus) {
+        } else if (providerLabel === 'solana') {
+          if (phantomStatus) {
+            phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
+            phantomStatus.classList.add('wallet-status--connected');
+          }
+          if (metamaskStatus) {
           metamaskStatus.textContent = 'Not connected.';
           metamaskStatus.classList.remove('wallet-status--connected');
         }
@@ -4720,7 +4782,11 @@
           }
           if (solanaDepositStatus) {
             const pendingLabel = formatSolDepositLabel(solanaDepositState.amountSol);
-            solanaDepositStatus.textContent = `Access card purchase pending. Purchase the ${pendingLabel} allocation from this panel.`;
+            const action = getActiveSolanaAction();
+            solanaDepositStatus.textContent =
+              action === 'verify'
+                ? `Verification amount set to ${pendingLabel}. ${describeIoncAllocation(solanaDepositState.amountSol)}`
+                : `Access card purchase pending. Purchase the ${pendingLabel} allocation from this panel.`;
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
         }
@@ -4747,6 +4813,9 @@
         clearSolanaDepositState();
         clearSolanaSession();
       }
+      syncMeknxModuleVisibility();
+      syncCardanoModuleVisibility();
+      syncIoncModuleVisibility();
     };
 
     const updateStatus = (message, tone = 'neutral') => {
@@ -5193,14 +5262,20 @@
               : '';
             const depositAmountLabel = formatSolDepositLabel(selectedAmount);
             const hasReceipt = solanaDepositState.completed && solanaDepositState.signature;
+            const activeAction = getActiveSolanaAction();
             if (!hasReceipt && solanaDepositStatus) {
               solanaDepositStatus.textContent =
-                `Access card purchase pending. Select ${depositAmountLabel} and use Purchase once your Phantom session is active.`;
+                activeAction === 'verify'
+                  ? `Verification amount set to ${depositAmountLabel}. ${describeIoncAllocation(selectedAmount)}`
+                  : `Access card purchase pending. Select ${depositAmountLabel} and use Purchase once your Phantom session is active.`;
               solanaDepositStatus.classList.remove('wallet-status--connected');
             }
+            const allocationDescription = describeIoncAllocation(selectedAmount);
             const depositMessage = hasReceipt
               ? ` ${depositAmountLabel} access card purchase submitted (${shortenIdentifier(solanaDepositState.signature)}).`
-              : ` Click "Purchase ${depositAmountLabel}" to authorize the access card purchase.`;
+              : activeAction === 'verify'
+                ? ` ${allocationDescription}`
+                : ` Click "Purchase ${depositAmountLabel}" to authorize the access card purchase.`;
             const hasIoncTokens = ioncAccounts.length > 0;
             const ioncHoldingsMessage = ioncBalanceError
               ? ' Unable to automatically detect IONC holdings. Use Verify IONC Token to continue.'

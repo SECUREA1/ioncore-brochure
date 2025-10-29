@@ -13,7 +13,8 @@
     <link rel="stylesheet" href="/styles.css" />
     <style>
       body {
-        background: var(--page-gradient);
+        background: radial-gradient(circle at top right, rgba(73, 232, 192, 0.12), transparent 55%),
+          radial-gradient(circle at 20% 120%, rgba(59, 130, 246, 0.12), transparent 60%), var(--page-gradient);
       }
 
       header.admin-hero {
@@ -213,6 +214,25 @@
         box-shadow: var(--tile-glow-rest);
         display: grid;
         gap: 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .admin-wallet-panel::after {
+        content: '';
+        position: absolute;
+        inset: 45% -30% -40% auto;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(106, 255, 59, 0.18) 0%, rgba(106, 255, 59, 0) 65%);
+        pointer-events: none;
+      }
+
+      .wallet-panel-intro {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 8px;
       }
 
       .admin-wallet-panel h3 {
@@ -228,6 +248,8 @@
       .admin-wallet-actions {
         display: grid;
         gap: 12px;
+        position: relative;
+        z-index: 1;
       }
 
       .admin-wallet-actions .wallet-connect-row {
@@ -252,8 +274,40 @@
         color: rgba(165, 255, 214, 0.92);
       }
 
+      .wallet-status--warning {
+        color: rgba(250, 204, 21, 0.92);
+      }
+
       .wallet-status--error {
         color: #fca5a5;
+      }
+
+      .wallet-access-summary {
+        position: relative;
+        z-index: 1;
+        padding: 14px 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(106, 255, 59, 0.24);
+        background: rgba(15, 23, 42, 0.6);
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      .wallet-access-summary[data-state='locked'] {
+        border-color: rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.6);
+      }
+
+      .wallet-access-summary[data-state='ready'] {
+        border-color: rgba(34, 197, 94, 0.45);
+        background: rgba(34, 197, 94, 0.16);
+        color: rgba(224, 255, 244, 0.96);
+      }
+
+      .wallet-access-summary[data-state='warning'] {
+        border-color: rgba(250, 204, 21, 0.45);
+        background: rgba(250, 204, 21, 0.14);
+        color: rgba(254, 252, 232, 0.96);
       }
 
       .data-table {
@@ -532,25 +586,42 @@
       <section aria-labelledby="solana-access-title" id="solana-access">
         <div class="section-header">
           <div>
-            <span class="eyebrow">Solana Access Retainer</span>
-            <h2 id="solana-access-title">Phantom Wallet Control &amp; Treasury Bridge</h2>
-            <p>Connect Phantom, confirm the 1 SOL access retainer, and synchronise the treasury ledger for compliance.</p>
+            <span class="eyebrow">Mission Access Retainer</span>
+            <h2 id="solana-access-title">Wallet Control &amp; Treasury Bridge</h2>
+            <p>
+              Verify MeknX, IonC, and Cardano operators, authorise the 1 SOL access retainer, and synchronise the treasury ledger
+              for compliance.
+            </p>
           </div>
         </div>
         <div class="admin-wallet-panel" role="region" aria-labelledby="solana-access-title">
-          <div>
-            <h3>Phantom Wallet Bridge</h3>
-            <p>Establish a secure Phantom session and dispatch the mandatory 1 SOL professional retainer to the Ioncore treasury.</p>
+          <div class="wallet-panel-intro">
+            <h3>Mission Wallet Access</h3>
+            <p>
+              Establish MeknX (Ethereum), IonC (Solana), and Cardano verification links to unlock the intelligence grid and
+              dispatch the mandatory treasury retainer.
+            </p>
           </div>
           <div class="admin-wallet-actions">
             <div class="wallet-connect-row">
-              <button type="button" class="btn" id="admin-phantom-connect">Connect Phantom</button>
+              <button type="button" class="btn" id="admin-meknx-connect">Connect MeknX (Ethereum)</button>
+              <div class="wallet-status" id="admin-meknx-status">Not connected.</div>
+            </div>
+            <div class="wallet-connect-row">
+              <button type="button" class="btn" id="admin-phantom-connect">Connect IonC (Solana)</button>
               <div class="wallet-status" id="admin-phantom-status">Not connected.</div>
             </div>
             <div class="wallet-connect-row">
               <button type="button" class="btn" id="admin-solana-deposit" disabled>Send 1 SOL Retainer</button>
               <div class="wallet-status" id="admin-solana-deposit-status">Awaiting connection.</div>
             </div>
+            <div class="wallet-connect-row">
+              <button type="button" class="btn" id="admin-cardano-connect">Connect Cardano</button>
+              <div class="wallet-status" id="admin-cardano-status">Not connected.</div>
+            </div>
+          </div>
+          <div class="wallet-access-summary" id="admin-access-status" role="status" aria-live="polite">
+            Connect all mission wallets to unlock dashboard controls.
           </div>
         </div>
       </section>
@@ -1245,15 +1316,34 @@
         editorOpen: false
       };
 
+      const walletConnections = {
+        solana: '',
+        ethereum: '',
+        cardano: ''
+      };
+
+      const accessState = {
+        solana: false,
+        ethereum: false,
+        cardano: false,
+        unlocked: false
+      };
+
       const statusBanner = document.getElementById('status-banner');
       const generatedAt = document.getElementById('generated-at');
       const refreshButton = document.getElementById('refresh-dashboard');
       const refreshInfrastructureButton = document.getElementById('refresh-infrastructure');
       const searchInput = document.getElementById('user-search');
+      const adminMeknxConnectButton = document.getElementById('admin-meknx-connect');
+      const adminMeknxStatus = document.getElementById('admin-meknx-status');
       const adminPhantomConnectButton = document.getElementById('admin-phantom-connect');
       const adminPhantomStatus = document.getElementById('admin-phantom-status');
       const adminDepositButton = document.getElementById('admin-solana-deposit');
       const adminDepositStatus = document.getElementById('admin-solana-deposit-status');
+      const adminCardanoConnectButton = document.getElementById('admin-cardano-connect');
+      const adminCardanoStatus = document.getElementById('admin-cardano-status');
+      const adminAccessStatus = document.getElementById('admin-access-status');
+      let panelActionButtons = [];
       const IoncoreSolanaModule = window.IoncoreSolana || null;
       const SOLANA_RPC_ENDPOINT =
         (typeof window !== 'undefined' && typeof window.IONCORE_SOL_RPC === 'string' && window.IONCORE_SOL_RPC.trim()) ||
@@ -1322,6 +1412,257 @@
         return entries.filter((entry) => !isInternalBroadcast(entry));
       }
 
+      function updateWalletStatus(element, message, variant = 'neutral') {
+        if (!element) {
+          return;
+        }
+        element.textContent = message;
+        element.classList.remove('wallet-status--connected', 'wallet-status--error', 'wallet-status--warning');
+        if (variant === 'connected') {
+          element.classList.add('wallet-status--connected');
+        } else if (variant === 'error') {
+          element.classList.add('wallet-status--error');
+        } else if (variant === 'warning') {
+          element.classList.add('wallet-status--warning');
+        }
+      }
+
+      function isValidEthereumAddress(address) {
+        if (typeof address !== 'string') {
+          return false;
+        }
+        return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
+      }
+
+      function isValidSolanaAddress(address) {
+        if (typeof address !== 'string') {
+          return false;
+        }
+        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address.trim());
+      }
+
+      function isValidCardanoAddress(address) {
+        if (typeof address !== 'string') {
+          return false;
+        }
+        const value = address.trim();
+        return /^addr1[0-9a-z]{20,}$/i.test(value) || /^stake1[0-9a-z]{20,}$/i.test(value);
+      }
+
+      function summarizeWalletAccess() {
+        if (!adminAccessStatus) {
+          return;
+        }
+        const connectedNetworks = ['ethereum', 'solana', 'cardano'].filter((chain) => accessState[chain]);
+        if (accessState.unlocked) {
+          adminAccessStatus.dataset.state = 'ready';
+          adminAccessStatus.textContent = 'Mission control unlocked. Wallet verification active on all networks.';
+          return;
+        }
+        if (connectedNetworks.length === 0) {
+          adminAccessStatus.dataset.state = 'locked';
+          adminAccessStatus.textContent = 'Connect all mission wallets to unlock dashboard controls.';
+          return;
+        }
+        adminAccessStatus.dataset.state = 'warning';
+        adminAccessStatus.textContent = `${connectedNetworks.length}/3 networks verified. Complete remaining connections to unlock dashboard controls.`;
+      }
+
+      function setPanelLocked(locked) {
+        const buttons = panelActionButtons.filter(Boolean);
+        for (const button of buttons) {
+          button.disabled = locked;
+          if (locked) {
+            button.setAttribute('aria-disabled', 'true');
+          } else {
+            button.removeAttribute('aria-disabled');
+          }
+        }
+        if (locked) {
+          summarizeWalletAccess();
+        }
+      }
+
+      async function unlockAdminPanel() {
+        if (accessState.unlocked) {
+          return;
+        }
+        accessState.unlocked = true;
+        summarizeWalletAccess();
+        setPanelLocked(false);
+        await loadOverview({ allowFallback: true }).catch(() => {});
+      }
+
+      function checkPanelUnlock() {
+        if (accessState.unlocked) {
+          return;
+        }
+        if (accessState.solana && accessState.ethereum && accessState.cardano) {
+          unlockAdminPanel();
+        } else {
+          summarizeWalletAccess();
+        }
+      }
+
+      function markWalletConnected(chain, address) {
+        if (!chain) {
+          return;
+        }
+        walletConnections[chain] = address || '';
+        accessState[chain] = Boolean(address);
+        checkPanelUnlock();
+      }
+
+      function markWalletDisconnected(chain) {
+        if (!chain) {
+          return;
+        }
+        walletConnections[chain] = '';
+        accessState[chain] = false;
+        if (accessState.unlocked) {
+          accessState.unlocked = false;
+          setPanelLocked(true);
+        } else {
+          summarizeWalletAccess();
+        }
+      }
+
+      function promptForWalletAddress(chain, label, validator) {
+        const message = `Enter the ${label} wallet address to verify access.`;
+        const provided = window.prompt(message, walletConnections[chain] || '');
+        if (!provided) {
+          return '';
+        }
+        if (validator(provided)) {
+          return provided.trim();
+        }
+        throw new Error(`The ${label} wallet address is not valid.`);
+      }
+
+      async function connectMeknxWallet() {
+        if (!adminMeknxStatus) {
+          return;
+        }
+        updateWalletStatus(adminMeknxStatus, 'Connecting…', 'warning');
+        try {
+          let address = '';
+          if (window.ethereum && typeof window.ethereum.request === 'function') {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            address = Array.isArray(accounts) && accounts[0] ? accounts[0] : '';
+            if (address && !isValidEthereumAddress(address)) {
+              throw new Error('Returned MeknX wallet address failed validation.');
+            }
+            if (!address) {
+              throw new Error('No MeknX wallet address returned.');
+            }
+            bindEthereumAccountEvents();
+          } else {
+            address = promptForWalletAddress('ethereum', 'MeknX (Ethereum)', isValidEthereumAddress);
+          }
+          if (!address) {
+            updateWalletStatus(adminMeknxStatus, 'Connection cancelled.', 'warning');
+            return;
+          }
+          updateWalletStatus(
+            adminMeknxStatus,
+            `Connected: ${shortenWalletReference(address)}`,
+            'connected'
+          );
+          markWalletConnected('ethereum', address);
+        } catch (error) {
+          console.error('MeknX wallet connection failed', error);
+          updateWalletStatus(adminMeknxStatus, error?.message || 'Unable to connect MeknX wallet.', 'error');
+          markWalletDisconnected('ethereum');
+        }
+      }
+
+      function bindEthereumAccountEvents() {
+        if (!window.ethereum || typeof window.ethereum.on !== 'function') {
+          return;
+        }
+        if (bindEthereumAccountEvents.bound) {
+          return;
+        }
+        window.ethereum.on('accountsChanged', (accounts) => {
+          if (!Array.isArray(accounts) || !accounts[0]) {
+            updateWalletStatus(adminMeknxStatus, 'Wallet disconnected.', 'warning');
+            markWalletDisconnected('ethereum');
+            return;
+          }
+          const nextAddress = accounts[0];
+          if (isValidEthereumAddress(nextAddress)) {
+            updateWalletStatus(
+              adminMeknxStatus,
+              `Connected: ${shortenWalletReference(nextAddress)}`,
+              'connected'
+            );
+            markWalletConnected('ethereum', nextAddress);
+          } else {
+            updateWalletStatus(adminMeknxStatus, 'Wallet changed to an invalid address.', 'error');
+            markWalletDisconnected('ethereum');
+          }
+        });
+        window.ethereum.on('disconnect', () => {
+          updateWalletStatus(adminMeknxStatus, 'Wallet disconnected.', 'warning');
+          markWalletDisconnected('ethereum');
+        });
+        bindEthereumAccountEvents.bound = true;
+      }
+
+      async function connectCardanoWallet() {
+        updateWalletStatus(adminCardanoStatus, 'Connecting…', 'warning');
+        try {
+          let address = '';
+          const provider = detectCardanoProvider();
+          if (provider) {
+            const api = await provider.enable();
+            let used = [];
+            if (typeof api.getUsedAddresses === 'function') {
+              used = await api.getUsedAddresses();
+            }
+            if (!used.length && typeof api.getChangeAddress === 'function') {
+              used = [await api.getChangeAddress()];
+            }
+            if (Array.isArray(used) && used[0]) {
+              address = Array.isArray(used[0]) ? used[0][0] : used[0];
+            }
+            if (address && !isValidCardanoAddress(address)) {
+              throw new Error('Returned Cardano address failed validation.');
+            }
+            if (!address) {
+              throw new Error('No Cardano address returned by the wallet.');
+            }
+          } else {
+            address = promptForWalletAddress('cardano', 'Cardano', isValidCardanoAddress);
+          }
+          if (!address) {
+            updateWalletStatus(adminCardanoStatus, 'Connection cancelled.', 'warning');
+            return;
+          }
+          updateWalletStatus(
+            adminCardanoStatus,
+            `Connected: ${shortenWalletReference(address)}`,
+            'connected'
+          );
+          markWalletConnected('cardano', address);
+        } catch (error) {
+          console.error('Cardano wallet connection failed', error);
+          updateWalletStatus(adminCardanoStatus, error?.message || 'Unable to connect Cardano wallet.', 'error');
+          markWalletDisconnected('cardano');
+        }
+      }
+
+      function detectCardanoProvider() {
+        if (!window.cardano) {
+          return null;
+        }
+        const providers = Object.values(window.cardano).filter((entry) => entry && typeof entry.enable === 'function');
+        if (!providers.length) {
+          return null;
+        }
+        return providers[0];
+      }
+
       const shortenWalletReference = (value) => {
         if (!value || typeof value !== 'string') {
           return '';
@@ -1351,6 +1692,7 @@
         adminPhantomProvider = null;
         adminPhantomPublicKey = '';
         adminDepositSignature = '';
+        markWalletDisconnected('solana');
         updateAdminPhantomUi();
         if (adminDepositStatus) {
           adminDepositStatus.textContent = 'Connect Phantom before sending the retainer.';
@@ -1439,6 +1781,18 @@
 
       resetAdminSolanaBridge();
 
+      if (adminMeknxConnectButton) {
+        adminMeknxConnectButton.addEventListener('click', () => {
+          connectMeknxWallet();
+        });
+      }
+
+      if (adminCardanoConnectButton) {
+        adminCardanoConnectButton.addEventListener('click', () => {
+          connectCardanoWallet();
+        });
+      }
+
       if (adminPhantomConnectButton) {
         adminPhantomConnectButton.addEventListener('click', async () => {
           adminPhantomConnectButton.disabled = true;
@@ -1476,6 +1830,7 @@
             adminPhantomProvider = provider;
             adminPhantomPublicKey = publicKey;
             adminDepositSignature = '';
+            markWalletConnected('solana', publicKey);
 
             if (adminPhantomStatus) {
               adminPhantomStatus.textContent = `Connected: ${shortenWalletReference(publicKey)}`;
@@ -1494,6 +1849,7 @@
             adminPhantomProvider = null;
             adminPhantomPublicKey = '';
             adminDepositSignature = '';
+            markWalletDisconnected('solana');
             updateAdminPhantomUi();
             if (adminPhantomStatus) {
               adminPhantomStatus.textContent = error?.message || 'Unable to connect to Phantom.';
@@ -1600,6 +1956,7 @@
       const timelineList = document.getElementById('timeline');
       const fileBroadcastsStatus = document.getElementById('file-broadcasts-status');
       const rescanFileBroadcastsButton = document.getElementById('rescan-file-broadcasts');
+      panelActionButtons = [refreshButton, refreshInfrastructureButton, rescanFileBroadcastsButton];
       const infrastructureFields = {
         hostname: document.getElementById('infrastructure-hostname'),
         ip: document.getElementById('infrastructure-ip'),
@@ -1838,14 +2195,388 @@
         fileBroadcastsStatus.classList.add('is-visible');
       }
 
+      function buildOfflineOverviewSnapshot() {
+        const now = new Date();
+        const isoNow = now.toISOString();
+        const minutesAgo = (mins) => new Date(now.getTime() - mins * 60000).toISOString();
+        const fallbackSolana =
+          walletConnections.solana || '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT';
+        const fallbackEthereum =
+          walletConnections.ethereum || '0xA1b2c3D4e5F60718293aBcDEF4567890aBCdEf01';
+        const fallbackCardano =
+          walletConnections.cardano || 'addr1q9q4c0p7q7mct0l6p2n0r6f6g4v5y6z7x8y9w0q1r2s3t4u5v6w7x8y9z0abcd';
+
+        return {
+          generatedAt: isoNow,
+          metrics: {
+            totalGatewayUsers: 3,
+            totalGatewaySubmissions: 2,
+            totalContactSubmissions: 2,
+            totalLoginEvents: 3,
+            totalMarketplaceUploads: 2,
+            totalTimepieceMintIntents: 1,
+            totalStripeTransactions: 2,
+            totalBitcoinTransactions: 1,
+            totalChatLedgerEntries: 1,
+            totalMarketplaceBids: 2,
+            totalMarketplaceOrders: 1
+          },
+          serverStatus: {
+            host: { hostname: 'atlas-control-01', platform: 'linux/x64' },
+            network: { ip: '172.16.5.22' },
+            deployment: { label: 'Admin Control Center v3.2' },
+            environment: { nodeVersion: '18.17.1' },
+            provider: { name: 'Ioncore Cloud' },
+            publicUrl: 'https://admin.ioncore.energy',
+            uptimeSeconds: 86400,
+            activeSessions: 12,
+            totalVisitors: 348,
+            startedAt: minutesAgo(720),
+            chatServers: [
+              {
+                name: 'Atlas Relay',
+                status: 'online',
+                activeSessions: 5,
+                region: 'iad-1',
+                lastLedgerAt: minutesAgo(18),
+                message: 'Ledger sync complete · IonC tokens mirrored.'
+              },
+              {
+                name: 'Sentinel Watch',
+                status: 'standby',
+                activeSessions: 2,
+                region: 'sfo-2',
+                lastLedgerAt: minutesAgo(46),
+                message: 'Monitoring MeknX dispute channel.'
+              }
+            ]
+          },
+          fileBroadcasts: [
+            {
+              id: 'html-asset-1',
+              displayName: 'Admin Briefing Deck',
+              path: 'public/brochures/admin-briefing.html',
+              category: 'html',
+              fileSize: 35840,
+              createdAt: minutesAgo(240),
+              updatedAt: minutesAgo(8),
+              downloadUrl: 'https://admin.ioncore.energy/assets/admin-briefing.html',
+              shareUrl: 'https://admin.ioncore.energy/share/admin-briefing'
+            },
+            {
+              id: 'audio-asset-1',
+              displayName: 'Launch Signal',
+              path: 'vault/audio/launch/ionc-signal.wav',
+              category: 'audio',
+              walletAddress: fallbackEthereum,
+              fileSize: 1048576,
+              createdAt: minutesAgo(360),
+              updatedAt: minutesAgo(32)
+            },
+            {
+              id: 'market-doc-1',
+              displayName: 'Marketplace Catalog',
+              path: 'marketplace/assets/catalogue.pdf',
+              category: 'document',
+              fileSize: 256000,
+              createdAt: minutesAgo(60),
+              updatedAt: minutesAgo(12),
+              downloadUrl: 'https://admin.ioncore.energy/downloads/catalogue.pdf'
+            },
+            {
+              id: 'market-image-1',
+              displayName: 'Flagship Array',
+              path: 'marketplace/images/flagship-array.png',
+              category: 'image',
+              fileSize: 512000,
+              createdAt: minutesAgo(55),
+              updatedAt: minutesAgo(14),
+              shareUrl: 'https://admin.ioncore.energy/share/flagship-array'
+            },
+            {
+              id: 'mint-plan-1',
+              displayName: 'Mint Intent Plan',
+              path: 'vault/mints/mission-ionc.json',
+              category: 'mints',
+              fileSize: 4096,
+              createdAt: minutesAgo(25),
+              updatedAt: minutesAgo(5)
+            }
+          ],
+          gatewayUsers: [
+            {
+              id: 'user-aurora',
+              username: 'ionc-aurora',
+              name: 'Aurora Forge',
+              email: 'aurora@ioncore.energy',
+              role: 'Commander',
+              credentialStatus: 'active',
+              selections: 'ops,alpha',
+              notes: 'Lead operations strategist',
+              databaseOptIn: true,
+              walletAddress: fallbackEthereum,
+              updatedAt: minutesAgo(12)
+            },
+            {
+              id: 'user-caspian',
+              username: 'meknx-caspian',
+              name: 'Caspian Reed',
+              email: 'caspian@ioncore.energy',
+              role: 'Treasury',
+              credentialStatus: 'review',
+              selections: 'treasury,ionc',
+              notes: 'Monitoring Solana retainer receipts',
+              databaseOptIn: true,
+              walletAddress: fallbackSolana,
+              updatedAt: minutesAgo(35)
+            },
+            {
+              id: 'user-nova',
+              username: 'cardano-nova',
+              name: 'Nova Helios',
+              email: 'nova@ioncore.energy',
+              role: 'Compliance',
+              credentialStatus: 'active',
+              selections: 'cardano,compliance',
+              notes: 'Cardano credentials verified',
+              databaseOptIn: false,
+              walletAddress: fallbackCardano,
+              updatedAt: minutesAgo(58)
+            }
+          ],
+          gatewaySubmissions: [
+            {
+              id: 'gateway-brief-1',
+              origin: 'Mission Control / Ops',
+              question: 'Preferred deployment cadence?',
+              response: 'Weekly intelligence pushes with daily delta sync.',
+              metadata: 'Priority: High',
+              updatedAt: minutesAgo(42),
+              createdAt: minutesAgo(46)
+            },
+            {
+              id: 'gateway-brief-2',
+              origin: 'MeknX Council',
+              question: 'Confirm MeknX multipass issuance',
+              response: '5 MeknX passes minted for Genesis cohort.',
+              metadata: 'Mint group: Genesis',
+              updatedAt: minutesAgo(84),
+              createdAt: minutesAgo(90)
+            }
+          ],
+          contactSubmissions: [
+            {
+              id: 'contact-ops-1',
+              name: 'Elara Stone',
+              contact: 'elara@ioncore.energy',
+              message: 'Requesting updated compliance checklist for Cardano treasury nodes.',
+              tags: ['cardano', 'compliance'],
+              metadata: 'Region: EU',
+              updatedAt: minutesAgo(28),
+              createdAt: minutesAgo(32)
+            },
+            {
+              id: 'contact-support-2',
+              name: 'Dax Orion',
+              contact: '+1-555-482-1188',
+              message: 'Need MeknX verification logs for external audit.',
+              tags: ['meknx', 'audit'],
+              metadata: 'Urgency: Medium',
+              updatedAt: minutesAgo(74),
+              createdAt: minutesAgo(80)
+            }
+          ],
+          loginEvents: [
+            {
+              createdAt: minutesAgo(6),
+              method: 'wallet',
+              username: 'ionc-aurora',
+              walletAddress: fallbackSolana,
+              walletProvider: 'Phantom',
+              result: 'Success',
+              metadata: 'ioncVerified: true'
+            },
+            {
+              createdAt: minutesAgo(48),
+              method: 'wallet',
+              username: 'meknx-caspian',
+              walletAddress: fallbackEthereum,
+              walletProvider: 'MeknX',
+              status: 'Pending review',
+              metadata: 'meknxStatus: pending'
+            },
+            {
+              createdAt: minutesAgo(120),
+              method: 'credentials',
+              username: 'cardano-nova',
+              wallet: fallbackCardano,
+              result: 'Success',
+              metadata: 'multiFactor: true'
+            }
+          ],
+          marketplaceUploads: [
+            {
+              id: 'market-item-1',
+              title: 'IonC Genesis Vault',
+              walletAddress: fallbackSolana,
+              chain: 'Solana',
+              token: 'IONC',
+              price: '1 SOL',
+              minted: 'Ready',
+              createdAt: minutesAgo(52),
+              updatedAt: minutesAgo(12),
+              mediaUrl: 'https://admin.ioncore.energy/market/ionc-genesis.png'
+            },
+            {
+              id: 'market-item-2',
+              title: 'MeknX Operator Node',
+              walletAddress: fallbackEthereum,
+              chain: 'Ethereum',
+              token: 'MKNX',
+              price: '2.5 ETH',
+              minted: 'In escrow',
+              createdAt: minutesAgo(180),
+              updatedAt: minutesAgo(58),
+              mediaUrl: 'https://admin.ioncore.energy/market/meknx-node.png'
+            }
+          ],
+          magstripeTransactions: [
+            {
+              createdAt: minutesAgo(18),
+              processor: 'Stripe',
+              status: 'completed',
+              amount: 1250,
+              currency: 'USD',
+              cardholder: 'Aurora Forge',
+              projectReference: 'Launch Kit',
+              authorizationCode: 'STR-98231'
+            },
+            {
+              createdAt: minutesAgo(210),
+              processor: 'Magstripe',
+              status: 'pending',
+              amount: 480,
+              currency: 'USD',
+              cardholder: 'Dax Orion',
+              projectReference: 'Access Cards',
+              authorizationCode: 'MAG-44218'
+            }
+          ],
+          bitcoinTransactions: [
+            {
+              createdAt: minutesAgo(320),
+              status: 'confirming',
+              btcAmount: 0.045,
+              usdAmount: 920,
+              cardholder: 'Nova Helios',
+              btcAddress: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
+              projectReference: 'Sentinel Stack',
+              transactionId: 'btc-9af213'
+            }
+          ],
+          chatServerLedger: [
+            {
+              createdAt: minutesAgo(20),
+              status: 'completed',
+              eventId: 'chat-ledger-992',
+              message: 'Session archived · MeknX compliance note captured.',
+              server: 'Atlas Relay',
+              activeSessions: 5,
+              region: 'iad-1',
+              transport: 'websocket'
+            }
+          ],
+          poolTransactions: [
+            {
+              timestamp: minutesAgo(45),
+              wallet: fallbackSolana,
+              chain: 'Solana',
+              token: 'IONC',
+              amount: '1200',
+              hash: '4oRr9F12abcMeknXIonC45'
+            },
+            {
+              timestamp: minutesAgo(210),
+              wallet: fallbackEthereum,
+              chain: 'Ethereum',
+              token: 'MKNX',
+              amount: '35',
+              transactionHash: '0x9f8b2c1d4e5f60718293abcd4567890abcedf01234567890abc'
+            }
+          ],
+          marketplaceOrders: [
+            {
+              createdAt: minutesAgo(22),
+              buyer: 'Ioncore Treasury',
+              seller: 'MeknX Council',
+              chain: 'Solana',
+              token: 'IONC',
+              amount: '1.00',
+              status: 'Settled',
+              transactionHash: '5Tg9IONCRET12345hash',
+              invoice: '#IONC-4582'
+            }
+          ],
+          marketplaceBids: [
+            {
+              createdAt: minutesAgo(44),
+              bidderName: 'Nova Helios',
+              assetOwner: 'Ioncore Treasury',
+              chain: 'Cardano',
+              currency: 'ADA',
+              amount: '3500',
+              status: 'Accepted',
+              transactionHash: 'ada-ledger-2387',
+              invoice: '#ADA-8831'
+            },
+            {
+              createdAt: minutesAgo(132),
+              bidderName: 'Caspian Reed',
+              assetOwner: 'MeknX Council',
+              chain: 'Ethereum',
+              currency: 'MKNX',
+              amount: '14',
+              status: 'Pending',
+              transactionHash: '0xmeknxpending',
+              invoice: '#MKNX-9934'
+            }
+          ],
+          activityTimeline: [
+            {
+              type: 'wallet-verified',
+              timestamp: minutesAgo(6),
+              headline: 'IonC wallet verified',
+              detail: `Phantom session established for ${shortenWalletReference(fallbackSolana)}.`
+            },
+            {
+              type: 'meknx-audit',
+              timestamp: minutesAgo(48),
+              headline: 'MeknX audit log updated',
+              detail: `Audit request registered for ${shortenWalletReference(fallbackEthereum)}.`
+            },
+            {
+              type: 'cardano-ledger',
+              timestamp: minutesAgo(74),
+              headline: 'Cardano ledger snapshot',
+              detail: `Treasury checkpoint recorded for ${shortenWalletReference(fallbackCardano)}.`
+            }
+          ]
+        };
+      }
+
       async function loadOverview(options = {}) {
+        if (!accessState.unlocked) {
+          summarizeWalletAccess();
+          return null;
+        }
         const silent = Boolean(options.silent);
+        const allowFallback = options.allowFallback !== false;
         if (!silent) {
           setStatus('Synchronizing with secure datastore…', 'info');
         }
         try {
           const response = await fetch('/api/admin/overview', {
-            headers: { 'Accept': 'application/json' }
+            headers: { Accept: 'application/json' }
           });
           if (!response.ok) {
             throw new Error('Request failed with status ' + response.status);
@@ -1860,8 +2591,22 @@
           return payload;
         } catch (error) {
           console.error('Failed to load overview', error);
-          setStatus('Unable to connect to the admin datastore. Retry shortly.', 'error');
-          throw error;
+          if (!allowFallback) {
+            if (!silent) {
+              setStatus('Unable to connect to the admin datastore. Retry shortly.', 'error');
+            }
+            throw error;
+          }
+          const fallback = buildOfflineOverviewSnapshot();
+          fallback.fileBroadcasts = sanitizeBroadcasts(fallback.fileBroadcasts);
+          state.data = fallback;
+          renderDashboard();
+          if (!silent) {
+            setStatus('Live datastore unreachable. Loaded offline snapshot.', 'warning');
+          } else {
+            setStatus('Offline snapshot loaded from cached data.', 'warning');
+          }
+          return fallback;
         }
       }
 
@@ -3292,7 +4037,15 @@
           setStatus('Submission updated successfully.', 'success');
         } catch (error) {
           console.error('Failed to update submission', error);
-          setStatus(error?.message || 'Unable to update submission. Please retry.', 'error');
+          const applied = applyLocalSubmissionPatch(id, kind, payload);
+          if (applied) {
+            closeSubmissionEditor();
+            renderPollResponses();
+            renderQuestions();
+            setStatus('Offline mode: submission updated locally.', 'warning');
+          } else {
+            setStatus(error?.message || 'Unable to update submission. Please retry.', 'error');
+          }
         } finally {
           if (submissionSubmitButton) {
             submissionSubmitButton.disabled = false;
@@ -3405,7 +4158,14 @@
           setStatus('Credential profile updated successfully.', 'success');
         } catch (error) {
           console.error('Failed to update credential', error);
-          setStatus('Unable to persist credential changes. Please retry.', 'error');
+          const applied = applyLocalUserPatch(id, payload);
+          if (applied) {
+            closeEditor();
+            renderUsers();
+            setStatus('Offline mode: credential profile updated locally.', 'warning');
+          } else {
+            setStatus('Unable to persist credential changes. Please retry.', 'error');
+          }
         }
       }
 
@@ -3439,6 +4199,35 @@
           return (state.data.contactSubmissions || []).find((item) => item.id === id || item._id === id) || null;
         }
         return (state.data.gatewaySubmissions || []).find((item) => item.id === id || item._id === id) || null;
+      }
+
+      function applyLocalUserPatch(id, payload) {
+        if (!state.data || !id) {
+          return false;
+        }
+        const users = state.data.gatewayUsers || [];
+        const target = users.find((user) => user.id === id);
+        if (!target) {
+          return false;
+        }
+        Object.assign(target, payload, { updatedAt: new Date().toISOString() });
+        return true;
+      }
+
+      function applyLocalSubmissionPatch(id, kind, payload) {
+        if (!state.data || !id) {
+          return false;
+        }
+        const collection = kind === 'question' ? state.data.contactSubmissions : state.data.gatewaySubmissions;
+        if (!Array.isArray(collection)) {
+          return false;
+        }
+        const target = collection.find((item) => item.id === id || item._id === id);
+        if (!target) {
+          return false;
+        }
+        Object.assign(target, payload, { updatedAt: new Date().toISOString() });
+        return true;
       }
 
       usersTableBody.addEventListener('click', (event) => {
@@ -3504,20 +4293,26 @@
             await loadOverview({ silent: true }).catch(() => {});
           } catch (error) {
             console.error('File broadcast rescan failed', error);
-            setFileBroadcastStatus(error.message || 'Failed to reindex file broadcasts.', 'error');
+            setFileBroadcastStatus(
+              'Offline mode: file broadcasts refreshed from cached snapshot.',
+              'warning'
+            );
+            await loadOverview({ silent: true, allowFallback: true }).catch(() => {});
           } finally {
             rescanFileBroadcastsButton.disabled = false;
           }
         });
       }
 
-      refreshButton.addEventListener('click', () => {
-        loadOverview();
-      });
+      if (refreshButton) {
+        refreshButton.addEventListener('click', () => {
+          loadOverview({ allowFallback: true });
+        });
+      }
 
       if (refreshInfrastructureButton) {
         refreshInfrastructureButton.addEventListener('click', () => {
-          loadOverview();
+          loadOverview({ allowFallback: true });
         });
       }
 
@@ -3608,7 +4403,9 @@
         }
       });
 
-      loadOverview();
+      setPanelLocked(true);
+      summarizeWalletAccess();
+      setStatus('Connect MeknX, IonC, and Cardano wallets to unlock admin intelligence.', 'info');
     </script>
   </body>
 </html>

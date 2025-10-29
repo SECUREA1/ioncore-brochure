@@ -2333,6 +2333,23 @@
             if (transport) {
               parts.push(`Mode: ${transport}`);
             }
+            const broadcastFlag = Number(item?.data?.broadcast || item?.data?.isBroadcast || 0);
+            if (Number.isFinite(broadcastFlag) && broadcastFlag > 0) {
+              parts.push('Broadcast Event');
+            }
+            const attachmentName = item?.data?.attachmentName;
+            const hasAttachment = Boolean(item?.data?.hasAttachment) || Boolean(attachmentName);
+            if (hasAttachment && attachmentName) {
+              parts.push(`Attachment: ${attachmentName}`);
+            }
+            const attachmentType = item?.data?.attachmentType;
+            if (hasAttachment && attachmentType) {
+              parts.push(`Attachment Type: ${attachmentType}`);
+            }
+            const clientId = item?.data?.clientId;
+            if (clientId) {
+              parts.push(`Client: ${clientId}`);
+            }
           }
           metadataCell.textContent = parts.length ? parts.join(' · ') : '—';
           tr.appendChild(metadataCell);

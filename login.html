@@ -895,28 +895,24 @@
       font-size: 0.82rem;
     }
 
-    body.popup-open {
-      overflow: hidden;
-    }
-
     .wallet-popup {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(1rem, 3vw, 2rem);
-      background: rgba(6, 12, 24, 0.72);
-      backdrop-filter: blur(8px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.32s ease;
-      z-index: 24;
+      position: static;
+      inset: auto;
+      display: none;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 0;
+      margin: clamp(0.75rem, 2vw, 1.5rem) 0;
+      background: transparent;
+      backdrop-filter: none;
+      opacity: 1;
+      pointer-events: auto;
+      transition: none;
+      z-index: auto;
     }
 
     .wallet-popup.is-visible {
-      opacity: 1;
-      pointer-events: auto;
+      display: block;
     }
 
     .wallet-popup[hidden] {
@@ -924,20 +920,18 @@
     }
 
     .wallet-popup__dialog {
-      position: relative;
-      width: min(720px, 100%);
-      max-height: min(90vh, 780px);
-      overflow-y: auto;
+      position: static;
+      width: 100%;
+      max-height: none;
+      overflow: visible;
       background: rgba(10, 16, 32, 0.96);
       border: 1px solid rgba(72, 255, 226, 0.22);
       border-radius: 20px;
       padding: clamp(1.5rem, 3vw, 2.25rem);
-      box-shadow: 0 32px 64px rgba(4, 8, 18, 0.58);
+      box-shadow: 0 24px 48px rgba(4, 8, 18, 0.46);
     }
 
     .wallet-popup__header {
-      position: relative;
-      padding-right: 3rem;
       margin-bottom: 1.25rem;
     }
 
@@ -961,33 +955,6 @@
       font-size: 0.9rem;
       line-height: 1.6;
       color: rgba(226, 232, 240, 0.82);
-    }
-
-    .wallet-popup__close {
-      position: absolute;
-      top: 0.25rem;
-      right: 0.25rem;
-      width: 2.25rem;
-      height: 2.25rem;
-      border-radius: 999px;
-      border: 1px solid rgba(226, 232, 240, 0.28);
-      background: rgba(15, 23, 42, 0.42);
-      color: rgba(226, 232, 240, 0.92);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-    }
-
-    .wallet-popup__close:hover,
-    .wallet-popup__close:focus-visible {
-      outline: none;
-      background: rgba(72, 255, 226, 0.16);
-      border-color: rgba(72, 255, 226, 0.55);
-      color: #f8fafc;
     }
 
     .wallet-popup__body {
@@ -2496,18 +2463,15 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
-          <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock Solana clearance controls.</div>
+          <div id="solana-open-status" class="wallet-status wallet-status--notice">Connect Phantom to unlock the Ioncore Secure Client Access Card panel.</div>
           <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
-            <div class="wallet-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="solana-ionc-popup-title">
+            <div class="wallet-popup__dialog" role="region" aria-labelledby="solana-ionc-popup-title">
               <header class="wallet-popup__header">
-                <h3 id="solana-ionc-popup-title" class="wallet-popup__title">Solana IONC Clearance</h3>
-                <p class="wallet-popup__subtitle">Secure Phantom session</p>
-                <button type="button" class="wallet-popup__close" id="solana-ionc-close" aria-label="Close Solana clearance panel">
-                  &times;
-                </button>
+                <h3 id="solana-ionc-popup-title" class="wallet-popup__title">Ioncore Secure Client Access Card</h3>
+                <p class="wallet-popup__subtitle">Phantom purchase panel</p>
               </header>
               <p class="wallet-popup__intro">
-                All Solana access-retainer actions and IONC verifications run inside this secure panel once your Phantom wallet is connected.
+                Purchase the Ioncore Secure Client Access Card directly from this page once your Phantom wallet is connected. Each 5&nbsp;SOL order ships a physical access card loaded with twice the IONC the purchase mints.
               </p>
               <div class="wallet-popup__body">
                 <div class="wallet-popup__section">
@@ -2517,14 +2481,13 @@
                   </div>
                   <div class="wallet-connect-row wallet-connect-row--input">
                     <label class="wallet-input-label" for="solana-action-select">
-                      Solana Action
-                      <span>Select the operation you want to run</span>
+                      Access Card Action
+                      <span>Choose how you want to continue</span>
                     </label>
                     <div class="wallet-input-control">
                       <select id="solana-action-select" data-popup-focus>
                         <option value="">Select an action</option>
-                        <option value="add">Add IONC Retainer</option>
-                        <option value="buy">Buy IONC Access</option>
+                        <option value="purchase">Purchase Ioncore Secure Client Access Card</option>
                         <option value="verify">Verify IONC Token</option>
                       </select>
                       <div class="wallet-input-actions">
@@ -2533,39 +2496,39 @@
                     </div>
                   </div>
                   <div class="wallet-connect-row wallet-connect-row--status">
-                    <div id="solana-action-status" class="wallet-status wallet-status--notice">Select an action to continue.</div>
+                    <div id="solana-action-status" class="wallet-status wallet-status--notice">Select an access card action to continue.</div>
                   </div>
                 </div>
                 <div class="wallet-popup__section">
                   <div class="wallet-connect-row wallet-connect-row--input" id="solana-deposit-config">
                     <label class="wallet-input-label" for="solana-deposit-amount">
-                      Access Retainer Amount
-                      <span>1 – 1000 SOL</span>
+                      Access Card Order (SOL)
+                      <span>5 – 1000 SOL</span>
                     </label>
                     <div class="wallet-input-control">
                       <input
                         type="number"
                         id="solana-deposit-amount"
-                        min="1"
+                        min="5"
                         max="1000"
                         step="1"
-                        value="1"
+                        value="5"
                         inputmode="decimal"
                         aria-describedby="solana-deposit-help"
                         data-popup-focus
                       >
                       <div id="solana-deposit-help" class="wallet-input-sublabel">
-                        1 SOL mints 1,000 IONC tokens to your clearance ledger. Approved transfers log to the Ioncore admin vault in real time.
+                        Every 5 SOL order prepares one physical access card and encodes 2,000 IONC onto the chip for delivery. Approved purchases log to the Ioncore admin vault in real time.
                       </div>
                       <div class="wallet-input-actions">
-                        <button type="button" id="solana-deposit-send" class="action-button">Send SOL Retainer</button>
+                        <button type="button" id="solana-deposit-send" class="action-button">Purchase Access Card</button>
                         <button
                           type="button"
                           id="solana-deposit-verify"
                           class="action-button action-button--outline"
                           disabled
                         >
-                          Verify Receipt
+                          Verify Purchase
                         </button>
                       </div>
                     </div>
@@ -2574,7 +2537,7 @@
                 <div class="wallet-popup__section">
                   <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
                     <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
-                      Access retainer pending. Select your SOL amount, connect Phantom, then click Send to authorize the transfer.
+                      Access card purchase pending. Select your SOL amount, connect Phantom, then click Purchase to authorize the transaction.
                     </div>
                   </div>
                 </div>
@@ -2584,7 +2547,7 @@
                       <h3>IONC Token Gate</h3>
                       <span class="module-tag module-tag--solana">Solana</span>
                     </div>
-                    <p class="module-copy">Phantom sessions must confirm an IONC access token minted to the connected wallet before entry.</p>
+                    <p class="module-copy">Phantom sessions must confirm the IONC allocation linked to your Secure Client Access Card before entry.</p>
                     <div class="module-actions">
                       <button type="button" id="ionc-verify-button" class="action-button action-button--outline">Verify IONC Token</button>
                       <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
@@ -2806,7 +2769,8 @@
     const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
     const MIN_WALLET_VALUE_USD = 10;
     const MIN_LOGIN_VALUE_USD = 15;
-    const MIN_SOL_DEPOSIT_SOL = 1;
+    const ACCESS_CARD_PRICE_SOL = 5;
+    const MIN_SOL_DEPOSIT_SOL = ACCESS_CARD_PRICE_SOL;
     const MAX_SOL_DEPOSIT_SOL = 1000;
     const MIN_SOL_DEPOSIT_LAMPORTS =
       IoncoreSolanaModule && typeof IoncoreSolanaModule.LAMPORTS_PER_SOL === 'number'
@@ -3077,12 +3041,12 @@
       if (solanaActionSelect) {
         solanaActionSelect.value = '';
       }
-      updateSolanaActionStatus('Select an action to continue.');
+      updateSolanaActionStatus('Select an access card action to continue.');
     };
 
     resetSolanaActionState();
     updateSolanaSessionDetails();
-    updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
+    updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
     setSolanaActionsVisibility(false);
 
     const isSolanaIoncPopupOpen = () =>
@@ -3097,7 +3061,6 @@
       solanaIoncLastFocus = document.activeElement;
       solanaIoncPopup.hidden = false;
       solanaIoncPopup.setAttribute('aria-hidden', 'false');
-      bodyElement.classList.add('popup-open');
       renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
       if (solanaDepositRow) {
         solanaDepositRow.hidden = false;
@@ -3105,11 +3068,11 @@
       syncIoncModuleVisibility();
       updateSolanaSessionDetails();
       if (solanaSessionState.publicKey) {
-        updateSolanaActionStatus('Phantom session active. Select an action to continue.');
-        updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
+        updateSolanaActionStatus('Phantom session active. Select an access card action to continue.');
+        updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
       } else {
-        updateSolanaActionStatus('Connect Phantom to continue.', 'notice');
-        updateSolanaOpenStatus('Solana clearance panel open. Approve Phantom to continue.', 'notice');
+        updateSolanaActionStatus('Connect Phantom to continue your access card purchase.', 'notice');
+        updateSolanaOpenStatus('Access card panel open. Approve Phantom to continue.', 'notice');
       }
       requestAnimationFrame(() => {
         solanaIoncPopup.classList.add('is-visible');
@@ -3129,7 +3092,6 @@
 
       solanaIoncPopup.classList.remove('is-visible');
       solanaIoncPopup.setAttribute('aria-hidden', 'true');
-      bodyElement.classList.remove('popup-open');
 
       const finalize = () => {
         solanaIoncPopup.hidden = true;
@@ -3138,10 +3100,10 @@
         }
         const hasSession = Boolean(solanaSessionState.publicKey);
         if (hasSession) {
-          updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
+          updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
         } else {
           setSolanaActionsVisibility(false);
-          updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
+          updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
           solanaIntentActive = false;
           syncIoncModuleVisibility();
         }
@@ -3168,14 +3130,6 @@
       }
     };
 
-    if (solanaIoncPopup) {
-      solanaIoncPopup.addEventListener('click', (event) => {
-        if (event.target === solanaIoncPopup) {
-          closeSolanaIoncPopup();
-        }
-      });
-    }
-
     if (solanaIoncCloseButton) {
       solanaIoncCloseButton.addEventListener('click', () => {
         closeSolanaIoncPopup();
@@ -3194,8 +3148,8 @@
         setSolanaActionsVisibility(true);
         openSolanaIoncPopup();
         if (solanaSessionState.publicKey) {
-          updateSolanaActionStatus('Phantom session active. Select an action to continue.', 'success');
-          updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
+          updateSolanaActionStatus('Phantom session active. Select an access card action to continue.', 'success');
+          updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
           return;
         }
 
@@ -3217,7 +3171,7 @@
       solanaActionSelect.addEventListener('change', () => {
         const action = solanaActionSelect.value;
         if (!action) {
-          updateSolanaActionStatus('Select an action to continue.');
+          updateSolanaActionStatus('Select an access card action to continue.');
           return;
         }
         const selectedOption = solanaActionSelect.options[solanaActionSelect.selectedIndex];
@@ -3230,12 +3184,12 @@
       solanaActionSubmitButton.addEventListener('click', () => {
         const action = solanaActionSelect ? solanaActionSelect.value : '';
         if (!action) {
-          updateSolanaActionStatus('Select an action to continue.', 'error');
+          updateSolanaActionStatus('Select an access card action to continue.', 'error');
           return;
         }
 
         if (!solanaSessionState.publicKey) {
-          updateSolanaActionStatus('Connect Phantom to continue.', 'error');
+          updateSolanaActionStatus('Connect Phantom to continue your access card purchase.', 'error');
           if (phantomButton && !phantomButton.disabled) {
             updateSolanaOpenStatus('Requesting Phantom connection…', 'notice');
             phantomButton.click();
@@ -3270,18 +3224,13 @@
           solanaDepositAmountInput.focus();
         }
 
-        if (action === 'add') {
+        if (action === 'purchase') {
           updateSolanaActionStatus(
-            `Select ${normalizedAmount} and use Send to add IONC to your clearance ledger.`,
-            'success'
-          );
-        } else if (action === 'buy') {
-          updateSolanaActionStatus(
-            `Use Send ${normalizedAmount} to buy IONC access for this wallet.`,
+            `Use Purchase ${normalizedAmount} to order your Ioncore Secure Client Access Card. Each order ships a physical card encoded with double IONC.`,
             'success'
           );
         } else {
-          updateSolanaActionStatus('Select an action to continue.');
+          updateSolanaActionStatus('Select an access card action to continue.');
         }
       });
     }
@@ -3765,7 +3714,7 @@
       const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
       if (solanaDepositSendButton) {
         if (solanaDepositSendButton.dataset.loading !== 'true') {
-          solanaDepositSendButton.textContent = `Send ${amountLabel}`;
+          solanaDepositSendButton.textContent = `Purchase ${amountLabel}`;
         }
         const hasSession = Boolean(solanaSessionState.publicKey);
         const isLoading = solanaDepositSendButton.dataset.loading === 'true';
@@ -3773,7 +3722,7 @@
       }
       if (solanaDepositVerifyButton) {
         if (solanaDepositVerifyButton.dataset.loading !== 'true') {
-          solanaDepositVerifyButton.textContent = 'Verify Receipt';
+          solanaDepositVerifyButton.textContent = 'Verify Purchase';
         }
         const hasSignature = Boolean(solanaDepositState.signature);
         const isLoading = solanaDepositVerifyButton.dataset.loading === 'true';
@@ -3795,7 +3744,7 @@
       resetSolanaActionState();
       setSolanaActionsVisibility(false);
       solanaIntentActive = false;
-      updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
+      updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
     };
 
     const setSolanaSession = (provider, publicKey) => {
@@ -3803,13 +3752,13 @@
       solanaSessionState.publicKey = publicKey || '';
       updateSolanaActionButtons();
       updateSolanaSessionDetails();
-      updateSolanaActionStatus('Phantom session active. Select an action to continue.');
+      updateSolanaActionStatus('Phantom session active. Select an access card action to continue.');
       if (publicKey) {
         setSolanaActionsVisibility(true);
-        updateSolanaOpenStatus('Phantom session active. Solana clearance controls ready.', 'success');
+        updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
       } else {
         setSolanaActionsVisibility(false);
-        updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
+        updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
       }
     };
 
@@ -3832,9 +3781,9 @@
         solanaDepositState.amountSol = sanitized;
       }
       if (!solanaDepositState.completed && solanaDepositStatus) {
-        solanaDepositStatus.textContent = `Access retainer pending. Select ${formatSolDepositLabel(
+        solanaDepositStatus.textContent = `Access card purchase pending. Select ${formatSolDepositLabel(
           sanitized
-        )} and use Send once your Phantom session is active.`;
+        )} and use Purchase once your Phantom session is active.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -3863,7 +3812,7 @@
       if (solanaDepositStatus) {
         const pendingAmount = formatSolDepositLabel(solanaDepositState.amountSol);
         solanaDepositStatus.textContent =
-          `Access retainer pending. Select ${pendingAmount} and use Send once your Phantom session is active.`;
+          `Access card purchase pending. Select ${pendingAmount} and use Purchase once your Phantom session is active.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -3896,7 +3845,7 @@
       if (solanaDepositStatus) {
         solanaDepositStatus.textContent = `${formatSolDepositLabel(
           normalizedAmount
-        )} access retainer submitted. Ref: ${shortenIdentifier(signature)}`;
+        )} access card purchase submitted. Ref: ${shortenIdentifier(signature)}`;
         solanaDepositStatus.classList.add('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -3916,7 +3865,7 @@
 
     const ensureSolanaDeposit = async ({ provider, publicKey }) => {
       if (!provider || !publicKey) {
-        throw new Error('Phantom provider required to submit the SOL access retainer.');
+        throw new Error('Phantom provider required to submit the SOL access card purchase.');
       }
 
       if (solanaDepositState.completed && solanaDepositState.signature) {
@@ -3933,7 +3882,7 @@
         solanaDepositRow.hidden = false;
       }
       if (solanaDepositStatus) {
-        solanaDepositStatus.textContent = `Preparing ${amountLabel} access retainer…`;
+        solanaDepositStatus.textContent = `Preparing ${amountLabel} access card purchase…`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
 
@@ -3954,7 +3903,7 @@
       } catch (error) {
         if (solanaDepositStatus) {
           solanaDepositStatus.textContent =
-            error?.message || `Unable to submit the ${amountLabel} access retainer. Try again shortly.`;
+            error?.message || `Unable to submit the ${amountLabel} access card purchase. Try again shortly.`;
           solanaDepositStatus.classList.remove('wallet-status--connected');
         }
         throw error;
@@ -3981,7 +3930,7 @@
     if (solanaDepositSendButton) {
       solanaDepositSendButton.addEventListener('click', async () => {
         if (!solanaSessionState.publicKey || !solanaSessionState.provider) {
-          updateStatus('Connect Phantom before sending the SOL access retainer.', 'error');
+          updateStatus('Connect Phantom before authorizing the SOL access card purchase.', 'error');
           triggerFailureAnimation();
           return;
         }
@@ -3989,7 +3938,7 @@
         const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
         solanaDepositSendButton.dataset.loading = 'true';
         solanaDepositSendButton.disabled = true;
-        solanaDepositSendButton.textContent = 'Sending…';
+        solanaDepositSendButton.textContent = 'Purchasing…';
 
         try {
           const receipt = await ensureSolanaDeposit({
@@ -4007,37 +3956,37 @@
               : '';
 
           const confirmationPrompt = signature
-            ? ` ${normalizedAmount} access retainer submitted (${shortenIdentifier(signature)}).`
-            : ` ${normalizedAmount} access retainer submitted.`;
+            ? ` ${normalizedAmount} access card purchase submitted (${shortenIdentifier(signature)}).`
+            : ` ${normalizedAmount} access card purchase submitted.`;
 
           updateStatus(
-            `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the receipt or continue with MEKNX clearance.`,
+            `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the purchase or continue with MEKNX clearance.`,
             'success'
           );
 
           updateSolanaActionStatus(
-            `${normalizedAmount} access retainer submitted. Verify the receipt or continue with MEKNX clearance.`,
+            `${normalizedAmount} access card purchase submitted. Verify the purchase or continue with MEKNX clearance.`,
             'success'
           );
 
           setInlineStatus(
             ioncInlineStatus,
             signature
-              ? `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
+              ? `IONC holdings confirmed. ${normalizedAmount} access card purchase submitted (${shortenIdentifier(
                   signature
                 )}). Submit to enter the vault.`
-              : `IONC holdings confirmed. ${normalizedAmount} access retainer submitted. Submit to enter the vault.`,
+              : `IONC holdings confirmed. ${normalizedAmount} access card purchase submitted. Submit to enter the vault.`,
             'success'
           );
         } catch (error) {
           if (solanaDepositStatus) {
             solanaDepositStatus.textContent =
-              error?.message || `Unable to submit the ${amountLabel} access retainer. Try again shortly.`;
+              error?.message || `Unable to submit the ${amountLabel} access card purchase. Try again shortly.`;
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
-          updateStatus(error?.message || 'Unable to submit the SOL access retainer.', 'error');
+          updateStatus(error?.message || 'Unable to submit the SOL access card purchase.', 'error');
           updateSolanaActionStatus(
-            error?.message || `Unable to submit the ${amountLabel} access retainer. Try again shortly.`,
+            error?.message || `Unable to submit the ${amountLabel} access card purchase. Try again shortly.`,
             'error'
           );
           triggerFailureAnimation();
@@ -4051,7 +4000,7 @@
     if (solanaDepositVerifyButton) {
       solanaDepositVerifyButton.addEventListener('click', async () => {
         if (!solanaDepositState.signature) {
-          updateStatus('Send the SOL access retainer before verifying the receipt.', 'error');
+          updateStatus('Complete the SOL access card purchase before verifying it.', 'error');
           triggerFailureAnimation();
           return;
         }
@@ -4061,7 +4010,7 @@
         solanaDepositVerifyButton.textContent = 'Verifying…';
 
         if (solanaDepositStatus) {
-          solanaDepositStatus.textContent = 'Confirming access retainer on Solana…';
+          solanaDepositStatus.textContent = 'Confirming access card purchase on Solana…';
           solanaDepositStatus.classList.remove('wallet-status--connected');
         }
 
@@ -4070,7 +4019,7 @@
           const confirmationLabel = status?.confirmationStatus || 'confirmed';
           const normalizedAmount = formatSolDepositLabel(solanaDepositState.amountSol);
           if (solanaDepositStatus) {
-            solanaDepositStatus.textContent = `${normalizedAmount} access retainer confirmed (${confirmationLabel}). Ref: ${shortenIdentifier(
+            solanaDepositStatus.textContent = `${normalizedAmount} access card purchase confirmed (${confirmationLabel}). Ref: ${shortenIdentifier(
               solanaDepositState.signature
             )}.`;
             solanaDepositStatus.classList.add('wallet-status--connected');
@@ -4082,18 +4031,18 @@
               : '';
 
           updateStatus(
-            `Phantom retainer receipt verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            `Phantom purchase verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Complete MEKNX clearance to enter.`,
             'success'
           );
 
           updateSolanaActionStatus(
-            `${normalizedAmount} access retainer verified (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            `${normalizedAmount} access card purchase verified (${confirmationLabel}). Complete MEKNX clearance to enter.`,
             'success'
           );
 
           setInlineStatus(
             ioncInlineStatus,
-            `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
+            `IONC holdings confirmed. ${normalizedAmount} access card purchase submitted (${shortenIdentifier(
               solanaDepositState.signature
             )}). Submit to enter the vault.`,
             'success'
@@ -4101,12 +4050,12 @@
         } catch (error) {
           if (solanaDepositStatus) {
             solanaDepositStatus.textContent =
-              error?.message || 'Unable to verify the SOL access retainer. Try again shortly.';
+              error?.message || 'Unable to verify the SOL access card purchase. Try again shortly.';
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
-          updateStatus(error?.message || 'Unable to verify the SOL access retainer.', 'error');
+          updateStatus(error?.message || 'Unable to verify the SOL access card purchase.', 'error');
           updateSolanaActionStatus(
-            error?.message || 'Unable to verify the SOL access retainer. Try again shortly.',
+            error?.message || 'Unable to verify the SOL access card purchase. Try again shortly.',
             'error'
           );
           triggerFailureAnimation();
@@ -4497,7 +4446,7 @@
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
       syncCardanoModuleVisibility();
       setSolanaActionsVisibility(false);
-      updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.');
+      updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.');
       if (isSolanaIoncPopupOpen()) {
         closeSolanaIoncPopup({ restoreFocus: false });
       }
@@ -4771,7 +4720,7 @@
           }
           if (solanaDepositStatus) {
             const pendingLabel = formatSolDepositLabel(solanaDepositState.amountSol);
-            solanaDepositStatus.textContent = `Access retainer pending. Send the ${pendingLabel} retainer from this panel.`;
+            solanaDepositStatus.textContent = `Access card purchase pending. Purchase the ${pendingLabel} allocation from this panel.`;
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
         }
@@ -5197,7 +5146,7 @@
               phantomStatus.classList.add('wallet-status--connected');
             }
             updateStatus('Phantom wallet connected. Loading Solana account data…', 'success');
-            updateSolanaOpenStatus('Phantom wallet connected. Solana clearance controls ready.', 'success');
+            updateSolanaOpenStatus('Phantom wallet connected. Access card purchasing ready.', 'success');
             if (walletAddressInput) {
               walletAddressInput.value = publicKey;
             }
@@ -5246,12 +5195,12 @@
             const hasReceipt = solanaDepositState.completed && solanaDepositState.signature;
             if (!hasReceipt && solanaDepositStatus) {
               solanaDepositStatus.textContent =
-                `Access retainer pending. Select ${depositAmountLabel} and use Send once your Phantom session is active.`;
+                `Access card purchase pending. Select ${depositAmountLabel} and use Purchase once your Phantom session is active.`;
               solanaDepositStatus.classList.remove('wallet-status--connected');
             }
             const depositMessage = hasReceipt
-              ? ` ${depositAmountLabel} access retainer submitted (${shortenIdentifier(solanaDepositState.signature)}).`
-              : ` Click "Send ${depositAmountLabel}" to authorize the access retainer transfer.`;
+              ? ` ${depositAmountLabel} access card purchase submitted (${shortenIdentifier(solanaDepositState.signature)}).`
+              : ` Click "Purchase ${depositAmountLabel}" to authorize the access card purchase.`;
             const hasIoncTokens = ioncAccounts.length > 0;
             const ioncHoldingsMessage = ioncBalanceError
               ? ' Unable to automatically detect IONC holdings. Use Verify IONC Token to continue.'
@@ -5266,12 +5215,12 @@
             let inlineStatusMessage;
             if (hasIoncTokens && hasReceipt) {
               inlineStatusTone = 'success';
-              inlineStatusMessage = `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. ${depositAmountLabel} access retainer submitted (${shortenIdentifier(
+              inlineStatusMessage = `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. ${depositAmountLabel} access card purchase submitted (${shortenIdentifier(
                 solanaDepositState.signature
               )}). Submit to enter the vault.`;
             } else if (hasIoncTokens) {
               inlineStatusTone = 'success';
-              inlineStatusMessage = `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. Send ${depositAmountLabel} access retainer to continue.`;
+              inlineStatusMessage = `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. Purchase ${depositAmountLabel} access card allocation to continue.`;
             } else if (ioncBalanceError) {
               inlineStatusMessage = 'Phantom session active. Unable to auto-detect IONC tokens. Select Verify IONC Token to continue.';
             } else {
@@ -5286,7 +5235,7 @@
             }
             updateStatus(message, 'error');
             updateSolanaActionStatus(message, 'error');
-            updateSolanaOpenStatus('Connect Phantom to unlock Solana clearance controls.', 'notice');
+            updateSolanaOpenStatus('Connect Phantom to unlock the Ioncore Secure Client Access Card panel.', 'notice');
             setSolanaActionsVisibility(false);
             const normalizedMessage = String(message || '').toLowerCase();
             const shouldTriggerFailure = /not detected|no wallet account returned|access denied|denied|rejected/.test(

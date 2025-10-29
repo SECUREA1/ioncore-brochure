@@ -832,6 +832,11 @@
       box-shadow: inset 0 0 0 1px rgba(64, 145, 255, 0.35);
     }
 
+    .wallet-connect-button--solana-panel .wallet-connect-button__icon {
+      background: rgba(36, 21, 83, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(153, 69, 255, 0.32);
+    }
+
     .wallet-connect-button__label {
       flex: 1 1 auto;
       text-align: center;
@@ -857,6 +862,37 @@
       text-transform: uppercase;
       flex: 1 1 160px;
       min-width: 160px;
+    }
+
+    .wallet-status--error {
+      color: rgba(248, 113, 113, 0.9);
+    }
+
+    .wallet-session-details {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin: 0 0 1rem;
+      border-radius: 14px;
+      background: rgba(20, 241, 149, 0.08);
+      border: 1px solid rgba(20, 241, 149, 0.32);
+      font-size: 0.88rem;
+      letter-spacing: 0.06em;
+      color: rgba(226, 232, 240, 0.88);
+      word-break: break-all;
+    }
+
+    .wallet-session-details__label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(20, 241, 149, 0.85);
+    }
+
+    .wallet-session-details__value {
+      font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.82rem;
     }
 
     body.popup-open {
@@ -2460,6 +2496,36 @@
             </button>
             <div id="phantom-status" class="wallet-status">Not connected.</div>
           </div>
+          <div class="wallet-connect-row">
+            <button type="button" id="open-solana-actions" class="wallet-connect-button wallet-connect-button--solana-panel">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Solana command matrix">
+                  <defs>
+                    <linearGradient id="solana-d" x1="6" y1="9" x2="26" y2="9" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#19fb9b" />
+                      <stop offset="1" stop-color="#a855f7" />
+                    </linearGradient>
+                    <linearGradient id="solana-e" x1="6" y1="16" x2="26" y2="16" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#14f195" />
+                      <stop offset="1" stop-color="#9945ff" />
+                    </linearGradient>
+                    <linearGradient id="solana-f" x1="6" y1="23" x2="26" y2="23" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#00ffa3" />
+                      <stop offset="1" stop-color="#dc1fff" />
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#solana-d)" d="M6 8.2 10.8 4H26l-4.8 4.2H6Z" />
+                  <path fill="url(#solana-e)" d="M6 15.1 10.8 11h15.2l-4.8 4.1H6Z" />
+                  <path fill="url(#solana-f)" d="M6 22 10.8 17.8H26l-4.8 4.2H6Z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Open Solana Actions</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="solana-open-status" class="wallet-status wallet-status--notice">Launch Solana clearance controls.</div>
+          </div>
           <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
             <div class="wallet-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="solana-ionc-popup-title">
               <header class="wallet-popup__header">
@@ -2473,6 +2539,32 @@
                 All Solana access-retainer actions and IONC verifications run inside this secure panel once your Phantom wallet is connected.
               </p>
               <div class="wallet-popup__body">
+                <div class="wallet-popup__section">
+                  <div id="solana-session-details" class="wallet-session-details" hidden aria-hidden="true">
+                    <span class="wallet-session-details__label">Connected wallet</span>
+                    <code id="solana-session-address" class="wallet-session-details__value"></code>
+                  </div>
+                  <div class="wallet-connect-row wallet-connect-row--input">
+                    <label class="wallet-input-label" for="solana-action-select">
+                      Solana Action
+                      <span>Select the operation you want to run</span>
+                    </label>
+                    <div class="wallet-input-control">
+                      <select id="solana-action-select" data-popup-focus>
+                        <option value="">Select an action</option>
+                        <option value="add">Add IONC Retainer</option>
+                        <option value="buy">Buy IONC Access</option>
+                        <option value="verify">Verify IONC Token</option>
+                      </select>
+                      <div class="wallet-input-actions">
+                        <button type="button" id="solana-action-submit" class="action-button">Continue</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="wallet-connect-row wallet-connect-row--status">
+                    <div id="solana-action-status" class="wallet-status wallet-status--notice">Select an action to continue.</div>
+                  </div>
+                </div>
                 <div class="wallet-popup__section">
                   <div class="wallet-connect-row wallet-connect-row--input" id="solana-deposit-config">
                     <label class="wallet-input-label" for="solana-deposit-amount">
@@ -2679,6 +2771,8 @@
     const cardanoButton = document.getElementById('connect-cardano');
     const metamaskStatus = document.getElementById('metamask-status');
     const phantomStatus = document.getElementById('phantom-status');
+    const openSolanaActionsButton = document.getElementById('open-solana-actions');
+    const solanaOpenStatus = document.getElementById('solana-open-status');
     const cardanoStatus = document.getElementById('cardano-status');
     const solanaDepositRow = document.getElementById('solana-deposit-row');
     const solanaDepositStatus = document.getElementById('solana-deposit-status');
@@ -2689,6 +2783,11 @@
     const solanaDepositVerifyButton = document.getElementById('solana-deposit-verify');
     const solanaIoncPopup = document.getElementById('solana-ionc-popup');
     const solanaIoncCloseButton = document.getElementById('solana-ionc-close');
+    const solanaSessionDetailsElement = document.getElementById('solana-session-details');
+    const solanaSessionAddressElement = document.getElementById('solana-session-address');
+    const solanaActionSelect = document.getElementById('solana-action-select');
+    const solanaActionStatus = document.getElementById('solana-action-status');
+    const solanaActionSubmitButton = document.getElementById('solana-action-submit');
     const ioncTokenListContainer = document.getElementById('ionc-token-list-container');
     const ioncTokenListElement = document.getElementById('ionc-token-list');
     const meknxActionSelect = document.getElementById('meknx-action');
@@ -2779,7 +2878,8 @@
     const ioncState = {
       verified: false,
       tokens: 0,
-      holdings: []
+      holdings: [],
+      detectionError: false
     };
 
     const cardanoState = {
@@ -2855,6 +2955,56 @@
       publicKey: ''
     };
 
+    const setWalletStatusTone = (element, tone = 'notice') => {
+      if (!element) return;
+      element.classList.remove('wallet-status--notice', 'wallet-status--connected', 'wallet-status--error');
+      if (tone === 'success') {
+        element.classList.add('wallet-status--connected');
+      } else if (tone === 'error') {
+        element.classList.add('wallet-status--error');
+      } else {
+        element.classList.add('wallet-status--notice');
+      }
+    };
+
+    const updateSolanaOpenStatus = (message, tone = 'notice') => {
+      if (!solanaOpenStatus) return;
+      solanaOpenStatus.textContent = message;
+      setWalletStatusTone(solanaOpenStatus, tone);
+    };
+
+    const updateSolanaActionStatus = (message, tone = 'notice') => {
+      if (!solanaActionStatus) return;
+      solanaActionStatus.textContent = message;
+      setWalletStatusTone(solanaActionStatus, tone);
+    };
+
+    const updateSolanaSessionDetails = () => {
+      if (!solanaSessionDetailsElement || !solanaSessionAddressElement) {
+        return;
+      }
+      if (solanaSessionState.publicKey) {
+        solanaSessionDetailsElement.hidden = false;
+        solanaSessionDetailsElement.setAttribute('aria-hidden', 'false');
+        solanaSessionAddressElement.textContent = solanaSessionState.publicKey;
+      } else {
+        solanaSessionDetailsElement.hidden = true;
+        solanaSessionDetailsElement.setAttribute('aria-hidden', 'true');
+        solanaSessionAddressElement.textContent = '';
+      }
+    };
+
+    const resetSolanaActionState = () => {
+      if (solanaActionSelect) {
+        solanaActionSelect.value = '';
+      }
+      updateSolanaActionStatus('Select an action to continue.');
+    };
+
+    resetSolanaActionState();
+    updateSolanaSessionDetails();
+    updateSolanaOpenStatus('Launch Solana clearance controls.');
+
     const isSolanaIoncPopupOpen = () =>
       Boolean(solanaIoncPopup && !solanaIoncPopup.hidden && solanaIoncPopup.classList.contains('is-visible'));
 
@@ -2871,6 +3021,14 @@
         solanaDepositRow.hidden = false;
       }
       syncIoncModuleVisibility();
+      updateSolanaSessionDetails();
+      if (solanaSessionState.publicKey) {
+        updateSolanaActionStatus('Phantom session active. Select an action to continue.');
+        updateSolanaOpenStatus('Phantom session active. Manage actions inside the Solana panel.', 'success');
+      } else {
+        updateSolanaActionStatus('Connect Phantom to continue.', 'notice');
+        updateSolanaOpenStatus('Solana clearance panel open. Approve Phantom to continue.', 'notice');
+      }
       requestAnimationFrame(() => {
         solanaIoncPopup.classList.add('is-visible');
         const focusTarget =
@@ -2896,6 +3054,7 @@
         if (solanaDepositRow) {
           solanaDepositRow.hidden = true;
         }
+        updateSolanaOpenStatus('Launch Solana clearance controls.');
         if (restoreFocus && solanaIoncLastFocus && typeof solanaIoncLastFocus.focus === 'function') {
           solanaIoncLastFocus.focus({ preventScroll: true });
         }
@@ -2938,6 +3097,102 @@
         closeSolanaIoncPopup();
       }
     });
+
+    if (openSolanaActionsButton) {
+      openSolanaActionsButton.addEventListener('click', () => {
+        openSolanaIoncPopup();
+        if (solanaSessionState.publicKey) {
+          updateSolanaActionStatus('Phantom session active. Select an action to continue.', 'success');
+          updateSolanaOpenStatus('Phantom session active. Manage actions inside the Solana panel.', 'success');
+          return;
+        }
+
+        if (phantomButton && phantomButton.disabled) {
+          updateSolanaActionStatus('Awaiting Phantom approval…', 'notice');
+          updateSolanaOpenStatus('Awaiting Phantom approval…', 'notice');
+          return;
+        }
+
+        updateSolanaActionStatus('Requesting Phantom approval…', 'notice');
+        updateSolanaOpenStatus('Requesting Phantom connection…', 'notice');
+        if (phantomButton) {
+          phantomButton.click();
+        }
+      });
+    }
+
+    if (solanaActionSelect) {
+      solanaActionSelect.addEventListener('change', () => {
+        const action = solanaActionSelect.value;
+        if (!action) {
+          updateSolanaActionStatus('Select an action to continue.');
+          return;
+        }
+        const selectedOption = solanaActionSelect.options[solanaActionSelect.selectedIndex];
+        const label = selectedOption && selectedOption.textContent ? selectedOption.textContent.trim() : 'action';
+        updateSolanaActionStatus(`Selected: ${label}. Click Continue to proceed.`);
+      });
+    }
+
+    if (solanaActionSubmitButton) {
+      solanaActionSubmitButton.addEventListener('click', () => {
+        const action = solanaActionSelect ? solanaActionSelect.value : '';
+        if (!action) {
+          updateSolanaActionStatus('Select an action to continue.', 'error');
+          return;
+        }
+
+        if (!solanaSessionState.publicKey) {
+          updateSolanaActionStatus('Connect Phantom to continue.', 'error');
+          if (phantomButton && !phantomButton.disabled) {
+            updateSolanaOpenStatus('Requesting Phantom connection…', 'notice');
+            phantomButton.click();
+          }
+          return;
+        }
+
+        if (action === 'verify') {
+          if (ioncState.verified) {
+            updateSolanaActionStatus('IONC tokens already verified. Submit to enter the vault.', 'success');
+            return;
+          }
+          if (ioncState.tokens <= 0 && !ioncState.detectionError) {
+            updateSolanaActionStatus(
+              'No IONC tokens detected for this wallet. Mint or deposit IONC before verifying.',
+              'error'
+            );
+            return;
+          }
+          updateSolanaActionStatus('Verifying IONC token with the connected wallet…');
+          if (ioncVerifyButton) {
+            ioncVerifyButton.click();
+          }
+          return;
+        }
+
+        const normalizedAmount = formatSolDepositLabel(syncSolanaAmountSelection());
+        if (solanaDepositRow) {
+          solanaDepositRow.hidden = false;
+        }
+        if (solanaDepositAmountInput && typeof solanaDepositAmountInput.focus === 'function') {
+          solanaDepositAmountInput.focus();
+        }
+
+        if (action === 'add') {
+          updateSolanaActionStatus(
+            `Select ${normalizedAmount} and use Send to add IONC to your clearance ledger.`,
+            'success'
+          );
+        } else if (action === 'buy') {
+          updateSolanaActionStatus(
+            `Use Send ${normalizedAmount} to buy IONC access for this wallet.`,
+            'success'
+          );
+        } else {
+          updateSolanaActionStatus('Select an action to continue.');
+        }
+      });
+    }
 
     const CARDANO_WALLET_CANDIDATES = [
       { key: 'lace', label: 'Lace' },
@@ -3025,6 +3280,7 @@
       ioncState.verified = false;
       ioncState.tokens = 0;
       ioncState.holdings = [];
+      ioncState.detectionError = false;
       if (ioncVerifiedInput) {
         ioncVerifiedInput.value = '';
       }
@@ -3032,6 +3288,7 @@
       if (!options.silent) {
         setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
       }
+      resetSolanaActionState();
     };
 
     const resetCardanoState = (options = {}) => {
@@ -3102,6 +3359,12 @@
           ioncInlineStatus,
           `IONC verification complete. Tokens detected: ${formattedTotal}.`,
           'success'
+        );
+      } else if (ioncState.detectionError) {
+        setInlineStatus(
+          ioncInlineStatus,
+          'Phantom session active. Unable to auto-detect IONC tokens. Use Verify IONC Token to continue.',
+          'error'
         );
       } else if (tokenTotal > 0) {
         setInlineStatus(
@@ -3210,6 +3473,7 @@
       if (Array.isArray(holdings) && holdings.length > 0) {
         ioncState.holdings = holdings;
       }
+      ioncState.detectionError = false;
       if (ioncVerifiedInput) {
         ioncVerifiedInput.value = 'true';
       }
@@ -3218,6 +3482,7 @@
         `IONC verification complete. Tokens detected: ${formatTokenAmount(ioncState.tokens)}.`,
         'success'
       );
+      updateSolanaActionStatus('IONC tokens verified. Submit to enter the vault.', 'success');
       renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
     };
 
@@ -3431,12 +3696,18 @@
         delete solanaDepositVerifyButton.dataset.loading;
       }
       updateSolanaActionButtons();
+      updateSolanaSessionDetails();
+      resetSolanaActionState();
+      updateSolanaOpenStatus('Launch Solana clearance controls.');
     };
 
     const setSolanaSession = (provider, publicKey) => {
       solanaSessionState.provider = provider || null;
       solanaSessionState.publicKey = publicKey || '';
       updateSolanaActionButtons();
+      updateSolanaSessionDetails();
+      updateSolanaActionStatus('Phantom session active. Select an action to continue.');
+      updateSolanaOpenStatus('Phantom session active. Manage actions inside the Solana panel.', 'success');
     };
 
     const getSelectedSolanaAmount = () => {
@@ -3641,6 +3912,11 @@
             'success'
           );
 
+          updateSolanaActionStatus(
+            `${normalizedAmount} access retainer submitted. Verify the receipt or continue with MEKNX clearance.`,
+            'success'
+          );
+
           setInlineStatus(
             ioncInlineStatus,
             signature
@@ -3657,6 +3933,10 @@
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
           updateStatus(error?.message || 'Unable to submit the SOL access retainer.', 'error');
+          updateSolanaActionStatus(
+            error?.message || `Unable to submit the ${amountLabel} access retainer. Try again shortly.`,
+            'error'
+          );
           triggerFailureAnimation();
         } finally {
           delete solanaDepositSendButton.dataset.loading;
@@ -3703,6 +3983,11 @@
             'success'
           );
 
+          updateSolanaActionStatus(
+            `${normalizedAmount} access retainer verified (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            'success'
+          );
+
           setInlineStatus(
             ioncInlineStatus,
             `IONC holdings confirmed. ${normalizedAmount} access retainer submitted (${shortenIdentifier(
@@ -3717,6 +4002,10 @@
             solanaDepositStatus.classList.remove('wallet-status--connected');
           }
           updateStatus(error?.message || 'Unable to verify the SOL access retainer.', 'error');
+          updateSolanaActionStatus(
+            error?.message || 'Unable to verify the SOL access retainer. Try again shortly.',
+            'error'
+          );
           triggerFailureAnimation();
         } finally {
           delete solanaDepositVerifyButton.dataset.loading;
@@ -4819,6 +5108,7 @@
             resetMeknxState();
             ioncState.tokens = detectedTokens;
             ioncState.holdings = ioncAccounts;
+            ioncState.detectionError = Boolean(ioncBalanceError);
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
             indicateWalletConnection('solana', publicKey);
@@ -4869,6 +5159,8 @@
               phantomStatus.textContent = message;
             }
             updateStatus(message, 'error');
+            updateSolanaActionStatus(message, 'error');
+            updateSolanaOpenStatus(message, 'error');
             triggerFailureAnimation();
             solanaIntentActive = false;
             syncIoncModuleVisibility();
@@ -5007,6 +5299,7 @@
               }
               setInlineStatus(ioncInlineStatus, errorMessage, 'error');
               updateStatus(errorMessage, 'error');
+              updateSolanaActionStatus(errorMessage, 'error');
               triggerFailureAnimation();
               return;
             }
@@ -5025,6 +5318,7 @@
             const fallbackMessage = 'Unable to verify IONC tokens. Try again shortly.';
             setInlineStatus(ioncInlineStatus, fallbackMessage, 'error');
             updateStatus(fallbackMessage, 'error');
+            updateSolanaActionStatus(fallbackMessage, 'error');
             triggerFailureAnimation();
           } finally {
             ioncVerifyButton.disabled = false;

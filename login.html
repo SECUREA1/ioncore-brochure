@@ -2734,6 +2734,7 @@
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
     let solanaIoncLastFocus = null;
+    let solanaIntentActive = false;
 
     function formatTokenAmount(amount) {
       if (!Number.isFinite(amount)) {
@@ -2869,6 +2870,7 @@
       if (solanaDepositRow) {
         solanaDepositRow.hidden = false;
       }
+      syncIoncModuleVisibility();
       requestAnimationFrame(() => {
         solanaIoncPopup.classList.add('is-visible');
         const focusTarget =
@@ -3074,10 +3076,20 @@
     const syncIoncModuleVisibility = () => {
       if (!ioncModule) return;
       const provider = walletProviderInput ? walletProviderInput.value : '';
-      const shouldShow = provider === 'solana';
+      const shouldShow = provider === 'solana' || solanaIntentActive;
       ioncModule.hidden = !shouldShow;
       if (!shouldShow) {
         resetIoncState();
+        return;
+      }
+
+      if (provider !== 'solana') {
+        setInlineStatus(
+          ioncInlineStatus,
+          'Phantom session pending. Connect your Solana wallet to continue.',
+          'error'
+        );
+        renderIoncTokenHoldings([], { showEmpty: true });
         return;
       }
 
@@ -3448,7 +3460,7 @@
       if (!solanaDepositState.completed && solanaDepositStatus) {
         solanaDepositStatus.textContent = `Access retainer pending. Select ${formatSolDepositLabel(
           sanitized
-        )} then click Send after connecting.`;
+        )} and use Send once your Phantom session is active.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -3476,7 +3488,8 @@
       }
       if (solanaDepositStatus) {
         const pendingAmount = formatSolDepositLabel(solanaDepositState.amountSol);
-        solanaDepositStatus.textContent = `Access retainer pending. Select ${pendingAmount} then click Send after connecting.`;
+        solanaDepositStatus.textContent =
+          `Access retainer pending. Select ${pendingAmount} and use Send once your Phantom session is active.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
       updateSolanaActionButtons();
@@ -4070,6 +4083,7 @@
       if (walletProviderInput) {
         walletProviderInput.value = '';
       }
+      solanaIntentActive = false;
       clearWalletValueState();
       clearSolanaDepositState();
       clearSolanaSession();
@@ -4178,6 +4192,8 @@
       const originalLabel = button.textContent;
 
       button.addEventListener('click', async () => {
+        solanaIntentActive = false;
+        syncIoncModuleVisibility();
         const wallet = await waitForWalletInjection(detectCardanoWallet, { timeout: 2800, interval: 220 });
         const walletLabel = wallet ? wallet.label : 'Cardano';
         updateStatus(`Requesting ${walletLabel} session…`);
@@ -4669,6 +4685,8 @@
 
       if (metamaskButton) {
         metamaskButton.addEventListener('click', async () => {
+          solanaIntentActive = false;
+          syncIoncModuleVisibility();
           updateStatus('Requesting MetaMask session…');
           metamaskButton.disabled = true;
           metamaskButton.textContent = 'Connecting…';
@@ -4730,6 +4748,9 @@
 
       if (phantomButton) {
         phantomButton.addEventListener('click', async () => {
+          solanaIntentActive = true;
+          openSolanaIoncPopup();
+          syncIoncModuleVisibility();
           updateStatus('Requesting Phantom session…');
           phantomButton.disabled = true;
           phantomButton.textContent = 'Connecting…';
@@ -4759,7 +4780,9 @@
               throw new Error('No wallet account returned.');
             }
             if (phantomStatus) {
-              phantomStatus.textContent = 'Phantom session established. Loading balances…';
+              const formatted = shortenIdentifier(publicKey);
+              phantomStatus.textContent = `Connected: ${formatted} (loading balances…)`;
+              phantomStatus.classList.add('wallet-status--connected');
             }
             let ioncHoldingsResult = null;
             let ioncBalanceError = null;
@@ -4806,7 +4829,8 @@
             const depositAmountLabel = formatSolDepositLabel(selectedAmount);
             const hasReceipt = solanaDepositState.completed && solanaDepositState.signature;
             if (!hasReceipt && solanaDepositStatus) {
-              solanaDepositStatus.textContent = `Access retainer pending. Select ${depositAmountLabel} then click Send after connecting.`;
+              solanaDepositStatus.textContent =
+                `Access retainer pending. Select ${depositAmountLabel} and use Send once your Phantom session is active.`;
               solanaDepositStatus.classList.remove('wallet-status--connected');
             }
             const depositMessage = hasReceipt
@@ -4846,6 +4870,8 @@
             }
             updateStatus(message, 'error');
             triggerFailureAnimation();
+            solanaIntentActive = false;
+            syncIoncModuleVisibility();
           } finally {
             phantomButton.disabled = false;
             phantomButton.textContent = 'Connect Phantom';

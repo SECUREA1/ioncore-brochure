@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import os from 'os';
 import unzipper from 'unzipper';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { executeMeknxGate, isThirdwebConfigured } from './integrations/thirdweb-client.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -437,6 +437,40 @@ function sanitizeSelectionsForStorage(value) {
   }
 }
 
+function stableStringify(value) {
+  if (value === null || value === undefined) {
+    return 'null';
+  }
+  if (typeof value === 'string') {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : JSON.stringify(String(value));
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(',')}]`;
+  }
+  if (typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    const serialized = keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`);
+    return `{${serialized.join(',')}}`;
+  }
+  return JSON.stringify(String(value));
+}
+
+function computeTreasuryHash(value) {
+  try {
+    const normalized = stableStringify(value);
+    return createHash('sha256').update(normalized).digest('hex');
+  } catch (error) {
+    console.error('Failed to compute treasury hash', error);
+    return null;
+  }
+}
+
 function sanitizeUrl(value) {
   if (typeof value !== 'string') {
     return null;
@@ -502,7 +536,8 @@ async function recordLoginEvent(event) {
       walletProvider: normalizeForStorage(event.walletProvider),
       meknxPassId: normalizeForStorage(event.meknxPassId),
       success: event.success ? 1 : 0,
-      metadata: normalizeForStorage(event.metadata)
+      metadata: normalizeForStorage(event.metadata),
+      ipAddress: normalizeForStorage(event.ipAddress)
     });
     await saveStore();
   } catch (err) {
@@ -650,8 +685,9 @@ function validateLuhn(cardNumber) {
 async function recordMagstripeTransaction(transaction) {
   try {
     const entryId = transaction.transactionId || randomUUID();
-    store.magstripeTransactions.push({
-      createdAt: new Date().toISOString(),
+    const createdAt = new Date().toISOString();
+    const record = {
+      createdAt,
       entryId,
       transactionId: entryId,
       cardholder: normalizeForStorage(transaction.cardholder),
@@ -661,8 +697,24 @@ async function recordMagstripeTransaction(transaction) {
       projectReference: normalizeForStorage(transaction.projectReference),
       authorizationCode: normalizeForStorage(transaction.authorizationCode),
       status: normalizeForStorage(transaction.status),
-      processor: normalizeForStorage(transaction.processor)
+      processor: normalizeForStorage(transaction.processor),
+      ipAddress: normalizeForStorage(transaction.ipAddress)
+    };
+
+    record.ledgerHash = computeTreasuryHash({
+      createdAt: record.createdAt,
+      transactionId: record.transactionId,
+      cardholder: record.cardholder,
+      maskedCardNumber: record.maskedCardNumber,
+      amount: record.amount,
+      currency: record.currency,
+      projectReference: record.projectReference,
+      authorizationCode: record.authorizationCode,
+      processor: record.processor,
+      ipAddress: record.ipAddress
     });
+
+    store.magstripeTransactions.push(record);
     await saveStore();
   } catch (error) {
     console.error('Failed to store magnetic stripe transaction', error);
@@ -696,25 +748,48 @@ function generateBitcoinInvoiceId() {
 async function recordBitcoinTransaction(transaction) {
   try {
     const entryId = transaction.invoiceId || randomUUID();
-    store.bitcoinTransactions.push({
-      createdAt: new Date().toISOString(),
+    const createdAt = new Date().toISOString();
+    const btcAmount =
+      typeof transaction.btcAmount === 'number' && Number.isFinite(transaction.btcAmount)
+        ? Number(transaction.btcAmount.toFixed(8))
+        : null;
+    const usdAmount =
+      typeof transaction.usdAmount === 'number' && Number.isFinite(transaction.usdAmount)
+        ? Number(transaction.usdAmount.toFixed(2))
+        : null;
+
+    const record = {
+      createdAt,
       entryId,
       invoiceId: entryId,
       cardholder: normalizeForStorage(transaction.cardholder),
       btcAddress: normalizeForStorage(transaction.btcAddress || BITCOIN_ADDRESS),
-      btcAmount: typeof transaction.btcAmount === 'number' && Number.isFinite(transaction.btcAmount)
-        ? Number(transaction.btcAmount.toFixed(8))
-        : null,
-      usdAmount: typeof transaction.usdAmount === 'number' && Number.isFinite(transaction.usdAmount)
-        ? Number(transaction.usdAmount.toFixed(2))
-        : null,
+      btcAmount,
+      usdAmount,
       transactionId: normalizeForStorage(transaction.transactionId),
       remittingContact: normalizeForStorage(transaction.remittingContact),
       projectReference: normalizeForStorage(transaction.projectReference),
-      status: normalizeForStorage(transaction.status) || (transaction.transactionId ? 'pending-confirmation' : 'awaiting-txid'),
+      status:
+        normalizeForStorage(transaction.status) || (transaction.transactionId ? 'pending-confirmation' : 'awaiting-txid'),
       confirmationsRequired: BITCOIN_CONFIRMATIONS_REQUIRED,
-      settlementWindowMinutes: BITCOIN_SETTLEMENT_WINDOW_MINUTES
+      settlementWindowMinutes: BITCOIN_SETTLEMENT_WINDOW_MINUTES,
+      ipAddress: normalizeForStorage(transaction.ipAddress)
+    };
+
+    record.ledgerHash = computeTreasuryHash({
+      createdAt: record.createdAt,
+      invoiceId: record.invoiceId,
+      cardholder: record.cardholder,
+      btcAddress: record.btcAddress,
+      btcAmount: record.btcAmount,
+      usdAmount: record.usdAmount,
+      transactionId: record.transactionId,
+      projectReference: record.projectReference,
+      status: record.status,
+      ipAddress: record.ipAddress
     });
+
+    store.bitcoinTransactions.push(record);
     await saveStore();
   } catch (error) {
     console.error('Failed to store bitcoin transaction', error);
@@ -756,8 +831,20 @@ async function recordChatLedgerEntry(entry) {
       likes: Number.isFinite(entry.likes) ? Number(entry.likes) : null,
       commentCount: Number.isFinite(entry.commentCount) ? Number(entry.commentCount) : null,
       region: normalizeForStorage(entry.region || entry.cluster || entry.shard),
-      activeSessions: Number.isFinite(entry.activeSessions) ? Number(entry.activeSessions) : null
+      activeSessions: Number.isFinite(entry.activeSessions) ? Number(entry.activeSessions) : null,
+      ipAddress: normalizeForStorage(entry.ipAddress)
     };
+
+    payload.ledgerHash = computeTreasuryHash({
+      createdAt: payload.createdAt,
+      ledgerId: payload.ledgerId,
+      room: payload.room,
+      user: payload.user,
+      message: payload.message,
+      transport: payload.transport,
+      status: payload.status,
+      ipAddress: payload.ipAddress
+    });
 
     const existingIndex = store.chatServerLedger.findIndex((item) => item && item.ledgerId === payload.ledgerId);
     if (existingIndex >= 0) {
@@ -990,7 +1077,8 @@ app.post('/login', async (req, res) => {
       walletProvider,
       meknxPassId,
       success: false,
-      metadata
+      metadata,
+      ipAddress: req.ip
     });
     clearSessionCookie(res);
     return res
@@ -1007,7 +1095,8 @@ app.post('/login', async (req, res) => {
         walletProvider,
         meknxPassId,
         success: true,
-        metadata
+        metadata,
+        ipAddress: req.ip
       });
       const sessionId = createAuthSession();
       setSessionCookie(res, sessionId);
@@ -1120,7 +1209,8 @@ app.post('/login', async (req, res) => {
       walletProvider: normalizedProvider,
       meknxPassId,
       success: true,
-      metadata: walletMetadata
+      metadata: walletMetadata,
+      ipAddress: req.ip
     });
 
     const sessionId = createAuthSession();
@@ -1181,7 +1271,8 @@ app.post('/login', async (req, res) => {
         walletProvider,
         meknxPassId,
         success: true,
-        metadata: enrichedMetadata
+        metadata: enrichedMetadata,
+        ipAddress: req.ip
       });
 
       const sessionId = createAuthSession();
@@ -1396,7 +1487,8 @@ app.post('/payments/bitcoin', async (req, res) => {
       transactionId,
       remittingContact,
       projectReference,
-      status: transactionId ? 'pending-confirmation' : 'awaiting-txid'
+      status: transactionId ? 'pending-confirmation' : 'awaiting-txid',
+      ipAddress: req.ip
     });
   } catch (error) {
     return res
@@ -1484,7 +1576,8 @@ app.post('/payments/magnetic-stripe', async (req, res) => {
       authorizationCode,
       status: 'authorized',
       processor: 'ioncore-magnetic-stripe',
-      transactionId
+      transactionId,
+      ipAddress: req.ip
     });
   } catch (error) {
     return res
@@ -1544,6 +1637,8 @@ app.post('/api/chat/ledger', async (req, res) => {
     activeSessions: Number.isFinite(body.activeSessions) ? Number(body.activeSessions) : null,
     server: typeof body.server === 'string' ? body.server : null
   };
+
+  entry.ipAddress = req.ip;
 
   try {
     const result = await recordChatLedgerEntry(entry);

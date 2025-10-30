@@ -158,6 +158,26 @@
       .metric-card strong {
         font-size: clamp(2.2rem, 4vw, 2.8rem);
         letter-spacing: -0.02em;
+        color: var(--text-high);
+      }
+
+      #integrity-summary .metric-card {
+        gap: 6px;
+      }
+
+      .hash-value {
+        display: block;
+        font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+        font-size: 0.95rem;
+        letter-spacing: 0.03em;
+        word-break: break-word;
+        color: var(--text-high);
+      }
+
+      .hash-detail {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
       }
 
       .section-header {
@@ -552,6 +572,32 @@
               <div class="wallet-status" id="admin-solana-deposit-status">Awaiting connection.</div>
             </div>
           </div>
+        </div>
+      </section>
+      <section aria-labelledby="integrity-title" id="integrity-summary">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Data Integrity</span>
+            <h2 id="integrity-title">Hashed Intelligence Seals</h2>
+            <p>Verify that synchronized datasets and operational metadata are fully hashed for tamper detection.</p>
+          </div>
+        </div>
+        <div class="admin-card-grid">
+          <article class="metric-card integrity-card">
+            <h3>Data Hash</h3>
+            <code id="integrity-data-hash" class="hash-value">—</code>
+            <p id="integrity-data-detail" class="hash-detail">Awaiting data scan.</p>
+          </article>
+          <article class="metric-card integrity-card">
+            <h3>Metadata Hash</h3>
+            <code id="integrity-metadata-hash" class="hash-value">—</code>
+            <p id="integrity-metadata-detail" class="hash-detail">Awaiting metadata scan.</p>
+          </article>
+          <article class="metric-card integrity-card">
+            <h3>Composite Seal</h3>
+            <code id="integrity-combined-hash" class="hash-value">—</code>
+            <p id="integrity-combined-detail" class="hash-detail">Awaiting verification.</p>
+          </article>
         </div>
       </section>
       <section aria-labelledby="metrics-title">
@@ -1239,14 +1285,33 @@
 
     <script src="/scripts/solana-deposit.js"></script>
     <script>
+      function createIntegrityState() {
+        return {
+          dataHash: '',
+          metadataHash: '',
+          combinedHash: '',
+          recordCount: 0,
+          metadataCount: 0,
+          entryHashes: new WeakMap(),
+          metadataHashes: new WeakMap()
+        };
+      }
+
       const state = {
         data: null,
         search: '',
-        editorOpen: false
+        editorOpen: false,
+        integrity: createIntegrityState()
       };
 
       const statusBanner = document.getElementById('status-banner');
       const generatedAt = document.getElementById('generated-at');
+      const integrityDataHash = document.getElementById('integrity-data-hash');
+      const integrityMetadataHash = document.getElementById('integrity-metadata-hash');
+      const integrityCombinedHash = document.getElementById('integrity-combined-hash');
+      const integrityDataDetail = document.getElementById('integrity-data-detail');
+      const integrityMetadataDetail = document.getElementById('integrity-metadata-detail');
+      const integrityCombinedDetail = document.getElementById('integrity-combined-detail');
       const refreshButton = document.getElementById('refresh-dashboard');
       const refreshInfrastructureButton = document.getElementById('refresh-infrastructure');
       const searchInput = document.getElementById('user-search');
@@ -1284,6 +1349,23 @@
       ];
 
       const INTERNAL_BROADCAST_TAGS = ['internal', 'system', 'private'];
+
+      const INTEGRITY_DATASET_KEYS = [
+        'gatewayUsers',
+        'loginEvents',
+        'contactSubmissions',
+        'gatewaySubmissions',
+        'magstripeTransactions',
+        'bitcoinTransactions',
+        'marketplaceUploads',
+        'marketplaceOrders',
+        'marketplaceBids',
+        'poolTransactions',
+        'timepieceMintLedger',
+        'fileBroadcasts',
+        'chatServerLedger',
+        'activityTimeline'
+      ];
 
       function isInternalBroadcast(entry) {
         if (!entry) {
@@ -1754,6 +1836,187 @@
         return value === 1 ? unit : `${unit}s`;
       }
 
+      function setHashValue(node, hash) {
+        if (!node) {
+          return;
+        }
+        if (hash) {
+          node.textContent = hash;
+          node.setAttribute('title', hash);
+        } else {
+          node.textContent = '—';
+          node.removeAttribute('title');
+        }
+      }
+
+      function formatHashDisplay(hash, length = 32) {
+        if (!hash || hash === '—') {
+          return '—';
+        }
+        const normalized = String(hash);
+        if (normalized.length <= length) {
+          return normalized;
+        }
+        const segment = Math.max(6, Math.floor(length / 2));
+        return `${normalized.slice(0, segment)}…${normalized.slice(-segment)}`;
+      }
+
+      function normalizeRecords(value) {
+        if (!value) {
+          return [];
+        }
+        if (Array.isArray(value)) {
+          return value;
+        }
+        if (typeof value === 'object') {
+          return Object.values(value);
+        }
+        return [];
+      }
+
+      function stableSerialize(value) {
+        if (value === null || value === undefined) {
+          return 'null';
+        }
+        if (typeof value === 'string') {
+          return JSON.stringify(value);
+        }
+        if (typeof value === 'number') {
+          if (!Number.isFinite(value)) {
+            return JSON.stringify(String(value));
+          }
+          return JSON.stringify(value);
+        }
+        if (typeof value === 'boolean') {
+          return value ? 'true' : 'false';
+        }
+        if (Array.isArray(value)) {
+          return `[${value.map((item) => stableSerialize(item)).join(',')}]`;
+        }
+        if (typeof value === 'object') {
+          const keys = Object.keys(value).sort();
+          const entries = keys.map((key) => `${JSON.stringify(key)}:${stableSerialize(value[key])}`);
+          return `{${entries.join(',')}}`;
+        }
+        return JSON.stringify(String(value));
+      }
+
+      async function digestSha256(input) {
+        const encoder = typeof TextEncoder === 'function' ? new TextEncoder() : null;
+        if (encoder && window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === 'function') {
+          const encoded = encoder.encode(input);
+          const buffer = await window.crypto.subtle.digest('SHA-256', encoded);
+          return Array.from(new Uint8Array(buffer))
+            .map((byte) => byte.toString(16).padStart(2, '0'))
+            .join('');
+        }
+        return legacyHashFallback(input);
+      }
+
+      function legacyHashFallback(input) {
+        let hash = 0;
+        const normalized = String(input);
+        for (let index = 0; index < normalized.length; index += 1) {
+          const charCode = normalized.charCodeAt(index);
+          hash = (hash << 5) - hash + charCode;
+          hash |= 0;
+        }
+        return `legacy-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+      }
+
+      async function computeIntegrityDigests(payload) {
+        const integrityState = createIntegrityState();
+        if (!payload || typeof payload !== 'object') {
+          return integrityState;
+        }
+
+        const dataSegments = [];
+        for (const key of INTEGRITY_DATASET_KEYS) {
+          const records = normalizeRecords(payload[key]);
+          for (const record of records) {
+            const serialized = stableSerialize(record);
+            dataSegments.push(serialized);
+            integrityState.recordCount += 1;
+            try {
+              const digest = await digestSha256(serialized);
+              integrityState.entryHashes.set(record, digest);
+              integrityState.metadataHashes.set(record, digest);
+            } catch (error) {
+              console.error('Failed to hash dataset record', error);
+            }
+          }
+        }
+
+        if (dataSegments.length) {
+          try {
+            integrityState.dataHash = await digestSha256(`[${dataSegments.join(',')}]`);
+          } catch (error) {
+            console.error('Failed to hash data payload', error);
+          }
+        }
+
+        const metadataSegments = [];
+        for (const [key, value] of Object.entries(payload)) {
+          if (INTEGRITY_DATASET_KEYS.includes(key)) {
+            continue;
+          }
+          metadataSegments.push(`${JSON.stringify(key)}:${stableSerialize(value)}`);
+        }
+        integrityState.metadataCount = metadataSegments.length;
+
+        if (metadataSegments.length) {
+          try {
+            integrityState.metadataHash = await digestSha256(`[${metadataSegments.join(',')}]`);
+          } catch (error) {
+            console.error('Failed to hash metadata payload', error);
+          }
+        }
+
+        if (integrityState.dataHash || integrityState.metadataHash) {
+          try {
+            integrityState.combinedHash = await digestSha256(
+              `${integrityState.dataHash || ''}|${integrityState.metadataHash || ''}`
+            );
+          } catch (error) {
+            console.error('Failed to hash composite integrity seal', error);
+          }
+        }
+
+        return integrityState;
+      }
+
+      function updateIntegritySummary() {
+        const integrity = state.integrity || createIntegrityState();
+        setHashValue(integrityDataHash, integrity.dataHash);
+        setHashValue(integrityMetadataHash, integrity.metadataHash);
+        setHashValue(integrityCombinedHash, integrity.combinedHash);
+
+        if (integrityDataDetail) {
+          integrityDataDetail.textContent = integrity.recordCount
+            ? `${formatNumber(integrity.recordCount)} ${pluralize(integrity.recordCount, 'record')} hashed`
+            : 'Awaiting data scan.';
+        }
+
+        if (integrityMetadataDetail) {
+          integrityMetadataDetail.textContent = integrity.metadataCount
+            ? `${formatNumber(integrity.metadataCount)} ${pluralize(integrity.metadataCount, 'metadata block')} sealed`
+            : 'Awaiting metadata scan.';
+        }
+
+        if (integrityCombinedDetail) {
+          if (integrity.recordCount || integrity.metadataCount) {
+            const recordsLabel = `${formatNumber(integrity.recordCount)} ${pluralize(integrity.recordCount, 'record')}`;
+            const metadataLabel = `${formatNumber(integrity.metadataCount)} ${pluralize(
+              integrity.metadataCount,
+              'metadata block'
+            )}`;
+            integrityCombinedDetail.textContent = `Scope: ${recordsLabel} · ${metadataLabel}`;
+          } else {
+            integrityCombinedDetail.textContent = 'Awaiting verification.';
+          }
+        }
+      }
+
       function formatRelativeTime(value) {
         if (!value) return '—';
         const date = new Date(value);
@@ -1853,7 +2116,7 @@
           const payload = await response.json();
           payload.fileBroadcasts = sanitizeBroadcasts(payload.fileBroadcasts);
           state.data = payload;
-          renderDashboard();
+          await renderDashboard();
           if (!silent) {
             setStatus('Intelligence synchronized successfully.', 'success');
           }
@@ -1865,10 +2128,18 @@
         }
       }
 
-      function renderDashboard() {
+      async function renderDashboard() {
         if (!state.data) {
           return;
         }
+
+        try {
+          state.integrity = await computeIntegrityDigests(state.data);
+        } catch (error) {
+          console.error('Failed to compute integrity digests', error);
+          state.integrity = createIntegrityState();
+        }
+        updateIntegritySummary();
 
         generatedAt.textContent = 'Synced ' + formatDate(state.data.generatedAt);
 
@@ -2295,7 +2566,13 @@
           tr.appendChild(referenceCell);
 
           const hashCell = document.createElement('td');
-          hashCell.textContent = ledgerAuthorizationLabel(item);
+          const providedHash = ledgerAuthorizationLabel(item);
+          const computedHash = state.integrity?.entryHashes?.get(item.data) || '';
+          const finalHash = providedHash && providedHash !== '—' ? providedHash : computedHash || '—';
+          hashCell.textContent = formatHashDisplay(finalHash);
+          if (finalHash && finalHash !== '—') {
+            hashCell.title = finalHash;
+          }
           tr.appendChild(hashCell);
 
           const metadataCell = document.createElement('td');
@@ -2350,6 +2627,11 @@
             if (clientId) {
               parts.push(`Client: ${clientId}`);
             }
+          }
+          const metadataHash = state.integrity?.metadataHashes?.get(item.data) || computedHash;
+          if (metadataHash) {
+            parts.push(`Integrity: ${formatHashDisplay(metadataHash, 24)}`);
+            metadataCell.title = metadataHash;
           }
           metadataCell.textContent = parts.length ? parts.join(' · ') : '—';
           tr.appendChild(metadataCell);
@@ -2943,14 +3225,37 @@
         const fragment = document.createDocumentFragment();
         for (const txn of transactions) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(txn.timestamp)}</td>
-            <td>${txn.wallet || '—'}</td>
-            <td>${txn.chain || '—'}</td>
-            <td>${txn.token || '—'}</td>
-            <td>${txn.amount != null ? txn.amount : '—'}</td>
-            <td>${txn.hash || txn.transactionHash || '—'}</td>
-          `;
+
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(txn.timestamp);
+          tr.appendChild(timestampCell);
+
+          const walletCell = document.createElement('td');
+          walletCell.textContent = txn.wallet || '—';
+          tr.appendChild(walletCell);
+
+          const chainCell = document.createElement('td');
+          chainCell.textContent = txn.chain || '—';
+          tr.appendChild(chainCell);
+
+          const tokenCell = document.createElement('td');
+          tokenCell.textContent = txn.token || '—';
+          tr.appendChild(tokenCell);
+
+          const amountCell = document.createElement('td');
+          amountCell.textContent = txn.amount != null ? txn.amount : '—';
+          tr.appendChild(amountCell);
+
+          const hashCell = document.createElement('td');
+          const providedHash = txn.hash || txn.transactionHash || '';
+          const computedHash = state.integrity?.entryHashes?.get(txn) || '';
+          const finalHash = providedHash && providedHash !== '—' ? providedHash : computedHash || '—';
+          hashCell.textContent = formatHashDisplay(finalHash);
+          if (finalHash && finalHash !== '—') {
+            hashCell.title = finalHash;
+          }
+          tr.appendChild(hashCell);
+
           fragment.appendChild(tr);
         }
         transactionsTableBody.appendChild(fragment);
@@ -2971,17 +3276,49 @@
         const fragment = document.createDocumentFragment();
         for (const order of orders) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(order.createdAt)}</td>
-            <td>${order.buyer || '—'}</td>
-            <td>${order.seller || '—'}</td>
-            <td>${order.chain || '—'}</td>
-            <td>${order.token || '—'}</td>
-            <td>${order.amount != null ? order.amount : '—'}</td>
-            <td>${order.status || '—'}</td>
-            <td>${order.transactionHash || '—'}</td>
-            <td>${order.invoice || '—'}</td>
-          `;
+
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(order.createdAt);
+          tr.appendChild(timestampCell);
+
+          const buyerCell = document.createElement('td');
+          buyerCell.textContent = order.buyer || '—';
+          tr.appendChild(buyerCell);
+
+          const sellerCell = document.createElement('td');
+          sellerCell.textContent = order.seller || '—';
+          tr.appendChild(sellerCell);
+
+          const chainCell = document.createElement('td');
+          chainCell.textContent = order.chain || '—';
+          tr.appendChild(chainCell);
+
+          const tokenCell = document.createElement('td');
+          tokenCell.textContent = order.token || '—';
+          tr.appendChild(tokenCell);
+
+          const amountCell = document.createElement('td');
+          amountCell.textContent = order.amount != null ? order.amount : '—';
+          tr.appendChild(amountCell);
+
+          const statusCell = document.createElement('td');
+          statusCell.textContent = order.status || '—';
+          tr.appendChild(statusCell);
+
+          const hashCell = document.createElement('td');
+          const providedHash = order.transactionHash || '';
+          const computedHash = state.integrity?.entryHashes?.get(order) || '';
+          const finalHash = providedHash && providedHash !== '—' ? providedHash : computedHash || '—';
+          hashCell.textContent = formatHashDisplay(finalHash);
+          if (finalHash && finalHash !== '—') {
+            hashCell.title = finalHash;
+          }
+          tr.appendChild(hashCell);
+
+          const invoiceCell = document.createElement('td');
+          invoiceCell.textContent = order.invoice || '—';
+          tr.appendChild(invoiceCell);
+
           fragment.appendChild(tr);
         }
         ordersTableBody.appendChild(fragment);
@@ -3002,17 +3339,49 @@
         const fragment = document.createDocumentFragment();
         for (const bid of bids) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formatDate(bid.createdAt)}</td>
-            <td>${bid.bidderName || '—'}</td>
-            <td>${bid.assetOwner || bid.seller || '—'}</td>
-            <td>${bid.chain || '—'}</td>
-            <td>${bid.currency || bid.token || '—'}</td>
-            <td>${bid.amount != null ? bid.amount : '—'}</td>
-            <td>${bid.status || '—'}</td>
-            <td>${bid.transactionHash || '—'}</td>
-            <td>${bid.invoice || '—'}</td>
-          `;
+
+          const timestampCell = document.createElement('td');
+          timestampCell.textContent = formatDate(bid.createdAt);
+          tr.appendChild(timestampCell);
+
+          const bidderCell = document.createElement('td');
+          bidderCell.textContent = bid.bidderName || '—';
+          tr.appendChild(bidderCell);
+
+          const sellerCell = document.createElement('td');
+          sellerCell.textContent = bid.assetOwner || bid.seller || '—';
+          tr.appendChild(sellerCell);
+
+          const chainCell = document.createElement('td');
+          chainCell.textContent = bid.chain || '—';
+          tr.appendChild(chainCell);
+
+          const tokenCell = document.createElement('td');
+          tokenCell.textContent = bid.currency || bid.token || '—';
+          tr.appendChild(tokenCell);
+
+          const amountCell = document.createElement('td');
+          amountCell.textContent = bid.amount != null ? bid.amount : '—';
+          tr.appendChild(amountCell);
+
+          const statusCell = document.createElement('td');
+          statusCell.textContent = bid.status || '—';
+          tr.appendChild(statusCell);
+
+          const hashCell = document.createElement('td');
+          const providedHash = bid.transactionHash || '';
+          const computedHash = state.integrity?.entryHashes?.get(bid) || '';
+          const finalHash = providedHash && providedHash !== '—' ? providedHash : computedHash || '—';
+          hashCell.textContent = formatHashDisplay(finalHash);
+          if (finalHash && finalHash !== '—') {
+            hashCell.title = finalHash;
+          }
+          tr.appendChild(hashCell);
+
+          const invoiceCell = document.createElement('td');
+          invoiceCell.textContent = bid.invoice || '—';
+          tr.appendChild(invoiceCell);
+
           fragment.appendChild(tr);
         }
         bidsTableBody.appendChild(fragment);

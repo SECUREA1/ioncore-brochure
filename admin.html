@@ -2460,6 +2460,11 @@
 
       function ledgerAuthorizationLabel(item) {
         if (!item || !item.data) return '—';
+        const explicitHash =
+          item.data.ledgerHash || item.data.treasuryHash || item.data.hash || item.data.integrityHash || null;
+        if (explicitHash) {
+          return explicitHash;
+        }
         if (item.type === 'chat') {
           return (
             item.data.eventId ||
@@ -2588,6 +2593,10 @@
           }
           if (projectLabel && projectLabel !== '—') {
             parts.push(`Ref: ${projectLabel}`);
+          }
+          const ipAddress = item?.data?.ipAddress;
+          if (ipAddress) {
+            parts.push(`IP: ${ipAddress}`);
           }
           if (item.type === 'chat') {
             const sessions = Number(item?.data?.activeSessions || item?.data?.sessions || 0);

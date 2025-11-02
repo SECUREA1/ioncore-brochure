@@ -348,6 +348,115 @@
       line-height: 1.6;
     }
 
+    .vault-analytics-link {
+      position: relative;
+      margin: 0 0 clamp(1.75rem, 4vw, 2.5rem);
+      padding: clamp(1.65rem, 3.8vw, 2.35rem);
+      border-radius: 20px;
+      border: 1px solid rgba(72, 255, 226, 0.28);
+      background: linear-gradient(160deg, rgba(9, 17, 38, 0.92), rgba(15, 27, 52, 0.76));
+      box-shadow:
+        0 22px 48px rgba(5, 11, 26, 0.55),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      display: grid;
+      gap: clamp(0.75rem, 2vw, 1.25rem);
+      overflow: hidden;
+    }
+
+    .vault-analytics-link::before {
+      content: '';
+      position: absolute;
+      inset: -35% 10% 45% -25%;
+      background: radial-gradient(circle at 20% 40%, rgba(72, 255, 226, 0.22), transparent 62%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .vault-analytics-link::after {
+      content: '';
+      position: absolute;
+      inset: 35% -15% -45% 55%;
+      background: radial-gradient(circle at 60% 40%, rgba(255, 73, 118, 0.18), transparent 70%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .vault-analytics-link__badge {
+      width: fit-content;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(72, 255, 226, 0.18);
+      color: var(--ioncore-aqua);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+
+    .vault-analytics-link__content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .vault-analytics-link__title {
+      margin: 0;
+      font-size: clamp(1.35rem, 3.2vw, 1.75rem);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #f8fafc;
+    }
+
+    .vault-analytics-link__copy {
+      margin: 0;
+      color: rgba(226, 232, 240, 0.76);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .vault-analytics-link__actions {
+      display: grid;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: start;
+    }
+
+    .vault-analytics-link__button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.8rem 1.3rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #050b1a;
+      background: linear-gradient(135deg, rgba(72, 255, 226, 0.95), rgba(106, 255, 59, 0.85));
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.45);
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .vault-analytics-link__button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 44px rgba(72, 255, 226, 0.4);
+    }
+
+    .vault-analytics-link__button:focus-visible {
+      outline: 2px solid rgba(72, 255, 226, 0.85);
+      outline-offset: 3px;
+    }
+
+    .vault-analytics-link__hint {
+      margin: 0;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.78);
+    }
+
     .vault-credential-card {
       margin: 1.75rem 0 2.25rem;
       border-radius: 20px;
@@ -2419,6 +2528,19 @@
       </div>
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <section class="vault-analytics-link" aria-labelledby="vault-analytics-title">
+        <span class="vault-analytics-link__badge">New</span>
+        <div class="vault-analytics-link__content">
+          <h2 class="vault-analytics-link__title" id="vault-analytics-title">IONC Token Intelligence Snapshot</h2>
+          <p class="vault-analytics-link__copy">
+            Review live treasury reserves, unlock cadence, and demand pressure before submitting your access request. Insights update hourly from validator attestations.
+          </p>
+          <div class="vault-analytics-link__actions">
+            <button type="button" id="ionc-chart-button" class="vault-analytics-link__button">Open Token Console</button>
+            <p class="vault-analytics-link__hint">Launches in a secure tab.</p>
+          </div>
+        </div>
+      </section>
       <figure class="vault-credential-card" aria-labelledby="vault-card-caption">
         <img src="IMG_3143.jpeg" alt="Ioncore Energy secure client access card with QR credential" class="vault-credential-card__image" loading="lazy">
         <figcaption id="vault-card-caption" class="vault-credential-card__caption">Ioncore currency credential required for vault and continuum access.</figcaption>
@@ -2716,6 +2838,7 @@
 
     const form = document.getElementById('login-form');
     const status = document.getElementById('status');
+    const ioncChartButton = document.getElementById('ionc-chart-button');
     const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
     const nextPath = query.get('next') || '/';
@@ -2773,6 +2896,17 @@
     const meknxStatus = document.getElementById('meknx-status');
     const meknxPasscodeInput = document.getElementById('meknx-passcode');
     const meknxPassIdInput = document.getElementById('meknx-pass-id');
+
+    if (ioncChartButton) {
+      ioncChartButton.addEventListener('click', () => {
+        const chartWindow = window.open('ionc-token-chart.html', '_blank');
+        if (chartWindow) {
+          chartWindow.opener = null;
+        } else {
+          window.location.href = 'ionc-token-chart.html';
+        }
+      });
+    }
 
     const IoncoreSolanaModule = window.IoncoreSolana || null;
     const SOLANA_RPC_ENDPOINT =

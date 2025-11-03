@@ -1046,6 +1046,27 @@ app.post('/login', async (req, res) => {
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
   const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
+  const accessCardConfirmed =
+    body.accessCardConfirmed === true ||
+    body.accessCardConfirmed === 'true' ||
+    body.accessCardConfirmed === 1 ||
+    body.accessCardConfirmed === '1';
+  const accessCardReference =
+    typeof body.accessCardReference === 'string' ? body.accessCardReference.trim() : '';
+  const accessCardMethodRaw =
+    typeof body.accessCardMethod === 'string' ? body.accessCardMethod.trim().toLowerCase() : '';
+  const solanaDepositSignature =
+    typeof body.solanaDepositSignature === 'string' ? body.solanaDepositSignature.trim() : '';
+  const solanaDepositAmountRaw =
+    Number.isFinite(body.solanaDepositAmount) && Number(body.solanaDepositAmount) >= 0
+      ? Number(body.solanaDepositAmount)
+      : Number.parseFloat(
+          typeof body.solanaDepositAmount === 'string' ? body.solanaDepositAmount.trim() : ''
+        );
+  const solanaDepositAmount =
+    Number.isFinite(solanaDepositAmountRaw) && solanaDepositAmountRaw > 0
+      ? solanaDepositAmountRaw
+      : null;
   let nextPath = typeof body.next === 'string' ? body.next : '/webpage.html';
 
   if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
@@ -1058,6 +1079,8 @@ app.post('/login', async (req, res) => {
       ? 'meknx'
       : 'credentials';
 
+  const normalizedAccessCardMethod = accessCardMethodRaw || (solanaDepositSignature ? 'solana' : 'manual');
+
   const metadataBase = {
     nextPath,
     meknxStatus: body.meknxStatus,
@@ -1065,7 +1088,12 @@ app.post('/login', async (req, res) => {
     ioncTokens: body.ioncTokens,
     ioncVerified: body.ioncVerified,
     cardanoPolicyVerified: body.cardanoPolicyVerified,
-    cardanoPolicyId: body.cardanoPolicyId
+    cardanoPolicyId: body.cardanoPolicyId,
+    accessCardConfirmed,
+    accessCardReference,
+    accessCardMethod: normalizedAccessCardMethod,
+    solanaDepositSignature,
+    solanaDepositAmount
   };
   const metadata = serializeMetadata(metadataBase);
 
@@ -1085,6 +1113,16 @@ app.post('/login', async (req, res) => {
       .status(statusCode)
       .json({ message: message || 'Access denied. Invalid clearance credentials.' });
   };
+
+  const hasSolanaProof = Boolean(solanaDepositSignature);
+  const hasManualReference = accessCardReference && accessCardReference.length >= 6;
+
+  if (!accessCardConfirmed || (!hasSolanaProof && !hasManualReference)) {
+    return recordFailure(
+      'Ioncore Secure Client Access Card purchase required before vault entry. Confirm your access card order before continuing.',
+      403
+    );
+  }
 
   if (method === 'credentials') {
     if (username === AUTH_USER && password === AUTH_PASS) {

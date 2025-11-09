@@ -1,0 +1,814 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+macer4.py — GUI MAC/BLE inspector with deep field inspector
+- Open files/folders/zips → auto analyze + enrich.
+- Right-click any table cell (or use "Inspect…" button) to open a focused
+  detail window with readable explanations and, for MAC fields, octet/bit views.
+
+Optional installs:
+  pip install mac-vendor-lookup pandas openpyxl
+"""
+import argparse, csv, json, os, platform, re, sqlite3, subprocess, sys, zipfile
+from statistics import mean
+from typing import Dict, List, Optional, Tuple, Any
+
+# --------------------------- MAC extraction / normalize -----------------------
+MAC_PATTERNS = [
+    re.compile(r'(?:\b|^)(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}(?:\b|$)'),
+    re.compile(r'(?:\b|^)[0-9A-Fa-f]{4}(?:\.[0-9A-Fa-f]{4}){2}(?:\b|$)'),
+    re.compile(r'(?:\b|^)[0-9A-Fa-f]{12}(?:\b|$)'),
+]
+HEX12 = re.compile(r'^[0-9A-Fa-f]{12}$')
+
+def _ocr_fix(s: str) -> str:
+    return s.translate(str.maketrans({'O':'0','o':'0','I':'1','l':'1','S':'5','s':'5','B':'8'}))
+
+def normalize_mac_any(s: str) -> Optional[str]:
+    if not isinstance(s, str): return None
+    s = _ocr_fix(s)
+    hexonly = re.sub(r'[^0-9A-Fa-f]', '', s)
+    if len(hexonly) != 12 or not HEX12.fullmatch(hexonly): return None
+    return ':'.join(hexonly[i:i+2].upper() for i in range(0, 12, 2))
+
+def extract_macs_from_text(text: str) -> List[str]:
+    hits: List[str] = []
+    for pat in MAC_PATTERNS:
+        for m in pat.findall(text or ""):
+            mac = normalize_mac_any(m)
+            if mac: hits.append(mac)
+    seen, out = set(), []
+    for mac in hits:
+        if mac not in seen:
+            seen.add(mac); out.append(mac)
+    return out
+
+# ------------------------------- Analysis core --------------------------------
+def mac_bytes(mac: str) -> List[int]: return [int(p, 16) for p in mac.split(':')]
+def ig_bit(b0: int) -> int: return b0 & 0x01  # 0=unicast, 1=multicast
+def ul_bit(b0: int) -> int: return (b0 >> 1) & 0x01  # 0=OUI/global, 1=local
+def first_octet_bits(b0: int) -> str: return f"{b0:08b}"
+
+def ble_random_class(b0: int) -> Optional[str]:
+    msb2 = (b0 >> 6) & 0b11
+    return {
+        0b11: "BLE Static Random (MSBs=11)",
+        0b01: "BLE Resolvable Private (MSBs=01)",
+        0b00: "BLE Non-Resolvable Private (MSBs=00)",
+        0b10: "BLE Reserved/Uncommon (MSBs=10)"
+    }.get(msb2)
+
+def mac_to_int(mac: str) -> int: return int(mac.replace(':', ''), 16)
+
+def vendor_lookup(mac: str, update: bool=False) -> Optional[str]:
+    try:
+        from mac_vendor_lookup import MacLookup
+        ml = MacLookup()
+        if update: ml.update_vendors()
+        return ml.lookup(mac)
+    except Exception:
+        return None
+
+KNOWN_TAGS = {
+    "00:05:69":"VMware","00:50:56":"VMware","00:1C:14":"VMware","00:0C:29":"VMware",
+    "52:54:00":"QEMU/KVM","00:16:3E":"Xen","08:00:27":"VirtualBox","02:42:AC":"Docker (172.* seed)",
+    "F4:F5:D8":"Google (Nest/Cast)","3C:5A:B4":"Amazon (Echo/Fire)","B8:27:EB":"Raspberry Pi",
+    "DC:A6:32":"Apple","F0:99:B6":"Apple",
+}
+
+def heuristic_tags(oui: str, vendor: Optional[str], locally_admin: bool) -> List[str]:
+    tags: List[str] = []
+    if locally_admin: tags.append("locally-administered")
+    if oui in KNOWN_TAGS: tags.append(KNOWN_TAGS[oui])
+    if vendor:
+        v = vendor.lower()
+        for key in ("apple","samsung","google","hon hai","murata","bose","tp-link","intel","raspberry"):
+            if key in v: tags.append(key); break
+    seen, out = set(), []
+    for t in tags:
+        if t not in seen: seen.add(t); out.append(t)
+    return out
+
+def analyze_one(mac: str, use_vendor=False, update_vendors=False) -> Dict[str, Optional[str]]:
+    b0 = mac_bytes(mac)[0]
+    is_multicast = ig_bit(b0) == 1
+    is_local = ul_bit(b0) == 1
+    oui = ':'.join(mac.split(':')[:3])
+    nic = ':'.join(mac.split(':')[3:])
+    ble_hint = ble_random_class(b0)
+    vend = vendor_lookup(mac, update=update_vendors) if use_vendor else None
+    conf = "oui_match" if (vend and not is_local) else ("low (locally administered)" if (vend and is_local) else None)
+    return {
+        "mac": mac, "valid": "yes",
+        "unicast_or_multicast": "multicast/group" if is_multicast else "unicast/individual",
+        "admin": "locally administered" if is_local else "universally administered (OUI)",
+        "locally_administered": "yes" if is_local else "no",
+        "first_octet_hex": f"{b0:02X}", "first_octet_bits": first_octet_bits(b0),
+        "ig_bit": str(ig_bit(b0)), "ul_bit": str(ul_bit(b0)),
+        "ble_random_hint": ble_hint, "address_kind": "local/random" if is_local else "public (OUI)",
+        "vendor": vend, "vendor_guess_confidence": conf,
+        "oui": oui, "nic": nic, "mac_int": str(mac_to_int(mac)),
+        "tags": ','.join(heuristic_tags(oui, vend, is_local)) or None,
+        "ip": None, "iface": None,
+    }
+
+# --------------------------- Local enrichment (optional) ----------------------
+def run_cmd(cmd: List[str]) -> str:
+    try: return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL)
+    except Exception: return ""
+
+def enrich_local_mac_map() -> Dict[str, Dict[str,str]]:
+    out: Dict[str, Dict[str,str]] = {}
+    sysname = platform.system().lower()
+    def add(mac: str, ip: str, iface: str):
+        m = normalize_mac_any(mac)
+        if m: out[m] = {'ip': ip, 'iface': iface}
+    if 'linux' in sysname or 'darwin' in sysname:
+        txt = run_cmd(["ip", "neigh"])
+        for line in txt.splitlines():
+            m = re.search(r'(?P<ip>\d+\.\d+\.\d+\.\d+)\s+dev\s+(?P<if>\S+).*?lladdr\s+(?P<mac>[0-9a-f:]{17})', line, re.I)
+            if m: add(m.group('mac'), m.group('ip'), m.group('if'))
+        txt = run_cmd(["arp","-a"])
+        for line in txt.splitlines():
+            m = re.search(r'\((?P<ip>\d+\.\d+\.\d+\.\d+)\)\s+at\s+(?P<mac>[0-9a-f:]{17}).*?\s+on\s+(?P<if>\S+)', line, re.I)
+            if m: add(m.group('mac'), m.group('ip'), m.group('if'))
+        txt = run_cmd(["ndp","-an"])
+        for line in txt.splitlines():
+            m = re.search(r'(?P<ip>\d+\.\d+\.\d+\.\d+)\s+linklayer\s+(?P<mac>[0-9a-f:]{17})\s+.*(?P<if>en\d+)', line, re.I)
+            if m: add(m.group('mac'), m.group('ip'), m.group('if'))
+    elif 'windows' in sysname:
+        txt = run_cmd(["arp","-a"])
+        current_if = "unknown"
+        for line in txt.splitlines():
+            m_if = re.search(r'^Interface:\s+(\d+\.\d+\.\d+\.\d+)', line)
+            if m_if: current_if = m_if.group(1); continue
+            m = re.search(r'(?P<ip>\d+\.\d+\.\d+\.\d+)\s+(?P<mac>[0-9a-f\-]{17})\s+.*', line, re.I)
+            if m: add(m.group('mac').replace('-', ':'), m.group('ip'), current_if)
+    return out
+
+# --------------------- Radio export/log enrichment (parsers) ------------------
+RE_TIME = re.compile(r'\b(?:time(?:stamp)?|ts)\s*[:=]\s*([0-9T:\-\.Z/\s]+)', re.I)
+RE_RSSI = re.compile(r'\brssi\b\s*[:=]\s*(-?\d+)', re.I)
+RE_TXP  = re.compile(r'\btx(?:\s*power|power|pwr)?\b\s*[:=]\s*(-?\d+)', re.I)
+RE_CH   = re.compile(r'\bch(?:annel)?\b\s*[:=]\s*(\d+)', re.I)
+RE_NAME = re.compile(r'\b(name|dev(?:ice)?\s*name)\b\s*[:=]\s*("?)([^\n",]+)\2', re.I)
+RE_ADV  = re.compile(r'\b(ADV[_\-\s]?(IND|NONCONN_IND|SCAN_IND|SCAN_RSP)|SCAN[_\-\s]?RSP|CONNECT[_\-\s]?REQ)\b', re.I)
+RE_UUID = re.compile(r'\b(?:uuid|service(?:\s*uuid)?s?)\b\s*[:=]\s*(\[?[0-9a-f,\-\s\{\}x]+\]?)', re.I)
+RE_COID = re.compile(r'\b(?:company|manuf(?:acturer)?)\b\s*[:=]\s*([A-Za-z0-9\-\s\(\)]+|0x[0-9A-Fa-f]{4})', re.I)
+RE_IBEACON = re.compile(r'\bi\s*beacon\b', re.I)
+RE_EDDYST  = re.compile(r'\beddy\s*stone\b', re.I)
+RE_KV = re.compile(r'\b([A-Za-z][A-Za-z0-9_\-/ ]{1,20})\s*[:=]\s*([^\s,;|]+)')
+
+def _safe_add(s: set, v: Any):
+    if v is None: return
+    v = str(v).strip()
+    if v: s.add(v)
+def _append_num(lst: list, v: Optional[str]):
+    if v is None: return
+    try: lst.append(int(v))
+    except Exception: pass
+
+def enrich_from_text_blocks(blocks: List[Tuple[str, str]]) -> Dict[str, Dict[str, Any]]:
+    per: Dict[str, Dict[str, Any]] = {}
+    def ensure(mac: str) -> Dict[str, Any]:
+        if mac not in per:
+            per[mac] = {
+                "_count": 0, "first_seen": None, "last_seen": None, "sources": set(),
+                "rssi_vals": [], "txp_vals": [], "adv_types": set(), "channels": set(),
+                "device_names": set(), "service_uuids": set(), "company_ids": set(),
+                "frames": set(), "kv": {}, "ctx_lines": set()
+            }
+        return per[mac]
+
+    for src, text in blocks:
+        for line in (text or "").splitlines():
+            macs = extract_macs_from_text(line)
+            if not macs: continue
+            ts  = (RE_TIME.search(line) or [None,None])[1] if RE_TIME.search(line) else None
+            rssi= (RE_RSSI.search(line) or [None,None])[1] if RE_RSSI.search(line) else None
+            txp = (RE_TXP.search(line)  or [None,None])[1] if RE_TXP.search(line)  else None
+            ch  = (RE_CH.search(line)   or [None,None])[1] if RE_CH.search(line)   else None
+            name_m = RE_NAME.search(line)
+            name = name_m.group(3).strip() if name_m else None
+            adv_m = RE_ADV.findall(line); advs = [a[0].upper().replace(' ','_').replace('-','_') for a in adv_m] if adv_m else []
+            uuids_m = RE_UUID.search(line); uuids_raw = uuids_m.group(1) if uuids_m else None
+            company_m = RE_COID.search(line); company = company_m.group(1).strip() if company_m else None
+            ibeacon = bool(RE_IBEACON.search(line)); eddy = bool(RE_EDDYST.search(line))
+            kvs = RE_KV.findall(line)
+
+            for mac in macs:
+                d = ensure(mac)
+                d["_count"] += 1; _safe_add(d["sources"], src); _safe_add(d["ctx_lines"], line.strip())
+                if ts:
+                    if d["first_seen"] is None: d["first_seen"] = ts
+                    d["last_seen"] = ts
+                _append_num(d["rssi_vals"], rssi); _append_num(d["txp_vals"], txp)
+                if ch: _safe_add(d["channels"], ch)
+                if name: _safe_add(d["device_names"], name)
+                for a in advs: _safe_add(d["adv_types"], a)
+                if uuids_raw:
+                    for piece in re.split(r'[\s,\[\]\{\}]+', uuids_raw):
+                        piece = piece.strip()
+                        if piece and (re.fullmatch(r'(0x)?[0-9A-Fa-f\-]{4,36}', piece) or len(piece) >= 4):
+                            _safe_add(d["service_uuids"], piece.upper())
+                if company: _safe_add(d["company_ids"], company)
+                if ibeacon: _safe_add(d["frames"], "iBeacon")
+                if eddy:    _safe_add(d["frames"], "Eddystone")
+                for k, v in kvs:
+                    k = k.strip().lower()
+                    if len(k) < 2: continue
+                    d["kv"].setdefault(k, set()); _safe_add(d["kv"][k], v)
+
+    out: Dict[str, Dict[str, Any]] = {}
+    for mac, d in per.items():
+        summ: Dict[str, Any] = {
+            "source": ",".join(sorted(d["sources"])) if d["sources"] else None,
+            "first_seen": d["first_seen"], "last_seen": d["last_seen"],
+            "observation_count": d["_count"],
+            "rssi_min": (min(d["rssi_vals"]) if d["rssi_vals"] else None),
+            "rssi_max": (max(d["rssi_vals"]) if d["rssi_vals"] else None),
+            "rssi_avg": (int(round(mean(d["rssi_vals"]))) if d["rssi_vals"] else None),
+            "rssi_series": ",".join(str(x) for x in d["rssi_vals"]) if d["rssi_vals"] else None,
+            "txp_values": ",".join(str(x) for x in sorted(set(d["txp_vals"]))) if d["txp_vals"] else None,
+            "adv_types": ",".join(sorted(d["adv_types"])) if d["adv_types"] else None,
+            "channels": ",".join(sorted(d["channels"])) if d["channels"] else None,
+            "device_names": ",".join(sorted(d["device_names"])) if d["device_names"] else None,
+            "service_uuids": ",".join(sorted(d["service_uuids"])) if d["service_uuids"] else None,
+            "company_ids": ",".join(sorted(d["company_ids"])) if d["company_ids"] else None,
+            "frames": ",".join(sorted(d["frames"])) if d["frames"] else None,
+            "raw_context": "\n".join(sorted(d["ctx_lines"])) if d["ctx_lines"] else None,
+        }
+        for k, vals in d["kv"].items():
+            summ[f"kv_{k.replace(' ','_')}"] = ",".join(sorted(str(x) for x in vals))
+        out[mac] = summ
+    return out
+
+# -------------------------- Reader: files/folders/zips ------------------------
+def _open_as_text(path: str) -> Optional[str]:
+    try:
+        with open(path, 'rb') as f: raw = f.read()
+        try: return raw.decode('utf-8')
+        except UnicodeDecodeError: return raw.decode('latin-1', errors='ignore')
+    except Exception: return None
+
+def read_paths(paths: List[str]) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
+    sources: List[Tuple[str, str]] = []; blocks:  List[Tuple[str, str]] = []
+    def scan_text(source: str, text: str):
+        if not text: return
+        blocks.append((source, text))
+        for mac in extract_macs_from_text(text):
+            sources.append((source, mac))
+    def scan_file(path: str):
+        low = path.lower(); base = os.path.basename(path)
+        if low.endswith(('.txt','.log','.csv','.json','.tsv')):
+            txt = _open_as_text(path);
+            if txt: scan_text(base, txt)
+        elif low.endswith(('.xlsx','.xls')):
+            try:
+                import pandas as pd
+                df = pd.read_excel(path, dtype=str)
+                txt = "\n".join("\t".join(map(str,row)) for row in df.fillna("").astype(str).itertuples(index=False, name=None))
+                scan_text(base, txt)
+            except Exception: pass
+        elif low.endswith('.zip'):
+            try:
+                with zipfile.ZipFile(path, 'r') as z:
+                    for name in z.namelist():
+                        nlow = name.lower()
+                        if nlow.endswith(('.txt','.log','.csv','.json','.tsv')):
+                            try:
+                                data = z.read(name)
+                                try: txt = data.decode('utf-8')
+                                except UnicodeDecodeError: txt = data.decode('latin-1', errors='ignore')
+                                scan_text(name, txt)
+                            except Exception: pass
+            except Exception: pass
+        else:
+            txt = _open_as_text(path)
+            if txt: scan_text(base, txt)
+    for p in paths:
+        if os.path.isdir(p):
+            for root, _, files in os.walk(p):
+                for name in files: scan_file(os.path.join(root, name))
+        else: scan_file(p)
+    seen, uniq = set(), []
+    for src, mac in sources:
+        if (src,mac) not in seen:
+            seen.add((src,mac)); uniq.append((src, mac))
+    return uniq, blocks
+
+# ------------------------------ Explain helpers -------------------------------
+BLE_MAP = {
+    "BLE Static Random (MSBs=11)": "Static Random: stable until device resets.",
+    "BLE Resolvable Private (MSBs=01)": "Resolvable Private Address: rotates; resolvable by paired devices using IRK.",
+    "BLE Non-Resolvable Private (MSBs=00)": "Non-Resolvable Private Address: rotates; not resolvable.",
+    "BLE Reserved/Uncommon (MSBs=10)": "Reserved/uncommon pattern.",
+}
+
+def explain_row(r: Dict[str, Optional[str]]) -> str:
+    def bw(v: Optional[str]) -> str:
+        return "Yes" if isinstance(v, str) and v.lower().startswith('y') else ("No" if isinstance(v, str) else "Unknown")
+    lines = []
+    lines.append(f"Address: {r.get('mac','')}")
+    if r.get("unicast_or_multicast") or r.get("admin"):
+        lines.append(f"Identity: {r.get('unicast_or_multicast','')} | {r.get('admin','')} (Locally Administered: {bw(r.get('locally_administered'))})")
+    if r.get("first_octet_hex") and r.get("first_octet_bits"):
+        lines.append(f"First Octet: 0x{r['first_octet_hex']} (bits {r['first_octet_bits']}) → IG={r.get('ig_bit','?')}, UL={r.get('ul_bit','?')}")
+    if r.get("ble_random_hint"):
+        lines.append(f"BLE Random Hint: {r['ble_random_hint']} — {BLE_MAP.get(r['ble_random_hint'], '')}")
+    if r.get("oui") or r.get("nic"): lines.append(f"OUI: {r.get('oui','')} | NIC: {r.get('nic','')}")
+    if r.get("vendor"): lines.append(f"Vendor: {r['vendor']} (confidence: {r.get('vendor_guess_confidence') or 'n/a'})")
+    if r.get("mac_int"): lines.append(f"Integer form: {r['mac_int']}")
+    if r.get("tags"): lines.append(f"Tags: {r['tags']}")
+    if r.get("ip") or r.get("iface"):
+        lines.append(f"Local mapping: IP={r.get('ip') or '—'}, Interface={r.get('iface') or '—'}")
+    for k in ("first_seen","last_seen","observation_count","rssi_min","rssi_max","rssi_avg",
+              "txp_values","adv_types","channels","device_names","service_uuids","company_ids","frames","source"):
+        if r.get(k): lines.append(f"{k.replace('_',' ').title()}: {r[k]}")
+    for key in sorted(r.keys()):
+        if key.startswith("kv_") and r.get(key):
+            lines.append(f"{key[3:].replace('_',' ').title()}: {r[key]}")
+    lines.append("Note: MACs are identifiers; not decryptable into private data.")
+    return "\n".join(lines)
+
+def _sparkline_from_series(s: Optional[str]) -> str:
+    if not s: return ""
+    try:
+        data = [int(x) for x in s.split(',') if x.strip()]
+        if not data: return ""
+        mn, mx = min(data), max(data); span = (mx - mn) or 1
+        blocks = "▁▂▃▄▅▆▇█"
+        idx = [int((x - mn) * (len(blocks)-1) / span) for x in data]
+        return "".join(blocks[i] for i in idx)
+    except Exception: return ""
+
+def _octet_bit_table(mac: str) -> List[Tuple[str, str, str, str]]:
+    # returns [(index, hex, binary, notes)]
+    b = mac_bytes(mac)
+    rows = []
+    for i, val in enumerate(b):
+        bits = f"{val:08b}"
+        note = ""
+        if i == 0:
+            ig = ig_bit(val); ul = ul_bit(val)
+            note = f"IG={ig} (0=uni,1=multi), UL={ul} (0=OUI,1=local)"
+        rows.append((f"Octet {i+1}", f"{val:02X}", bits, note))
+    return rows
+
+def _explain_field(key: str, value: Any, row: Dict[str, Any]) -> str:
+    # small “what’s this” glossary
+    gl = {
+        "first_octet_bits": "Bits of the first byte of the MAC. LSB=IG (unicast/multicast), next bit=UL (global/local).",
+        "ig_bit": "Individual/Group bit. 0=unicast (individual), 1=multicast (group).",
+        "ul_bit": "Universal/Local bit. 0=globally administered (OUI), 1=locally administered.",
+        "ble_random_hint": "Classification of BLE 'random' address based on the two MSBs of the first octet.",
+        "oui": "Organizationally Unique Identifier (first 3 bytes). Assigned to vendors; indicates manufacturer block.",
+        "nic": "NIC (last 3 bytes). Device-specific portion assigned within the OUI or chosen locally.",
+        "tags": "Heuristic tags inferred from OUI/vendor or known ranges (e.g., VMware/OUI blocks).",
+        "rssi_avg": "Average Received Signal Strength Indicator (dBm). More negative = weaker signal.",
+        "service_uuids": "BLE service UUIDs advertised by the device (if parsed from logs/exports).",
+        "company_ids": "Manufacturer/company identifiers present in advertising frames/logs."
+    }
+    base = gl.get(key, "")
+    return f"{key} = {value}\n\n{base}".strip()
+
+# ---------------------------------- GUI --------------------------------------
+def launch_gui(auto_open_dialog=True):
+    import tkinter as tk
+    from tkinter import ttk, filedialog, messagebox
+
+    class App(tk.Tk):
+        def __init__(self):
+            super().__init__()
+            self.title("MAC / BLE Inspector (Field Inspector)")
+            self.geometry("1400x840"); self.minsize(1200, 740)
+
+            # Top controls
+            top = ttk.Frame(self, padding=8); top.pack(side=tk.TOP, fill=tk.X)
+            ttk.Label(top, text="Open file/folder/zip — auto-analysis. Paste is also supported.").pack(anchor="w")
+            self.input_txt = tk.Text(top, height=3); self.input_txt.pack(fill=tk.X, pady=4)
+
+            opts = ttk.Frame(top); opts.pack(fill=tk.X, pady=4)
+            self.var_vendor = tk.BooleanVar(value=False)
+            self.var_update = tk.BooleanVar(value=False)
+            self.var_enrich = tk.BooleanVar(value=False)
+            ttk.Button(opts, text="Open…", command=self.on_open).pack(side=tk.LEFT, padx=2)
+            ttk.Button(opts, text="Open folder…", command=self.on_open_folder).pack(side=tk.LEFT, padx=2)
+            ttk.Button(opts, text="Analyze", command=self.on_analyze).pack(side=tk.LEFT, padx=2)
+            ttk.Button(opts, text="Inspect…", command=self.on_inspect_selected).pack(side=tk.LEFT, padx=2)
+            ttk.Button(opts, text="Export CSV…", command=self.on_export_csv).pack(side=tk.LEFT, padx=2)
+            ttk.Button(opts, text="Export JSON…", command=self.on_export_json).pack(side=tk.LEFT, padx=2)
+            ttk.Checkbutton(opts, text="Vendor lookup", variable=self.var_vendor).pack(side=tk.RIGHT, padx=6)
+            ttk.Checkbutton(opts, text="Refresh vendor DB", variable=self.var_update).pack(side=tk.RIGHT)
+            ttk.Checkbutton(opts, text="Local enrichment (ARP/ND)", variable=self.var_enrich).pack(side=tk.RIGHT, padx=6)
+
+            # Split panes
+            self.split = ttk.Panedwindow(self, orient=tk.HORIZONTAL); self.split.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+            self.left = ttk.Frame(self.split); self.split.add(self.left, weight=3)
+            self.right = ttk.Frame(self.split); self.split.add(self.right, weight=2)
+
+            # Filter + table
+            fbar = ttk.Frame(self.left); fbar.pack(fill=tk.X, pady=(0,6))
+            ttk.Label(fbar, text="Filter:").pack(side=tk.LEFT)
+            self.filter_var = tk.StringVar(); self.filter_var.trace_add("write", lambda *_: self._apply_filter())
+            ttk.Entry(fbar, textvariable=self.filter_var, width=42).pack(side=tk.LEFT, padx=(6,10))
+
+            self.tree = ttk.Treeview(self.left, show="headings")
+            self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            self.vsb = ttk.Scrollbar(self.left, orient="vertical", command=self.tree.yview)
+            self.tree.configure(yscrollcommand=self.vsb.set); self.vsb.pack(side=tk.RIGHT, fill=tk.Y)
+            self.tree.bind("<<TreeviewSelect>>", self.on_row_select)
+            self.tree.bind("<Double-1>", self.on_quick_look)
+
+            # Context menu for field inspection
+            self.menu = tk.Menu(self, tearoff=0)
+            self.menu.add_command(label="Inspect Field…", command=self.on_inspect_field_at_cursor)
+            self.tree.bind("<Button-3>", self._show_context_menu)  # right-click (Win/Linux)
+            self.tree.bind("<Button-2>", self._show_context_menu)  # middle as fallback
+
+            # Right: notebook tabs
+            self.tabs = ttk.Notebook(self.right); self.tabs.pack(fill=tk.BOTH, expand=True)
+            # Overview
+            self.tab_overview = ttk.Frame(self.tabs); self.tabs.add(self.tab_overview, text="Overview")
+            self.over_txt = tk.Text(self.tab_overview, wrap="word"); self.over_txt.configure(state="disabled")
+            self.over_txt.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+            # Metrics
+            self.tab_metrics = ttk.Frame(self.tabs); self.tabs.add(self.tab_metrics, text="Metrics")
+            self.met_grid = ttk.Treeview(self.tab_metrics, columns=("k","v"), show="headings", height=10)
+            self.met_grid.heading("k", text="Metric"); self.met_grid.heading("v", text="Value")
+            self.met_grid.column("k", width=220); self.met_grid.column("v", width=560)
+            self.met_grid.pack(fill=tk.BOTH, expand=True, padx=6, pady=(6,0))
+            self.spark_lbl = ttk.Label(self.tab_metrics, text="", anchor="w"); self.spark_lbl.pack(fill=tk.X, padx=6, pady=6)
+            # Raw Context
+            self.tab_raw = ttk.Frame(self.tabs); self.tabs.add(self.tab_raw, text="Raw Context")
+            self.raw_txt = tk.Text(self.tab_raw, wrap="none")
+            self.raw_txt.configure(state="disabled"); self.raw_txt.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+            # Key/Value
+            self.tab_kv = ttk.Frame(self.tabs); self.tabs.add(self.tab_kv, text="Key/Value")
+            self.kv_grid = ttk.Treeview(self.tab_kv, columns=("k","v"), show="headings")
+            self.kv_grid.heading("k", text="Key"); self.kv_grid.heading("v", text="Value")
+            self.kv_grid.column("k", width=260); self.kv_grid.column("v", width=520)
+            self.kv_grid.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+            # Status
+            self.status = tk.StringVar(value="Ready")
+            ttk.Label(self, textvariable=self.status, anchor="w", padding=(8,4)).pack(side=tk.BOTTOM, fill=tk.X)
+
+            self.all_rows: List[Dict[str, Optional[str]]] = []
+            self.view_rows: List[Dict[str, Optional[str]]] = []
+            self.blocks: List[Tuple[str,str]] = []
+
+            if auto_open_dialog: self.after(300, self.on_open)
+
+        # ---------- utility ----------
+        def set_status(self, msg: str): self.status.set(msg); self.update_idletasks()
+        def _set_overview_text(self, s: str):
+            self.over_txt.configure(state="normal"); self.over_txt.delete("1.0","end"); self.over_txt.insert("1.0", s); self.over_txt.configure(state="disabled")
+        def _set_raw_text(self, s: str):
+            self.raw_txt.configure(state="normal"); self.raw_txt.delete("1.0","end"); self.raw_txt.insert("1.0", s); self.raw_txt.configure(state="disabled")
+        def _fill_grid(self, tv: ttk.Treeview, data: List[Tuple[str,str]]):
+            for i in tv.get_children(): tv.delete(i)
+            for k,v in data: tv.insert("", "end", values=(k, v))
+
+        # ---------- open / analyze ----------
+        def on_open(self):
+            from tkinter import filedialog, messagebox
+            path = filedialog.askopenfilename(title="Open file", filetypes=[("All supported","*.txt *.log *.csv *.json *.tsv *.xlsx *.xls *.zip"), ("All files","*.*")])
+            if not path: return
+            sources, blocks = read_paths([path])
+            if not sources and not blocks:
+                messagebox.showwarning("No data found", "File did not contain recognizable MAC addresses or text."); return
+            self.blocks = blocks
+            addrs = [mac for _, mac in sources]
+            self.input_txt.delete("1.0","end"); self.input_txt.insert("1.0","\n".join(addrs))
+            self.on_analyze()
+
+        def on_open_folder(self):
+            from tkinter import filedialog, messagebox
+            folder = filedialog.askdirectory(title="Open folder");
+            if not folder: return
+            sources, blocks = read_paths([folder])
+            if not sources and not blocks:
+                messagebox.showwarning("No data found", "Folder did not contain recognizable MAC addresses or text."); return
+            self.blocks = blocks
+            addrs = [mac for _, mac in sources]
+            self.input_txt.delete("1.0","end"); self.input_txt.insert("1.0","\n".join(addrs))
+            self.on_analyze()
+
+        def parse_free_text(self, s: str) -> List[str]: return extract_macs_from_text(s or "")
+        def enrich_from_blocks(self) -> Dict[str, Dict[str, Any]]: return enrich_from_text_blocks(self.blocks)
+
+        def analyze_list(self, addrs: List[str]) -> List[Dict[str, Optional[str]]]:
+            use_vendor = bool(self.var_vendor.get() or self.var_update.get())
+            update_vendors = bool(self.var_update.get())
+            rows = [analyze_one(a, use_vendor=use_vendor, update_vendors=update_vendors) for a in addrs]
+            if self.var_enrich.get():
+                local = enrich_local_mac_map()
+                for r in rows:
+                    hit = local.get(r["mac"])
+                    if hit: r["ip"] = hit.get("ip"); r["iface"] = hit.get("iface")
+            radio = self.enrich_from_blocks() if self.blocks else {}
+            for r in rows:
+                extra = radio.get(r["mac"])
+                if extra: r.update({k:v for k,v in extra.items() if v not in (None,"",[])})
+            return rows
+
+        def _set_columns(self, rows: List[Dict[str, Any]]):
+            all_keys = set()
+            for r in rows: all_keys.update(r.keys())
+            preferred = [
+                "mac","device_names","unicast_or_multicast","admin","locally_administered",
+                "ble_random_hint","vendor","oui","ip","iface","tags","first_seen","last_seen",
+                "observation_count","rssi_min","rssi_max","rssi_avg","adv_types","service_uuids",
+                "company_ids","frames","channels","source"
+            ]
+            ordered = [k for k in preferred if k in all_keys]
+            for k in sorted(all_keys - set(ordered)): ordered.append(k)
+            self.tree["columns"] = ordered
+            for c in self.tree["columns"]:
+                self.tree.heading(c, text=c, command=lambda col=c: self._sort_by(col))
+                self.tree.column(c, width=160, stretch=True)
+
+        def _render_table(self, rows: List[Dict[str, Any]]):
+            for item in self.tree.get_children(): self.tree.delete(item)
+            for r in rows:
+                vals = [r.get(c,"") if r.get(c) is not None else "" for c in self.tree["columns"]]
+                self.tree.insert("", "end", values=vals)
+
+        def on_analyze(self):
+            addrs = self.parse_free_text(self.input_txt.get("1.0","end"))
+            if not addrs and not self.blocks: return
+            self.set_status("Analyzing…")
+            self.all_rows = self.analyze_list(addrs) or []
+            if not self.all_rows and self.blocks:
+                radio = self.enrich_from_blocks()
+                addrs2 = list(radio.keys())
+                self.all_rows = self.analyze_list(addrs2) or []
+            if not self.all_rows:
+                self.set_status("No MACs found."); return
+            self._set_columns(self.all_rows)
+            self.view_rows = list(self.all_rows)
+            self._render_table(self.view_rows)
+            self._update_summary()
+            self.set_status(f"Done. Rows: {len(self.view_rows)}")
+
+        # ---------- selection / overview ----------
+        def on_row_select(self, event=None):
+            sel = self.tree.selection()
+            if not sel: return
+            idx = self.tree.index(sel[0]);
+            if idx >= len(self.view_rows): return
+            r = self.view_rows[idx]
+            self._set_overview_text(explain_row(r))
+            # metrics grid
+            metrics = []
+            for k in ("observation_count","rssi_min","rssi_max","rssi_avg","txp_values","adv_types","channels","device_names","service_uuids","company_ids","frames"):
+                if r.get(k) not in (None,""): metrics.append((k.replace("_"," ").title(), str(r.get(k))))
+            self._fill_grid(self.met_grid, metrics or [("No metrics","—")])
+            spark = _sparkline_from_series(r.get("rssi_series"))
+            self.spark_lbl.configure(text=("RSSI trend: " + spark) if spark else "RSSI trend: —")
+            self._set_raw_text(r.get("raw_context") or "No raw context captured for this address.")
+            # kv
+            kv_items = []
+            for key in sorted(r.keys()):
+                if key.startswith("kv_") and r.get(key): kv_items.append((key[3:].replace("_"," ").title(), str(r[key])))
+            self._fill_grid(self.kv_grid, kv_items or [("No dynamic keys","—")])
+
+        # ---------- filter / sort ----------
+        def _apply_filter(self):
+            needle = (self.filter_var.get() or "").strip().lower()
+            if not needle: self.view_rows = list(self.all_rows)
+            else:
+                cols = self.tree["columns"]
+                def row_match(r):
+                    for c in cols:
+                        v = r.get(c)
+                        if v and needle in str(v).lower(): return True
+                    return False
+                self.view_rows = [r for r in self.all_rows if row_match(r)]
+            self._render_table(self.view_rows)
+
+        def _sort_by(self, col: str):
+            try: self.view_rows.sort(key=lambda r: (r.get(col) is None, str(r.get(col))))
+            except Exception: self.view_rows.sort(key=lambda r: str(r.get(col)))
+            self._render_table(self.view_rows)
+
+        # ---------- context menu / inspect ----------
+        def _show_context_menu(self, event):
+            try:
+                self.menu.tk_popup(event.x_root, event.y_root)
+                self._last_click_xy = (event.x, event.y)
+            finally:
+                self.menu.grab_release()
+
+        def _get_cell_under_cursor(self) -> Optional[Tuple[int, str, str]]:
+            # returns (row_index, column_key, value)
+            region = self.tree.identify("region", *self._last_click_xy)
+            if region != "cell": return None
+            row_id = self.tree.identify_row(self._last_click_xy[1])
+            col_id = self.tree.identify_column(self._last_click_xy[0])  # e.g. '#3'
+            if not row_id or not col_id: return None
+            col_index = int(col_id.replace('#','')) - 1
+            cols = self.tree["columns"]
+            if col_index < 0 or col_index >= len(cols): return None
+            idx = self.tree.index(row_id)
+            if idx >= len(self.view_rows): return None
+            key = cols[col_index]
+            val = self.tree.set(row_id, key)
+            return (idx, key, val)
+
+        def on_inspect_field_at_cursor(self):
+            info = self._get_cell_under_cursor()
+            if not info: return
+            idx, key, val = info
+            self._open_inspector(self.view_rows[idx], key, val)
+
+        def on_inspect_selected(self):
+            sel = self.tree.selection()
+            if not sel: return
+            idx = self.tree.index(sel[0])
+            if idx >= len(self.view_rows): return
+            # default to inspecting the MAC itself
+            self._open_inspector(self.view_rows[idx], "mac", self.view_rows[idx].get("mac",""))
+
+        def on_quick_look(self, event=None):
+            sel = self.tree.selection()
+            if not sel: return
+            idx = self.tree.index(sel[0]);
+            if idx >= len(self.view_rows): return
+            self._open_inspector(self.view_rows[idx], "mac", self.view_rows[idx].get("mac",""))
+
+        # ---------- INSPECTOR WINDOW ----------
+        def _open_inspector(self, row: Dict[str, Any], key: str, value: Any):
+            import tkinter as tk
+            from tkinter import ttk
+            win = tk.Toplevel(self); win.title(f"Inspect: {key}"); win.geometry("860x640")
+            nb = ttk.Notebook(win); nb.pack(fill=tk.BOTH, expand=True)
+
+            # Summary tab (explain field)
+            t_sum = ttk.Frame(nb); nb.add(t_sum, text="Summary")
+            txt = tk.Text(t_sum, wrap="word"); txt.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+            txt.insert("1.0", _explain_field(key, value, row))
+
+            # MAC Bits tab (if we have a MAC)
+            if row.get("mac"):
+                t_bits = ttk.Frame(nb); nb.add(t_bits, text="Octets / Bits")
+                grid = ttk.Treeview(t_bits, columns=("oct","hex","bin","notes"), show="headings")
+                for c, w in (("oct","Octet",120),("hex","Hex",100),("bin","Binary (MSB→LSB)",240),("notes","Notes",340)):
+                    grid.heading(c, text=w); grid.column(c, width=120 if c=="oct" else (100 if c=="hex" else (240 if c=="bin" else 340)))
+                grid.pack(fill=tk.BOTH, expand=True, padx=8, pady=(8,0))
+                for oct_i, hx, bits, note in _octet_bit_table(row["mac"]):
+                    grid.insert("", "end", values=(oct_i, hx, bits, note))
+                # Classification recap
+                rec = tk.Text(t_bits, height=5, wrap="word"); rec.pack(fill=tk.X, padx=8, pady=8)
+                rec.insert("1.0", f"Unicast/Multicast: {row.get('unicast_or_multicast','?')}\n"
+                                  f"Admin: {row.get('admin','?')} (UL={row.get('ul_bit','?')})\n"
+                                  f"BLE: {row.get('ble_random_hint','—') or '—'}\n"
+                                  f"OUI: {row.get('oui','—')}  |  NIC: {row.get('nic','—')}")
+
+            # Values tab (if field is a list / csv)
+            t_vals = ttk.Frame(nb); nb.add(t_vals, text="Values")
+            vals_grid = ttk.Treeview(t_vals, columns=("value",), show="headings")
+            vals_grid.heading("value", text="Value"); vals_grid.column("value", width=800)
+            vals_grid.pack(fill=tk.BOTH, expand=True, padx=8, pady=(8,0))
+            # auto-extract values from the selected field or related fields
+            def push_csv(field):
+                s = row.get(field)
+                if not s: return
+                for item in [x.strip() for x in str(s).split(",") if x.strip()]:
+                    vals_grid.insert("", "end", values=(item,))
+            if key in row and isinstance(value, str) and "," in value:
+                push_csv(key)
+            else:
+                for bundle in ("device_names","service_uuids","company_ids","adv_types","channels","frames"):
+                    push_csv(bundle)
+            # RSSI tab
+            t_rssi = ttk.Frame(nb); nb.add(t_rssi, text="RSSI / Power")
+            g = ttk.Treeview(t_rssi, columns=("k","v"), show="headings")
+            g.heading("k", text="Metric"); g.heading("v", text="Value")
+            g.column("k", width=220); g.column("v", width=560)
+            g.pack(fill=tk.BOTH, expand=True, padx=8, pady=(8,0))
+            r_keys = [("rssi_min","Min"),("rssi_max","Max"),("rssi_avg","Avg"),("txp_values","TxPower values")]
+            for k, label in r_keys:
+                if row.get(k) not in (None,""): g.insert("", "end", values=(label, str(row.get(k))))
+            spark = _sparkline_from_series(row.get("rssi_series"))
+            ttk.Label(t_rssi, text=("RSSI trend: " + spark) if spark else "RSSI trend: —", anchor="w").pack(fill=tk.X, padx=8, pady=8)
+
+            # Raw Context tab (only lines that mention the field if possible)
+            t_ctx = ttk.Frame(nb); nb.add(t_ctx, text="Context Lines")
+            ctx = tk.Text(t_ctx, wrap="none"); ctx.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+            raw = row.get("raw_context") or ""
+            if raw and isinstance(value, str) and value:
+                lines = [ln for ln in raw.splitlines() if value in ln]
+                ctx.insert("1.0", "\n".join(lines) if lines else raw)
+            else:
+                ctx.insert("1.0", raw or "No raw context captured.")
+
+        # ---------- summary / export ----------
+        def _update_summary(self):
+            total = len(self.view_rows)
+            by_admin = {"OUI/global":0, "local/random":0}; by_ble = {}; vendors = {}
+            for r in self.view_rows:
+                if r.get("locally_administered") == "yes": by_admin["local/random"] += 1
+                else: by_admin["OUI/global"] += 1
+                ble = r.get("ble_random_hint") or "none"; by_ble[ble] = by_ble.get(ble,0)+1
+                v = r.get("vendor") or "Unknown"; vendors[v] = vendors.get(v,0)+1
+            top_ven = sorted(vendors.items(), key=lambda kv: kv[1], reverse=True)[:8]
+            self.set_status(
+                f"Total: {total} | Admin OUI={by_admin['OUI/global']} Local={by_admin['local/random']} | "
+                f"BLE: " + ", ".join(f"{k}={v}" for k,v in by_ble.items() if v>0) + " | " +
+                "Top vendors: " + ", ".join(f"{k} ({v})" for k,v in top_ven)
+            )
+
+        def on_export_csv(self):
+            from tkinter import filedialog, messagebox
+            if not self.view_rows: messagebox.showinfo("No results", "Analyze first."); return
+            path = filedialog.asksaveasfilename(title="Save CSV", defaultextension=".csv", filetypes=[("CSV","*.csv")])
+            if not path: return
+            try:
+                export_csv(self.view_rows, path); self.set_status(f"Saved CSV (filtered): {os.path.basename(path)}")
+            except Exception as e:
+                messagebox.showerror("Save failed", str(e))
+
+        def on_export_json(self):
+            from tkinter import filedialog, messagebox
+            if not self.view_rows: messagebox.showinfo("No results", "Analyze first."); return
+            path = filedialog.asksaveasfilename(title="Save JSON", defaultextension=".json", filetypes=[("JSON","*.json")])
+            if not path: return
+            try:
+                export_json(self.view_rows, path); self.set_status(f"Saved JSON (filtered): {os.path.basename(path)}")
+            except Exception as e:
+                messagebox.showerror("Save failed", str(e))
+
+    App().mainloop()
+
+# ----------------------------------- CLI -------------------------------------
+def export_csv(rows: List[Dict[str, Optional[str]]], path: str):
+    if not rows: return
+    all_keys = []
+    seen = set()
+    for r in rows:
+        for k in r.keys():
+            if k not in seen:
+                seen.add(k); all_keys.append(k)
+    with open(path, 'w', newline='', encoding='utf-8') as f:
+        w = csv.DictWriter(f, fieldnames=all_keys)
+        w.writeheader()
+        for r in rows: w.writerow({k: r.get(k) for k in all_keys})
+
+def export_json(rows: List[Dict[str, Optional[str]]], path: str):
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(rows, f, ensure_ascii=False, indent=2)
+
+def main():
+    ap = argparse.ArgumentParser(description="GUI MAC/BLE inspector with field inspector.")
+    ap.add_argument("paths", nargs="*", help="(Optional) Files/folders/zips to scan via CLI mode.")
+    ap.add_argument("--cli", action="store_true", help="Use CLI mode instead of GUI.")
+    ap.add_argument("-o", "--output", help="Output file (.csv or .json) for CLI mode.")
+    ap.add_argument("--vendor", action="store_true", help="Attempt vendor/OUI lookup (CLI mode).")
+    ap.add_argument("--update-vendors", action="store_true", help="Refresh OUI DB (requires internet). Implies --vendor.")
+    ap.add_argument("--enrich-local", action="store_true", help="Local IP/iface mapping via ARP/ND (CLI mode).")
+    args = ap.parse_args()
+
+    if not args.cli:
+        launch_gui(auto_open_dialog=True)
+        return 0
+
+    sources, blocks = read_paths(args.paths) if args.paths else ([], [])
+    if not sources and not blocks:
+        print("No recognizable MAC addresses found (CLI). Use GUI (default) or provide paths.", file=sys.stderr)
+        return 2
+
+    seen, uniq = set(), []
+    for _, mac in sources:
+        if mac not in seen: seen.add(mac); uniq.append(mac)
+
+    use_vendor = bool(args.vendor or args.update_vendors)
+    rows = [analyze_one(m, use_vendor=use_vendor, update_vendors=bool(args.update_vendors)) for m in uniq]
+
+    if args.enrich_local:
+        local = enrich_local_mac_map()
+        for r in rows:
+            hit = local.get(r["mac"])
+            if hit: r["ip"] = hit.get("ip"); r["iface"] = hit.get("iface")
+
+    if blocks:
+        radio = enrich_from_text_blocks(blocks)
+        for r in rows:
+            extra = radio.get(r["mac"])
+            if extra: r.update({k:v for k,v in extra.items() if v not in (None,"",[])})
+
+    if args.output:
+        (export_json if args.output.lower().endswith(".json") else export_csv)(rows, args.output)
+        print(f"[+] Wrote {len(rows)} rows to {args.output}")
+    else:
+        common = ["mac","device_names","unicast_or_multicast","admin","ble_random_hint","vendor","oui",
+                  "first_seen","last_seen","rssi_avg","adv_types","service_uuids","company_ids","frames","source"]
+        cols = [c for c in common if any(r.get(c) for r in rows)] or ["mac"]
+        print(" | ".join(c.ljust(22) for c in cols))
+        for r in rows:
+            print(" | ".join([(str(r.get(c,"")) if r.get(c) is not None else "").ljust(22) for c in cols]))
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

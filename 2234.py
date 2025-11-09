@@ -29,7 +29,7 @@ import urllib.error
 
 # numpy & PIL for satellite overlay
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageTk
 
 # matplotlib (3D map)
 from matplotlib.figure import Figure
@@ -135,6 +135,132 @@ except Exception:
 OBEX_FTP_UUID = "00001106-0000-1000-8000-00805f9b34fb"
 PBAP_PSE_UUID = "0000112f-0000-1000-8000-00805f9b34fb"  # Phonebook Access - Server (on phone)
 PBAP_TARGET_UUID_BYTES = bytes.fromhex("796135F0F0C511D809660800200C9A66")
+
+
+# ---------------- Ioncore Branding -----------------
+IONCORE_LOGO_SVG = """<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" stop-color=\"#00E0FF\"/>\n      <stop offset=\"100%\" stop-color=\"#4DFF9D\"/>\n    </linearGradient>\n  </defs>\n  <circle cx=\"80\" cy=\"80\" r=\"74\" fill=\"url(#ioncoreGradient)\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"46\" fill=\"#060B1A\" opacity=\"0.94\"/>\n  <path d=\"M40 80c0-22.091 17.909-40 40-40s40 17.909 40 40-17.909 40-40 40S40 102.091 40 80zm52 0a12 12 0 10-24 0 12 12 0 0024 0z\" fill=\"#F4F9FF\" opacity=\"0.88\"/>\n  <path d=\"M34 64a60 60 0 0092 0\" stroke=\"#00E0FF\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M34 96a60 60 0 0092 0\" stroke=\"#4DFF9D\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n</svg>"""
+
+
+def get_default_theme_mode(default="dark"):
+    """Return the preferred Ioncore theme, honoring environment overrides."""
+    mode = os.environ.get("IONCORE_THEME_MODE", "").strip().lower()
+    if mode in {"light", "dark"}:
+        return mode
+    return default
+
+
+def _hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip("#")
+    return tuple(int(hex_color[i:i + 2], 16) for i in range(0, 6, 2))
+
+
+def _blend_channel(start, end, factor):
+    return int(start + (end - start) * factor)
+
+
+def _gradient_color(start_rgb, end_rgb, factor):
+    return tuple(_blend_channel(s, e, factor) for s, e in zip(start_rgb, end_rgb))
+
+
+def create_ioncore_logo_image(size=160):
+    size = int(size)
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+
+    outer_radius = size // 2 - 4
+    center = size / 2
+    start_rgb = _hex_to_rgb("#00E0FF")
+    end_rgb = _hex_to_rgb("#4DFF9D")
+
+    for step, radius in enumerate(range(outer_radius, 0, -1)):
+        factor = step / max(1, outer_radius)
+        color = _gradient_color(start_rgb, end_rgb, factor)
+        draw.ellipse(
+            [center - radius, center - radius, center + radius, center + radius],
+            fill=color,
+        )
+
+    inner_radius = int(outer_radius * 0.58)
+    draw.ellipse(
+        [center - inner_radius, center - inner_radius, center + inner_radius, center + inner_radius],
+        fill=(6, 11, 26, 235),
+    )
+
+    orbit_radius = outer_radius - size * 0.1
+    orbit_width = max(2, size // 30)
+    draw.arc(
+        [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
+        start=215,
+        end=325,
+        width=orbit_width,
+        fill="#00E0FF",
+    )
+    draw.arc(
+        [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
+        start=35,
+        end=145,
+        width=orbit_width,
+        fill="#4DFF9D",
+    )
+
+    core_radius = int(inner_radius * 0.42)
+    draw.ellipse(
+        [center - core_radius, center - core_radius, center + core_radius, center + core_radius],
+        fill=(244, 249, 255, 235),
+    )
+
+    bar_width = max(6, size // 12)
+    bar_radius = bar_width // 2
+    draw.rounded_rectangle(
+        [center - bar_width * 1.6, center - bar_width * 0.3, center + bar_width * 1.6, center + bar_width * 0.3],
+        radius=bar_radius,
+        fill="#00E0FF",
+    )
+    draw.rounded_rectangle(
+        [center - bar_width * 0.9, center - bar_width * 0.9, center + bar_width * 0.9, center - bar_width * 0.35],
+        radius=bar_radius,
+        fill="#4DFF9D",
+    )
+
+    return ImageTk.PhotoImage(canvas)
+
+
+IONCORE_THEMES = {
+    "dark": {
+        "bg": "#060B1A",
+        "surface": "#0F1F3C",
+        "surface_alt": "#131F3F",
+        "accent": "#00E0FF",
+        "accent_alt": "#4DFF9D",
+        "accent_fg": "#041221",
+        "text": "#F4F9FF",
+        "muted_text": "#7FA7D9",
+        "border": "#1E2A4A",
+        "list_bg": "#0B1834",
+        "list_fg": "#F0F6FF",
+        "entry_bg": "#102241",
+        "entry_fg": "#FFFFFF",
+        "log_bg": "#0C1B35",
+        "log_fg": "#96E7FF",
+    },
+    "light": {
+        "bg": "#F5F8FC",
+        "surface": "#FFFFFF",
+        "surface_alt": "#EEF4FF",
+        "accent": "#007BFF",
+        "accent_alt": "#34C759",
+        "accent_fg": "#FFFFFF",
+        "text": "#13233C",
+        "muted_text": "#5B6D89",
+        "border": "#CAD7EF",
+        "list_bg": "#FFFFFF",
+        "list_fg": "#13233C",
+        "entry_bg": "#FFFFFF",
+        "entry_fg": "#13233C",
+        "log_bg": "#FFFFFF",
+        "log_fg": "#0A3356",
+    },
+}
 
 # ---------- Tracking constants ----------
 TRACK_SAMPLE_TTL_SEC = 90       # keep last 90s of rings for each device
@@ -293,9 +419,177 @@ class _TrackerMath:
         return x, y
 
 class BluetoothApp:
+    def _register_theme_widget(self, widget, category):
+        self.theme_widgets.setdefault(category, []).append(widget)
+
+    def _init_branding(self):
+        self.branding_frame = tk.Frame(self.root, bd=0, highlightthickness=0)
+        self.branding_frame.pack(fill="x", pady=(12, 18))
+        self._register_theme_widget(self.branding_frame, "frames")
+
+        self.logo_label = tk.Label(self.branding_frame, image=self.logo_large, borderwidth=0, highlightthickness=0)
+        self.logo_label.grid(row=0, column=0, rowspan=2, padx=(14, 18), pady=4, sticky="w")
+
+        self.branding_title = tk.Label(
+            self.branding_frame,
+            text="Ioncore Radiance Console",
+            font=("Segoe UI", 20, "bold"),
+            anchor="w",
+        )
+        self.branding_title.grid(row=0, column=1, sticky="w")
+        self._register_theme_widget(self.branding_title, "labels")
+
+        self.branding_tagline = tk.Label(
+            self.branding_frame,
+            text="Unified telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
+            font=("Segoe UI", 12),
+            anchor="w",
+            wraplength=660,
+            justify="left",
+        )
+        self.branding_tagline.grid(row=1, column=1, sticky="w", pady=(4, 0))
+        self._register_theme_widget(self.branding_tagline, "labels")
+
+        self.theme_status = tk.Label(
+            self.branding_frame,
+            text="Dark Mode" if self.theme_mode == "dark" else "Light Mode",
+            font=("Segoe UI", 11, "bold"),
+            anchor="e",
+        )
+        self.theme_status.grid(row=0, column=2, sticky="e", padx=(16, 14))
+        self._register_theme_widget(self.theme_status, "labels")
+
+        self.theme_button = tk.Button(
+            self.branding_frame,
+            text="Switch Theme",
+            command=self.toggle_theme,
+            padx=18,
+            pady=8,
+            relief="flat",
+            cursor="hand2",
+            bd=0,
+        )
+        self.theme_button.grid(row=1, column=2, sticky="e", padx=(16, 14), pady=(4, 0))
+        self._register_theme_widget(self.theme_button, "buttons")
+
+        self.branding_frame.columnconfigure(1, weight=1)
+
+    def _apply_theme_recursive(self, widget, colors):
+        try:
+            widget_class = widget.winfo_class()
+        except Exception:
+            widget_class = ""
+
+        for child in widget.winfo_children():
+            self._apply_theme_recursive(child, colors)
+
+        try:
+            if widget_class in {"Frame", "Labelframe", "TFrame"}:
+                widget.configure(bg=colors["surface"], highlightbackground=colors["border"])
+            elif widget_class in {"Label", "Message", "TLabel"}:
+                widget.configure(bg=colors["surface"], fg=colors["text"])
+            elif widget_class in {"Entry", "TEntry", "Spinbox"}:
+                widget.configure(
+                    bg=colors["entry_bg"],
+                    fg=colors["entry_fg"],
+                    insertbackground=colors["accent"],
+                    highlightbackground=colors["border"],
+                    highlightcolor=colors["accent"],
+                )
+            elif widget_class in {"Listbox"}:
+                widget.configure(
+                    bg=colors["list_bg"],
+                    fg=colors["list_fg"],
+                    selectbackground=colors["accent"],
+                    selectforeground=colors["accent_fg"],
+                    highlightbackground=colors["border"],
+                    highlightcolor=colors["accent"],
+                    bd=0,
+                )
+            elif widget_class in {"Text"}:
+                widget.configure(
+                    bg=colors["log_bg"],
+                    fg=colors["log_fg"],
+                    insertbackground=colors["accent"],
+                    highlightbackground=colors["border"],
+                    highlightcolor=colors["accent"],
+                )
+            elif widget_class in {"Button", "Checkbutton", "Menubutton", "Radiobutton"}:
+                widget.configure(
+                    bg=colors["accent"],
+                    fg=colors["accent_fg"],
+                    activebackground=colors["accent_alt"],
+                    activeforeground=colors["accent_fg"],
+                    highlightbackground=colors["border"],
+                    highlightcolor=colors["accent"],
+                    bd=0,
+                    relief="flat",
+                )
+            elif widget_class in {"Canvas"}:
+                widget.configure(bg=colors["surface"])
+            elif widget_class in {"Scrollbar"}:
+                widget.configure(bg=colors["surface"], troughcolor=colors["surface_alt"], activebackground=colors["accent"])
+        except tk.TclError:
+            pass
+
+    def apply_theme(self):
+        colors = IONCORE_THEMES[self.theme_mode]
+        self.root.configure(bg=colors["bg"])
+
+        self._apply_theme_recursive(self.root, colors)
+
+        self.branding_frame.configure(bg=colors["surface_alt"], highlightbackground=colors["border"])
+        self.logo_label.configure(bg=colors["surface_alt"])
+        self.branding_title.configure(bg=colors["surface_alt"], fg=colors["text"])
+        self.branding_tagline.configure(bg=colors["surface_alt"], fg=colors["muted_text"])
+        self.theme_status.configure(bg=colors["surface_alt"], fg=colors["accent_alt"])
+        self.theme_button.configure(
+            bg=colors["accent"],
+            fg=colors["accent_fg"],
+            activebackground=colors["accent_alt"],
+            activeforeground=colors["accent_fg"],
+            highlightbackground=colors["border"],
+            highlightcolor=colors["accent"],
+            bd=0,
+            relief="flat",
+        )
+
+        self.theme_button.configure(
+            text="Switch to Light Mode" if self.theme_mode == "dark" else "Switch to Dark Mode"
+        )
+        self.theme_status.configure(
+            text="Dark Mode" if self.theme_mode == "dark" else "Light Mode",
+        )
+
+        self.root.update_idletasks()
+
+    def toggle_theme(self):
+        self.theme_mode = "light" if self.theme_mode == "dark" else "dark"
+        self.apply_theme()
+        self.log(f"Ioncore theme switched to {self.theme_mode.title()} Mode.")
+
     def __init__(self, root):
         self.root = root
-        self.root.title("Expanded Radio Manager (Bluetooth + Wi‑Fi + Cellular)")
+        self.root.title("Ioncore Radiance Console • Bluetooth • Wi‑Fi • Cellular")
+
+        self.theme_mode = get_default_theme_mode()
+        self.theme_widgets = {
+            "frames": [],
+            "labels": [],
+            "buttons": [],
+            "entries": [],
+            "lists": [],
+            "texts": [],
+        }
+
+        self.logo_large = create_ioncore_logo_image(128)
+        self.logo_small = create_ioncore_logo_image(48)
+        try:
+            self.root.iconphoto(False, self.logo_small)
+        except Exception:
+            pass
+
+        self._init_branding()
 
         # ---------- Async loop (single, persistent) ----------
         self.loop = asyncio.new_event_loop()
@@ -318,11 +612,13 @@ class BluetoothApp:
         self.winrt_geo_status_token = None
 
         # ---------- UI: device list and controls ----------
-        self.device_frame = tk.Frame(root)
+        self.device_frame = tk.Frame(root, highlightthickness=0, bd=0)
         self.device_frame.pack(pady=10)
+        self._register_theme_widget(self.device_frame, "frames")
 
         self.device_list = tk.Listbox(self.device_frame, width=130, height=22)
         self.device_list.grid(row=0, column=0, columnspan=15, padx=5, pady=5)
+        self._register_theme_widget(self.device_list, "lists")
 
         self.scan_button = tk.Button(self.device_frame, text="Scan BLE/Classic", command=self.start_scan_devices)
         self.scan_button.grid(row=1, column=0, padx=5, pady=5)
@@ -378,6 +674,28 @@ class BluetoothApp:
         self.advertise_button = tk.Button(self.device_frame, text="Advertise 'Bullish'", command=self.start_advertising)
         self.advertise_button.grid(row=2, column=2, padx=5, pady=5)
 
+        for button in (
+            self.scan_button,
+            self.scan_wifi_button,
+            self.scan_cell_button,
+            self.test_button,
+            self.connect_button,
+            self.disconnect_button,
+            self.explore_button,
+            self.obex_button,
+            self.pbap_button,
+            self.map3d_button,
+            self.open_map_button,
+            self.relabel_button,
+            self.clearlabel_button,
+            self.scan_paired_button,
+            self.export_button,
+            self.send_button,
+            self.receive_button,
+            self.advertise_button,
+        ):
+            self._register_theme_widget(button, "buttons")
+
         # Disable features if libs/OS don’t support them
         if IS_WINDOWS or not HAVE_PYBLUEZ:
             self.advertise_button.configure(state="disabled")
@@ -393,11 +711,16 @@ class BluetoothApp:
             self.scan_paired_button.configure(state="disabled")
 
         # ---------- Tuning panel (distance model) ----------
-        self.tuner_frame = tk.Frame(root)
+        self.tuner_frame = tk.Frame(root, highlightthickness=0, bd=0)
         self.tuner_frame.pack(pady=(0, 10))
+        self._register_theme_widget(self.tuner_frame, "frames")
 
-        tk.Label(self.tuner_frame, text="Tx Power @1m (BLE default, dBm):").grid(row=0, column=0, sticky="e", padx=4)
-        tk.Label(self.tuner_frame, text="Environment n (1.5–4.0):").grid(row=0, column=2, sticky="e", padx=4)
+        tx_label = tk.Label(self.tuner_frame, text="Tx Power @1m (BLE default, dBm):")
+        tx_label.grid(row=0, column=0, sticky="e", padx=4)
+        env_label = tk.Label(self.tuner_frame, text="Environment n (1.5–4.0):")
+        env_label.grid(row=0, column=2, sticky="e", padx=4)
+        self._register_theme_widget(tx_label, "labels")
+        self._register_theme_widget(env_label, "labels")
 
         self.tx_power_1m_default = -59.0
         self.path_loss_n = 2.0
@@ -407,16 +730,20 @@ class BluetoothApp:
 
         self.tx_power_entry = tk.Entry(self.tuner_frame, width=8, textvariable=self.tx_power_var)
         self.n_entry = tk.Entry(self.tuner_frame, width=8, textvariable=self.n_var)
+        self._register_theme_widget(self.tx_power_entry, "entries")
+        self._register_theme_widget(self.n_entry, "entries")
 
         self.tx_power_entry.grid(row=0, column=1, sticky="w", padx=4)
         self.n_entry.grid(row=0, column=3, sticky="w", padx=4)
 
         self.apply_button = tk.Button(self.tuner_frame, text="Apply Tuning", command=self.apply_tuning)
         self.apply_button.grid(row=0, column=4, padx=(10, 0))
+        self._register_theme_widget(self.apply_button, "buttons")
 
         # ---------- Log ----------
-        self.log_text = scrolledtext.ScrolledText(root, width=130, height=12, state='disabled')
+        self.log_text = scrolledtext.ScrolledText(root, width=130, height=12, state='disabled', highlightthickness=0, bd=0)
         self.log_text.pack(pady=10)
+        self._register_theme_widget(self.log_text, "texts")
 
         # ---------- Data ----------
         self.devices = []           # ("BLE", bleak_device) | ("Classic", dict) | ("WiFi", dict) | ("Cell", dict)
@@ -480,6 +807,8 @@ class BluetoothApp:
 
         # Set title with geocoded location (best-effort)
         self._update_title_by_gps()
+        self.apply_theme()
+        self.log(f"Ioncore theme initialized in {self.theme_mode.title()} Mode.")
 
         # === Range qualification / smoothing ===
         self.dist_filter = DistanceFilter(window=12, ema_alpha=0.30, min_m=0.25, max_m=40.0)
@@ -520,13 +849,13 @@ class BluetoothApp:
     # ---------- Title / GPS ----------
     def _update_title_by_gps(self):
         lat, lon = self.get_gps_coordinates()
-        title = f"Expanded Radio Manager – GPS {lat:.6f}, {lon:.6f}"
+        title = f"Ioncore Radiance Console — GPS {lat:.6f}, {lon:.6f}"
         if HAVE_GEOPY:
             try:
                 geolocator = Nominatim(user_agent="expanded_radio_manager")
                 loc = geolocator.reverse(f"{lat},{lon}", timeout=5)
                 if loc and getattr(loc, "address", None):
-                    title = f"Expanded Radio Manager – {loc.address}"
+                    title = f"Ioncore Radiance Console — {loc.address}"
             except Exception:
                 pass
         self.root.title(title)

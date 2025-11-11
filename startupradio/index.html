@@ -28,6 +28,7 @@
     <nav class="site-nav" aria-label="Primary">
       <ul>
         <li><a href="#overview">Overview</a></li>
+        <li><a href="#stack">Signal Suite</a></li>
         <li><a href="#programming">Programming</a></li>
         <li><a href="#experiences">Experiences</a></li>
         <li><a href="#archive">Archive</a></li>
@@ -51,6 +52,86 @@
       </div>
       <div class="radio-hero__media" aria-hidden="true">
         <img src="../IMG_2637.jpeg" alt="Ioncore Startup Radio studio" loading="lazy">
+      </div>
+    </section>
+
+    <section class="container page-section radio-suite" id="stack">
+      <div class="section-heading">
+        <span class="eyebrow">Signal Intelligence Suite</span>
+        <h2 class="section-title">Tools that power Startup Radio fieldwork</h2>
+        <p class="section-subtitle">Ioncore engineers operate two complementary applications to monitor, validate, and map the wireless spectrum around every broadcast site.</p>
+      </div>
+
+      <div class="radio-suite__grid">
+        <article class="radio-card radio-card--feature">
+          <div class="radio-card__icon" aria-hidden="true"><i class="fa-solid fa-address-card"></i></div>
+          <div class="radio-card__body">
+            <h3>macer.py &mdash; Address Intelligence</h3>
+            <p>A lightweight MAC and Bluetooth Low Energy inspector that normalizes device lists, flags multicast versus unicast traffic, and surfaces Bluetooth address types in seconds.</p>
+            <ul>
+              <li>Import CSV spreadsheets or paste raw captures directly.</li>
+              <li>Auto-identify vendor OUIs and note locally generated addresses.</li>
+              <li>Cross-reference local ARP/NDP caches to enrich IP and interface context.</li>
+              <li>Export audit-ready CSV or JSON summaries for compliance teams.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="radio-card radio-card--feature">
+          <div class="radio-card__icon" aria-hidden="true"><i class="fa-solid fa-tower-cell"></i></div>
+          <div class="radio-card__body">
+            <h3>22-23.py &mdash; Multi-Radio Environment Manager</h3>
+            <p>An asynchronous, multi-threaded command center that fuses Bluetooth, Wi-Fi, and cellular telemetry with GPS positioning to visualize our live deployment theatre.</p>
+            <ul>
+              <li>Combines BLE scans, classic Bluetooth discovery, Wi-Fi, and cell-ID sweeps.</li>
+              <li>Calculates distance with tunable path-loss propagation models and quality grading.</li>
+              <li>Plots devices onto interactive 2D maps and 3D terrain views for mission planning.</li>
+              <li>Maintains an SQLite knowledge base with custom device labels and history.</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="radio-suite__comparison" role="region" aria-labelledby="suite-compare">
+        <h3 class="section-title" id="suite-compare">How the tools complement each other</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Feature</th>
+                <th scope="col">macer.py</th>
+                <th scope="col">22-23.py</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Focus</th>
+                <td>MAC &amp; BLE address validation</td>
+                <td>Multi-radio field mapping</td>
+              </tr>
+              <tr>
+                <th scope="row">Interface</th>
+                <td>Fast Tkinter tables with export actions</td>
+                <td>Layered Tkinter console with maps &amp; controls</td>
+              </tr>
+              <tr>
+                <th scope="row">Signal Analysis</th>
+                <td>Flags static vs. resolvable random BLE IDs</td>
+                <td>Distance estimation using RSSI smoothing</td>
+              </tr>
+              <tr>
+                <th scope="row">Data Persistence</th>
+                <td>Session-based CSV / JSON outputs</td>
+                <td>Persistent SQLite device registry</td>
+              </tr>
+              <tr>
+                <th scope="row">Deployment Role</th>
+                <td>Pre-flight auditing and forensic review</td>
+                <td>Live site reconnaissance and operator guidance</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -150,6 +231,28 @@
           <h3>Bring your venture to the mic</h3>
           <p>Pitch your story, submit segment ideas, or coordinate a sponsored series aligned with Ioncore deployment milestones.</p>
           <a class="btn btn-primary" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Connect with producers</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="container page-section radio-ops">
+      <div class="section-heading">
+        <span class="eyebrow">Operational Workflow</span>
+        <h2 class="section-title">From identifier intelligence to live-spectrum mastery</h2>
+        <p class="section-subtitle">Ioncore producers synchronize macer.py audits with 22-23.py reconnaissance to select the cleanest bands, coordinate guest handoffs, and deliver broadcast-grade reliability.</p>
+      </div>
+      <div class="radio-ops__grid">
+        <article class="radio-highlight">
+          <h3><i class="fa-solid fa-magnifying-glass-chart" aria-hidden="true"></i> Rapid environment validation</h3>
+          <p>Run macer.py to normalize device inventories, flag spoofing risks, and align broadcast infrastructure with enterprise security requirements.</p>
+        </article>
+        <article class="radio-highlight">
+          <h3><i class="fa-solid fa-route" aria-hidden="true"></i> Map-centric deployment</h3>
+          <p>Activate 22-23.py to layer GPS, Wi-Fi, BLE, and cellular telemetry, producing map overlays that guide antenna placement and mobile unit routing.</p>
+        </article>
+        <article class="radio-highlight">
+          <h3><i class="fa-solid fa-database" aria-hidden="true"></i> Continuous intelligence loop</h3>
+          <p>Feed enriched insights back into Startup Radio scheduling so every event leverages historical performance, live quality scores, and saved device profiles.</p>
         </article>
       </div>
     </section>

@@ -697,42 +697,6 @@
     })();
 
     (() => {
-      const localOrigin = window.location.origin;
-      const anchors = Array.from(document.querySelectorAll('a[href]'));
-      anchors.forEach((link) => {
-        const rawHref = link.getAttribute('href');
-        if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) {
-          return;
-        }
-
-        if (link.dataset.publicLink === 'true') {
-          return;
-        }
-
-        try {
-          const targetUrl = new URL(rawHref, localOrigin);
-          if (targetUrl.origin !== localOrigin) {
-            return;
-          }
-
-          if (targetUrl.pathname === '/login' || targetUrl.pathname === '/login.html') {
-            return;
-          }
-
-          if (!targetUrl.pathname.toLowerCase().endsWith('.html')) {
-            return;
-          }
-
-          const destination = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
-          link.dataset.destination = destination;
-          link.setAttribute('href', `/login?next=${encodeURIComponent(destination)}`);
-        } catch (err) {
-          console.warn('Unable to secure link', err);
-        }
-      });
-    })();
-
-    (() => {
       const uploadsList = document.getElementById('marketplace-uploads');
       const bidsList = document.getElementById('marketplace-bids');
       if (!uploadsList || !bidsList || typeof fetch !== 'function') {

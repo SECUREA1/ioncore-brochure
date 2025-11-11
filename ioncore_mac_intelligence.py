@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GUI for MAC/BLE inspection.
+Ioncore MAC Intelligence — GUI for MAC/BLE inspection.
 - Paste addresses (newline, comma, or space separated)
 - Or open a .xlsx/.xls/.csv/.txt file (uses 'address' column or first column)
 - Toggle vendor lookup and local enrichment

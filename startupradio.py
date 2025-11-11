@@ -31,7 +31,8 @@ class MenuEntry:
 
 
 EXPLICIT_ENTRIES = [
-    ("Bulk Access 22-23", Path("22-23.py")),
+    ("Bulk Access Spectrum Command Center", Path("spectrum_command_center.py")),
+    ("Bulk Access Ioncore MAC Intelligence", Path("ioncore_mac_intelligence.py")),
     ("Bulk Access 2234", Path("2234.py")),
     ("Bulk Access 2235", Path("2235.py")),
     ("Experiment Spot", Path("experiment spot.py")),

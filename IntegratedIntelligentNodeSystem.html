@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Integrated Intelligent Node System | Ioncore Energy</title>
-  <meta name="description" content="Ioncore's Integrated Intelligent Node System blends automation, task intelligence, multi-modal sensing, AI orchestration, and verifiable telemetry to secure modern estates and campuses." />
+  <meta name="description" content="Ioncore's Integrated Intelligent Node System unifies multi-modal sensing, AI orchestration, and verifiable telemetry to secure and automate modern estates and campuses." />
   <meta property="og:title" content="Integrated Intelligent Node System | Ioncore Energy">
-  <meta property="og:description" content="Deploy autonomous nodes with task intelligence that learn, adapt, and harden every corridor of your operation." />
+  <meta property="og:description" content="Deploy autonomous nodes that learn, adapt, and harden every corridor of your operation." />
   <meta property="og:image" content="battery.svg">
   <link rel="icon" type="image/svg+xml" href="battery.svg">
   <link rel="apple-touch-icon" href="battery.svg">
@@ -292,72 +292,6 @@
       color: var(--text-muted);
     }
 
-    .brand-banner {
-      width: min(1180px, 94vw);
-      margin: clamp(24px, 4vw, 42px) auto 0;
-      background: linear-gradient(135deg, rgba(106, 255, 59, 0.18), rgba(33, 58, 115, 0.68));
-      border: 1px solid rgba(106, 255, 59, 0.28);
-      border-radius: var(--radius-lg);
-      padding: clamp(20px, 4vw, 32px);
-      box-shadow: 0 26px 64px rgba(4, 10, 24, 0.55);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .brand-banner::after {
-      content: "";
-      position: absolute;
-      inset: auto -60px -120px auto;
-      width: 240px;
-      height: 240px;
-      background: radial-gradient(circle, rgba(106, 255, 59, 0.32), transparent 70%);
-      opacity: 0.6;
-      filter: blur(18px);
-      pointer-events: none;
-    }
-
-    .brand-banner__title {
-      font-size: clamp(1.1rem, 2.6vw, 1.6rem);
-      font-weight: 700;
-      margin: 0 0 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #101c0f;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(245, 248, 255, 0.92);
-      padding: 10px 18px;
-      border-radius: 999px;
-      box-shadow: 0 18px 36px rgba(10, 26, 12, 0.25);
-    }
-
-    .brand-banner__copy {
-      margin: 14px 0 0;
-      color: rgba(245, 248, 255, 0.86);
-      max-width: 640px;
-    }
-
-    .brand-banner__meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-top: 20px;
-    }
-
-    .brand-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(10, 18, 34, 0.36);
-      border: 1px solid rgba(245, 248, 255, 0.18);
-      color: rgba(245, 248, 255, 0.82);
-      font-size: 0.85rem;
-      letter-spacing: 0.04em;
-    }
-
     .section {
       margin-bottom: clamp(72px, 9vw, 110px);
     }
@@ -422,73 +356,6 @@
       font-size: 1.1rem;
     }
 
-    .automation-grid {
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
-
-    .automation-grid .card {
-      background: rgba(8, 14, 26, 0.86);
-      border: 1px solid rgba(106, 255, 59, 0.18);
-    }
-
-    .automation-grid .card h3 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .automation-playbook {
-      margin-top: clamp(18px, 3vw, 26px);
-      background: rgba(6, 12, 24, 0.78);
-      border: 1px solid rgba(106, 255, 59, 0.24);
-      border-radius: var(--radius-md);
-      padding: clamp(18px, 3vw, 26px);
-      box-shadow: var(--shadow-card);
-    }
-
-    .automation-playbook h3 {
-      margin-top: 0;
-      font-size: 1.05rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent);
-    }
-
-    .automation-playbook ol {
-      margin: 14px 0 0 18px;
-      padding: 0;
-      color: var(--text-med);
-      display: grid;
-      gap: 8px;
-    }
-
-    .automation-playbook strong {
-      color: var(--text-high);
-    }
-
-    .insight-callout {
-      margin-top: clamp(24px, 4vw, 38px);
-      padding: clamp(20px, 4vw, 28px);
-      border-radius: var(--radius-md);
-      background: linear-gradient(135deg, rgba(4, 10, 24, 0.82), rgba(26, 58, 40, 0.82));
-      border: 1px solid rgba(106, 255, 59, 0.24);
-      box-shadow: 0 28px 64px rgba(3, 10, 20, 0.62);
-      display: grid;
-      gap: 12px;
-    }
-
-    .insight-callout p {
-      margin: 0;
-      color: var(--text-med);
-    }
-
-    .insight-callout strong {
-      color: var(--accent);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-    }
-
     .chip-row {
       display: flex;
       flex-wrap: wrap;
@@ -541,10 +408,6 @@
         gap: 18px;
       }
 
-      .brand-banner__title {
-        font-size: 0.95rem;
-      }
-
       .nav-links {
         order: 3;
         width: 100%;
@@ -566,7 +429,6 @@
       </a>
       <nav class="nav-links" aria-label="Integrated Node navigation">
         <a href="#platform">Platform</a>
-        <a href="#automation">Automation</a>
         <a href="#architecture">Architecture</a>
         <a href="#nodes">Node kits</a>
         <a href="#operations">Operations</a>
@@ -577,21 +439,11 @@
   </header>
 
   <main>
-    <div class="brand-banner">
-      <span class="brand-banner__title"><i class="fa-solid fa-sparkles"></i> Ioncore Automation Collective</span>
-      <p class="brand-banner__copy">The Ioncore mark now signals a living automation fabric—nodes that choreograph security, hospitality, and mission support with signature precision. Task intelligence is woven into every touchpoint to deliver experiences worthy of the Ioncore crest.</p>
-      <div class="brand-banner__meta">
-        <span class="brand-chip"><i class="fa-solid fa-burst"></i> Automation-led brand moments</span>
-        <span class="brand-chip"><i class="fa-solid fa-diagram-project"></i> Task intelligence for every team</span>
-        <span class="brand-chip"><i class="fa-solid fa-passport"></i> Globally consistent Ioncore standards</span>
-      </div>
-    </div>
-
     <section class="container hero" id="top">
       <div class="hero__content">
         <span class="hero__eyebrow"><i class="fa-solid fa-network-wired"></i> Integrated Intelligent Node System</span>
-        <h1>The Ioncore automation nerve center for self-optimizing estates.</h1>
-        <p>Ioncore synchronizes multi-modal sensing, task intelligence, AI decisioning, and verifiable telemetry into one adaptive grid. Each node becomes a self-aware sentry that coordinates facilities, fleets, and critical infrastructure with unwavering uptime.</p>
+        <h1>Autonomous nodes that learn, harden, and orchestrate every corridor of your estate.</h1>
+        <p>Ioncore synchronizes multi-modal sensing, AI decisioning, and verifiable telemetry into one adaptive grid. Each node becomes a self-aware sentry that coordinates facilities, fleets, and critical infrastructure with unwavering uptime.</p>
         <div class="hero__actions">
           <a class="btn btn-primary" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Meet with an Ioncore strategist</a>
           <a class="btn btn-outline" href="#platform">Explore the platform</a>
@@ -602,16 +454,12 @@
             <span>Average inference-to-action response from edge nodes.</span>
           </div>
           <div class="metric-card">
-            <strong>+47%</strong>
-            <span>Operational efficiency uplift once automation playbooks go live.</span>
+            <strong>+41%</strong>
+            <span>Operational efficiency uplift across pilot campuses.</span>
           </div>
           <div class="metric-card">
             <strong>Zero Trust</strong>
             <span>Every event signed, encrypted, and audit-ready.</span>
-          </div>
-          <div class="metric-card">
-            <strong>96%</strong>
-            <span>Routine incidents resolved autonomously via task intelligence.</span>
           </div>
         </div>
       </div>
@@ -646,45 +494,6 @@
           <h3><i class="fa-solid fa-chart-line"></i> Executive intelligence</h3>
           <p>Curated dashboards surface heatmaps, anomaly trails, and predictive maintenance insights to inform executive decisions instantly.</p>
         </article>
-      </div>
-    </section>
-
-    <section class="container section" id="automation">
-      <div class="section-header">
-        <span class="hero__eyebrow">Automation &amp; task intelligence</span>
-        <h2>Task intelligence choreographs actions with Ioncore's signature certainty.</h2>
-        <p>Automation is branded into the Ioncore experience. Dynamic task graphs, reinforcement learning, and human-guided context deliver responses that feel bespoke while remaining fully auditable.</p>
-      </div>
-      <div class="grid automation-grid">
-        <article class="card">
-          <h3><i class="fa-solid fa-diagram-project"></i> Autonomous task graphs</h3>
-          <p>Nodes map dependencies across teams and assets, assigning roles, alerts, and resources the moment anomalies surface.</p>
-        </article>
-        <article class="card">
-          <h3><i class="fa-solid fa-circle-play"></i> Continuous automation loops</h3>
-          <p>Closed-loop orchestration validates sensor truth, executes playbooks, and redeploys resources based on live performance data.</p>
-        </article>
-        <article class="card">
-          <h3><i class="fa-solid fa-people-arrows"></i> Human-calibrated nuance</h3>
-          <p>Command staff can refine tone, pace, and escalation style so every automated response reflects Ioncore's premium service posture.</p>
-        </article>
-        <article class="card">
-          <h3><i class="fa-solid fa-layer-group"></i> Context-aware service engine</h3>
-          <p>Task intelligence blends security, hospitality, maintenance, and logistics data for orchestrations that exceed single-domain automation.</p>
-        </article>
-      </div>
-      <div class="automation-playbook">
-        <h3>Automation playbook signature</h3>
-        <ol>
-          <li><strong>Sensing:</strong> multi-modal streams feed the Ioncore inference fabric with millisecond latency.</li>
-          <li><strong>Insight:</strong> task intelligence classifies risks, opportunities, and brand moments to queue optimal automations.</li>
-          <li><strong>Action:</strong> orchestrated responses engage drones, concierge bots, facilities systems, or human teams with pre-cleared instructions.</li>
-          <li><strong>Assurance:</strong> ledger-backed reports memorialize every step, reinforcing the Ioncore promise of trust and transparency.</li>
-        </ol>
-      </div>
-      <div class="insight-callout">
-        <strong>Ioncore brand amplification</strong>
-        <p>Every automated touchpoint projects the Ioncore identity—from bespoke concierge greetings to rapid perimeter lockdowns—so stakeholders associate Ioncore with effortless protection and curated service.</p>
       </div>
     </section>
 

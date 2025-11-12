@@ -194,6 +194,159 @@
       margin-top: 36px;
     }
 
+    .section-subtitle {
+      max-width: 860px;
+      margin: 12px auto 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .logic-grid {
+      display: grid;
+      gap: 24px;
+      margin-top: 36px;
+    }
+
+    @media (min-width: 1024px) {
+      .logic-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .logic-card {
+      position: relative;
+      overflow: hidden;
+      padding: 26px 24px 30px;
+    }
+
+    .logic-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 12% 12%, rgba(106, 255, 59, 0.16), transparent 62%);
+      opacity: 0;
+      transition: opacity 0.24s ease;
+      pointer-events: none;
+    }
+
+    .logic-card:hover::before,
+    .logic-card:focus-within::before {
+      opacity: 1;
+    }
+
+    .logic-card h3 {
+      margin-bottom: 10px;
+    }
+
+    .logic-card ul {
+      padding-left: 18px;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 0;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(106, 255, 59, 0.12);
+      color: var(--accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 18px;
+      margin-top: 36px;
+    }
+
+    @media (min-width: 960px) {
+      .timeline {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    .timeline-step {
+      background: var(--panel);
+      border-radius: var(--radius);
+      border: 1px solid rgba(106, 255, 59, 0.22);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-index {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(106, 255, 59, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1rem;
+    }
+
+    .timeline-step h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .timeline-step p {
+      margin: 0;
+    }
+
+    .feature-matrix {
+      display: grid;
+      gap: 24px;
+      margin-top: 36px;
+    }
+
+    @media (min-width: 900px) {
+      .feature-matrix {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .feature-card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      border: 1px solid rgba(106, 255, 59, 0.22);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .feature-card h3 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .stat-block {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat-block strong {
+      display: block;
+      color: var(--accent);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
     @media (min-width: 900px) {
       .grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -371,9 +524,9 @@
 </head>
 <body>
   <header>
-    <span class="tagline">Sentinel Multi‑Cam AI &bull; Pricing Intelligence</span>
-    <h1>Package architecture for edge-first surveillance deployments.</h1>
-    <p class="hero-subtitle">Curate the Sentinel Multi‑Cam AI stack to match your mission tempo. Each bundle fuses ioncore energy resilience with on-prem computer vision, hardened networking, and lifecycle support so you can activate autonomous monitoring in hours, not months.</p>
+    <span class="tagline">Sentinel Multi‑Cam AI &bull; Autonomous Response Architecture</span>
+    <h1>Edge autonomy, swarm-ready drones, and explainable surveillance intelligence.</h1>
+    <p class="hero-subtitle">Curate the Sentinel Multi‑Cam AI stack to match your mission tempo. Each bundle fuses ioncore energy resilience with on-prem computer vision, hardened networking, and an autonomy brain that choreographs drones, fixed sensors, and human analysts with mission-aware tasking.</p>
     <div class="hero-gallery" role="group" aria-label="Sentinel deployment visuals">
       <figure class="hero-figure">
         <img src="seintinalai.png" alt="Sentinel Multi-Cam AI surveillance control center">
@@ -389,6 +542,157 @@
       </figure>
     </div>
   </header>
+
+  <section>
+    <h2>Autonomy &amp; drone command stack</h2>
+    <p class="section-subtitle">Sentinel deploys a layered autonomy brain that links every airframe and sensor node into a common mission graph. Below is how we wire guidance, perception, and human intent into a cohesive command fabric for custom deployments.</p>
+    <div class="logic-grid">
+      <article class="card logic-card">
+        <h3>Mission graph orchestrator</h3>
+        <p>Real-time planner that ingests operator intent, site policies, and sensor cues to produce executable drone and camera tasks.</p>
+        <ul>
+          <li>Hierarchical behavior trees with guardrails for no-fly, dwell, and escalation logic.</li>
+          <li>Dynamic resource allocator routes missions to the right drone, mast cam, or ground robot.</li>
+          <li>Constraint solver aligns energy reserves, weather, and jurisdictional rules before launch.</li>
+        </ul>
+        <div class="chip-row">
+          <span class="chip">multi-mission</span>
+          <span class="chip">policy aware</span>
+          <span class="chip">24/7 orchestration</span>
+        </div>
+      </article>
+      <article class="card logic-card">
+        <h3>Drone autonomy kernel</h3>
+        <p>Embedded autonomy stack that fuses onboard compute with the edge inference fabric for responsive flight decisions.</p>
+        <ul>
+          <li>Sensor fusion loop (vision, thermal, mmWave, AIS) with 40ms latency budget.</li>
+          <li>Adaptive waypointing that shifts formations based on detections or operator overrides.</li>
+          <li>Onboard fail-safe pack: geofence reinforcement, collision avoidance, and return-to-mission heuristics.</li>
+        </ul>
+        <div class="chip-row">
+          <span class="chip">swarm ready</span>
+          <span class="chip">edge compute</span>
+          <span class="chip">failsafe</span>
+        </div>
+      </article>
+      <article class="card logic-card">
+        <h3>Human teaming &amp; compliance</h3>
+        <p>Operators stay in the loop with rich explainability, audit trails, and rapid intervention controls.</p>
+        <ul>
+          <li>Explainable decision panes surface why a drone rerouted or escalated.</li>
+          <li>Secure handoff modes enable manual piloting with single-tap consent.</li>
+          <li>Immutable policy ledger captures every autonomy decision for compliance reviews.</li>
+        </ul>
+        <div class="chip-row">
+          <span class="chip">eXplainable AI</span>
+          <span class="chip">audit ready</span>
+          <span class="chip">operator loop</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Task management &amp; response workflow</h2>
+    <p class="section-subtitle">Every mission instance flows through an event-driven pipeline that keeps drones, fixed sensors, and analysts synchronized from the first detection through resolution.</p>
+    <div class="timeline">
+      <article class="timeline-step">
+        <div class="step-index">01</div>
+        <h3>Mission intake</h3>
+        <p>Tasking can originate from the SOC, automated schedules, or analytic triggers.</p>
+        <ul>
+          <li>Voice, API, or UI commands normalize into mission graph requests.</li>
+          <li>Policy engine validates jurisdiction, priority, and resource budgets.</li>
+        </ul>
+      </article>
+      <article class="timeline-step">
+        <div class="step-index">02</div>
+        <h3>Autonomy assignment</h3>
+        <p>The orchestrator matches intent with the best asset mix.</p>
+        <ul>
+          <li>Drone swarm pairing with fallback camera tracks.</li>
+          <li>Edge compute schedules model packs for object classes in play.</li>
+        </ul>
+      </article>
+      <article class="timeline-step">
+        <div class="step-index">03</div>
+        <h3>Live execution</h3>
+        <p>Multi-agent autonomy executes, adapts, and reports contextually.</p>
+        <ul>
+          <li>Adaptive loiter, focus, or pursuit behaviors based on detections.</li>
+          <li>Continuous telemetry mirrors into the command UI and audit lake.</li>
+        </ul>
+      </article>
+      <article class="timeline-step">
+        <div class="step-index">04</div>
+        <h3>Closure &amp; learning</h3>
+        <p>Outcomes, annotations, and analyst feedback feed the memory graph.</p>
+        <ul>
+          <li>Event packets tag objects, context, and operator decisions.</li>
+          <li>Retraining queues highlight gaps for future model refreshes.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>AI object intelligence &amp; memory fabric</h2>
+    <p class="section-subtitle">Sentinel maintains a living memory of every observed entity, environment cue, and operator action so new missions begin with contextual awareness.</p>
+    <div class="feature-matrix">
+      <article class="feature-card">
+        <h3>Object intelligence cells</h3>
+        <div class="stat-block">
+          <div>
+            <strong>Contextual IDs</strong>
+            <p>Cross-camera and drone sightings are stitched into persistent identities with confidence scoring and decay logic.</p>
+          </div>
+          <div>
+            <strong>Behavioral priors</strong>
+            <p>Sequence models capture dwell times, routes, and anomaly thresholds unique to each asset or person.</p>
+          </div>
+        </div>
+      </article>
+      <article class="feature-card">
+        <h3>Memory tiers</h3>
+        <div class="stat-block">
+          <div>
+            <strong>Edge cache</strong>
+            <p>High-speed NVMe ring buffers retain the last 72 hours for instant replay, redaction, or on-demand labeling.</p>
+          </div>
+          <div>
+            <strong>Sovereign vault</strong>
+            <p>Encrypted long-term storage mirrors critical events into sovereign regions or customer-owned infrastructure.</p>
+          </div>
+        </div>
+      </article>
+      <article class="feature-card">
+        <h3>Reasoning APIs</h3>
+        <div class="stat-block">
+          <div>
+            <strong>Graph queries</strong>
+            <p>Operators ask natural language questions that translate into vector and graph traversals for instant answers.</p>
+          </div>
+          <div>
+            <strong>Automation hooks</strong>
+            <p>Task bots subscribe to memory events to trigger maintenance tickets, dispatch guards, or notify regulators.</p>
+          </div>
+        </div>
+      </article>
+      <article class="feature-card">
+        <h3>Trust &amp; governance</h3>
+        <div class="stat-block">
+          <div>
+            <strong>Explainability</strong>
+            <p>Every detection links to source frames, model versions, and contributing sensors with exportable evidence packs.</p>
+          </div>
+          <div>
+            <strong>Retention controls</strong>
+            <p>Automated retention curves enforce privacy regimes, purge policies, and per-object access controls.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
 
   <section>
     <h2>Core platform bundles</h2>

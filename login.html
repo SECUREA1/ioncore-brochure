@@ -649,117 +649,6 @@
       gap: 1.2rem;
     }
 
-    .access-card-requirement {
-      position: relative;
-      display: grid;
-      gap: 1rem;
-      padding: 1.35rem 1.5rem;
-      border-radius: 18px;
-      background: rgba(12, 20, 38, 0.78);
-      border: 1px solid rgba(106, 255, 59, 0.22);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      overflow: hidden;
-    }
-
-    .access-card-requirement::before {
-      content: "";
-      position: absolute;
-      inset: -60% -30% auto -30%;
-      height: 160%;
-      background: radial-gradient(circle at 50% 0%, rgba(106, 255, 59, 0.18), transparent 65%);
-      opacity: 0.6;
-      pointer-events: none;
-      transition: opacity 0.24s ease;
-    }
-
-    .access-card-requirement--confirmed::before {
-      opacity: 0.85;
-    }
-
-    .access-card-requirement__header {
-      position: relative;
-      display: grid;
-      gap: 0.45rem;
-      z-index: 1;
-    }
-
-    .access-card-requirement__badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.25rem 0.65rem;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      background: rgba(106, 255, 59, 0.18);
-      color: rgba(236, 253, 245, 0.82);
-      border: 1px solid rgba(106, 255, 59, 0.32);
-      width: fit-content;
-    }
-
-    .access-card-requirement__header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(226, 255, 241, 0.92);
-    }
-
-    .access-card-requirement__header p {
-      margin: 0;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      color: rgba(209, 234, 220, 0.82);
-    }
-
-    .access-card-requirement__actions {
-      position: relative;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      z-index: 1;
-    }
-
-    .access-card-requirement__field {
-      position: relative;
-      z-index: 1;
-    }
-
-    .access-card-requirement__field input {
-      border: 1px solid rgba(106, 255, 59, 0.22);
-      background: rgba(10, 18, 32, 0.9);
-      color: #f8fafc;
-    }
-
-    .access-card-requirement__field input:focus {
-      border-color: rgba(106, 255, 59, 0.45);
-      box-shadow: 0 0 0 3px rgba(106, 255, 59, 0.2);
-      outline: none;
-    }
-
-    .access-card-requirement__help {
-      margin-top: 0.45rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(203, 213, 225, 0.68);
-    }
-
-    .access-card-requirement--confirmed {
-      border-color: rgba(106, 255, 59, 0.42);
-      box-shadow: 0 0 0 1px rgba(106, 255, 59, 0.22), 0 20px 42px rgba(10, 26, 20, 0.45);
-    }
-
-    .access-card-requirement--confirmed .access-card-requirement__badge {
-      background: rgba(106, 255, 59, 0.26);
-      color: rgba(15, 23, 42, 0.92);
-    }
-
-    .access-card-requirement--confirmed .inline-status {
-      color: rgba(196, 255, 222, 0.88);
-    }
-
     .auth-mode-switch {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -2657,49 +2546,6 @@
         <figcaption id="vault-card-caption" class="vault-credential-card__caption">Ioncore currency credential required for vault and continuum access.</figcaption>
       </figure>
       <form class="access-form" id="login-form" autocomplete="off">
-        <section
-          class="access-card-requirement"
-          id="access-card-requirement"
-          aria-labelledby="access-card-requirement-title"
-        >
-          <div class="access-card-requirement__header">
-            <span class="access-card-requirement__badge">Required</span>
-            <h2 id="access-card-requirement-title">Secure Client Access Card</h2>
-            <p>
-              Purchase the Ioncore Secure Client Access Card before requesting vault entry. Provide the
-              transaction signature or order reference from your access card purchase to unlock authentication
-              controls.
-            </p>
-          </div>
-          <div class="access-card-requirement__actions">
-            <button type="button" id="access-card-purchase" class="action-button">Purchase Access Card</button>
-            <button
-              type="button"
-              id="access-card-confirm-button"
-              class="action-button action-button--outline"
-            >
-              Confirm Access Card
-            </button>
-          </div>
-          <div class="field access-card-requirement__field">
-            <label for="access-card-reference">Access Card Reference</label>
-            <input
-              id="access-card-reference"
-              name="accessCardReference"
-              type="text"
-              placeholder="Transaction signature or order ID"
-              autocomplete="off"
-              spellcheck="false"
-            >
-            <p class="access-card-requirement__help">
-              Paste the Solana transaction signature or receipt identifier from your Ioncore Secure Client Access
-              Card purchase.
-            </p>
-          </div>
-          <div id="access-card-status" class="inline-status">
-            Access card purchase required before vault entry.
-          </div>
-        </section>
         <div class="auth-mode-group">
           <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
             <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
@@ -2916,8 +2762,6 @@
           </div>
           <input type="hidden" name="walletAddress" id="wallet-address">
           <input type="hidden" name="walletProvider" id="wallet-provider">
-          <input type="hidden" name="accessCardConfirmed" id="access-card-confirmed">
-          <input type="hidden" name="accessCardMethod" id="access-card-method">
           <input type="hidden" name="solanaDepositSignature" id="solana-deposit-signature">
           <input type="hidden" name="solanaDepositAmount" id="solana-deposit-amount-hidden">
           <input type="hidden" name="ioncVerified" id="ionc-verified">
@@ -3035,13 +2879,6 @@
     const solanaActionSubmitButton = document.getElementById('solana-action-submit');
     const ioncTokenListContainer = document.getElementById('ionc-token-list-container');
     const ioncTokenListElement = document.getElementById('ionc-token-list');
-    const accessCardRequirementSection = document.getElementById('access-card-requirement');
-    const accessCardStatusElement = document.getElementById('access-card-status');
-    const accessCardConfirmButton = document.getElementById('access-card-confirm-button');
-    const accessCardPurchaseButton = document.getElementById('access-card-purchase');
-    const accessCardReferenceInput = document.getElementById('access-card-reference');
-    const accessCardConfirmedInput = document.getElementById('access-card-confirmed');
-    const accessCardMethodInput = document.getElementById('access-card-method');
     const meknxActionSelect = document.getElementById('meknx-action');
     const meknxActionButton = document.getElementById('meknx-action-button');
     const meknxInlineStatus = document.getElementById('meknx-inline-status');
@@ -3067,7 +2904,7 @@
           chartWindow.opener = null;
         } else {
           window.location.href = 'ionc-token-chart.html';
-          }
+        }
       });
     }
 
@@ -3714,114 +3551,6 @@
       resetIoncState({ silent: options.silent });
     };
 
-    const accessCardState = {
-      confirmed: false,
-      method: '',
-      reference: ''
-    };
-
-    const normalizeAccessCardReference = (value) => {
-      if (typeof value !== 'string') {
-        return '';
-      }
-      return value.trim();
-    };
-
-    const setAccessCardRequirementTone = (confirmed) => {
-      if (!accessCardRequirementSection) {
-        return;
-      }
-      accessCardRequirementSection.classList.toggle('access-card-requirement--confirmed', confirmed);
-    };
-
-    const setAccessCardStatus = (message, tone = 'neutral') => {
-      if (!accessCardStatusElement) {
-        return;
-      }
-      accessCardStatusElement.textContent = message;
-      accessCardStatusElement.classList.remove('inline-status--error', 'inline-status--success');
-      if (tone === 'error') {
-        accessCardStatusElement.classList.add('inline-status--error');
-      } else if (tone === 'success') {
-        accessCardStatusElement.classList.add('inline-status--success');
-      }
-    };
-
-    const resetAccessCardState = (options = {}) => {
-      accessCardState.confirmed = false;
-      accessCardState.method = '';
-      accessCardState.reference = '';
-      if (accessCardConfirmedInput) {
-        accessCardConfirmedInput.value = '';
-      }
-      if (accessCardMethodInput) {
-        accessCardMethodInput.value = '';
-      }
-      if (!options.keepManualReference && accessCardReferenceInput) {
-        accessCardReferenceInput.value = '';
-      }
-      setAccessCardRequirementTone(false);
-      if (!options.silent) {
-        setAccessCardStatus('Access card purchase required before vault entry.');
-      }
-    };
-
-    const markAccessCardConfirmed = ({ reference, method = 'manual', message, tone = 'success' } = {}) => {
-      const normalizedReference = normalizeAccessCardReference(
-        reference || (accessCardReferenceInput ? accessCardReferenceInput.value : '')
-      );
-
-      if (!normalizedReference) {
-        setAccessCardRequirementTone(false);
-        setAccessCardStatus('Provide your access card purchase reference before confirming.', 'error');
-        if (accessCardConfirmedInput) {
-          accessCardConfirmedInput.value = '';
-        }
-        if (accessCardMethodInput) {
-          accessCardMethodInput.value = '';
-        }
-        accessCardState.confirmed = false;
-        accessCardState.method = '';
-        accessCardState.reference = '';
-        return false;
-      }
-
-      accessCardState.confirmed = true;
-      accessCardState.method = method;
-      accessCardState.reference = normalizedReference;
-
-      if (accessCardReferenceInput && accessCardReferenceInput.value !== normalizedReference) {
-        accessCardReferenceInput.value = normalizedReference;
-      }
-      if (accessCardConfirmedInput) {
-        accessCardConfirmedInput.value = 'true';
-      }
-      if (accessCardMethodInput) {
-        accessCardMethodInput.value = method;
-      }
-
-      setAccessCardRequirementTone(true);
-      setAccessCardStatus(message || 'Access card purchase confirmed. Continue to authentication.', tone);
-      return true;
-    };
-
-    const hasAccessCardProof = () => {
-      if (accessCardState.confirmed) {
-        return true;
-      }
-      if (solanaDepositState.completed && solanaDepositState.signature) {
-        markAccessCardConfirmed({
-          reference: solanaDepositState.signature,
-          method: 'solana',
-          message: `${formatSolDepositLabel(solanaDepositState.amountSol)} access card purchase detected.`
-        });
-        return true;
-      }
-      return false;
-    };
-
-    resetAccessCardState({ silent: true, keepManualReference: true });
-
     const syncIoncModuleVisibility = () => {
       if (!ioncModule) return;
       const provider = walletProviderInput ? walletProviderInput.value : '';
@@ -4305,9 +4034,6 @@
           `Access card purchase pending. Select ${pendingAmount} and use Purchase once your Phantom session is active.`;
         solanaDepositStatus.classList.remove('wallet-status--connected');
       }
-      if (accessCardState.method === 'solana') {
-        resetAccessCardState();
-      }
       updateSolanaActionButtons();
     };
 
@@ -4341,11 +4067,6 @@
         )} access card purchase submitted. Ref: ${shortenIdentifier(signature)}`;
         solanaDepositStatus.classList.add('wallet-status--connected');
       }
-      markAccessCardConfirmed({
-        reference: signature,
-        method: 'solana',
-        message: `${formatSolDepositLabel(normalizedAmount)} access card purchase recorded. Confirm clearance to continue.`
-      });
       updateSolanaActionButtons();
     };
 
@@ -4537,12 +4258,6 @@
             `${normalizedAmount} access card purchase verified (${confirmationLabel}). Complete MEKNX clearance to enter.`,
             'success'
           );
-
-          markAccessCardConfirmed({
-            reference: solanaDepositState.signature,
-            method: 'solana',
-            message: `${normalizedAmount} access card purchase verified (${confirmationLabel}). Submit to enter the vault.`
-          });
 
           setInlineStatus(
             ioncInlineStatus,
@@ -6000,86 +5715,9 @@
         });
       }
 
-  if (accessCardPurchaseButton) {
-    accessCardPurchaseButton.addEventListener('click', () => {
-      const purchaseWindow = window.open('magnetic-stripe-checkout.html', '_blank', 'noopener');
-      if (!purchaseWindow) {
-        window.location.href = 'magnetic-stripe-checkout.html';
-      }
-      setAccessCardStatus(
-        'Purchase portal opened. Complete the access card order, then confirm your reference below.'
-      );
-      updateStatus(
-        'Access card purchase portal opened in a new tab. Complete the order before requesting entry.'
-      );
-    });
-  }
+      setMode('credentials', true);
 
-  if (accessCardReferenceInput) {
-    accessCardReferenceInput.addEventListener('input', () => {
-      const currentValue = normalizeAccessCardReference(accessCardReferenceInput.value);
-      if (!currentValue) {
-        accessCardState.confirmed = false;
-        accessCardState.reference = '';
-        accessCardState.method = '';
-        if (accessCardConfirmedInput) {
-          accessCardConfirmedInput.value = '';
-        }
-        if (accessCardMethodInput) {
-          accessCardMethodInput.value = '';
-        }
-        setAccessCardRequirementTone(false);
-        setAccessCardStatus('Access card purchase required before vault entry.');
-        return;
-      }
-
-      if (accessCardState.confirmed && accessCardState.method === 'manual') {
-        const storedReference = normalizeAccessCardReference(accessCardState.reference);
-        if (storedReference !== currentValue) {
-          accessCardState.confirmed = false;
-          accessCardState.reference = '';
-          if (accessCardConfirmedInput) {
-            accessCardConfirmedInput.value = '';
-          }
-          if (accessCardMethodInput) {
-            accessCardMethodInput.value = '';
-          }
-          setAccessCardRequirementTone(false);
-          setAccessCardStatus('Access card reference updated. Select Confirm Access Card to re-verify.');
-        }
-      }
-    });
-  }
-
-  if (accessCardConfirmButton) {
-    accessCardConfirmButton.addEventListener('click', () => {
-      if (solanaDepositState.completed && solanaDepositState.signature) {
-        markAccessCardConfirmed({
-          reference: solanaDepositState.signature,
-          method: 'solana',
-          message: `${formatSolDepositLabel(solanaDepositState.amountSol)} access card purchase detected. Continue to authentication.`
-        });
-        updateStatus('Access card purchase confirmed. Continue to authentication.', 'success');
-        return;
-      }
-
-      const confirmed = markAccessCardConfirmed({
-        reference: accessCardReferenceInput ? accessCardReferenceInput.value : '',
-        method: 'manual'
-      });
-
-      if (confirmed) {
-        updateStatus('Access card purchase confirmed. Continue to authentication.', 'success');
-      } else {
-        updateStatus('Provide your access card purchase reference before confirming.', 'error');
-        triggerFailureAnimation();
-      }
-    });
-  }
-
-  setMode('credentials', true);
-
-  form.addEventListener('submit', async (event) => {
+      form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const submitButton = form.querySelector('button[type="submit"]');
         if (!submitButton) {
@@ -6105,31 +5743,6 @@
           method: activeMode,
           next: nextPath
         };
-
-        if (!hasAccessCardProof()) {
-          setAccessCardStatus(
-            'Purchase an Ioncore Secure Client Access Card and confirm the order reference before entering.',
-            'error'
-          );
-          updateStatus('Purchase the Ioncore Secure Client Access Card before entering the vault.', 'error');
-          submitButton.disabled = false;
-          submitButton.textContent = 'Enter the Vault';
-          triggerFailureAnimation();
-          return;
-        }
-
-        const normalizedAccessCardReference = normalizeAccessCardReference(
-          accessCardState.reference || (accessCardReferenceInput ? accessCardReferenceInput.value : '')
-        );
-
-        payload.accessCardConfirmed = accessCardState.confirmed;
-        payload.accessCardReference = normalizedAccessCardReference;
-        payload.accessCardMethod =
-          accessCardState.method || (solanaDepositState.signature ? 'solana' : 'manual');
-        payload.solanaDepositSignature = solanaDepositState.signature || '';
-        payload.solanaDepositAmount = solanaDepositState.completed
-          ? solanaDepositState.amountSol
-          : null;
 
         if (activeMode === 'wallet') {
           if (!walletAddressInput || !walletAddressInput.value) {

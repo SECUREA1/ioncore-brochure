@@ -11,6 +11,35 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    (function () {
+      const AUTH_STORAGE_KEY = 'ioncore-gateway';
+
+      function redirectToGateway() {
+        window.location.replace('/');
+      }
+
+      try {
+        const authRaw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+
+        if (!authRaw) {
+          redirectToGateway();
+          return;
+        }
+
+        const auth = JSON.parse(authRaw);
+        const now = Date.now();
+
+        if (!auth || typeof auth !== 'object' || !auth.expires || Number(auth.expires) <= now) {
+          sessionStorage.removeItem(AUTH_STORAGE_KEY);
+          redirectToGateway();
+        }
+      } catch (error) {
+        sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        redirectToGateway();
+      }
+    })();
+  </script>
 </head>
 <body>
   <header class="site-header container">
@@ -41,25 +70,6 @@
         <h1>IonCore Energy provides elite-grade energy resilience.</h1>
         <p>Our magnetic inertia and flywheel platforms—stabilized by cryogenic cooling—deliver continuous, low-maintenance power for high-value properties, critical infrastructure, maritime fleets, and aerospace missions.</p>
         <div class="hero__actions">
-          <a class="btn btn-graphic" href="index.html">
-            <span class="btn-graphic__icon" aria-hidden="true">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="full-project-glow" x1="4" y1="4" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stop-color="#6AFF3B" />
-                    <stop offset="1" stop-color="#3CBF2A" />
-                  </linearGradient>
-                </defs>
-                <rect x="3" y="3" width="22" height="22" rx="6" stroke="url(#full-project-glow)" stroke-width="1.5" />
-                <path d="M9.5 14H18.5" stroke="url(#full-project-glow)" stroke-width="1.5" stroke-linecap="round" />
-                <path d="M14 9.5V18.5" stroke="url(#full-project-glow)" stroke-width="1.5" stroke-linecap="round" />
-                <path d="M7.5 20.5L10.2 17.8" stroke="url(#full-project-glow)" stroke-width="1.2" stroke-linecap="round" />
-                <path d="M20.5 7.5L17.8 10.2" stroke="url(#full-project-glow)" stroke-width="1.2" stroke-linecap="round" />
-                <circle cx="14" cy="14" r="5.25" stroke="url(#full-project-glow)" stroke-width="1.2" />
-              </svg>
-            </span>
-            <span class="btn-graphic__text">The Full Project</span>
-          </a>
           <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a private consultation</a>
         </div>
         <div class="engagement-counters" aria-live="polite">
@@ -440,6 +450,7 @@
         </div>
         <div class="hero__actions">
           <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Request proposal</a>
+          <a class="btn btn-outline" href="index.html">Download brochures</a>
         </div>
       </div>
     </section>
@@ -712,6 +723,42 @@
           startRefresh();
           refresh();
         });
+    })();
+
+    (() => {
+      const localOrigin = window.location.origin;
+      const anchors = Array.from(document.querySelectorAll('a[href]'));
+      anchors.forEach((link) => {
+        const rawHref = link.getAttribute('href');
+        if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) {
+          return;
+        }
+
+        if (link.dataset.publicLink === 'true') {
+          return;
+        }
+
+        try {
+          const targetUrl = new URL(rawHref, localOrigin);
+          if (targetUrl.origin !== localOrigin) {
+            return;
+          }
+
+          if (targetUrl.pathname === '/login' || targetUrl.pathname === '/login.html') {
+            return;
+          }
+
+          if (!targetUrl.pathname.toLowerCase().endsWith('.html')) {
+            return;
+          }
+
+          const destination = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+          link.dataset.destination = destination;
+          link.setAttribute('href', `/login?next=${encodeURIComponent(destination)}`);
+        } catch (err) {
+          console.warn('Unable to secure link', err);
+        }
+      });
     })();
 
     (() => {

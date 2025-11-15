@@ -1,14 +1,15 @@
 """Ioncore visual branding helpers for Tkinter applications.
 
-This module centralizes the Ioncore Index palette and reusable
-helpers so our desktop utilities can present a consistent visual
-identity.  It focuses on lightweight Tk widgets and keeps optional
-Pillow usage guarded so the tools remain portable.
+Branding sync: Ioncore brochure index.html & webpage.html (2024-06-05).
+This module centralizes the brochure styling primitives so every
+desktop Bluetooth utility mirrors the public Ioncore experience.
+It focuses on lightweight Tk widgets and keeps optional Pillow usage
+guarded so the tools remain portable.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, Iterable, Optional
 
 import tkinter as tk
 from tkinter import font as tkfont
@@ -18,6 +19,9 @@ except Exception:  # pragma: no cover - Pillow is optional at runtime
     Image = None  # type: ignore
     ImageDraw = None  # type: ignore
     ImageTk = None  # type: ignore
+
+
+BRANDING_STAMP = "Ioncore Index • webpage.html sync • 2024-06-05"
 
 
 IONCORE_THEME_PALETTES: Dict[str, Dict[str, str]] = {
@@ -121,6 +125,26 @@ def _configure_global_fonts(root: tk.Misc, family: str) -> Dict[str, tkfont.Font
     fonts["title"] = tkfont.Font(root=root, family=family, size=22, weight="bold")
     fonts["subtitle"] = tkfont.Font(root=root, family=family, size=12)
     return fonts
+
+
+def brand_subtitle(*lines: str | Iterable[str]) -> str:
+    """Return a subtitle with the global Ioncore branding stamp.
+
+    Each Bluetooth utility can pass one or more human-friendly lines that
+    precede the shared branding statement sourced from the brochure UI.
+    """
+
+    if not lines:
+        return f"Branding sync: {BRANDING_STAMP}"
+
+    normalized: list[str] = []
+    for block in lines:
+        if isinstance(block, str):
+            normalized.append(block)
+        else:
+            normalized.extend(str(part) for part in block)
+    normalized.append(f"Branding sync: {BRANDING_STAMP}")
+    return "\n".join(normalized)
 
 
 def _maybe_create_logo(size: int = 96) -> Optional["ImageTk.PhotoImage"]:

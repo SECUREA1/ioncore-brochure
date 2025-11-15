@@ -8,6 +8,8 @@ macer3.py — GUI-first MAC/BLE inspector with deep selection inspector
 
 Optional installs:
   pip install mac-vendor-lookup pandas openpyxl
+
+Branding sync: index.html & webpage.html (2024-06-05) for brochure-matched visuals.
 """
 
 import argparse, csv, json, os, platform, re, sqlite3, subprocess, sys, zipfile

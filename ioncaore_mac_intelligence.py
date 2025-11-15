@@ -10,6 +10,9 @@ Ioncore MAC Intelligence — GUI for MAC/BLE inspection.
 
 Optional installs:
   pip install pandas openpyxl mac-vendor-lookup
+
+Branding sync: index.html & webpage.html (2024-06-05) aligns the
+desktop presentation with the Ioncore brochure experience.
 """
 
 import os, re, json, csv, platform, subprocess, sqlite3, sys

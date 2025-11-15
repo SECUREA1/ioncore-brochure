@@ -1,3 +1,10 @@
+"""Ioncore Device Orchestrator — Bluetooth suite aligned with brochure branding.
+
+Branding sync: index.html & webpage.html (2024-06-05) ensures the
+desktop tooling matches the public Ioncore experience when presenting
+Bluetooth, Wi‑Fi, and cellular telemetry.
+"""
+
 import asyncio
 import threading
 import platform
@@ -24,6 +31,11 @@ import shutil
 import tempfile
 
 import ioncore_branding
+
+
+BRANDING_SUBTITLE = ioncore_branding.brand_subtitle(
+    "Unified Bluetooth, Wi‑Fi, and cellular intelligence in the Ioncore Index style."
+)
 
 # matplotlib (3D seeds map)
 from matplotlib.figure import Figure
@@ -157,13 +169,13 @@ class BluetoothApp:
     def __init__(self, root):
         self.root = root
         self.branding = ioncore_branding.apply_ioncore_branding(root)
-        self.root.title("Ioncore Device Orchestrator")
+        self.root.title(f"Ioncore Device Orchestrator — {ioncore_branding.BRANDING_STAMP}")
 
         self.branding_header = ioncore_branding.build_branding_header(
             root,
             self.branding,
             title="Ioncore Device Orchestrator",
-            subtitle="Unified Bluetooth, Wi‑Fi, and cellular intelligence in the Ioncore Index style.",
+            subtitle=BRANDING_SUBTITLE,
         )
         self.branding_header.pack(fill="x", padx=18, pady=(18, 12))
 

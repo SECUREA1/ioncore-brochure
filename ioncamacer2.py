@@ -9,6 +9,8 @@ macer2.py — GUI-first MAC/BLE inspector
 
 Optional installs:
   pip install mac-vendor-lookup pandas openpyxl
+
+Branding sync: index.html & webpage.html (2024-06-05) for brochure-aligned visuals.
 """
 
 import argparse

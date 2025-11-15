@@ -2,6 +2,12 @@
 from __future__ import annotations
 
 import os
+"""Ioncore Bluetooth Start Menu — brochure branded launcher for research suites.
+
+Branding sync: index.html & webpage.html (2024-06-05) keeps the startup
+experience consistent with the Ioncore brochure presence.
+"""
+
 import sys
 import threading
 import subprocess
@@ -15,6 +21,11 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 
 import ioncore_branding
+
+
+BRANDING_SUBTITLE = ioncore_branding.brand_subtitle(
+    "Launch pad for the Ioncore Bluetooth analysis suites."
+)
 
 
 # --------------------------- Model ---------------------------------
@@ -102,7 +113,7 @@ class LauncherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.branding = ioncore_branding.apply_ioncore_branding(self)
-        self.title("Ioncore Launch Hub")
+        self.title(f"Ioncore Launch Hub — {ioncore_branding.BRANDING_STAMP}")
         self.geometry("980x600")
         self.minsize(880, 520)
 
@@ -110,7 +121,7 @@ class LauncherApp(tk.Tk):
             self,
             self.branding,
             title="Ioncore Launch Hub",
-            subtitle="Launch Ioncore bulk access suites and supporting tools.",
+            subtitle=BRANDING_SUBTITLE,
         )
         self.branding_header.pack(fill="x", padx=18, pady=(18, 12))
 

@@ -2,6 +2,12 @@ import asyncio
 import threading
 import platform
 import binascii
+"""Ioncore Spectrum Command Center — brochure-branded Bluetooth intelligence.
+
+Branding sync: index.html & webpage.html (2024-06-05) keeps this
+command center consistent with the Ioncore public brochure aesthetic.
+"""
+
 import tkinter as tk
 from tkinter import messagebox, scrolledtext, filedialog, simpledialog
 from bleak import BleakClient, BleakScanner
@@ -32,6 +38,13 @@ import urllib.error
 # numpy & PIL for satellite overlay
 import numpy as np
 from PIL import Image, ImageDraw, ImageTk
+
+import ioncore_branding
+
+
+BRANDING_TAGLINE = ioncore_branding.brand_subtitle(
+    "Unified telemetry for Bluetooth, Wi‑Fi, cellular, and spectrum intelligence."
+)
 
 # matplotlib (3D map)
 from matplotlib.figure import Figure
@@ -349,7 +362,7 @@ class BluetoothApp:
 
         self.branding_tagline = tk.Label(
             self.branding_frame,
-            text="Unified telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
+            text=BRANDING_TAGLINE,
             font=("Segoe UI", 12),
             anchor="w",
             wraplength=660,
@@ -478,7 +491,9 @@ class BluetoothApp:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("Ioncore Radiance Console • Bluetooth • Wi‑Fi • Cellular")
+        self.root.title(
+            f"Ioncore Radiance Console • Bluetooth • Wi‑Fi • Cellular — {ioncore_branding.BRANDING_STAMP}"
+        )
 
         self.theme_mode = get_default_theme_mode()
         self.theme_widgets = {
@@ -750,7 +765,7 @@ class BluetoothApp:
                     title = f"Ioncore Radiance Console — {loc.address}"
             except Exception:
                 pass
-        self.root.title(title)
+        self.root.title(f"{title} — {ioncore_branding.BRANDING_STAMP}")
 
     def prompt_set_gps_coordinates(self):
         s = simpledialog.askstring("Set GPS", "Enter GPS as 'lat, lon':",

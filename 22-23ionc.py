@@ -26,12 +26,16 @@ import shutil
 import webbrowser
 import urllib.request
 import urllib.error
+from typing import Optional
+
+
+from ioncore_branding import BrandingContext, apply_ioncore_branding, brand_subtitle
 
 
 
 # numpy & PIL for satellite overlay
 import numpy as np
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image
 
 # matplotlib (3D map)
 from matplotlib.figure import Figure
@@ -139,132 +143,12 @@ PBAP_PSE_UUID = "0000112f-0000-1000-8000-00805f9b34fb"  # Phonebook Access - Ser
 PBAP_TARGET_UUID_BYTES = bytes.fromhex("796135F0F0C511D809660800200C9A66")
 
 
-# ---------------- Ioncore Branding -----------------
-IONCORE_LOGO_SVG = """<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" stop-color=\"#00E0FF\"/>\n      <stop offset=\"100%\" stop-color=\"#4DFF9D\"/>\n    </linearGradient>\n  </defs>\n  <circle cx=\"80\" cy=\"80\" r=\"74\" fill=\"url(#ioncoreGradient)\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"46\" fill=\"#060B1A\" opacity=\"0.94\"/>\n  <path d=\"M40 80c0-22.091 17.909-40 40-40s40 17.909 40 40-17.909 40-40 40S40 102.091 40 80zm52 0a12 12 0 10-24 0 12 12 0 0024 0z\" fill=\"#F4F9FF\" opacity=\"0.88\"/>\n  <path d=\"M34 64a60 60 0 0092 0\" stroke=\"#00E0FF\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M34 96a60 60 0 0092 0\" stroke=\"#4DFF9D\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n</svg>"""
-
-
 def get_default_theme_mode(default="dark"):
     """Return the preferred Ioncore theme, honoring environment overrides."""
     mode = os.environ.get("IONCORE_THEME_MODE", "").strip().lower()
     if mode in {"light", "dark"}:
         return mode
     return default
-
-
-def _hex_to_rgb(hex_color):
-    hex_color = hex_color.lstrip("#")
-    return tuple(int(hex_color[i:i + 2], 16) for i in range(0, 6, 2))
-
-
-def _blend_channel(start, end, factor):
-    return int(start + (end - start) * factor)
-
-
-def _gradient_color(start_rgb, end_rgb, factor):
-    return tuple(_blend_channel(s, e, factor) for s, e in zip(start_rgb, end_rgb))
-
-
-def create_ioncore_logo_image(size=160):
-    size = int(size)
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-
-    outer_radius = size // 2 - 4
-    center = size / 2
-    start_rgb = _hex_to_rgb("#00E0FF")
-    end_rgb = _hex_to_rgb("#4DFF9D")
-
-    for step, radius in enumerate(range(outer_radius, 0, -1)):
-        factor = step / max(1, outer_radius)
-        color = _gradient_color(start_rgb, end_rgb, factor)
-        draw.ellipse(
-            [center - radius, center - radius, center + radius, center + radius],
-            fill=color,
-        )
-
-    inner_radius = int(outer_radius * 0.58)
-    draw.ellipse(
-        [center - inner_radius, center - inner_radius, center + inner_radius, center + inner_radius],
-        fill=(6, 11, 26, 235),
-    )
-
-    orbit_radius = outer_radius - size * 0.1
-    orbit_width = max(2, size // 30)
-    draw.arc(
-        [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
-        start=215,
-        end=325,
-        width=orbit_width,
-        fill="#00E0FF",
-    )
-    draw.arc(
-        [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
-        start=35,
-        end=145,
-        width=orbit_width,
-        fill="#4DFF9D",
-    )
-
-    core_radius = int(inner_radius * 0.42)
-    draw.ellipse(
-        [center - core_radius, center - core_radius, center + core_radius, center + core_radius],
-        fill=(244, 249, 255, 235),
-    )
-
-    bar_width = max(6, size // 12)
-    bar_radius = bar_width // 2
-    draw.rounded_rectangle(
-        [center - bar_width * 1.6, center - bar_width * 0.3, center + bar_width * 1.6, center + bar_width * 0.3],
-        radius=bar_radius,
-        fill="#00E0FF",
-    )
-    draw.rounded_rectangle(
-        [center - bar_width * 0.9, center - bar_width * 0.9, center + bar_width * 0.9, center - bar_width * 0.35],
-        radius=bar_radius,
-        fill="#4DFF9D",
-    )
-
-    return ImageTk.PhotoImage(canvas)
-
-
-IONCORE_THEMES = {
-    "dark": {
-        "bg": "#060B1A",
-        "surface": "#0F1F3C",
-        "surface_alt": "#131F3F",
-        "accent": "#00E0FF",
-        "accent_alt": "#4DFF9D",
-        "accent_fg": "#041221",
-        "text": "#F4F9FF",
-        "muted_text": "#7FA7D9",
-        "border": "#1E2A4A",
-        "list_bg": "#0B1834",
-        "list_fg": "#F0F6FF",
-        "entry_bg": "#102241",
-        "entry_fg": "#FFFFFF",
-        "log_bg": "#0C1B35",
-        "log_fg": "#96E7FF",
-    },
-    "light": {
-        "bg": "#F5F8FC",
-        "surface": "#FFFFFF",
-        "surface_alt": "#EEF4FF",
-        "accent": "#007BFF",
-        "accent_alt": "#34C759",
-        "accent_fg": "#FFFFFF",
-        "text": "#13233C",
-        "muted_text": "#5B6D89",
-        "border": "#CAD7EF",
-        "list_bg": "#FFFFFF",
-        "list_fg": "#13233C",
-        "entry_bg": "#FFFFFF",
-        "entry_fg": "#13233C",
-        "log_bg": "#FFFFFF",
-        "log_fg": "#0A3356",
-    },
-}
-
-
 # ---------------- Range Qualification & Smoothing -----------------
 class DistanceFilter:
     """Per-radio RSSI smoother with outlier rejection and distance clamps."""
@@ -330,30 +214,76 @@ class BluetoothApp:
     def _register_theme_widget(self, widget, category):
         self.theme_widgets.setdefault(category, []).append(widget)
 
+    def _refresh_branding_context(self):
+        self.branding = apply_ioncore_branding(self.root, mode=self.theme_mode)
+        logo = getattr(self.branding, "logo", None)
+        if logo is not None:
+            try:
+                self.root.iconphoto(False, logo)
+            except Exception:
+                pass
+
     def _init_branding(self):
-        self.branding_frame = tk.Frame(self.root, bd=0, highlightthickness=0)
+        if not self.branding:
+            return
+
+        colors = self.branding.colors
+        fonts = self.branding.fonts
+        subtitle_text = brand_subtitle(
+            "Unified telemetry for Bluetooth, Wi‑Fi, and cellular intelligence."
+        )
+
+        self.branding_frame = tk.Frame(
+            self.root,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=colors["border"],
+            bg=colors["surface_alt"],
+        )
         self.branding_frame.pack(fill="x", pady=(12, 18))
         self._register_theme_widget(self.branding_frame, "frames")
 
-        self.logo_label = tk.Label(self.branding_frame, image=self.logo_large, borderwidth=0, highlightthickness=0)
+        if self.branding.logo is not None:
+            self.logo_label = tk.Label(
+                self.branding_frame,
+                image=self.branding.logo,
+                borderwidth=0,
+                highlightthickness=0,
+                bg=colors["surface_alt"],
+            )
+            self.logo_label.image = self.branding.logo
+        else:
+            self.logo_label = tk.Label(
+                self.branding_frame,
+                text="IONCORE",
+                font=fonts["title"],
+                borderwidth=0,
+                highlightthickness=0,
+                bg=colors["surface_alt"],
+                fg=colors["accent"],
+            )
         self.logo_label.grid(row=0, column=0, rowspan=2, padx=(14, 18), pady=4, sticky="w")
 
         self.branding_title = tk.Label(
             self.branding_frame,
             text="Ioncore Radiance Console",
-            font=("Segoe UI", 20, "bold"),
+            font=fonts["title"],
             anchor="w",
+            bg=colors["surface_alt"],
+            fg=colors["text"],
         )
         self.branding_title.grid(row=0, column=1, sticky="w")
         self._register_theme_widget(self.branding_title, "labels")
 
         self.branding_tagline = tk.Label(
             self.branding_frame,
-            text="Unified telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
-            font=("Segoe UI", 12),
+            text=subtitle_text,
+            font=fonts["subtitle"],
             anchor="w",
             wraplength=660,
             justify="left",
+            bg=colors["surface_alt"],
+            fg=colors["muted_text"],
         )
         self.branding_tagline.grid(row=1, column=1, sticky="w", pady=(4, 0))
         self._register_theme_widget(self.branding_tagline, "labels")
@@ -361,8 +291,10 @@ class BluetoothApp:
         self.theme_status = tk.Label(
             self.branding_frame,
             text="Dark Mode" if self.theme_mode == "dark" else "Light Mode",
-            font=("Segoe UI", 11, "bold"),
+            font=fonts["small"],
             anchor="e",
+            bg=colors["surface_alt"],
+            fg=colors["accent_alt"],
         )
         self.theme_status.grid(row=0, column=2, sticky="e", padx=(16, 14))
         self._register_theme_widget(self.theme_status, "labels")
@@ -376,6 +308,7 @@ class BluetoothApp:
             relief="flat",
             cursor="hand2",
             bd=0,
+            font=fonts["button"],
         )
         self.theme_button.grid(row=1, column=2, sticky="e", padx=(16, 14), pady=(4, 0))
         self._register_theme_widget(self.theme_button, "buttons")
@@ -441,16 +374,24 @@ class BluetoothApp:
             pass
 
     def apply_theme(self):
-        colors = IONCORE_THEMES[self.theme_mode]
+        if not self.branding:
+            return
+
+        colors = self.branding.colors
+        fonts = self.branding.fonts
         self.root.configure(bg=colors["bg"])
 
         self._apply_theme_recursive(self.root, colors)
 
         self.branding_frame.configure(bg=colors["surface_alt"], highlightbackground=colors["border"])
-        self.logo_label.configure(bg=colors["surface_alt"])
-        self.branding_title.configure(bg=colors["surface_alt"], fg=colors["text"])
-        self.branding_tagline.configure(bg=colors["surface_alt"], fg=colors["muted_text"])
-        self.theme_status.configure(bg=colors["surface_alt"], fg=colors["accent_alt"])
+        if hasattr(self, "logo_label"):
+            self.logo_label.configure(bg=colors["surface_alt"])
+            if self.branding.logo is not None:
+                self.logo_label.configure(image=self.branding.logo)
+                self.logo_label.image = self.branding.logo
+        self.branding_title.configure(bg=colors["surface_alt"], fg=colors["text"], font=fonts["title"])
+        self.branding_tagline.configure(bg=colors["surface_alt"], fg=colors["muted_text"], font=fonts["subtitle"])
+        self.theme_status.configure(bg=colors["surface_alt"], fg=colors["accent_alt"], font=fonts["small"])
         self.theme_button.configure(
             bg=colors["accent"],
             fg=colors["accent_fg"],
@@ -460,6 +401,7 @@ class BluetoothApp:
             highlightcolor=colors["accent"],
             bd=0,
             relief="flat",
+            font=fonts["button"],
         )
 
         self.theme_button.configure(
@@ -473,6 +415,7 @@ class BluetoothApp:
 
     def toggle_theme(self):
         self.theme_mode = "light" if self.theme_mode == "dark" else "dark"
+        self._refresh_branding_context()
         self.apply_theme()
         self.log(f"Ioncore theme switched to {self.theme_mode.title()} Mode.")
 
@@ -480,6 +423,7 @@ class BluetoothApp:
         self.root = root
         self.root.title("Ioncore Radiance Console • Bluetooth • Wi‑Fi • Cellular")
 
+        self.branding: Optional[BrandingContext] = None
         self.theme_mode = get_default_theme_mode()
         self.theme_widgets = {
             "frames": [],
@@ -489,14 +433,7 @@ class BluetoothApp:
             "lists": [],
             "texts": [],
         }
-
-        self.logo_large = create_ioncore_logo_image(128)
-        self.logo_small = create_ioncore_logo_image(48)
-        try:
-            self.root.iconphoto(False, self.logo_small)
-        except Exception:
-            pass
-
+        self._refresh_branding_context()
         self._init_branding()
 
         # ---------- Async loop (single, persistent) ----------

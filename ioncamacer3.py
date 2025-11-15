@@ -19,6 +19,12 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageDraw, ImageTk
 
+from ioncore_branding import (
+    apply_ioncore_branding,
+    brand_subtitle,
+    brand_title,
+)
+
 
 # ---------------- Ioncore Branding -----------------
 IONCORE_LOGO_SVG = """<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" stop-color=\"#00E0FF\"/>\n      <stop offset=\"100%\" stop-color=\"#4DFF9D\"/>\n    </linearGradient>\n  </defs>\n  <circle cx=\"80\" cy=\"80\" r=\"74\" fill=\"url(#ioncoreGradient)\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"46\" fill=\"#060B1A\" opacity=\"0.94\"/>\n  <path d=\"M40 80c0-22.091 17.909-40 40-40s40 17.909 40 40-17.909 40-40 40S40 102.091 40 80zm52 0a12 12 0 10-24 0 12 12 0 0024 0z\" fill=\"#F4F9FF\" opacity=\"0.88\"/>\n  <path d=\"M34 64a60 60 0 0092 0\" stroke=\"#00E0FF\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M34 96a60 60 0 0092 0\" stroke=\"#4DFF9D\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n</svg>"""
@@ -108,38 +114,6 @@ def create_ioncore_logo_image(size=160):
     return ImageTk.PhotoImage(canvas)
 
 
-IONCORE_THEMES = {
-    "dark": {
-        "bg": "#060B1A",
-        "surface": "#101D38",
-        "surface_alt": "#16254A",
-        "accent": "#00E0FF",
-        "accent_alt": "#4DFF9D",
-        "accent_fg": "#041221",
-        "text": "#F4F9FF",
-        "muted_text": "#7FA7D9",
-        "border": "#1E2A4A",
-        "entry_bg": "#0F1F3A",
-        "entry_fg": "#FFFFFF",
-        "log_bg": "#0F1F3A",
-        "log_fg": "#96E7FF",
-    },
-    "light": {
-        "bg": "#F5F8FC",
-        "surface": "#FFFFFF",
-        "surface_alt": "#EEF4FF",
-        "accent": "#007BFF",
-        "accent_alt": "#34C759",
-        "accent_fg": "#FFFFFF",
-        "text": "#13233C",
-        "muted_text": "#5B6D89",
-        "border": "#CAD7EF",
-        "entry_bg": "#FFFFFF",
-        "entry_fg": "#13233C",
-        "log_bg": "#FFFFFF",
-        "log_fg": "#0A3356",
-    },
-}
 
 # --------------------------- Robust MAC extraction ---------------------------
 
@@ -569,18 +543,19 @@ def launch_gui(auto_open_dialog=True):
     class App(tk.Tk):
         def __init__(self):
             super().__init__()
-            self.title("Ioncore MAC Atlas • Deep Inspector")
+            self.title(brand_title("MAC Atlas • Deep Inspector"))
             self.geometry("1380x820")
             self.minsize(1180, 720)
 
             self.theme_mode = get_default_theme_mode()
+            self.branding = apply_ioncore_branding(self, mode=self.theme_mode)
             self.style = ttk.Style(self)
             try:
                 self.style.theme_use("clam")
             except Exception:
                 pass
 
-            self.logo_large = create_ioncore_logo_image(120)
+            self.logo_large = self.branding.logo or create_ioncore_logo_image(120)
             self.logo_small = create_ioncore_logo_image(48)
             try:
                 self.iconphoto(False, self.logo_small)
@@ -673,15 +648,18 @@ def launch_gui(auto_open_dialog=True):
             self.brand_title = tk.Label(
                 self.brand_frame,
                 text="Ioncore MAC Atlas",
-                font=("Segoe UI", 23, "bold"),
+                font=self.branding.fonts.get("title"),
                 anchor="w",
             )
             self.brand_title.grid(row=0, column=1, sticky="w")
 
+            tagline = brand_subtitle(
+                "Enterprise-grade MAC intelligence with adaptive analytics and vendor insights."
+            )
             self.brand_tagline = tk.Label(
                 self.brand_frame,
-                text="Enterprise-grade MAC intelligence with adaptive analytics and vendor insights.",
-                font=("Segoe UI", 11),
+                text=tagline,
+                font=self.branding.fonts.get("subtitle"),
                 anchor="w",
                 wraplength=820,
                 justify="left",
@@ -691,7 +669,7 @@ def launch_gui(auto_open_dialog=True):
             self.theme_status = tk.Label(
                 self.brand_frame,
                 text="Dark Mode" if self.theme_mode == "dark" else "Light Mode",
-                font=("Segoe UI", 10, "bold"),
+                font=self.branding.fonts.get("small"),
                 anchor="e",
             )
             self.theme_status.grid(row=0, column=2, sticky="e", padx=(16, 14))
@@ -705,13 +683,22 @@ def launch_gui(auto_open_dialog=True):
                 relief="flat",
                 cursor="hand2",
                 bd=0,
+                font=self.branding.fonts.get("button"),
             )
             self.theme_button.grid(row=1, column=2, sticky="e", padx=(16, 14), pady=(2, 4))
 
             self.brand_frame.columnconfigure(1, weight=1)
 
         def apply_theme(self):
-            colors = IONCORE_THEMES[self.theme_mode]
+            self.branding = apply_ioncore_branding(self, mode=self.theme_mode)
+            colors = self.branding.colors
+            if self.branding.logo is not None:
+                self.logo_large = self.branding.logo
+                self.brand_logo.configure(image=self.logo_large)
+            self.brand_title.configure(font=self.branding.fonts.get("title"))
+            self.brand_tagline.configure(font=self.branding.fonts.get("subtitle"))
+            self.theme_status.configure(font=self.branding.fonts.get("small"))
+            self.theme_button.configure(font=self.branding.fonts.get("button"))
             self.configure(bg=colors["bg"])
 
             self.brand_frame.configure(bg=colors["surface_alt"])

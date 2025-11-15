@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import List, Optional
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import filedialog, messagebox, scrolledtext
+
+import ioncore_branding
 
 
 # --------------------------- Model ---------------------------------
@@ -99,9 +101,18 @@ def resolve_cli_target(arg: str, entries: List[MenuEntry]) -> Optional[MenuEntry
 class LauncherApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("RADIO Bulk Access Launcher")
+        self.branding = ioncore_branding.apply_ioncore_branding(self)
+        self.title("Ioncore Launch Hub")
         self.geometry("980x600")
         self.minsize(880, 520)
+
+        self.branding_header = ioncore_branding.build_branding_header(
+            self,
+            self.branding,
+            title="Ioncore Launch Hub",
+            subtitle="Launch Ioncore bulk access suites and supporting tools.",
+        )
+        self.branding_header.pack(fill="x", padx=18, pady=(18, 12))
 
         # State
         self.entries: List[MenuEntry] = build_menu()
@@ -129,74 +140,77 @@ class LauncherApp(tk.Tk):
     # ---- UI Layout ----
 
     def _build_ui(self):
-        # Top: Toolbar
-        toolbar = ttk.Frame(self, padding=(10, 8))
-        toolbar.pack(side=tk.TOP, fill=tk.X)
+        toolbar = tk.Frame(self, bd=0)
+        toolbar.pack(fill=tk.X, padx=18, pady=(0, 16))
 
-        ttk.Button(toolbar, text="Refresh", command=self.refresh_menu).pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(toolbar, text="Run Selected", command=self.run_selected).pack(side=tk.LEFT, padx=4)
-        ttk.Button(toolbar, text="Stop", command=self.stop_running).pack(side=tk.LEFT, padx=4)
-        ttk.Button(toolbar, text="Add Script…", command=self.add_script).pack(side=tk.LEFT, padx=12)
-        ttk.Button(toolbar, text="Open Folder", command=self.open_selected_folder).pack(side=tk.LEFT, padx=4)
+        tk.Button(toolbar, text="Refresh", command=self.refresh_menu).pack(side=tk.LEFT, padx=(0, 10))
+        tk.Button(toolbar, text="Run Selected", command=self.run_selected).pack(side=tk.LEFT, padx=6)
+        tk.Button(toolbar, text="Stop", command=self.stop_running).pack(side=tk.LEFT, padx=6)
+        tk.Button(toolbar, text="Add Script…", command=self.add_script).pack(side=tk.LEFT, padx=12)
+        tk.Button(toolbar, text="Open Folder", command=self.open_selected_folder).pack(side=tk.LEFT, padx=6)
 
-        ttk.Checkbutton(
-            toolbar, text="Run in new console (Windows)", variable=self.new_console_var
-        ).pack(side=tk.RIGHT)
+        tk.Checkbutton(
+            toolbar,
+            text="Run in new console (Windows)",
+            variable=self.new_console_var,
+        ).pack(side=tk.RIGHT, padx=(12, 0))
 
-        # Main PanedWindow: left list / right details+log
-        paned = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
-        paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+        paned = tk.PanedWindow(
+            self,
+            orient=tk.HORIZONTAL,
+            sashwidth=8,
+            relief=tk.FLAT,
+            bd=0,
+            bg=self.branding.colors["bg"],
+            handlepad=2,
+        )
+        paned.pack(fill=tk.BOTH, expand=True, padx=18, pady=(0, 18))
 
-        # Left: list of scripts
-        left = ttk.Frame(paned, padding=(0, 0, 8, 0))
-        paned.add(left, weight=1)
+        left_card = tk.Frame(paned, bd=0)
+        paned.add(left_card, minsize=280)
 
-        ttk.Label(left, text="Scripts").pack(anchor="w", pady=(0, 4))
-        self.listbox = tk.Listbox(left, height=15, activestyle="dotbox")
+        tk.Label(left_card, text="Scripts", font=("Montserrat", 12, "bold")).pack(anchor="w", pady=(0, 8))
+        self.listbox = tk.Listbox(left_card, height=16, activestyle="dotbox")
         self.listbox.pack(fill=tk.BOTH, expand=True)
         self.listbox.bind("<Double-Button-1>", lambda e: self.run_selected())
 
-        # Right: details + output
-        right = ttk.Frame(paned)
-        paned.add(right, weight=3)
+        right_container = tk.Frame(paned, bd=0, bg=self.branding.colors["bg"])
+        paned.add(right_container, minsize=420)
 
-        # --- IMPORTANT: create StringVars BEFORE any call that uses them ---
         self.sel_name = tk.StringVar(value="-")
         self.sel_path = tk.StringVar(value="-")
         self.sel_status = tk.StringVar(value="-")
         self.run_status = tk.StringVar(value="Idle")
 
-        # Details
-        details = ttk.LabelFrame(right, text="Details", padding=(10, 6))
-        details.pack(fill=tk.X)
+        details_card = tk.Frame(right_container, bd=0)
+        details_card.pack(fill=tk.X, pady=(0, 16))
 
-        row = ttk.Frame(details)
-        row.pack(fill=tk.X, pady=2)
-        ttk.Label(row, text="Selected: ", width=12).pack(side=tk.LEFT)
-        ttk.Label(row, textvariable=self.sel_name).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        tk.Label(details_card, text="Details", font=("Montserrat", 12, "bold")).pack(anchor="w", pady=(0, 8))
 
-        row = ttk.Frame(details)
-        row.pack(fill=tk.X, pady=2)
-        ttk.Label(row, text="Path: ", width=12).pack(side=tk.LEFT)
-        ttk.Label(row, textvariable=self.sel_path).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        def add_detail(label_text: str, var: tk.StringVar) -> None:
+            row = tk.Frame(details_card, bd=0)
+            row.pack(fill=tk.X, pady=2)
+            tk.Label(row, text=label_text, width=12, anchor="w").pack(side=tk.LEFT)
+            tk.Label(row, textvariable=var, anchor="w").pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        row = ttk.Frame(details)
-        row.pack(fill=tk.X, pady=2)
-        ttk.Label(row, text="Exists: ", width=12).pack(side=tk.LEFT)
-        ttk.Label(row, textvariable=self.sel_status).pack(side=tk.LEFT)
+        add_detail("Selected:", self.sel_name)
+        add_detail("Path:", self.sel_path)
+        add_detail("Exists:", self.sel_status)
+        add_detail("Runner:", self.run_status)
 
-        row = ttk.Frame(details)
-        row.pack(fill=tk.X, pady=(6, 2))
-        ttk.Label(row, text="Runner: ", width=12).pack(side=tk.LEFT)
-        ttk.Label(row, textvariable=self.run_status).pack(side=tk.LEFT)
+        output_card = tk.Frame(right_container, bd=0)
+        output_card.pack(fill=tk.BOTH, expand=True)
 
-        # Output (Text)
-        out_frame = ttk.LabelFrame(right, text="Output", padding=(8, 6))
-        out_frame.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
-
-        self.txt = tk.Text(out_frame, wrap="word", height=18)
+        tk.Label(output_card, text="Output", font=("Montserrat", 12, "bold")).pack(anchor="w", pady=(0, 8))
+        self.txt = scrolledtext.ScrolledText(output_card, wrap="word", height=18)
         self.txt.pack(fill=tk.BOTH, expand=True)
         self.txt.configure(state=tk.DISABLED)
+
+        ioncore_branding.style_card(toolbar, self.branding)
+        ioncore_branding.style_card(left_card, self.branding)
+        ioncore_branding.style_card(details_card, self.branding)
+        ioncore_branding.style_card(output_card, self.branding)
+        ioncore_branding.style_widget(self.txt, self.branding)
 
         # Keep selection labels updated
         self.listbox.bind("<<ListboxSelect>>", lambda e: self._update_selection_labels())

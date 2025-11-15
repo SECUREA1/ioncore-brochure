@@ -23,6 +23,8 @@ import subprocess
 import shutil
 import tempfile
 
+import ioncore_branding
+
 # matplotlib (3D seeds map)
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -154,7 +156,16 @@ class DistanceFilter:
 class BluetoothApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Expanded Bluetooth Device Manager")
+        self.branding = ioncore_branding.apply_ioncore_branding(root)
+        self.root.title("Ioncore Device Orchestrator")
+
+        self.branding_header = ioncore_branding.build_branding_header(
+            root,
+            self.branding,
+            title="Ioncore Device Orchestrator",
+            subtitle="Unified Bluetooth, Wi‑Fi, and cellular intelligence in the Ioncore Index style.",
+        )
+        self.branding_header.pack(fill="x", padx=18, pady=(18, 12))
 
         # ---------- Async loop (single, persistent) ----------
         self.loop = asyncio.new_event_loop()
@@ -167,7 +178,7 @@ class BluetoothApp:
 
         # ---------- UI: device list and controls ----------
         self.device_frame = tk.Frame(root)
-        self.device_frame.pack(pady=10)
+        self.device_frame.pack(fill="x", padx=18, pady=(0, 14))
 
         self.device_list = tk.Listbox(self.device_frame, width=120, height=14)
         self.device_list.grid(row=0, column=0, columnspan=11, padx=5, pady=5)
@@ -233,7 +244,7 @@ class BluetoothApp:
 
         # ---------- Wi‑Fi & Cellular panel ----------
         self.wifi_frame = tk.LabelFrame(root, text="Wi‑Fi & Cellular")
-        self.wifi_frame.pack(padx=8, pady=(0, 10), fill="x")
+        self.wifi_frame.pack(fill="x", padx=18, pady=(0, 14))
 
         self.wifi_list = tk.Listbox(self.wifi_frame, width=120, height=10)
         self.wifi_list.grid(row=0, column=0, columnspan=6, padx=5, pady=5, sticky="we")
@@ -252,7 +263,7 @@ class BluetoothApp:
 
         # ---------- Tuning panel (distance model) ----------
         self.tuner_frame = tk.Frame(root)
-        self.tuner_frame.pack(pady=(0, 10))
+        self.tuner_frame.pack(fill="x", padx=18, pady=(0, 14))
 
         # Row 0: BLE + env n
         tk.Label(self.tuner_frame, text="BLE Tx Power @1m (dBm):").grid(row=0, column=0, sticky="e", padx=4)
@@ -285,7 +296,12 @@ class BluetoothApp:
 
         # ---------- Log ----------
         self.log_text = scrolledtext.ScrolledText(root, width=120, height=10, state='disabled')
-        self.log_text.pack(pady=10)
+        self.log_text.pack(fill="both", expand=True, padx=18, pady=(0, 18))
+
+        ioncore_branding.style_card(self.device_frame, self.branding)
+        ioncore_branding.style_label_frame(self.wifi_frame, self.branding)
+        ioncore_branding.style_card(self.tuner_frame, self.branding)
+        ioncore_branding.style_widget(self.log_text, self.branding)
 
         # ---------- Data ----------
         self.devices = []           # [("BLE", bleak_device or proxy) | ("Classic", dict)]
@@ -340,13 +356,13 @@ class BluetoothApp:
         # Set title with geocoded location (best-effort)
         gps_coords = self.get_gps_coordinates()
         lat, lon = gps_coords
-        title = f"Expanded Bluetooth Manager – GPS {lat:.6f}, {lon:.6f}"
+        title = f"Ioncore Device Orchestrator – GPS {lat:.6f}, {lon:.6f}"
         if HAVE_GEOPY:
             try:
                 geolocator = Nominatim(user_agent="expanded_bluetooth_manager")
                 loc = geolocator.reverse(f"{lat},{lon}")
                 if loc and getattr(loc, "address", None):
-                    title = f"Expanded Bluetooth Manager – {loc.address}"
+                    title = f"Ioncore Device Orchestrator – {loc.address}"
             except Exception:
                 pass
         self.root.title(title)
@@ -932,7 +948,7 @@ class BluetoothApp:
     def send_data_to_device(self):
         if self.connected_socket:
             try:
-                msg = "Hello from Expanded Python!"
+                msg = "Hello from Ioncore Python!"
                 self.connected_socket.send(msg.encode('utf-8'))
                 self.log("Data sent successfully to Classic device.")
                 self.queue.put(lambda: messagebox.showinfo("Data Sent", "Data sent successfully."))

@@ -138,7 +138,7 @@ PBAP_TARGET_UUID_BYTES = bytes.fromhex("796135F0F0C511D809660800200C9A66")
 
 
 # ---------------- Ioncore Branding -----------------
-IONCORE_LOGO_SVG = """<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" stop-color=\"#00E0FF\"/>\n      <stop offset=\"100%\" stop-color=\"#4DFF9D\"/>\n    </linearGradient>\n  </defs>\n  <circle cx=\"80\" cy=\"80\" r=\"74\" fill=\"url(#ioncoreGradient)\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"46\" fill=\"#060B1A\" opacity=\"0.94\"/>\n  <path d=\"M40 80c0-22.091 17.909-40 40-40s40 17.909 40 40-17.909 40-40 40S40 102.091 40 80zm52 0a12 12 0 10-24 0 12 12 0 0024 0z\" fill=\"#F4F9FF\" opacity=\"0.88\"/>\n  <path d=\"M34 64a60 60 0 0092 0\" stroke=\"#00E0FF\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M34 96a60 60 0 0092 0\" stroke=\"#4DFF9D\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n</svg>"""
+IONCORE_LOGO_SVG = """<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" stop-color=\"#38F0D1\"/>\n      <stop offset=\"100%\" stop-color=\"#6AFF3B\"/>\n    </linearGradient>\n  </defs>\n  <circle cx=\"80\" cy=\"80\" r=\"74\" fill=\"url(#ioncoreGradient)\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"46\" fill=\"#060B1A\" opacity=\"0.94\"/>\n  <path d=\"M40 80c0-22.091 17.909-40 40-40s40 17.909 40 40-17.909 40-40 40S40 102.091 40 80zm52 0a12 12 0 10-24 0 12 12 0 0024 0z\" fill=\"#F4F9FF\" opacity=\"0.88\"/>\n  <path d=\"M34 64a60 60 0 0092 0\" stroke=\"#38F0D1\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M34 96a60 60 0 0092 0\" stroke=\"#6AFF3B\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n</svg>"""
 
 
 def get_default_theme_mode(default="dark"):
@@ -169,8 +169,8 @@ def create_ioncore_logo_image(size=160):
 
     outer_radius = size // 2 - 4
     center = size / 2
-    start_rgb = _hex_to_rgb("#00E0FF")
-    end_rgb = _hex_to_rgb("#4DFF9D")
+    start_rgb = _hex_to_rgb("#38F0D1")
+    end_rgb = _hex_to_rgb("#6AFF3B")
 
     for step, radius in enumerate(range(outer_radius, 0, -1)):
         factor = step / max(1, outer_radius)
@@ -193,14 +193,14 @@ def create_ioncore_logo_image(size=160):
         start=215,
         end=325,
         width=orbit_width,
-        fill="#00E0FF",
+        fill="#38F0D1",
     )
     draw.arc(
         [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
         start=35,
         end=145,
         width=orbit_width,
-        fill="#4DFF9D",
+        fill="#6AFF3B",
     )
 
     core_radius = int(inner_radius * 0.42)
@@ -214,12 +214,12 @@ def create_ioncore_logo_image(size=160):
     draw.rounded_rectangle(
         [center - bar_width * 1.6, center - bar_width * 0.3, center + bar_width * 1.6, center + bar_width * 0.3],
         radius=bar_radius,
-        fill="#00E0FF",
+        fill="#38F0D1",
     )
     draw.rounded_rectangle(
         [center - bar_width * 0.9, center - bar_width * 0.9, center + bar_width * 0.9, center - bar_width * 0.35],
         radius=bar_radius,
-        fill="#4DFF9D",
+        fill="#6AFF3B",
     )
 
     return ImageTk.PhotoImage(canvas)
@@ -227,38 +227,38 @@ def create_ioncore_logo_image(size=160):
 
 IONCORE_THEMES = {
     "dark": {
-        "bg": "#060B1A",
-        "surface": "#0F1F3C",
-        "surface_alt": "#131F3F",
-        "accent": "#00E0FF",
-        "accent_alt": "#4DFF9D",
-        "accent_fg": "#041221",
-        "text": "#F4F9FF",
-        "muted_text": "#7FA7D9",
-        "border": "#1E2A4A",
-        "list_bg": "#0B1834",
-        "list_fg": "#F0F6FF",
-        "entry_bg": "#102241",
-        "entry_fg": "#FFFFFF",
-        "log_bg": "#0C1B35",
-        "log_fg": "#96E7FF",
+        "bg": "#030712",
+        "surface": "#0D182E",
+        "surface_alt": "#11203D",
+        "accent": "#6AFF3B",
+        "accent_alt": "#38F0D1",
+        "accent_fg": "#02110B",
+        "text": "#F5F8FF",
+        "muted_text": "#B7C7E4",
+        "border": "#1C2A41",
+        "list_bg": "#09101D",
+        "list_fg": "#F5F8FF",
+        "entry_bg": "#0B1424",
+        "entry_fg": "#F5F8FF",
+        "log_bg": "#0B1424",
+        "log_fg": "#AEE8B4",
     },
     "light": {
-        "bg": "#F5F8FC",
+        "bg": "#F5F8FF",
         "surface": "#FFFFFF",
-        "surface_alt": "#EEF4FF",
-        "accent": "#007BFF",
-        "accent_alt": "#34C759",
-        "accent_fg": "#FFFFFF",
+        "surface_alt": "#EDF4FF",
+        "accent": "#4CD067",
+        "accent_alt": "#32B5F0",
+        "accent_fg": "#082015",
         "text": "#13233C",
-        "muted_text": "#5B6D89",
+        "muted_text": "#506080",
         "border": "#CAD7EF",
         "list_bg": "#FFFFFF",
         "list_fg": "#13233C",
         "entry_bg": "#FFFFFF",
         "entry_fg": "#13233C",
         "log_bg": "#FFFFFF",
-        "log_fg": "#0A3356",
+        "log_fg": "#24502F",
     },
 }
 
@@ -433,7 +433,7 @@ class BluetoothApp:
         self.branding_title = tk.Label(
             self.branding_frame,
             text="Ioncore Radiance Console",
-            font=("Segoe UI", 20, "bold"),
+            font=("Montserrat", 20, "bold"),
             anchor="w",
         )
         self.branding_title.grid(row=0, column=1, sticky="w")
@@ -441,8 +441,8 @@ class BluetoothApp:
 
         self.branding_tagline = tk.Label(
             self.branding_frame,
-            text="Unified telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
-            font=("Segoe UI", 12),
+            text="Ioncore Index telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
+            font=("Montserrat", 12),
             anchor="w",
             wraplength=660,
             justify="left",

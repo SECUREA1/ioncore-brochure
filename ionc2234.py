@@ -27,9 +27,16 @@ import webbrowser
 import urllib.request
 import urllib.error
 
+from ioncore_branding import (
+    apply_ioncore_branding,
+    brand_subtitle,
+    build_branding_header,
+    style_widget,
+)
+
 # numpy & PIL for satellite overlay
 import numpy as np
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image
 
 # matplotlib (3D map)
 from matplotlib.figure import Figure
@@ -137,130 +144,12 @@ PBAP_PSE_UUID = "0000112f-0000-1000-8000-00805f9b34fb"  # Phonebook Access - Ser
 PBAP_TARGET_UUID_BYTES = bytes.fromhex("796135F0F0C511D809660800200C9A66")
 
 
-# ---------------- Ioncore Branding -----------------
-IONCORE_LOGO_SVG = """<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"ioncoreGradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" stop-color=\"#38F0D1\"/>\n      <stop offset=\"100%\" stop-color=\"#6AFF3B\"/>\n    </linearGradient>\n  </defs>\n  <circle cx=\"80\" cy=\"80\" r=\"74\" fill=\"url(#ioncoreGradient)\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"46\" fill=\"#060B1A\" opacity=\"0.94\"/>\n  <path d=\"M40 80c0-22.091 17.909-40 40-40s40 17.909 40 40-17.909 40-40 40S40 102.091 40 80zm52 0a12 12 0 10-24 0 12 12 0 0024 0z\" fill=\"#F4F9FF\" opacity=\"0.88\"/>\n  <path d=\"M34 64a60 60 0 0092 0\" stroke=\"#38F0D1\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n  <path d=\"M34 96a60 60 0 0092 0\" stroke=\"#6AFF3B\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/>\n</svg>"""
-
-
 def get_default_theme_mode(default="dark"):
     """Return the preferred Ioncore theme, honoring environment overrides."""
     mode = os.environ.get("IONCORE_THEME_MODE", "").strip().lower()
     if mode in {"light", "dark"}:
         return mode
     return default
-
-
-def _hex_to_rgb(hex_color):
-    hex_color = hex_color.lstrip("#")
-    return tuple(int(hex_color[i:i + 2], 16) for i in range(0, 6, 2))
-
-
-def _blend_channel(start, end, factor):
-    return int(start + (end - start) * factor)
-
-
-def _gradient_color(start_rgb, end_rgb, factor):
-    return tuple(_blend_channel(s, e, factor) for s, e in zip(start_rgb, end_rgb))
-
-
-def create_ioncore_logo_image(size=160):
-    size = int(size)
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-
-    outer_radius = size // 2 - 4
-    center = size / 2
-    start_rgb = _hex_to_rgb("#38F0D1")
-    end_rgb = _hex_to_rgb("#6AFF3B")
-
-    for step, radius in enumerate(range(outer_radius, 0, -1)):
-        factor = step / max(1, outer_radius)
-        color = _gradient_color(start_rgb, end_rgb, factor)
-        draw.ellipse(
-            [center - radius, center - radius, center + radius, center + radius],
-            fill=color,
-        )
-
-    inner_radius = int(outer_radius * 0.58)
-    draw.ellipse(
-        [center - inner_radius, center - inner_radius, center + inner_radius, center + inner_radius],
-        fill=(6, 11, 26, 235),
-    )
-
-    orbit_radius = outer_radius - size * 0.1
-    orbit_width = max(2, size // 30)
-    draw.arc(
-        [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
-        start=215,
-        end=325,
-        width=orbit_width,
-        fill="#38F0D1",
-    )
-    draw.arc(
-        [center - orbit_radius, center - orbit_radius, center + orbit_radius, center + orbit_radius],
-        start=35,
-        end=145,
-        width=orbit_width,
-        fill="#6AFF3B",
-    )
-
-    core_radius = int(inner_radius * 0.42)
-    draw.ellipse(
-        [center - core_radius, center - core_radius, center + core_radius, center + core_radius],
-        fill=(244, 249, 255, 235),
-    )
-
-    bar_width = max(6, size // 12)
-    bar_radius = bar_width // 2
-    draw.rounded_rectangle(
-        [center - bar_width * 1.6, center - bar_width * 0.3, center + bar_width * 1.6, center + bar_width * 0.3],
-        radius=bar_radius,
-        fill="#38F0D1",
-    )
-    draw.rounded_rectangle(
-        [center - bar_width * 0.9, center - bar_width * 0.9, center + bar_width * 0.9, center - bar_width * 0.35],
-        radius=bar_radius,
-        fill="#6AFF3B",
-    )
-
-    return ImageTk.PhotoImage(canvas)
-
-
-IONCORE_THEMES = {
-    "dark": {
-        "bg": "#030712",
-        "surface": "#0D182E",
-        "surface_alt": "#11203D",
-        "accent": "#6AFF3B",
-        "accent_alt": "#38F0D1",
-        "accent_fg": "#02110B",
-        "text": "#F5F8FF",
-        "muted_text": "#B7C7E4",
-        "border": "#1C2A41",
-        "list_bg": "#09101D",
-        "list_fg": "#F5F8FF",
-        "entry_bg": "#0B1424",
-        "entry_fg": "#F5F8FF",
-        "log_bg": "#0B1424",
-        "log_fg": "#AEE8B4",
-    },
-    "light": {
-        "bg": "#F5F8FF",
-        "surface": "#FFFFFF",
-        "surface_alt": "#EDF4FF",
-        "accent": "#4CD067",
-        "accent_alt": "#32B5F0",
-        "accent_fg": "#082015",
-        "text": "#13233C",
-        "muted_text": "#506080",
-        "border": "#CAD7EF",
-        "list_bg": "#FFFFFF",
-        "list_fg": "#13233C",
-        "entry_bg": "#FFFFFF",
-        "entry_fg": "#13233C",
-        "log_bg": "#FFFFFF",
-        "log_fg": "#24502F",
-    },
-}
 
 # ---------- Tracking constants ----------
 TRACK_SAMPLE_TTL_SEC = 90       # keep last 90s of rings for each device
@@ -420,147 +309,104 @@ class _TrackerMath:
 
 class BluetoothApp:
     def _register_theme_widget(self, widget, category):
-        self.theme_widgets.setdefault(category, []).append(widget)
+        if hasattr(self, "branding"):
+            try:
+                style_widget(widget, self.branding)
+            except Exception:
+                pass
 
     def _init_branding(self):
-        self.branding_frame = tk.Frame(self.root, bd=0, highlightthickness=0)
+        self.branding_frame = tk.Frame(self.root, bd=0, highlightthickness=0, bg=self.branding.colors["bg"])
         self.branding_frame.pack(fill="x", pady=(12, 18))
-        self._register_theme_widget(self.branding_frame, "frames")
+        self.branding.protect(self.branding_frame)
+        self.branding_frame.columnconfigure(0, weight=1)
 
-        self.logo_label = tk.Label(self.branding_frame, image=self.logo_large, borderwidth=0, highlightthickness=0)
-        self.logo_label.grid(row=0, column=0, rowspan=2, padx=(14, 18), pady=4, sticky="w")
+        self.branding_header = None
+        self._rebuild_branding_header()
 
-        self.branding_title = tk.Label(
-            self.branding_frame,
-            text="Ioncore Radiance Console",
-            font=("Montserrat", 20, "bold"),
-            anchor="w",
-        )
-        self.branding_title.grid(row=0, column=1, sticky="w")
-        self._register_theme_widget(self.branding_title, "labels")
-
-        self.branding_tagline = tk.Label(
-            self.branding_frame,
-            text="Ioncore Index telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
-            font=("Montserrat", 12),
-            anchor="w",
-            wraplength=660,
-            justify="left",
-        )
-        self.branding_tagline.grid(row=1, column=1, sticky="w", pady=(4, 0))
-        self._register_theme_widget(self.branding_tagline, "labels")
+        self.theme_controls = tk.Frame(self.branding_frame, bg=self.branding.colors["bg"], bd=0, highlightthickness=0)
+        self.theme_controls.grid(row=0, column=1, sticky="ne", padx=(24, 0))
+        self.branding.protect(self.theme_controls)
 
         self.theme_status = tk.Label(
-            self.branding_frame,
-            text="Dark Mode" if self.theme_mode == "dark" else "Light Mode",
+            self.theme_controls,
+            text="",
             font=("Segoe UI", 11, "bold"),
             anchor="e",
+            justify="right",
         )
-        self.theme_status.grid(row=0, column=2, sticky="e", padx=(16, 14))
-        self._register_theme_widget(self.theme_status, "labels")
+        self.theme_status.pack(anchor="e", pady=(4, 6))
+        self.branding.protect(self.theme_status)
 
         self.theme_button = tk.Button(
-            self.branding_frame,
-            text="Switch Theme",
+            self.theme_controls,
+            text="",
             command=self.toggle_theme,
-            padx=18,
-            pady=8,
-            relief="flat",
-            cursor="hand2",
-            bd=0,
         )
-        self.theme_button.grid(row=1, column=2, sticky="e", padx=(16, 14), pady=(4, 0))
-        self._register_theme_widget(self.theme_button, "buttons")
+        self.theme_button.pack(anchor="e")
+        self.branding.protect(self.theme_button)
 
-        self.branding_frame.columnconfigure(1, weight=1)
+        self._style_theme_controls()
 
-    def _apply_theme_recursive(self, widget, colors):
-        try:
-            widget_class = widget.winfo_class()
-        except Exception:
-            widget_class = ""
+    def _rebuild_branding_header(self):
+        if getattr(self, "branding_header", None) is not None:
+            try:
+                self.branding_header.destroy()
+            except Exception:
+                pass
 
-        for child in widget.winfo_children():
-            self._apply_theme_recursive(child, colors)
-
-        try:
-            if widget_class in {"Frame", "Labelframe", "TFrame"}:
-                widget.configure(bg=colors["surface"], highlightbackground=colors["border"])
-            elif widget_class in {"Label", "Message", "TLabel"}:
-                widget.configure(bg=colors["surface"], fg=colors["text"])
-            elif widget_class in {"Entry", "TEntry", "Spinbox"}:
-                widget.configure(
-                    bg=colors["entry_bg"],
-                    fg=colors["entry_fg"],
-                    insertbackground=colors["accent"],
-                    highlightbackground=colors["border"],
-                    highlightcolor=colors["accent"],
-                )
-            elif widget_class in {"Listbox"}:
-                widget.configure(
-                    bg=colors["list_bg"],
-                    fg=colors["list_fg"],
-                    selectbackground=colors["accent"],
-                    selectforeground=colors["accent_fg"],
-                    highlightbackground=colors["border"],
-                    highlightcolor=colors["accent"],
-                    bd=0,
-                )
-            elif widget_class in {"Text"}:
-                widget.configure(
-                    bg=colors["log_bg"],
-                    fg=colors["log_fg"],
-                    insertbackground=colors["accent"],
-                    highlightbackground=colors["border"],
-                    highlightcolor=colors["accent"],
-                )
-            elif widget_class in {"Button", "Checkbutton", "Menubutton", "Radiobutton"}:
-                widget.configure(
-                    bg=colors["accent"],
-                    fg=colors["accent_fg"],
-                    activebackground=colors["accent_alt"],
-                    activeforeground=colors["accent_fg"],
-                    highlightbackground=colors["border"],
-                    highlightcolor=colors["accent"],
-                    bd=0,
-                    relief="flat",
-                )
-            elif widget_class in {"Canvas"}:
-                widget.configure(bg=colors["surface"])
-            elif widget_class in {"Scrollbar"}:
-                widget.configure(bg=colors["surface"], troughcolor=colors["surface_alt"], activebackground=colors["accent"])
-        except tk.TclError:
-            pass
-
-    def apply_theme(self):
-        colors = IONCORE_THEMES[self.theme_mode]
-        self.root.configure(bg=colors["bg"])
-
-        self._apply_theme_recursive(self.root, colors)
-
-        self.branding_frame.configure(bg=colors["surface_alt"], highlightbackground=colors["border"])
-        self.logo_label.configure(bg=colors["surface_alt"])
-        self.branding_title.configure(bg=colors["surface_alt"], fg=colors["text"])
-        self.branding_tagline.configure(bg=colors["surface_alt"], fg=colors["muted_text"])
-        self.theme_status.configure(bg=colors["surface_alt"], fg=colors["accent_alt"])
-        self.theme_button.configure(
-            bg=colors["accent"],
-            fg=colors["accent_fg"],
-            activebackground=colors["accent_alt"],
-            activeforeground=colors["accent_fg"],
-            highlightbackground=colors["border"],
-            highlightcolor=colors["accent"],
-            bd=0,
-            relief="flat",
+        subtitle = brand_subtitle(
+            "Ioncore Index telemetry for Bluetooth, Wi‑Fi, and cellular intelligence.",
+            "Radiance console · Multi-stack triangulation",
         )
-
-        self.theme_button.configure(
-            text="Switch to Light Mode" if self.theme_mode == "dark" else "Switch to Dark Mode"
+        self.branding_header = build_branding_header(
+            self.branding_frame,
+            self.branding,
+            title="Ioncore Radiance Console",
+            subtitle=subtitle,
         )
+        self.branding_header.grid(row=0, column=0, sticky="ew")
+        self.branding_frame.columnconfigure(0, weight=1)
+
+    def _theme_button_text(self):
+        return "Switch to Light Mode" if self.theme_mode == "dark" else "Switch to Dark Mode"
+
+    def _style_theme_controls(self):
+        colors = self.branding.colors
+        bg = colors.get("bg", "#030712")
+        self.branding_frame.configure(bg=bg)
+        self.theme_controls.configure(bg=bg)
         self.theme_status.configure(
             text="Dark Mode" if self.theme_mode == "dark" else "Light Mode",
+            bg=bg,
+            fg=colors.get("accent_alt", "#38F0D1"),
+            font=self.branding.fonts.get("subtitle", self.theme_status.cget("font")),
+        )
+        self.theme_button.configure(
+            text=self._theme_button_text(),
+            bg=colors.get("accent", "#6AFF3B"),
+            fg=colors.get("accent_fg", "#02110B"),
+            activebackground=colors.get("accent_hover", colors.get("accent", "#6AFF3B")),
+            activeforeground=colors.get("accent_fg", "#02110B"),
+            relief="flat",
+            bd=0,
+            padx=18,
+            pady=8,
+            cursor="hand2",
+            font=self.branding.fonts.get("button", self.theme_button.cget("font")),
         )
 
+    def apply_theme(self):
+        self.branding = apply_ioncore_branding(self.root, mode=self.theme_mode)
+        if self.branding.logo is not None:
+            try:
+                self.root.iconphoto(False, self.branding.logo)
+            except Exception:
+                pass
+
+        style_widget(self.root, self.branding)
+        self._rebuild_branding_header()
+        self._style_theme_controls()
         self.root.update_idletasks()
 
     def toggle_theme(self):
@@ -573,21 +419,12 @@ class BluetoothApp:
         self.root.title("Ioncore Radiance Console • Bluetooth • Wi‑Fi • Cellular")
 
         self.theme_mode = get_default_theme_mode()
-        self.theme_widgets = {
-            "frames": [],
-            "labels": [],
-            "buttons": [],
-            "entries": [],
-            "lists": [],
-            "texts": [],
-        }
-
-        self.logo_large = create_ioncore_logo_image(128)
-        self.logo_small = create_ioncore_logo_image(48)
-        try:
-            self.root.iconphoto(False, self.logo_small)
-        except Exception:
-            pass
+        self.branding = apply_ioncore_branding(self.root, mode=self.theme_mode)
+        if self.branding.logo is not None:
+            try:
+                self.root.iconphoto(False, self.branding.logo)
+            except Exception:
+                pass
 
         self._init_branding()
 

@@ -21,6 +21,7 @@ from collections import deque
 import statistics
 import subprocess
 import shutil
+import tempfile
 
 # matplotlib (3D seeds map)
 from matplotlib.figure import Figure
@@ -81,24 +82,27 @@ except Exception:
     HAVE_WINRT = False
 
 IS_WINDOWS = platform.system() == "Windows"
-
+IS_LINUX = platform.system() == "Linux"
+IS_MAC = platform.system() == "Darwin"
 
 # UUIDs
 OBEX_FTP_UUID = "00001106-0000-1000-8000-00805f9b34fb"
 PBAP_PSE_UUID = "0000112f-0000-1000-8000-00805f9b34fb"  # Phonebook Access - Server (on phone)
 PBAP_TARGET_UUID_BYTES = bytes.fromhex("796135F0F0C511D809660800200C9A66")
 
+# Path to Apple's airport tool (macOS)
+AIRPORT_BIN = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+
 
 # ---------------- Range Qualification & Smoothing -----------------
 class DistanceFilter:
-    """Per-radio RSSI smoother with outlier rejection and distance clamps."""
+    """Per-device RSSI smoother with outlier rejection and distance clamps."""
     def __init__(self, window=12, ema_alpha=0.30, min_m=0.25, max_m=40.0):
         self.window = int(window)
         self.ema_alpha = float(ema_alpha)
         self.min_m = float(min_m)
         self.max_m = float(max_m)
-        # key may be BLE addr, WIFI:<BSSID>, CELL:<modem>/<tech>
-        self.buffers = {}   # key -> deque of recent RSSI
+        self.buffers = {}   # key -> deque of recent RSSI (key may be BLE addr, WIFI:BSSID, CELL:*)
         self.ema = {}       # key -> smoothed RSSI
 
     def push_rssi(self, key: str, rssi: float):
@@ -141,19 +145,16 @@ class DistanceFilter:
             return 'C'
         return 'D'
 
-    def clamp_distance(self, d_m: float, min_m=None, max_m=None):
-        """Clamp distance with optional override bounds."""
+    def clamp_distance(self, d_m: float):
         if d_m is None:
             return None
-        lo = self.min_m if min_m is None else float(min_m)
-        hi = self.max_m if max_m is None else float(max_m)
-        return max(lo, min(hi, float(d_m)))
+        return max(self.min_m, min(self.max_m, float(d_m)))
 
 
 class BluetoothApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Expanded Bluetooth + Wi-Fi + Cellular Manager")
+        self.root.title("Expanded Bluetooth Device Manager")
 
         # ---------- Async loop (single, persistent) ----------
         self.loop = asyncio.new_event_loop()
@@ -168,48 +169,44 @@ class BluetoothApp:
         self.device_frame = tk.Frame(root)
         self.device_frame.pack(pady=10)
 
-        self.device_list = tk.Listbox(self.device_frame, width=130, height=22)
-        self.device_list.grid(row=0, column=0, columnspan=13, padx=5, pady=5)
+        self.device_list = tk.Listbox(self.device_frame, width=120, height=14)
+        self.device_list.grid(row=0, column=0, columnspan=11, padx=5, pady=5)
 
-        self.scan_button = tk.Button(self.device_frame, text="Scan Devices (BLE/Classic)", command=self.start_scan_devices)
+        self.scan_button = tk.Button(self.device_frame, text="Scan Devices", command=self.start_scan_devices)
         self.scan_button.grid(row=1, column=0, padx=5, pady=5)
 
-        self.scan_wifi_button = tk.Button(self.device_frame, text="Scan Wi-Fi", command=self.start_scan_wifi)
-        self.scan_wifi_button.grid(row=1, column=1, padx=5, pady=5)
-
-        self.scan_cell_button = tk.Button(self.device_frame, text="Scan Cellular", command=self.start_scan_cell)
-        self.scan_cell_button.grid(row=1, column=2, padx=5, pady=5)
-
         self.test_button = tk.Button(self.device_frame, text="Test Connection", command=self.start_test_connection)
-        self.test_button.grid(row=1, column=3, padx=5, pady=5)
+        self.test_button.grid(row=1, column=1, padx=5, pady=5)
 
         self.connect_button = tk.Button(self.device_frame, text="Connect Device", command=self.start_start_connect)
-        self.connect_button.grid(row=1, column=4, padx=5, pady=5)
+        self.connect_button.grid(row=1, column=2, padx=5, pady=5)
 
         self.disconnect_button = tk.Button(self.device_frame, text="Disconnect Device", command=self.disconnect_device)
-        self.disconnect_button.grid(row=1, column=5, padx=5, pady=5)
+        self.disconnect_button.grid(row=1, column=3, padx=5, pady=5)
 
         self.explore_button = tk.Button(self.device_frame, text="Explore Connected (BLE)", command=self.start_explore_ble)
-        self.explore_button.grid(row=1, column=6, padx=5, pady=5)
+        self.explore_button.grid(row=1, column=4, padx=5, pady=5)
 
         self.obex_button = tk.Button(self.device_frame, text="Browse Files (Classic OBEX)", command=self.open_obex_browser)
-        self.obex_button.grid(row=1, column=7, padx=5, pady=5)
+        self.obex_button.grid(row=1, column=5, padx=5, pady=5)
 
         self.pbap_button = tk.Button(self.device_frame, text="Fetch Contacts (PBAP/FTP)", command=self.open_contacts_browser)
-        self.pbap_button.grid(row=1, column=8, padx=5, pady=5)
+        self.pbap_button.grid(row=1, column=6, padx=5, pady=5)
 
         self.map3d_button = tk.Button(self.device_frame, text="3D Map (Seeds)", command=self.open_map3d_popup)
-        self.map3d_button.grid(row=1, column=9, padx=5, pady=5)
+        self.map3d_button.grid(row=1, column=7, padx=5, pady=5)
 
         self.relabel_button = tk.Button(self.device_frame, text="Relabel Device", command=self.relabel_selected_device)
-        self.relabel_button.grid(row=1, column=10, padx=5, pady=5)
+        self.relabel_button.grid(row=1, column=8, padx=5, pady=5)
 
         self.clearlabel_button = tk.Button(self.device_frame, text="Clear Label", command=self.clear_label_selected_device)
-        self.clearlabel_button.grid(row=1, column=11, padx=5, pady=5)
+        self.clearlabel_button.grid(row=1, column=9, padx=5, pady=5)
 
-        # Optional explicit button (kept, but also run automatically):
-        self.scan_paired_button = tk.Button(self.device_frame, text="Scan Paired (Windows)", command=self.start_scan_paired_windows)
-        self.scan_paired_button.grid(row=1, column=12, padx=5, pady=5)
+        # Optional explicit button (kept, but we'll also run this automatically):
+        self.scan_paired_button = tk.Button(
+            self.device_frame, text="Scan Paired (Windows)", command=self.start_scan_paired_windows
+        )
+        self.scan_paired_button.grid(row=1, column=10, padx=5, pady=5)
 
         self.send_button = tk.Button(self.device_frame, text="Send Data", command=self.send_data_to_device)
         self.send_button.grid(row=2, column=0, padx=5, pady=5)
@@ -217,7 +214,8 @@ class BluetoothApp:
         self.receive_button = tk.Button(self.device_frame, text="Receive Data", command=self.receive_data_from_device)
         self.receive_button.grid(row=2, column=1, padx=5, pady=5)
 
-        self.advertise_button = tk.Button(self.device_frame, text="Advertise as 'Bullish'", command=self.start_advertising)
+        self.advertise_button = tk.Button(self.device_frame, text="Advertise as 'Bullish'",
+                                          command=self.start_advertising)
         self.advertise_button.grid(row=2, column=2, padx=5, pady=5)
 
         if IS_WINDOWS or not HAVE_PYBLUEZ:
@@ -233,11 +231,31 @@ class BluetoothApp:
         if not (IS_WINDOWS and HAVE_WINRT):
             self.scan_paired_button.configure(state="disabled")
 
+        # ---------- Wi‑Fi & Cellular panel ----------
+        self.wifi_frame = tk.LabelFrame(root, text="Wi‑Fi & Cellular")
+        self.wifi_frame.pack(padx=8, pady=(0, 10), fill="x")
+
+        self.wifi_list = tk.Listbox(self.wifi_frame, width=120, height=10)
+        self.wifi_list.grid(row=0, column=0, columnspan=6, padx=5, pady=5, sticky="we")
+
+        self.scan_wifi_btn = tk.Button(self.wifi_frame, text="Scan Wi‑Fi", command=self.start_scan_wifi)
+        self.scan_wifi_btn.grid(row=1, column=0, padx=5, pady=5)
+
+        self.connect_wifi_btn = tk.Button(self.wifi_frame, text="Connect to Wi‑Fi", command=self.connect_wifi_selected)
+        self.connect_wifi_btn.grid(row=1, column=1, padx=5, pady=5)
+
+        self.scan_cell_btn = tk.Button(self.wifi_frame, text="Scan Cellular", command=self.start_scan_cellular)
+        self.scan_cell_btn.grid(row=1, column=2, padx=5, pady=5)
+
+        self.cell_list = tk.Listbox(self.wifi_frame, width=120, height=6)
+        self.cell_list.grid(row=2, column=0, columnspan=6, padx=5, pady=(0,5), sticky="we")
+
         # ---------- Tuning panel (distance model) ----------
         self.tuner_frame = tk.Frame(root)
         self.tuner_frame.pack(pady=(0, 10))
 
-        tk.Label(self.tuner_frame, text="Tx Power @1m (BLE default, dBm):").grid(row=0, column=0, sticky="e", padx=4)
+        # Row 0: BLE + env n
+        tk.Label(self.tuner_frame, text="BLE Tx Power @1m (dBm):").grid(row=0, column=0, sticky="e", padx=4)
         tk.Label(self.tuner_frame, text="Environment n (1.5–4.0):").grid(row=0, column=2, sticky="e", padx=4)
 
         self.tx_power_1m_default = -59.0
@@ -252,23 +270,34 @@ class BluetoothApp:
         self.tx_power_entry.grid(row=0, column=1, sticky="w", padx=4)
         self.n_entry.grid(row=0, column=3, sticky="w", padx=4)
 
+        # Row 1: Wi‑Fi + Cellular reference powers
+        tk.Label(self.tuner_frame, text="Wi‑Fi Tx @1m (dBm):").grid(row=1, column=0, sticky="e", padx=4)
+        tk.Label(self.tuner_frame, text="Cell Tx @1m (dBm):").grid(row=1, column=2, sticky="e", padx=4)
+
+        self.wifi_tx_power_var = tk.StringVar(value="-45.0")  # typical ~-40 to -50 perceived @1m
+        self.cell_tx_power_var = tk.StringVar(value="-35.0")  # very rough reference
+
+        tk.Entry(self.tuner_frame, width=8, textvariable=self.wifi_tx_power_var).grid(row=1, column=1, sticky="w", padx=4)
+        tk.Entry(self.tuner_frame, width=8, textvariable=self.cell_tx_power_var).grid(row=1, column=3, sticky="w", padx=4)
+
         self.apply_button = tk.Button(self.tuner_frame, text="Apply Tuning", command=self.apply_tuning)
-        self.apply_button.grid(row=0, column=4, padx=(10, 0))
+        self.apply_button.grid(row=0, column=4, rowspan=2, padx=(10, 0))
 
         # ---------- Log ----------
-        self.log_text = scrolledtext.ScrolledText(root, width=130, height=12, state='disabled')
+        self.log_text = scrolledtext.ScrolledText(root, width=120, height=10, state='disabled')
         self.log_text.pack(pady=10)
 
         # ---------- Data ----------
-        self.devices = []           # ("BLE", bleak_device) | ("Classic", dict) | ("WiFi", dict) | ("Cell", dict)
+        self.devices = []           # [("BLE", bleak_device or proxy) | ("Classic", dict)]
         self.connection_results = {}
         self.connected_socket = None
         self.ble_client = None
         self.server_sock = None
 
-        self.ble_meta = {}          # addr -> {...}
-        self.wifi_meta = {}         # bssid -> {...}
-        self.cell_meta = {}         # cid -> {...}
+        self.ble_meta = {}          # addr -> {rssi, tx_power, ...}
+        self.wifi_networks = []     # list[dict]
+        self.wifi_meta = {}         # bssid -> metadata (distance, qual, etc.)
+        self.cell_infos = []        # list[dict]
 
         # BLE Explorer
         self.explorer_win = None
@@ -288,10 +317,8 @@ class BluetoothApp:
             "trees": [], "targets": [], "bases": [], "labels": [],
             "radial_scale": 1.0,          # meters -> meters on plot (1:1)
             "classic_default_dist": 8.0,  # default meters when we can't estimate Classic distance
-            "wifi_default_dist": 10.0,    # default if Wi-Fi lacks RSSI
-            "cell_default_dist": 120.0,   # conservative visualization for cell
             "growth_rate": 0.06,          # meters per tick
-            "cid_scroll": None
+            "cid_scroll": None            # mpl scroll callback id
         }
 
         # Thread-safe UI queue
@@ -313,13 +340,13 @@ class BluetoothApp:
         # Set title with geocoded location (best-effort)
         gps_coords = self.get_gps_coordinates()
         lat, lon = gps_coords
-        title = f"Expanded Radio Manager – GPS {lat:.6f}, {lon:.6f}"
+        title = f"Expanded Bluetooth Manager – GPS {lat:.6f}, {lon:.6f}"
         if HAVE_GEOPY:
             try:
                 geolocator = Nominatim(user_agent="expanded_bluetooth_manager")
                 loc = geolocator.reverse(f"{lat},{lon}")
                 if loc and getattr(loc, "address", None):
-                    title = f"Expanded Radio Manager – {loc.address}"
+                    title = f"Expanded Bluetooth Manager – {loc.address}"
             except Exception:
                 pass
         self.root.title(title)
@@ -329,8 +356,7 @@ class BluetoothApp:
 
         # === Auto-scan on launch ===
         self.root.after(600, self.start_scan_devices)
-        self.root.after(1400, self.start_scan_wifi)
-        self.root.after(2200, self.start_scan_cell)
+        self.root.after(900, self.start_scan_wifi)
 
     # ---------- Async loop ----------
     @staticmethod
@@ -361,7 +387,7 @@ class BluetoothApp:
     def db_get_label(self, addr: str):
         try:
             cur = self.db.cursor()
-            cur.execute("SELECT label FROM devices WHERE addr=?", (addr,))
+            cur.execute("SELECT label FROM devices WHERE addr= ?", (addr,))
             row = cur.fetchone()
             return row[0] if row else None
         except Exception as e:
@@ -420,10 +446,10 @@ class BluetoothApp:
     def _heuristic_tx_power(self, addr: str, manufacturer_ids):
         """Prefer adv tx_power; else guess by vendor; else UI default."""
         if manufacturer_ids and any(mid.lower() == "0x004c" for mid in manufacturer_ids):
-            return -59.0  # Apple-like beacons
+            return -59.0
         return float(self.tx_power_var.get().strip() or -62.0)
 
-    def estimate_distance(self, rssi, tx_power=None, n=None, clamp=True, min_m=None, max_m=None):
+    def estimate_distance(self, rssi, tx_power=None, n=None, clamp=True):
         """Log-distance path loss model with clamps and sanity checks."""
         if rssi is None:
             return None
@@ -441,7 +467,7 @@ class BluetoothApp:
         except Exception:
             return None
         if clamp:
-            dist = self.dist_filter.clamp_distance(dist, min_m=min_m, max_m=max_m)
+            dist = self.dist_filter.clamp_distance(dist)
         return dist
 
     def _range_bucket(self, d_m: float):
@@ -457,7 +483,7 @@ class BluetoothApp:
             return "Far"
         return "Very far"
 
-    # ---------- Scan ----------
+    # ---------- Scan (Bluetooth) ----------
     def start_scan_devices(self):
         self.run_coro(self.scan_devices())
 
@@ -482,7 +508,6 @@ class BluetoothApp:
     async def scan_devices(self):
         self.queue.put(lambda: self.device_list.delete(0, tk.END))
         self.devices, self.connection_results, self.ble_meta = [], {}, {}
-        # keep wifi/cell meta between BLE/Classic scans; they’re refreshed by their own scans
 
         gps_coords = f"{self.get_gps_coordinates()[0]:.6f}, {self.get_gps_coordinates()[1]:.6f}"
 
@@ -579,6 +604,7 @@ class BluetoothApp:
                     simple.address = addr
                     simple.name = name
 
+                    # Smoothing / qualification data may already exist
                     d_m = self.ble_meta.get(addr, {}).get("distance_m")
                     bucket = self.ble_meta.get(addr, {}).get("range_label")
                     qual = self.ble_meta.get(addr, {}).get("qual")
@@ -682,7 +708,7 @@ class BluetoothApp:
             self.log(f"Error retrieving services for {addr}: {e}")
             return "Error retrieving services"
 
-    # ---------- Test / Connect ----------
+    # ---------- Test / Connect (Bluetooth) ----------
     def start_test_connection(self):
         self.run_coro(self.test_connection())
 
@@ -696,13 +722,10 @@ class BluetoothApp:
         if device_type == "BLE":
             result = await self.test_ble_connection(device_info)
             addr_key = device_info.address
-        elif device_type == "Classic":
+        else:
             result = self.test_classic_connection(device_info)
             addr_key = device_info["addr"]
-        else:
-            # Wi-Fi and Cell aren’t connect-tested here
-            result = "N/A"
-            addr_key = (device_info.get("bssid") if device_type == "WiFi" else device_info.get("cid"))
+
         self.connection_results[addr_key] = result
         self.queue.put(lambda i=idxs[0], res=result, dev=device_info, typ=device_type:
                        self.update_device_list_entry(i, res, dev, typ))
@@ -774,58 +797,8 @@ class BluetoothApp:
         id_tail = f" | OS Id …{dev_id[-8:]}" if dev_id else ""
         return f"Classic: {name or '[Unnamed Device]'} ({addr}) - {status} - Distance: Unknown (Classic) - Type: {type_str} - Services: {services}{id_tail}"
 
-    def row_text_for_wifi(self, info, status):
-        bssid = info["bssid"]
-        meta = self.wifi_meta.get(bssid, {})
-        ssid = meta.get("ssid") or info.get("ssid") or "[Hidden SSID]"
-        rssi = meta.get("rssi", "N/A")
-        d_m = meta.get("distance_m")
-        bucket = meta.get("range_label", "Unknown")
-        qual = meta.get("qual", "D")
-        freq = meta.get("freq_mhz", info.get("freq_mhz", ""))
-        chan = meta.get("chan", info.get("chan", ""))
-        sec = meta.get("security", info.get("security", ""))
-        dist_str = f"{bucket} ~{d_m:.1f} m" if isinstance(d_m, (int, float)) else bucket
-        return (
-            f"Wi-Fi: {ssid} ({bssid}) - {status} - RSSI {rssi} dBm (\n"
-            f"  {dist_str}, Q:{qual}) - Freq {freq} MHz ch {chan} - Security {sec}"
-        )
-
-    def row_text_for_cell(self, info, status):
-        cid = info["cid"]
-        meta = self.cell_meta.get(cid, {})
-        operator = meta.get("operator") or info.get("operator") or "Unknown operator"
-        tech = meta.get("tech") or info.get("tech") or "Unknown RAT"
-        pct = meta.get("signal_pct")
-        rssi = meta.get("rssi_dbm")
-        rsrp = meta.get("rsrp_dbm")
-        rsrq = meta.get("rsrq_db")
-        sinr = meta.get("sinr_db")
-        qual_bucket = meta.get("qual_bucket", "Unknown")
-        # We generally avoid “distance” for cellular; show bucket + metrics instead
-        extra = []
-        if pct is not None:
-            extra.append(f"{pct}%")
-        if rssi is not None:
-            extra.append(f"RSSI {rssi} dBm")
-        if rsrp is not None:
-            extra.append(f"RSRP {rsrp} dBm")
-        if rsrq is not None:
-            extra.append(f"RSRQ {rsrq} dB")
-        if sinr is not None:
-            extra.append(f"SINR {sinr} dB")
-        extras = " | ".join(extra) if extra else "no metrics"
-        return f"Cell: {operator} [{tech}] ({cid}) - {status} - Quality: {qual_bucket}  ({extras})"
-
     def update_device_list_entry(self, index, result, device, device_type):
-        if device_type == "BLE":
-            text = self.row_text_for_ble(device, result)
-        elif device_type == "Classic":
-            text = self.row_text_for_classic(device, result)
-        elif device_type == "WiFi":
-            text = self.row_text_for_wifi(device, result)
-        else:
-            text = self.row_text_for_cell(device, result)
+        text = self.row_text_for_ble(device, result) if device_type == "BLE" else self.row_text_for_classic(device, result)
         self.device_list.delete(index)
         self.device_list.insert(index, text)
 
@@ -842,11 +815,9 @@ class BluetoothApp:
         if device_type == "BLE":
             await self.connect_ble_device(device_info)
             success = (self.ble_client is not None) and self.ble_client.is_connected
-        elif device_type == "Classic":
+        else:
             self.connected_socket = self.connect_classic_device(device_info)
             success = self.connected_socket is not None
-        else:
-            success = False  # Wi-Fi/AP and Cellular aren’t connection targets here
 
         if success:
             self.queue.put(lambda: messagebox.showinfo("Connection Successful", "Connected successfully."))
@@ -911,12 +882,8 @@ class BluetoothApp:
         typ, dev = self.devices[idxs[0]]
         if typ == "BLE":
             return typ, dev.address, self.ble_meta.get(dev.address, {}).get("name") or getattr(dev, "name", None)
-        elif typ == "Classic":
+        else:
             return typ, dev["addr"], dev["name"]
-        elif typ == "WiFi":
-            return typ, dev["bssid"], self.wifi_meta.get(dev["bssid"], {}).get("ssid")
-        else:  # Cell
-            return typ, dev["cid"], self.cell_meta.get(dev["cid"], {}).get("operator")
 
     def relabel_selected_device(self):
         typ, addr, cur_name = self._selected_addr_and_type()
@@ -941,12 +908,6 @@ class BluetoothApp:
             if t == "Classic" and d["addr"] == addr:
                 d["name"] = new_label
                 self.update_device_list_entry(i, self.connection_results.get(addr, "Not Tested"), d, "Classic")
-            if t == "WiFi" and d.get("bssid") == addr:
-                self.wifi_meta.setdefault(addr, {})["ssid"] = new_label
-                self.update_device_list_entry(i, self.connection_results.get(addr, "Seen"), d, "WiFi")
-            if t == "Cell" and d.get("cid") == addr:
-                self.cell_meta.setdefault(addr, {})["operator"] = new_label
-                self.update_device_list_entry(i, self.connection_results.get(addr, "Seen"), d, "Cell")
         self.log(f"Labeled {addr} as '{new_label}'")
 
     def clear_label_selected_device(self):
@@ -965,11 +926,6 @@ class BluetoothApp:
             if t == "Classic" and d["addr"] == addr:
                 d["name"] = d.get("fallback_name") or d["name"]
                 self.update_device_list_entry(i, self.connection_results.get(addr, "Not Tested"), d, "Classic")
-            if t == "WiFi" and d.get("bssid") == addr:
-                # nothing to fallback; leave SSID as discovered
-                self.update_device_list_entry(i, self.connection_results.get(addr, "Seen"), d, "WiFi")
-            if t == "Cell" and d.get("cid") == addr:
-                self.update_device_list_entry(i, self.connection_results.get(addr, "Seen"), d, "Cell")
         self.log(f"Cleared label for {addr}")
 
     # ---------- Classic send/receive ----------
@@ -1148,7 +1104,7 @@ class BluetoothApp:
         try:
             tx = float(self.tx_power_var.get().strip())
         except ValueError:
-            messagebox.showerror("Invalid Input", "Tx Power must be a number (e.g., -59).")
+            messagebox.showerror("Invalid Input", "BLE Tx Power must be a number (e.g., -59).")
             return
         try:
             n = float(self.n_var.get().strip())
@@ -1158,12 +1114,19 @@ class BluetoothApp:
         if not (1.5 <= n <= 4.0):
             messagebox.showwarning("Adjusted", "Environment n will be clamped to 1.5–4.0.")
             n = max(1.5, min(4.0, n))
+        # Validate Wi‑Fi & Cell refs
+        try:
+            float(self.wifi_tx_power_var.get().strip())
+            float(self.cell_tx_power_var.get().strip())
+        except ValueError:
+            messagebox.showwarning("Adjusted", "Wi‑Fi/Cell Tx@1m should be numeric; keeping previous values.")
         self.tx_power_1m_default = tx
         self.path_loss_n = n
-        self.log(f"Applied tuning: TxPower@1m={tx} dBm, n={n}")
+        self.log(f"Applied tuning: BLE TxPower@1m={tx} dBm, n={n}, Wi‑Fi Tx@1m={self.wifi_tx_power_var.get()}, Cell Tx@1m={self.cell_tx_power_var.get()}")
         self.redraw_device_list()
+        self.redraw_wifi_list()
 
-    # ---------- Rendering ----------
+    # ---------- Rendering (Bluetooth list) ----------
     def redraw_device_list(self, append_only=False):
         if not append_only:
             self.device_list.delete(0, tk.END)
@@ -1172,14 +1135,6 @@ class BluetoothApp:
                 status = self.connection_results.get(dev.address, "Not Tested")
                 text = self.row_text_for_ble(dev, status)
                 addr = dev.address
-            elif device_type == "WiFi":
-                status = self.connection_results.get(dev["bssid"], "Seen")
-                text = self.row_text_for_wifi(dev, status)
-                addr = dev["bssid"]
-            elif device_type == "Cell":
-                status = self.connection_results.get(dev["cid"], "Seen")
-                text = self.row_text_for_cell(dev, status)
-                addr = dev["cid"]
             else:
                 status = self.connection_results.get(dev["addr"], "Not Tested")
                 text = self.row_text_for_classic(dev, status)
@@ -1189,6 +1144,463 @@ class BluetoothApp:
                 if exists:
                     continue
             self.device_list.insert(tk.END, text)
+
+    # ---------- Wi‑Fi & Cellular ----------
+    def start_scan_wifi(self):
+        threading.Thread(target=self._scan_wifi_thread, daemon=True).start()
+
+    def _scan_wifi_thread(self):
+        try:
+            nets = []
+            if IS_WINDOWS:
+                nets = self._scan_wifi_windows()
+            elif IS_MAC and os.path.exists(AIRPORT_BIN):
+                nets = self._scan_wifi_macos()
+            elif IS_LINUX:
+                nets = self._scan_wifi_linux()
+            else:
+                self.log("Wi‑Fi scanning not supported on this OS.")
+                nets = []
+            # qualify distances & store
+            qualified = []
+            for nfo in nets:
+                bssid = nfo.get('bssid') or f"SSID:{nfo.get('ssid','')}"
+                key = f"WIFI:{bssid}"
+                rssi = nfo.get('rssi')
+                ema = self.dist_filter.push_rssi(key, rssi) if rssi is not None else None
+                used_rssi = ema if ema is not None else rssi
+                try:
+                    tx_wifi = float(self.wifi_tx_power_var.get().strip())
+                except Exception:
+                    tx_wifi = -45.0
+                d_m = self.estimate_distance(used_rssi, tx_power=tx_wifi, clamp=True)
+                qual = self.dist_filter.quality_grade(key)
+                bucket = self._range_bucket(d_m)
+                nfo.update({
+                    'rssi_smoothed': used_rssi,
+                    'distance_m': d_m,
+                    'range_label': bucket,
+                    'qual': qual,
+                })
+                qualified.append(nfo)
+            self.wifi_networks = qualified
+            self.queue.put(self.redraw_wifi_list)
+            self.log(f"Wi‑Fi scan complete: {len(self.wifi_networks)} network(s).")
+        except Exception as e:
+            self.log(f"Wi‑Fi scan failed: {e}")
+
+    def _wifi_hotspot_guess(self, ssid):
+        if not ssid:
+            return False
+        low = ssid.lower()
+        markers = ["iphone", "android", "hotspot", "mobile", "pixel", "galaxy", "mi phone"]
+        return any(m in low for m in markers)
+
+    def _scan_wifi_windows(self):
+        cmd = ["netsh", "wlan", "show", "networks", "mode=bssid"]
+        try:
+            out = subprocess.check_output(cmd, text=True, errors='ignore')
+        except Exception as e:
+            self.log(f"netsh wlan failed: {e}")
+            return []
+        nets = []
+        current = {"ssid": "", "ntype": "", "auth": "", "encr": ""}
+        ssid_re = re.compile(r"^SSID\s+\d+\s*:\s*(.*)$", re.I)
+        bssid_re = re.compile(r"^\s*BSSID\s+\d+\s*:\s*([0-9A-Fa-f:]{17})")
+        sig_re = re.compile(r"^\s*Signal\s*:\s*(\d+)%")
+        chan_re = re.compile(r"^\s*Channel\s*:\s*(\d+)")
+        ntype_re = re.compile(r"^\s*Network type\s*:\s*(.*)$")
+        auth_re = re.compile(r"^\s*Authentication\s*:\s*(.*)$")
+        encr_re = re.compile(r"^\s*Encryption\s*:\s*(.*)$")
+        bssid_block = None
+        for line in out.splitlines():
+            m = ssid_re.match(line)
+            if m:
+                current = {"ssid": m.group(1).strip(), "ntype": "", "auth": "", "encr": ""}
+                continue
+            m = ntype_re.match(line)
+            if m:
+                current["ntype"] = m.group(1).strip(); continue
+            m = auth_re.match(line)
+            if m:
+                current["auth"] = m.group(1).strip(); continue
+            m = encr_re.match(line)
+            if m:
+                current["encr"] = m.group(1).strip(); continue
+            m = bssid_re.match(line)
+            if m:
+                # start a new bssid block
+                if bssid_block:
+                    nets.append(bssid_block)
+                bssid_block = {
+                    "ssid": current.get("ssid",""),
+                    "bssid": m.group(1).upper(),
+                    "auth": current.get("auth",""),
+                    "encr": current.get("encr",""),
+                    "channel": None,
+                    "signal_pct": None,
+                }
+                continue
+            if bssid_block:
+                m = sig_re.match(line)
+                if m:
+                    pct = int(m.group(1))
+                    # Rough conversion: RSSI ~= (quality/2) - 100  (100->-50 dBm)
+                    rssi = (pct / 2.0) - 100.0
+                    bssid_block["signal_pct"] = pct
+                    bssid_block["rssi"] = rssi
+                    continue
+                m = chan_re.match(line)
+                if m:
+                    bssid_block["channel"] = int(m.group(1))
+                    continue
+        if bssid_block:
+            nets.append(bssid_block)
+        # enrich
+        for n in nets:
+            ch = n.get("channel") or 0
+            band = "5G" if ch and ch > 14 else "2.4G"
+            n["band"] = band
+            n["security"] = (n.get("auth") or "") + ("/" + n.get("encr") if n.get("encr") else "")
+            n["hotspot"] = self._wifi_hotspot_guess(n.get("ssid",""))
+        return nets
+
+    def _scan_wifi_macos(self):
+        try:
+            out = subprocess.check_output([AIRPORT_BIN, "-s"], text=True, errors='ignore')
+        except Exception as e:
+            self.log(f"airport -s failed: {e}")
+            return []
+        nets = []
+        # airport output: SSID BSSID RSSI CHANNEL HT CC SECURITY
+        header = True
+        for line in out.splitlines():
+            if header:
+                header = False
+                continue
+            if not line.strip():
+                continue
+            # Collapse multiple spaces; SSID may include spaces, so parse via regex
+            m = re.match(r"^\s*(.*?)\s+([0-9A-Fa-f:]{17})\s+(-?\d+)\s+([\d,]+)\s+\S+\s+\S+\s+(.*)$", line)
+            if not m:
+                # fallback split
+                parts = re.split(r"\s+", line.strip())
+                if len(parts) < 4:
+                    continue
+                ssid = parts[0]
+                bssid = parts[1]
+                rssi = float(parts[2]) if parts[2].lstrip("-+").isdigit() else None
+                ch = parts[3]
+                sec = " ".join(parts[6:]) if len(parts) > 6 else ""
+            else:
+                ssid = m.group(1).strip()
+                bssid = m.group(2).upper()
+                rssi = float(m.group(3))
+                ch = m.group(4)
+                sec = m.group(5).strip()
+            try:
+                ch_int = int(str(ch).split(",")[0])
+            except Exception:
+                ch_int = None
+            band = "5G" if (ch_int and ch_int > 14) else "2.4G"
+            nets.append({
+                "ssid": ssid,
+                "bssid": bssid,
+                "rssi": rssi,
+                "channel": ch_int,
+                "band": band,
+                "security": sec,
+                "hotspot": self._wifi_hotspot_guess(ssid)
+            })
+        return nets
+
+    def _scan_wifi_linux(self):
+        nets = []
+        if shutil.which("nmcli"):
+            try:
+                # terse output: fields separated by ':'; SSID may be empty
+                out = subprocess.check_output(["nmcli", "-t", "-f", "SSID,BSSID,SIGNAL,SECURITY,CHAN", "dev", "wifi", "list"], text=True, errors='ignore')
+                for line in out.splitlines():
+                    if not line.strip():
+                        continue
+                    parts = line.split(":")
+                    # nmcli may emit extra ':' inside SSID if SSID contains ':'; handle conservatively
+                    if len(parts) < 5:
+                        continue
+                    # last 3 fields are always SIGNAL, SECURITY, CHAN
+                    ssid = ":".join(parts[:-4+1]) if len(parts) > 5 else parts[0]
+                    # Better: recompute indexes from end
+                    ssid = parts[0]
+                    bssid = parts[1].upper()
+                    signal_pct = parts[2]
+                    security = parts[3]
+                    try:
+                        chan = int(parts[4])
+                    except Exception:
+                        chan = None
+                    try:
+                        pct = int(signal_pct)
+                        rssi = (pct / 2.0) - 100.0
+                    except Exception:
+                        rssi = None
+                    band = "5G" if (chan and chan > 14) else "2.4G"
+                    nets.append({
+                        "ssid": ssid,
+                        "bssid": bssid,
+                        "signal_pct": int(signal_pct) if signal_pct.isdigit() else None,
+                        "rssi": rssi,
+                        "channel": chan,
+                        "band": band,
+                        "security": security,
+                        "hotspot": self._wifi_hotspot_guess(ssid)
+                    })
+            except Exception as e:
+                self.log(f"nmcli scan failed: {e}")
+        elif shutil.which("iwlist"):
+            # fallback parser for iwlist
+            try:
+                out = subprocess.check_output(["iwlist", "scan"], text=True, errors='ignore')
+                block = {}
+                for line in out.splitlines():
+                    line = line.strip()
+                    if line.startswith("Cell ") and "Address:" in line:
+                        if block:
+                            nets.append(block)
+                        m = re.search(r"Address: ([0-9A-Fa-f:]{17})", line)
+                        block = {"bssid": m.group(1).upper() if m else None}
+                    elif "ESSID:" in line:
+                        ssid = line.split("ESSID:",1)[1].strip().strip('"')
+                        block["ssid"] = ssid
+                    elif "Channel" in line and "Channel:" in line:
+                        try:
+                            ch = int(line.split("Channel:",1)[1].strip())
+                        except Exception:
+                            ch = None
+                        block["channel"] = ch
+                    elif "Signal level=" in line:
+                        m = re.search(r"Signal level=(-?\d+) dBm", line)
+                        if m:
+                            block["rssi"] = float(m.group(1))
+                if block:
+                    nets.append(block)
+                for n in nets:
+                    ch = n.get("channel") or 0
+                    n["band"] = "5G" if ch and ch > 14 else "2.4G"
+                    n["security"] = n.get("security", "?")
+                    n["hotspot"] = self._wifi_hotspot_guess(n.get("ssid",""))
+            except Exception as e:
+                self.log(f"iwlist scan failed: {e}")
+        else:
+            self.log("No nmcli/iwlist found for Wi‑Fi scanning.")
+        return nets
+
+    def redraw_wifi_list(self):
+        self.wifi_list.delete(0, tk.END)
+        for n in self.wifi_networks:
+            ssid = n.get('ssid') or '(hidden)'
+            bssid = n.get('bssid','??')
+            rssi = n.get('rssi_smoothed', n.get('rssi'))
+            pct = n.get('signal_pct')
+            ch = n.get('channel')
+            band = n.get('band','?')
+            sec = n.get('security','?')
+            bucket = n.get('range_label','Unknown')
+            d_m = n.get('distance_m')
+            qual = n.get('qual','D')
+            hot = ' 🔥hotspot' if n.get('hotspot') else ''
+            sig_str = f"{pct}%" if isinstance(pct,(int,float)) else (f"{rssi:.0f} dBm" if isinstance(rssi,(int,float)) else "?")
+            dist_str = f"~{d_m:.1f} m" if isinstance(d_m,(int,float)) else "~? m"
+            row = f"Wi‑Fi: {ssid}{hot} ({bssid}) – Signal {sig_str} – Ch {ch} {band} – Sec {sec} – {bucket} {dist_str} Q:{qual}"
+            self.wifi_list.insert(tk.END, row)
+
+    def connect_wifi_selected(self):
+        idxs = self.wifi_list.curselection()
+        if not idxs:
+            messagebox.showwarning("No Selection", "Select a Wi‑Fi network first.")
+            return
+        net = self.wifi_networks[idxs[0]]
+        ssid = net.get('ssid')
+        if not ssid:
+            messagebox.showerror("Hidden SSID", "Connecting to hidden SSIDs is not supported in this quick connect.")
+            return
+        pwd = simpledialog.askstring("Wi‑Fi Password (optional)", f"Enter password for SSID '{ssid}' (leave blank if open):", show='*')
+        threading.Thread(target=self._connect_wifi_os, args=(ssid, pwd or ""), daemon=True).start()
+
+    def _connect_wifi_os(self, ssid: str, password: str):
+        try:
+            if IS_WINDOWS:
+                # Try simple connect (requires existing profile)
+                try:
+                    subprocess.check_call(["netsh", "wlan", "connect", f"ssid={ssid}", f"name={ssid}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    self.log(f"Requested connection to Wi‑Fi SSID '{ssid}' (Windows profile).")
+                    return
+                except Exception:
+                    if not password:
+                        self.log("No existing profile and no password provided.")
+                        messagebox.showinfo("Windows Wi‑Fi", "Windows requires a saved profile or a password.")
+                        return
+                    # Create a temporary WPA2 profile XML and add it
+                    profile_xml = f"""<?xml version=\"1.0\"?>
+<WLANProfile xmlns=\"http://www.microsoft.com/networking/WLAN/profile/v1\">
+  <name>{ssid}</name>
+  <SSIDConfig><SSID><name>{ssid}</name></SSID></SSIDConfig>
+  <connectionType>ESS</connectionType>
+  <connectionMode>manual</connectionMode>
+  <MSM>
+    <security>
+      <authEncryption>
+        <authentication>WPA2PSK</authentication>
+        <encryption>AES</encryption>
+        <useOneX>false</useOneX>
+      </authEncryption>
+      <sharedKey>
+        <keyType>passPhrase</keyType>
+        <protected>false</protected>
+        <keyMaterial>{password}</keyMaterial>
+      </sharedKey>
+    </security>
+  </MSM>
+</WLANProfile>"""
+                    with tempfile.NamedTemporaryFile('w', delete=False, suffix='.xml') as tmp:
+                        tmp.write(profile_xml)
+                        tmp_path = tmp.name
+                    try:
+                        subprocess.check_call(["netsh", "wlan", "add", "profile", f"filename={tmp_path}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        subprocess.check_call(["netsh", "wlan", "connect", f"ssid={ssid}", f"name={ssid}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        self.log(f"Added profile and requested connection to '{ssid}'.")
+                    finally:
+                        try:
+                            os.unlink(tmp_path)
+                        except Exception:
+                            pass
+            elif IS_LINUX and shutil.which("nmcli"):
+                args = ["nmcli", "dev", "wifi", "connect", ssid]
+                if password:
+                    args += ["password", password]
+                try:
+                    out = subprocess.check_output(args, text=True, stderr=subprocess.STDOUT)
+                    self.log(out.strip())
+                except subprocess.CalledProcessError as e:
+                    self.log(f"nmcli connect failed: {e.output}")
+                    messagebox.showerror("Wi‑Fi connect", f"nmcli failed:\n{e.output}")
+            elif IS_MAC:
+                # find Wi‑Fi device name
+                try:
+                    hw = subprocess.check_output(["networksetup", "-listallhardwareports"], text=True)
+                    dev = None
+                    cur = {}
+                    for ln in hw.splitlines():
+                        if ln.startswith("Hardware Port: "):
+                            cur = {"port": ln.split(": ",1)[1].strip()}
+                        elif ln.startswith("Device: "):
+                            cur["device"] = ln.split(": ",1)[1].strip()
+                        elif not ln.strip() and cur:
+                            if cur.get("port") == "Wi-Fi" and cur.get("device"):
+                                dev = cur.get("device"); break
+                            cur = {}
+                    if not dev:
+                        dev = "en0"
+                    args = ["networksetup", "-setairportnetwork", dev, ssid]
+                    if password:
+                        args.append(password)
+                    subprocess.check_call(args)
+                    self.log(f"Requested connection to '{ssid}' on {dev}.")
+                except Exception as e:
+                    self.log(f"macOS connect failed: {e}")
+                    messagebox.showerror("Wi‑Fi connect", f"macOS connect failed: {e}")
+            else:
+                messagebox.showinfo("Wi‑Fi", "Programmatic Wi‑Fi connect not supported on this OS.")
+        except Exception as e:
+            self.log(f"Wi‑Fi connect error: {e}")
+
+    def start_scan_cellular(self):
+        threading.Thread(target=self._scan_cellular_thread, daemon=True).start()
+
+    def _scan_cellular_thread(self):
+        infos = []
+        try:
+            if IS_WINDOWS:
+                try:
+                    # Show interfaces (signal bars) & visible providers
+                    out = subprocess.check_output(["netsh", "mbn", "show", "interfaces"], text=True, errors='ignore')
+                    cur = {}
+                    for ln in out.splitlines():
+                        if ln.strip().startswith("Name            :"):
+                            if cur:
+                                infos.append(cur); cur = {}
+                            cur["name"] = ln.split(":",1)[1].strip()
+                        elif ln.strip().startswith("State           :"):
+                            cur["state"] = ln.split(":",1)[1].strip()
+                        elif ln.strip().startswith("Signal          :"):
+                            cur["signal_bars"] = ln.split(":",1)[1].strip()
+                        elif ln.strip().startswith("Provider Name   :"):
+                            cur["provider"] = ln.split(":",1)[1].strip()
+                    if cur:
+                        infos.append(cur)
+                except Exception as e:
+                    self.log(f"netsh mbn interfaces failed: {e}")
+                try:
+                    out = subprocess.check_output(["netsh", "mbn", "show", "visible"], text=True, errors='ignore')
+                    # This lists visible providers; append as sighting entries
+                    provs = []
+                    for m in re.finditer(r"Provider Name\s*:\s*(.*)", out):
+                        provs.append(m.group(1).strip())
+                    if provs:
+                        infos.append({"visible_providers": ", ".join(sorted(set(provs)))})
+                except Exception:
+                    pass
+            elif IS_LINUX and shutil.which("mmcli"):
+                try:
+                    out = subprocess.check_output(["mmcli", "-L"], text=True, errors='ignore')
+                    for m in re.finditer(r"/Modem/(\d+)", out):
+                        mid = m.group(1)
+                        try:
+                            sig = subprocess.check_output(["mmcli", "-m", mid, "--signal-get"], text=True, errors='ignore')
+                            rsrp = re.search(r"lte\s*\|\s*rsrp:\s*(-?\d+)", sig)
+                            rssi = re.search(r"rssi:\s*(-?\d+)", sig)
+                            infos.append({"modem": mid, "rsrp": rsrp.group(1) if rsrp else None, "rssi": rssi.group(1) if rssi else None})
+                        except Exception:
+                            pass
+                except Exception as e:
+                    self.log(f"mmcli failed: {e}")
+            elif IS_MAC:
+                try:
+                    out = subprocess.check_output(["system_profiler", "SPWWANDataType"], text=True, errors='ignore')
+                    # very verbose; extract a few fields
+                    cur = {}
+                    for ln in out.splitlines():
+                        if ln.strip().startswith("Carrier:"):
+                            cur["provider"] = ln.split(":",1)[1].strip()
+                        if ln.strip().startswith("Current Network:"):
+                            cur["network"] = ln.split(":",1)[1].strip()
+                        if ln.strip().startswith("Signal Strength:") or ln.strip().startswith("RSSI:"):
+                            cur["signal"] = ln.split(":",1)[1].strip()
+                    if cur:
+                        infos.append(cur)
+                except Exception as e:
+                    self.log(f"system_profiler SPWWANDataType failed: {e}")
+        finally:
+            self.cell_infos = infos
+            self.queue.put(self.redraw_cell_list)
+            self.log(f"Cellular scan complete: {len(infos)} record(s).")
+
+    def redraw_cell_list(self):
+        self.cell_list.delete(0, tk.END)
+        if not self.cell_infos:
+            self.cell_list.insert(tk.END, "(No cellular info found / not available)")
+            return
+        for ci in self.cell_infos:
+            if 'visible_providers' in ci:
+                self.cell_list.insert(tk.END, f"Visible providers: {ci['visible_providers']}")
+                continue
+            parts = []
+            if ci.get('name'): parts.append(ci['name'])
+            if ci.get('provider'): parts.append(ci['provider'])
+            if ci.get('network'): parts.append(ci['network'])
+            if ci.get('signal_bars'): parts.append(f"Signal {ci['signal_bars']}")
+            if ci.get('rssi'): parts.append(f"RSSI {ci['rssi']} dBm")
+            if ci.get('rsrp'): parts.append(f"RSRP {ci['rsrp']} dBm")
+            self.cell_list.insert(tk.END, "Cell: " + " – ".join(parts) if parts else "Cell: (unknown)")
 
     # ---------- OBEX (Classic) File Browser ----------
     def open_obex_browser(self):
@@ -1591,7 +2003,7 @@ class BluetoothApp:
         """Minimal vCard parser for names and telephone numbers."""
         if not isinstance(vcf_bytes, (bytes, bytearray)):
             vcf_bytes = bytes(vcf_bytes or b"")
-        text = vcf_bytes.decode("utf-8", errors="ignore")
+        text = vcf_bytes.decode("utf-8", errors='ignore')
         # Unfold continuations
         lines = []
         for ln in text.splitlines():
@@ -1666,7 +2078,7 @@ class BluetoothApp:
         ax.set_xlabel("X (m)")
         ax.set_ylabel("Y (m)")
         ax.set_zlabel("Depth (m)")  # z = -distance
-        ax.set_title("Radios as trees (direction from ID, depth from distance/estimate)")
+        ax.set_title("Nearby signals as trees (direction from ID hash, depth from distance)")
 
         canvas = FigureCanvasTkAgg(fig, master=win)
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=8)
@@ -1750,7 +2162,7 @@ class BluetoothApp:
             pass
 
     def _angle_for_addr(self, addr: str) -> float:
-        """Stable pseudo-direction from an ID. Returns radians [0, 2π)."""
+        """Stable pseudo-direction from identifier. Returns radians [0, 2π)."""
         try:
             h = int(hashlib.sha1(addr.encode("utf-8")).hexdigest()[:8], 16)
         except Exception:
@@ -1759,62 +2171,54 @@ class BluetoothApp:
         return math.radians(deg)
 
     def _collect_positions(self):
-        """Return seeds with approx position and target heights."""
+        """Return seeds with approx position and target heights (BLE + Classic + Wi‑Fi)."""
         seeds = []
         # BLE
         for typ, dev in self.devices:
-            if typ != "BLE":
+            if typ == "BLE":
+                addr = dev.address
+                meta = self.ble_meta.get(addr, {})
+                name = (meta.get("name") or getattr(dev, "name", None) or meta.get("fallback_name") or "[Unnamed Device]").strip()
+                d_m = meta.get("distance_m", None)
+                if not isinstance(d_m, (int, float)) or d_m <= 0:
+                    continue
+                theta = self._angle_for_addr(addr)
+                r = d_m * self.map3d["radial_scale"]
+                x = r * math.cos(theta)
+                y = r * math.sin(theta)
+                z = -d_m
+                target_height = max(0.5, 5.0 - 0.3 * d_m)
+                seeds.append({"type": "BLE", "name": name, "addr": addr, "x": x, "y": y, "z": z,
+                              "target": z + target_height})
+            else:
+                # Classic plotted with default range
+                info = dev
+                addr = info["addr"]
+                name = info["name"]
+                dist = self.map3d["classic_default_dist"]
+                theta = self._angle_for_addr(addr)
+                r = dist * self.map3d["radial_scale"]
+                x = r * math.cos(theta)
+                y = r * math.sin(theta)
+                z = -dist
+                target_height = max(0.5, 5.0 - 0.3 * dist)
+                seeds.append({"type": "Classic", "name": name, "addr": addr, "x": x, "y": y, "z": z,
+                              "target": z + target_height})
+        # Wi‑Fi (per BSSID)
+        for n in self.wifi_networks:
+            bssid = n.get('bssid') or n.get('ssid') or 'wifi'
+            d_m = n.get('distance_m')
+            if not isinstance(d_m,(int,float)) or d_m <= 0:
                 continue
-            addr = dev.address
-            meta = self.ble_meta.get(addr, {})
-            name = (meta.get("name") or getattr(dev, "name", None) or meta.get("fallback_name") or "[Unnamed Device]").strip()
-            d_m = meta.get("distance_m", None)
-            if not isinstance(d_m, (int, float)) or d_m <= 0:
-                continue
-            theta = self._angle_for_addr(addr)
-            r = d_m * self.map3d["radial_scale"]
-            x = r * math.cos(theta); y = r * math.sin(theta); z = -d_m
-            target_height = max(0.5, 5.0 - 0.3 * d_m)
-            seeds.append({"type": "BLE", "name": name, "addr": addr, "x": x, "y": y, "z": z, "target": z + target_height})
-        # Classic (default distance)
-        for typ, dev in self.devices:
-            if typ != "Classic":
-                continue
-            addr = dev["addr"]; name = dev["name"]
-            dist = self.map3d["classic_default_dist"]
-            theta = self._angle_for_addr(addr)
-            r = dist * self.map3d["radial_scale"]
-            x = r * math.cos(theta); y = r * math.sin(theta); z = -dist
-            target_height = max(0.5, 5.0 - 0.3 * dist)
-            seeds.append({"type": "Classic", "name": name, "addr": addr, "x": x, "y": y, "z": z, "target": z + target_height})
-        # Wi-Fi
-        for typ, dev in self.devices:
-            if typ != "WiFi":
-                continue
-            bssid = dev["bssid"]
-            meta = self.wifi_meta.get(bssid, {})
-            ssid = meta.get("ssid") or dev.get("ssid") or "[Hidden SSID]"
-            d_m = meta.get("distance_m")
-            if not isinstance(d_m, (int, float)) or d_m <= 0:
-                d_m = self.map3d["wifi_default_dist"]
             theta = self._angle_for_addr(bssid)
             r = d_m * self.map3d["radial_scale"]
-            x = r * math.cos(theta); y = r * math.sin(theta); z = -d_m
-            target_height = max(0.5, 5.0 - 0.3 * d_m)
-            seeds.append({"type": "WiFi", "name": ssid, "addr": bssid, "x": x, "y": y, "z": z, "target": z + target_height})
-        # Cellular (visualize conservatively)
-        for typ, dev in self.devices:
-            if typ != "Cell":
-                continue
-            cid = dev["cid"]
-            meta = self.cell_meta.get(cid, {})
-            label = f"{meta.get('operator','Cell')}-{meta.get('tech','')}".strip("-")
-            d_m = self.map3d["cell_default_dist"]
-            theta = self._angle_for_addr(cid)
-            r = d_m * self.map3d["radial_scale"]
-            x = r * math.cos(theta); y = r * math.sin(theta); z = -d_m
-            target_height = max(0.5, 5.0 - 0.3 * d_m)
-            seeds.append({"type": "Cell", "name": label, "addr": cid, "x": x, "y": y, "z": z, "target": z + target_height})
+            x = r * math.cos(theta)
+            y = r * math.sin(theta)
+            z = -d_m
+            target_height = max(0.5, 5.0 - 0.25 * d_m)
+            name = (n.get('ssid') or '(hidden)') + (" 🔥" if n.get('hotspot') else "")
+            seeds.append({"type": "Wi‑Fi", "name": name, "addr": bssid, "x": x, "y": y, "z": z,
+                          "target": z + target_height})
         return seeds
 
     def _render_map3d(self):
@@ -1822,13 +2226,16 @@ class BluetoothApp:
             return
         ax = self.map3d["ax"]
         canvas = self.map3d["canvas"]
-        old_xlim = ax.get_xlim(); old_ylim = ax.get_ylim(); old_zlim = ax.get_zlim()
+        # preserve current limits to keep zoom level on refresh
+        old_xlim = ax.get_xlim()
+        old_ylim = ax.get_ylim()
+        old_zlim = ax.get_zlim()
 
         ax.clear()
         ax.set_xlabel("X (m)")
         ax.set_ylabel("Y (m)")
         ax.set_zlabel("Depth (m)")
-        ax.set_title("Radios as trees (direction from ID, depth from distance/estimate)")
+        ax.set_title("Nearby signals as trees (direction from ID, depth from distance)")
 
         seeds = self._collect_positions()
 
@@ -1843,18 +2250,18 @@ class BluetoothApp:
         xs_ble, ys_ble, zs_ble = [], [], []
         xs_cla, ys_cla, zs_cla = [], [], []
         xs_wifi, ys_wifi, zs_wifi = [], [], []
-        xs_cell, ys_cell, zs_cell = [], [], []
 
         for s in seeds:
             x, y, z = s["x"], s["y"], s["z"]
             if s["type"] == "BLE":
-                xs_ble.append(x); ys_ble.append(y); zs_ble.append(z); color = "#2e7d32"
-            elif s["type"] == "WiFi":
-                xs_wifi.append(x); ys_wifi.append(y); zs_wifi.append(z); color = "#8e24aa"
-            elif s["type"] == "Cell":
-                xs_cell.append(x); ys_cell.append(y); zs_cell.append(z); color = "#c62828"
+                xs_ble.append(x); ys_ble.append(y); zs_ble.append(z)
+                color = "#2e7d32"
+            elif s["type"] == "Wi‑Fi":
+                xs_wifi.append(x); ys_wifi.append(y); zs_wifi.append(z)
+                color = "#ef6c00"
             else:
-                xs_cla.append(x); ys_cla.append(y); zs_cla.append(z); color = "#1565c0"
+                xs_cla.append(x); ys_cla.append(y); zs_cla.append(z)
+                color = "#1565c0"
 
             line, = ax.plot([x, x], [y, y], [z, z], linewidth=3, color=color)
             self.map3d["trees"].append(line)
@@ -1864,18 +2271,16 @@ class BluetoothApp:
             self.map3d["labels"].append(lbl)
 
         if xs_ble:
-            ax.scatter(xs_ble, ys_ble, zs_ble, s=30, marker="o", color="#66bb6a", label="BLE")
+            ax.scatter(xs_ble, ys_ble, zs_ble, s=30, marker="o", color="#66bb6a", label="BLE (seed)")
         if xs_wifi:
-            ax.scatter(xs_wifi, ys_wifi, zs_wifi, s=30, marker="s", color="#ba68c8", label="Wi-Fi")
-        if xs_cell:
-            ax.scatter(xs_cell, ys_cell, zs_cell, s=30, marker="x", color="#ef5350", label="Cellular")
+            ax.scatter(xs_wifi, ys_wifi, zs_wifi, s=30, marker="s", color="#ffb74d", label="Wi‑Fi (seed)")
         if xs_cla:
-            ax.scatter(xs_cla, ys_cla, zs_cla, s=30, marker="^", color="#64b5f6", label="Classic")
+            ax.scatter(xs_cla, ys_cla, zs_cla, s=30, marker="^", color="#64b5f6", label="Classic (seed)")
 
         # Default bounds from data
-        all_x = (xs_ble + xs_cla + xs_wifi + xs_cell) or [0]
-        all_y = (ys_ble + ys_cla + ys_wifi + ys_cell) or [0]
-        all_z = (zs_ble + zs_cla + zs_wifi + zs_cell) or [0]
+        all_x = (xs_ble + xs_cla + xs_wifi) or [0]
+        all_y = (ys_ble + ys_cla + ys_wifi) or [0]
+        all_z = (zs_ble + zs_cla + zs_wifi) or [0]
         max_range = max(5.0, max(abs(min(all_x)), abs(max(all_x)),
                                  abs(min(all_y)), abs(max(all_y)),
                                  abs(min(all_z)), abs(max(all_z))))
@@ -1883,7 +2288,7 @@ class BluetoothApp:
         ax.set_ylim(-max_range, max_range)
         ax.set_zlim(-max_range, max_range * 0.6)
 
-        # Restore prior zoom if any
+        # If user had zoomed before, restore their view
         if old_xlim != (0.0, 1.0) or old_ylim != (0.0, 1.0):
             try:
                 ax.set_xlim(old_xlim)
@@ -1895,446 +2300,12 @@ class BluetoothApp:
         ax.legend(loc="upper right", fontsize=8)
         canvas.draw_idle()
 
+        # restart animation if toggle is on
         if self.map3d["animate_var"] and self.map3d["animate_var"].get():
-            self._stop_seed_animation(); self._start_seed_animation()
+            self._stop_seed_animation()
+            self._start_seed_animation()
         else:
             self._stop_seed_animation()
-
-    # ---------- Wi-Fi Scanning ----------
-    def start_scan_wifi(self):
-        threading.Thread(target=lambda: self.queue.put(lambda nets=self.scan_wifi_sync(): self._merge_wifi_in_main(nets)),
-                         daemon=True).start()
-
-    def _merge_wifi_in_main(self, nets):
-        """Merge Wi-Fi scan results into devices & metadata, then refresh the UI."""
-        added = 0
-        for n in nets:
-            bssid = n["bssid"]
-            # store/refresh meta
-            self.wifi_meta[bssid] = {
-                "ssid": n.get("ssid") or "[Hidden SSID]",
-                "rssi": n.get("rssi"),
-                "freq_mhz": n.get("freq_mhz"),
-                "chan": n.get("chan"),
-                "security": n.get("security"),
-                "distance_m": n.get("distance_m"),
-                "range_label": n.get("range_label"),
-                "qual": n.get("qual"),
-            }
-            # append device record if not listed
-            exists = any((t == "WiFi" and d.get("bssid") == bssid) for t, d in self.devices)
-            if not exists:
-                self.devices.append(("WiFi", {"bssid": bssid, "ssid": n.get("ssid"),
-                                              "freq_mhz": n.get("freq_mhz"), "chan": n.get("chan"),
-                                              "security": n.get("security")}))
-                self.connection_results[bssid] = "Seen"
-                added += 1
-        if added:
-            self.redraw_device_list(append_only=True)
-        else:
-            self.redraw_device_list(append_only=False)
-
-    def scan_wifi_sync(self):
-        """Return list of Wi-Fi networks with distance & quality."""
-        try:
-            if IS_WINDOWS:
-                nets = self._scan_wifi_windows()
-            elif platform.system() == "Darwin":
-                nets = self._scan_wifi_macos()
-            else:
-                nets = self._scan_wifi_linux()
-        except Exception as e:
-            self.log(f"Wi-Fi scan error: {e}")
-            nets = []
-        # Post-process with smoothing + distance model
-        out = []
-        for n in nets:
-            bssid = n["bssid"]
-            rssi = n.get("rssi")
-            key = f"WIFI:{bssid}"
-            ema = self.dist_filter.push_rssi(key, rssi) if rssi is not None else None
-            use_rssi = ema if ema is not None else rssi
-            txp = self._heuristic_tx_power_wifi(n.get("freq_mhz"))
-            # Wi-Fi distance clamp a bit wider than BLE
-            d_m = self.estimate_distance(use_rssi, txp, None, clamp=True, min_m=0.5, max_m=60.0) if use_rssi is not None else None
-            qual = self.dist_filter.quality_grade(key)
-            bucket = self._range_bucket(d_m)
-            n.update({"distance_m": d_m, "range_label": bucket, "qual": qual})
-            out.append(n)
-        return out
-
-    def _heuristic_tx_power_wifi(self, freq_mhz):
-        """Rough Tx @1m reference: ~-41 dBm for 2.4 GHz, ~-46 dBm for 5/6 GHz."""
-        try:
-            f = float(freq_mhz or 0)
-        except Exception:
-            f = 0.0
-        return -41.0 if f and f < 3000 else -46.0
-
-    def _channel_to_freq_mhz(self, ch):
-        try:
-            ch = int(str(ch).split(",")[0].strip())
-        except Exception:
-            return None
-        if 1 <= ch <= 14:
-            return 2412 + (ch - 1) * 5
-        # 5 GHz common mapping
-        if 32 <= ch <= 196:
-            return 5000 + ch * 5
-        # 6 GHz (approx)
-        if 1 <= ch <= 233:
-            return 5950 + ch * 5
-        return None
-
-    # ----- Windows (netsh) -----
-    def _scan_wifi_windows(self):
-        if not shutil.which("netsh"):
-            return []
-        out = subprocess.run(
-            ["netsh", "wlan", "show", "networks", "mode=bssid"],
-            capture_output=True, text=True, errors="ignore"
-        ).stdout
-        ssid = None
-        security = ""
-        nets = []
-        for line in out.splitlines():
-            ln = line.strip()
-            if not ln:
-                continue
-            low = ln.lower()
-            if low.startswith("ssid "):
-                parts = ln.split(":", 1)
-                ssid = (parts[1].strip() if len(parts) > 1 else "") or ""
-            elif low.startswith("authentication"):
-                security = ln.split(":", 1)[1].strip() if ":" in ln else ""
-            elif low.startswith("bssid"):
-                bssid = ln.split(":", 1)[1].strip().lower()
-                nets.append({"ssid": ssid or "", "bssid": bssid, "security": security})
-            elif low.startswith("signal"):
-                if nets:
-                    pct = int(re.sub(r"[^\d]", "", ln) or "0")
-                    # netsh reports Wi-Fi %; rough approx to dBm:
-                    dbm = (pct / 2.0) - 100.0
-                    nets[-1]["rssi"] = round(dbm, 1)
-            elif low.startswith("channel"):
-                if nets:
-                    ch = int(re.sub(r"[^\d]", "", ln) or "0")
-                    nets[-1]["chan"] = ch
-                    nets[-1]["freq_mhz"] = self._channel_to_freq_mhz(ch)
-        return [n for n in nets if "bssid" in n and n.get("rssi") is not None]
-
-    # ----- macOS (airport) -----
-    def _scan_wifi_macos(self):
-        airport = "/System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport"
-        if not os.path.exists(airport):
-            airport = shutil.which("airport") or airport
-        if not airport:
-            return []
-        out = subprocess.run([airport, "-s"], capture_output=True, text=True, errors="ignore").stdout
-        lines = [l for l in out.splitlines() if l.strip()]
-        if not lines:
-            return []
-        # Skip header
-        lines = lines[1:]
-        nets = []
-        for ln in lines:
-            m = re.search(r"([0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5})", ln)
-            if not m:
-                continue
-            bssid = m.group(1).lower()
-            left = ln[:m.start()].rstrip()
-            right = ln[m.end():].strip()
-            ssid = left.strip() or ""
-            cols = re.split(r"\s+", right)
-            if len(cols) < 3:
-                continue
-            try:
-                rssi = float(cols[0])  # airport outputs dBm
-            except Exception:
-                continue
-            chan_raw = cols[1]
-            try:
-                ch = int(str(chan_raw).split(",")[0])
-            except Exception:
-                ch = None
-            freq = self._channel_to_freq_mhz(ch) if ch else None
-            # Security is generally at the end; airport can compact it
-            # We’ll surface what’s available
-            security = " ".join(cols[3:]) if len(cols) > 3 else ""
-            nets.append({"ssid": ssid, "bssid": bssid, "rssi": rssi, "chan": ch, "freq_mhz": freq, "security": security})
-        return nets
-
-    # ----- Linux (nmcli) -----
-    def _scan_wifi_linux(self):
-        if not shutil.which("nmcli"):
-            return []
-        out = subprocess.run(
-            ["nmcli", "-t", "-f", "SSID,BSSID,CHAN,SIGNAL,FREQ,SECURITY", "dev", "wifi", "list"],
-            capture_output=True, text=True, errors="ignore"
-        ).stdout
-        nets = []
-        for ln in out.splitlines():
-            if not ln.strip():
-                continue
-            parts = ln.split(":")
-            if len(parts) < 6:
-                continue
-            ssid = parts[0].replace(r"\:", ":").strip()
-            bssid = parts[1].lower()
-            chan = parts[2].strip()
-            try:
-                pct = float(parts[3])
-                rssi = (pct / 2.0) - 100.0  # approx
-            except Exception:
-                rssi = None
-            try:
-                freq = float(parts[4])
-            except Exception:
-                freq = self._channel_to_freq_mhz(chan)
-            security = parts[5].strip()
-            nets.append({
-                "ssid": ssid, "bssid": bssid, "chan": int(chan) if chan.isdigit() else chan,
-                "rssi": round(rssi, 1) if rssi is not None else None,
-                "freq_mhz": freq, "security": security
-            })
-        return [n for n in nets if "bssid" in n and n.get("rssi") is not None]
-
-    # ---------- Cellular Scanning ----------
-    def start_scan_cell(self):
-        threading.Thread(target=lambda: self.queue.put(lambda cells=self.scan_cell_sync(): self._merge_cell_in_main(cells)),
-                         daemon=True).start()
-
-    def _merge_cell_in_main(self, cells):
-        added = 0
-        for c in cells:
-            cid = c["cid"]
-            self.cell_meta[cid] = {
-                "operator": c.get("operator"),
-                "tech": c.get("tech"),
-                "signal_pct": c.get("signal_pct"),
-                "rssi_dbm": c.get("rssi_dbm"),
-                "rsrp_dbm": c.get("rsrp_dbm"),
-                "rsrq_db": c.get("rsrq_db"),
-                "sinr_db": c.get("sinr_db"),
-                "qual_bucket": c.get("qual_bucket"),
-            }
-            exists = any((t == "Cell" and d.get("cid") == cid) for t, d in self.devices)
-            if not exists:
-                self.devices.append(("Cell", {"cid": cid, "operator": c.get("operator"), "tech": c.get("tech")}))
-                self.connection_results[cid] = "Seen"
-                added += 1
-        if added:
-            self.redraw_device_list(append_only=True)
-        else:
-            self.redraw_device_list(append_only=False)
-
-    def scan_cell_sync(self):
-        """Return list of cellular signal snapshots (best-effort, OS-specific)."""
-        try:
-            if IS_WINDOWS:
-                cells = self._scan_cell_windows()
-            elif platform.system() == "Darwin":
-                cells = self._scan_cell_macos()
-            else:
-                cells = self._scan_cell_linux()
-        except Exception as e:
-            self.log(f"Cellular scan error: {e}")
-            cells = []
-        # Normalize quality buckets if missing
-        for c in cells:
-            if not c.get("qual_bucket"):
-                c["qual_bucket"] = self._cell_quality_bucket(c)
-        return cells
-
-    def _cell_quality_bucket(self, c):
-        """Bucketize based on best available metric (RSRP > RSSI > %)."""
-        rsrp = c.get("rsrp_dbm")
-        rssi = c.get("rssi_dbm")
-        pct = c.get("signal_pct")
-        # LTE/NR RSRP reference:
-        # Excellent ≥ -80, Good -80..-90, Fair -90..-100, Poor -100..-110, Very poor < -110
-        if rsrp is not None:
-            v = rsrp
-            if v >= -80: return "Excellent"
-            if v >= -90: return "Good"
-            if v >= -100: return "Fair"
-            if v >= -110: return "Poor"
-            return "Very poor"
-        # Generic RSSI mapping
-        if rssi is not None:
-            v = rssi
-            if v >= -70: return "Excellent"
-            if v >= -85: return "Good"
-            if v >= -100: return "Fair"
-            if v >= -110: return "Poor"
-            return "Very poor"
-        # Percent fallback
-        if pct is not None:
-            p = float(pct)
-            if p >= 80: return "Excellent"
-            if p >= 60: return "Good"
-            if p >= 40: return "Fair"
-            if p >= 20: return "Poor"
-            return "Very poor"
-        return "Unknown"
-
-    # ----- Windows (netsh mbn) -----
-    def _scan_cell_windows(self):
-        if not shutil.which("netsh"):
-            return []
-        # Enumerate interfaces to build stable CIDs
-        ifaces_out = subprocess.run(
-            ["netsh", "mbn", "show", "interfaces"],
-            capture_output=True, text=True, errors="ignore"
-        ).stdout
-        interfaces = []
-        cur = {}
-        for ln in ifaces_out.splitlines():
-            s = ln.strip()
-            if not s:
-                continue
-            if s.lower().startswith("interface name"):
-                if cur:
-                    interfaces.append(cur); cur = {}
-                cur["name"] = s.split(":", 1)[1].strip().strip('"')
-            elif s.lower().startswith("device id"):
-                cur["device_id"] = s.split(":", 1)[1].strip()
-            elif s.lower().startswith("subscriber id"):
-                cur["subscriber_id"] = s.split(":", 1)[1].strip()
-        if cur:
-            interfaces.append(cur)
-
-        cells = []
-        for iface in interfaces or [{"name": "Cellular"}]:
-            name = iface.get("name") or "Cellular"
-            try:
-                sig_out = subprocess.run(
-                    ["netsh", "mbn", "show", "signal", f'interface="{name}"'],
-                    capture_output=True, text=True, errors="ignore", timeout=5
-                ).stdout
-            except Exception:
-                sig_out = ""
-
-            # Parse netsh output: it commonly exposes "Signal strength : NN%"
-            pct = None
-            operator = None
-            tech = None
-            for ln in sig_out.splitlines():
-                s = ln.strip()
-                lower = s.lower()
-                if lower.startswith("signal") and "%" in s:
-                    try:
-                        pct = int(re.search(r"(\d+)\s*%", s).group(1))
-                    except Exception:
-                        pass
-                elif lower.startswith("system type") or lower.startswith("network type"):
-                    tech = s.split(":", 1)[1].strip()
-                elif lower.startswith("registered provider"):
-                    operator = s.split(":", 1)[1].strip().strip('"')
-            cid = f'WINIF:{name}'
-            cells.append({
-                "cid": cid,
-                "operator": operator,
-                "tech": tech,
-                "signal_pct": pct,
-                "rssi_dbm": None,   # not exposed by netsh mbn
-                "rsrp_dbm": None,
-                "rsrq_db": None,
-                "sinr_db": None,
-                "qual_bucket": None
-            })
-        return cells
-
-    # ----- macOS (no standard CLI for cellular) -----
-    def _scan_cell_macos(self):
-        # Most Macs have no WWAN; external modems often lack a unified CLI.
-        # Try to detect via 'scutil --nc list' for known WWAN services (no signal metrics).
-        if not shutil.which("scutil"):
-            return []
-        out = subprocess.run(["scutil", "--nc", "list"], capture_output=True, text=True, errors="ignore").stdout
-        cells = []
-        for ln in out.splitlines():
-            if "WWAN" in ln or "Cellular" in ln or "Mobile" in ln:
-                svc = ln.strip()
-                cid = f"MACWWAN:{hashlib.sha1(svc.encode()).hexdigest()[:8]}"
-                cells.append({
-                    "cid": cid,
-                    "operator": None,
-                    "tech": "WWAN",
-                    "signal_pct": None,
-                    "rssi_dbm": None,
-                    "rsrp_dbm": None,
-                    "rsrq_db": None,
-                    "sinr_db": None,
-                    "qual_bucket": "Unknown"
-                })
-        return cells
-
-    # ----- Linux (ModemManager: mmcli) -----
-    def _scan_cell_linux(self):
-        if not shutil.which("mmcli"):
-            return []
-        # List modems
-        out = subprocess.run(["mmcli", "-L"], capture_output=True, text=True, errors="ignore").stdout
-        paths = []
-        for ln in out.splitlines():
-            m = re.search(r"(\/org\/freedesktop\/ModemManager1\/Modem\/\d+)", ln)
-            if m:
-                paths.append(m.group(1))
-        cells = []
-        for path in paths:
-            # Basic modem info (operator, access tech)
-            info = subprocess.run(["mmcli", "-m", path, "-K"], capture_output=True, text=True, errors="ignore").stdout
-            operator = None
-            tech = None
-            for ln in info.splitlines():
-                if "modem.generic.operator-name" in ln:
-                    operator = ln.split(":", 1)[1].strip()
-                if "modem.generic.access-technologies" in ln:
-                    techs = ln.split(":", 1)[1].strip()
-                    tech = techs.split(",")[0].strip() if techs else None
-            # Signal metrics
-            sig = subprocess.run(["mmcli", "-m", path, "--signal-get", "--timeout", "5"],
-                                 capture_output=True, text=True, errors="ignore").stdout
-            rssi = None; rsrp = None; rsrq = None; sinr = None
-            # Parse common patterns
-            for ln in sig.splitlines():
-                s = ln.strip().lower()
-                if "rssi" in s and "dbm" in s and rssi is None:
-                    try:
-                        rssi = float(re.search(r"(-?\d+\.?\d*)\s*dBm", ln, re.I).group(1))
-                    except Exception:
-                        pass
-                if "rsrp" in s and rsrp is None:
-                    try:
-                        rsrp = float(re.search(r"(-?\d+\.?\d*)\s*dBm", ln, re.I).group(1))
-                    except Exception:
-                        pass
-                if "rsrq" in s and rsrq is None:
-                    try:
-                        rsrq = float(re.search(r"(-?\d+\.?\d*)\s*dB", ln, re.I).group(1))
-                    except Exception:
-                        pass
-                if "sinr" in s and sinr is None:
-                    try:
-                        sinr = float(re.search(r"(-?\d+\.?\d*)\s*dB", ln, re.I).group(1))
-                    except Exception:
-                        pass
-            cid = f"MMCLI:{path.split('/')[-1]}"
-            cells.append({
-                "cid": cid,
-                "operator": operator,
-                "tech": tech,
-                "signal_pct": None,
-                "rssi_dbm": rssi,
-                "rsrp_dbm": rsrp,
-                "rsrq_db": rsrq,
-                "sinr_db": sinr,
-                "qual_bucket": None
-            })
-        return cells
-
-    # ---------- Wi-Fi / Cell buttons wiring already done ----------
 
     # ---------- Window close / cleanup ----------
     def on_close(self):
@@ -2376,3 +2347,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Omconsole Technology – Mind, Muscle, Gesture, Tone & Robotics Control</title>
+    <title>Omconsole Neural Control Console – IonCore Energy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Omconsole Technology – unified mind, muscle, gesture, tone and robotics control for automation, accessibility, and intelligent systems." />
+    <meta name="description" content="Omconsole Neural Control Console by IonCore Energy – a node-based mind, muscle, gesture, tone and robotics control stack built on a custom chip for AR and transferable control." />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         :root {
@@ -85,7 +85,7 @@
 
         .logo-text-main {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
@@ -95,6 +95,13 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
             color: var(--accent);
+        }
+
+        .logo-text-brand {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--text-soft);
         }
 
         nav {
@@ -183,7 +190,15 @@
             margin-top: 16px;
             color: var(--text-soft);
             font-size: 15px;
-            max-width: 520px;
+            max-width: 560px;
+        }
+
+        .hero-subtitle-strong {
+            margin-top: 10px;
+            color: var(--accent);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
         }
 
         .hero-pill-row {
@@ -646,6 +661,65 @@
             color: var(--text-main);
         }
 
+        /* Early adopters / nodes */
+
+        .early-section {
+            margin-top: 34px;
+            border-radius: 18px;
+            padding: 16px 16px 14px;
+            background: radial-gradient(circle at 60% 0, rgba(77, 243, 198, 0.22), transparent 60%),
+                        rgba(5, 6, 10, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: grid;
+            grid-template-columns: minmax(0, 2.5fr) minmax(0, 2fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .early-section {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .early-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .early-sub {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-soft);
+        }
+
+        .early-badges {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .early-badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: var(--accent);
+        }
+
+        .early-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .early-list li {
+            margin-bottom: 6px;
+        }
+
         /* CTA footer */
 
         .cta-footer {
@@ -735,15 +809,16 @@
         <div class="logo">
             <div class="logo-mark"></div>
             <div>
-                <div class="logo-text-sub">Omconsole Technology</div>
+                <div class="logo-text-sub">Omconsole Neural Control Console</div>
                 <div class="logo-text-main">Mind • Muscle • Gesture • Tone • Robotics</div>
+                <div class="logo-text-brand">IonCore Energy</div>
             </div>
         </div>
         <nav>
             <a href="#product-line">Product Line</a>
             <a href="#use-cases">Use Cases</a>
             <a href="#specs">Specs</a>
-            <span class="nav-badge">Designed for Automation & Independence</span>
+            <span class="nav-badge">Custom Chip • Node-Based Updates</span>
         </nav>
     </header>
 
@@ -753,21 +828,25 @@
             <div class="hero-copy">
                 <div class="hero-kicker">
                     <span class="hero-kicker-dot"></span>
-                    Unified Human–Machine Control Layer
+                    Unified Neural–Machine Control Layer
                 </div>
                 <h1 class="hero-title">
-                    Omconsole Technology<br />
+                    Omconsole Neural Control Console<br />
                     <span>one interface for mind, muscle, gesture, tone & robotics.</span>
                 </h1>
                 <p class="hero-subtitle">
-                    Omconsole is a modular control stack that connects EEG, EMG, computer vision, and audio cues
-                    into a single, tunable command layer for robotics, automation, and independence-focused systems.
+                    Developed by IonCore Energy, the Omconsole Neural Control Console lets users communicate with
+                    different mind, muscle and gesture controllers through a single control stack. Early adopters help train
+                    the AI, shape node-based updates, and prove the hardware in real environments.
                 </p>
+                <div class="hero-subtitle-strong">
+                    Built onto a custom Omconsole chip for AR, portability, and transferability between devices.
+                </div>
 
                 <div class="hero-pill-row">
                     <div class="hero-pill">EEG / EMG / Gesture / Voice</div>
-                    <div class="hero-pill">Industrial & home robotics ready</div>
-                    <div class="hero-pill">Assistive & hands-free control</div>
+                    <div class="hero-pill">Custom Omconsole chip for AR</div>
+                    <div class="hero-pill">Node-based AI updates & learning</div>
                 </div>
 
                 <div class="hero-actions">
@@ -775,15 +854,15 @@
                         <span>Explore Omconsole Line</span>
                         <span class="btn-label-sub">Modules & kits</span>
                     </a>
-                    <a href="#contact" class="btn-ghost">
-                        <span>Talk About Integration</span>
+                    <a href="#early" class="btn-ghost">
+                        <span>Join Early Node Network</span>
                     </a>
                 </div>
 
                 <div class="hero-meta">
-                    <span><strong>5+ input channels</strong> fused in real time</span>
-                    <span><strong>Software + hardware</strong> ready architecture</span>
-                    <span><strong>Built for labs, factories, & homes</strong></span>
+                    <span><strong>Multi-controller support</strong> for mind, muscle & gesture inputs</span>
+                    <span><strong>Custom chip</strong> enabling AR overlays & local control</span>
+                    <span><strong>Node-based</strong> software & firmware evolution</span>
                 </div>
             </div>
 
@@ -792,15 +871,19 @@
                     <div class="chip">
                         <div class="chip-label">Signal Fusion</div>
                         <div class="chip-title">Omconsole Core</div>
-                        <div class="chip-sub">Combines EEG, EMG, gesture & tone into a single control stream.</div>
+                        <div class="chip-sub">
+                            Ingests EEG, EMG, gesture & tone from multiple controllers into one control profile.
+                        </div>
                         <div class="chip-bar">
                             <div class="chip-bar-fill"></div>
                         </div>
                     </div>
                     <div class="chip">
-                        <div class="chip-label">Robotics Output</div>
-                        <div class="chip-title">RoboBridge I/O</div>
-                        <div class="chip-sub">Drives actuators, arms, mobile bases, relays, and PLC interfaces.</div>
+                        <div class="chip-label">Custom Chip</div>
+                        <div class="chip-title">Omconsole Node ASIC</div>
+                        <div class="chip-sub">
+                            On-device processing, AR-ready routing, and transferable control states between hosts.
+                        </div>
                         <div class="chip-bar">
                             <div class="chip-bar-fill alt"></div>
                         </div>
@@ -808,17 +891,21 @@
                     <div class="chip">
                         <div class="chip-label">Mind & Muscle</div>
                         <div class="chip-title">MindLink & MuscleLink</div>
-                        <div class="chip-sub">Fine-grain threshold controls for intent, grip, and muscle events.</div>
+                        <div class="chip-sub">
+                            Adapter layers for different EEG and EMG controllers, normalized into Omconsole events.
+                        </div>
                     </div>
                     <div class="chip">
-                        <div class="chip-label">Vision & Tone</div>
-                        <div class="chip-title">GestureDeck & ToneGate</div>
-                        <div class="chip-sub">Camera + audio cues for cursor, menus, and task triggers.</div>
+                        <div class="chip-label">Node Updates</div>
+                        <div class="chip-title">Omconsole Node Grid</div>
+                        <div class="chip-sub">
+                            Early adopters feed back usage data to improve AI models and firmware revisions.
+                        </div>
                     </div>
                 </div>
                 <div class="hero-visual-orbit"></div>
                 <div class="hero-visual-tag">
-                    Live-tuned in software • <span>Ready for RedNode & Omconsole-class systems</span>
+                    An IonCore Energy system • <span>Custom chip • AR overlay & cross-device transfer</span>
                 </div>
             </div>
         </section>
@@ -829,8 +916,8 @@
                 <div>
                     <div class="section-title">The Omconsole Product Line</div>
                     <div class="section-subtitle">
-                        Mix and match modules to build mind–muscle–gesture–tone control into robots, assistive devices,
-                        dashboards, and industrial systems.
+                        A modular, chip-backed stack that talks to different mind, muscle and gesture controllers,
+                        and routes them into robotics, dashboards, AR systems and energy-aware automation.
                     </div>
                 </div>
             </div>
@@ -843,12 +930,12 @@
                     </div>
                     <h3 class="product-name">Omconsole Core</h3>
                     <p class="product-tagline">
-                        Central signal fusion engine that ingests EEG, EMG, gesture, and voice streams and outputs a unified
-                        control profile.
+                        Central fusion engine that unifies EEG, EMG, gesture, tone and external sensors into a single,
+                        AI-tuned control profile. Runs directly on the Omconsole chip or host device.
                     </p>
                     <div class="product-meta-row">
-                        <span class="product-meta">Multi-channel input routing</span>
-                        <span class="product-meta">Tunable thresholds & profiles</span>
+                        <span class="product-meta">Multi-controller input routing</span>
+                        <span class="product-meta">Node-aware AI tuning</span>
                     </div>
                     <div class="product-footer">
                         <span>Ideal for <strong>robotics hubs & dashboards</strong></span>
@@ -863,11 +950,12 @@
                     </div>
                     <h3 class="product-name">MindLink EEG Hub</h3>
                     <p class="product-tagline">
-                        EEG-ready interface for attention, state, and pattern-based triggers mapped into Omconsole actions.
+                        Interface layer for supported EEG headsets and mind-driven controllers, converting intent patterns
+                        into Omconsole events and AI training signals.
                     </p>
                     <div class="product-meta-row">
                         <span class="product-meta">EEG adapter layer</span>
-                        <span class="product-meta">State-based macros</span>
+                        <span class="product-meta">Node-fed intent patterns</span>
                     </div>
                     <div class="product-footer">
                         <span>Designed for <strong>hands-free intent</strong></span>
@@ -882,10 +970,11 @@
                     </div>
                     <h3 class="product-name">MuscleLink EMG Bands</h3>
                     <p class="product-tagline">
-                        EMG-focused module for reading muscle tension and micro-activations to drive precise, low-latency commands.
+                        Multi-zone EMG interface that reads muscle activity from different bands or armbands and normalizes
+                        that activity across supported controllers.
                     </p>
                     <div class="product-meta-row">
-                        <span class="product-meta">Multi-zone EMG mapping</span>
+                        <span class="product-meta">Works with EMG controllers</span>
                         <span class="product-meta">Gesture & grip triggers</span>
                     </div>
                     <div class="product-footer">
@@ -901,11 +990,12 @@
                     </div>
                     <h3 class="product-name">GestureDeck Vision Hub</h3>
                     <p class="product-tagline">
-                        Computer-vision interface for hand, eye, and full-body gestures, mapped to cursors, menus, and robotics paths.
+                        Camera and AR-friendly interface for hand, eye and body gestures, used for cursor, UI navigation
+                        and robotic motion in mixed reality setups.
                     </p>
                     <div class="product-meta-row">
                         <span class="product-meta">Hand & body gestures</span>
-                        <span class="product-meta">Retina & gaze ready</span>
+                        <span class="product-meta">AR overlay ready</span>
                     </div>
                     <div class="product-footer">
                         <span>Ideal for <strong>AR-style control & UIs</strong></span>
@@ -920,14 +1010,15 @@
                     </div>
                     <h3 class="product-name">ToneGate Voice & Tone</h3>
                     <p class="product-tagline">
-                        Audio and tone interface for wake words, short commands, hums, and tone-based triggers that plug directly into Omconsole.
+                        Short-form voice and tone interface for wake words, simple commands, hums and beeps – mapped directly
+                        into Omconsole actions, even in AR views.
                     </p>
                     <div class="product-meta-row">
-                        <span class="product-meta">Short-form voice control</span>
-                        <span class="product-meta">Tone-mapped actions</span>
+                        <span class="product-meta">Voice & tone triggers</span>
+                        <span class="product-meta">Works with visual overlays</span>
                     </div>
                     <div class="product-footer">
-                        <span>Perfect for <strong>noise-aware spaces</strong></span>
+                        <span>Perfect for <strong>hands-busy spaces</strong></span>
                         <a href="#use-cases" class="product-link">Tone workflows →</a>
                     </div>
                 </article>
@@ -939,11 +1030,12 @@
                     </div>
                     <h3 class="product-name">RoboBridge I/O Bay</h3>
                     <p class="product-tagline">
-                        Output module that connects Omconsole signals to robotic arms, mobile bases, relays, and industrial controllers.
+                        Output bay that binds Omconsole events to robotic arms, mobile bases, relays, heavy equipment
+                        and industrial controllers – locally or over a node network.
                     </p>
                     <div class="product-meta-row">
                         <span class="product-meta">Digital & analog outputs</span>
-                        <span class="product-meta">Relay / motor control ready</span>
+                        <span class="product-meta">Node-aware actuation</span>
                     </div>
                     <div class="product-footer">
                         <span>Connects to <strong>robots, tools & fixtures</strong></span>
@@ -959,7 +1051,8 @@
                 <div>
                     <div class="section-title">Where Omconsole Fits</div>
                     <div class="section-subtitle">
-                        From assistive independence rigs to industrial robotics, Omconsole is built as a core layer — not a toy gadget.
+                        Built for real jobs first: independence rigs, heavy equipment, robotics labs, AR-driven control rooms,
+                        and energy-aware automation under IonCore Energy.
                     </div>
                 </div>
             </div>
@@ -970,8 +1063,8 @@
                         <div class="usecase-card">
                             <div class="usecase-title">Assistive & Independence Systems</div>
                             <div class="usecase-desc">
-                                Build control setups for users who can’t rely on conventional mouse, keyboard,
-                                or handheld controllers. Mix retina, EMG, gesture, and tone for reliable, day-to-day control.
+                                Combine mind, muscle and gesture controllers so users can operate screens, tools and robots
+                                without relying on traditional mouse/keyboard setups.
                             </div>
                             <div class="usecase-tag">Mind, muscle & tone combined</div>
                         </div>
@@ -979,8 +1072,8 @@
                         <div class="usecase-card">
                             <div class="usecase-title">Robotics & Automation Labs</div>
                             <div class="usecase-desc">
-                                Prototype and deploy control schemes for robotic arms, mobile bases, toolheads, and CNC-grade systems
-                                without rewriting your entire stack.
+                                Prototype node-based control schemes for robotic arms, mobile platforms and toolheads – your lab
+                                becomes part of the AI training loop.
                             </div>
                             <div class="usecase-tag">RoboBridge I/O & Omconsole Core</div>
                         </div>
@@ -988,8 +1081,8 @@
                         <div class="usecase-card">
                             <div class="usecase-title">Industrial Dashboards & Sites</div>
                             <div class="usecase-desc">
-                                Tie operator intent, sensor data, and task management together so that one control layer
-                                can handle machines, alarms, and workflows.
+                                Use AR and dashboards to watch machines, issue commands, and switch control modes
+                                using gestures, EMG or voice when hands are busy.
                             </div>
                             <div class="usecase-tag">Control rooms & heavy equipment</div>
                         </div>
@@ -997,8 +1090,8 @@
                         <div class="usecase-card">
                             <div class="usecase-title">Media, Labs & R&D</div>
                             <div class="usecase-desc">
-                                Use Omconsole as a research interface for new interaction modes, real-time signal fusion experiments,
-                                and advanced human-machine studies.
+                                Explore how different mind, muscle and gesture controllers behave in the same stack
+                                and feed that data into node-based AI updates.
                             </div>
                             <div class="usecase-tag">Experiment-ready API & signals</div>
                         </div>
@@ -1020,26 +1113,30 @@
                                 <td>EEG, EMG, camera, mic, external sensors</td>
                             </tr>
                             <tr>
+                                <td>Controller Support</td>
+                                <td>Multiple mind / muscle / gesture devices via adapters</td>
+                            </tr>
+                            <tr>
                                 <td>Latency Target</td>
                                 <td>&lt; 40 ms end-to-end (pipeline-dependent)</td>
                             </tr>
                             <tr>
                                 <td>Output Interfaces</td>
-                                <td>GPIO, serial, CAN, USB, network events</td>
+                                <td>GPIO, serial, CAN, USB, network events, AR overlays</td>
                             </tr>
                             <tr>
-                                <td>Control Profiles</td>
-                                <td>Gesture maps, tone maps, macros, modes</td>
+                                <td>Core Hardware</td>
+                                <td>Custom Omconsole chip + host integrations</td>
                             </tr>
                             <tr>
-                                <td>Software Stack</td>
-                                <td>Python / C++ friendly, dashboard-ready</td>
+                                <td>Update Model</td>
+                                <td>Node-based firmware & AI model updates</td>
                             </tr>
                         </table>
 
                         <div class="spec-note">
-                            Note: final hardware, connector, and software specs are tuned per build or deployment. Omconsole
-                            is a product line and architecture, not a single fixed toy controller.
+                            Note: the Omconsole chip and software stack are tuned per deployment. Early adopters help
+                            refine controller mappings, safety thresholds and AI behaviours through node-based updates.
                         </div>
                     </div>
                 </div>
@@ -1052,7 +1149,7 @@
                 <div>
                     <div class="section-title">How Omconsole Technology Works</div>
                     <div class="section-subtitle">
-                        Each project is tuned, but the flow is simple: sense, fuse, map, and move.
+                        Omconsole is designed as a living control layer – every deployment becomes part of the learning network.
                     </div>
                 </div>
             </div>
@@ -1060,36 +1157,60 @@
             <div class="steps-row">
                 <div class="step-card">
                     <div class="step-number">Step 01</div>
-                    <div class="step-title">Capture Signals</div>
+                    <div class="step-title">Connect Controllers</div>
                     <div>
-                        Connect EEG, EMG, cameras, microphones, and site sensors into Omconsole Core through the
-                        MindLink, MuscleLink, GestureDeck, and ToneGate modules.
+                        Attach supported mind, muscle and gesture controllers into MindLink, MuscleLink and GestureDeck.
+                        The Omconsole chip and Core normalize their signals.
                     </div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">Step 02</div>
                     <div class="step-title">Fuse & Tune</div>
                     <div>
-                        Use tuners and dashboards to set thresholds, modes, dead-zones, and safety logic. Signals are fused into
-                        a single Omconsole control profile.
+                        Use tuners and dashboards to set thresholds, modes, dead-zones and safety logic. Signals are fused
+                        into a single Omconsole profile on the chip or host.
                     </div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">Step 03</div>
-                    <div class="step-title">Map to Robotics</div>
+                    <div class="step-title">Map to Robots & AR</div>
                     <div>
-                        Route Omconsole outputs into RoboBridge I/O or your existing control stack. Map gestures, muscle events,
-                        and tones to movements, tasks, or macros.
+                        Route outputs to robots, tools, or AR UIs via RoboBridge I/O and AR overlays. Control can move with you
+                        between devices without retraining.
                     </div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">Step 04</div>
-                    <div class="step-title">Operate & Learn</div>
+                    <div class="step-title">Learn & Update Nodes</div>
                     <div>
-                        Run the system, log behavior, and refine. Omconsole is built to plug into your AI models, task managers,
-                        and learning pipelines.
+                        With permission, anonymized usage informs AI and firmware updates. Nodes receive refined mappings
+                        and improvements over time.
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- EARLY ADOPTERS / NODE NETWORK -->
+        <section id="early" class="early-section">
+            <div>
+                <div class="early-title">Early Adopters & Node-Based Updates</div>
+                <div class="early-sub">
+                    Early Omconsole deployments are not just “beta users” – they are founding nodes in the control network.
+                    Your rigs, labs, and independence setups help teach the AI how real people, real machines, and real sites behave.
+                </div>
+                <div class="early-badges">
+                    <span class="early-badge">Node-based firmware updates</span>
+                    <span class="early-badge">AI mapping improvements</span>
+                    <span class="early-badge">Multi-controller feedback</span>
+                </div>
+            </div>
+            <div>
+                <ul class="early-list">
+                    <li>• Co-design control schemes for mind, muscle, gesture and tone.</li>
+                    <li>• Influence how the chip handles AR overlays and cross-device transfer.</li>
+                    <li>• Get early access to new controller adapters and robotics bindings.</li>
+                    <li>• Receive node-level updates tuned from real-world usage, not just lab simulations.</li>
+                </ul>
             </div>
         </section>
 
@@ -1098,31 +1219,32 @@
             <div>
                 <div class="cta-footer-label">
                     <span class="cta-footer-label-dot"></span>
-                    Limited integration slots
+                    Early node invitations
                 </div>
                 <div class="cta-footer-title">
-                    Bring Omconsole into your robotics, automation, or independence project.
+                    Bring Omconsole into your robotics, automation, AR or independence project.
                 </div>
                 <div class="cta-footer-sub">
-                    Whether you’re building a lab prototype, a factory-grade system, or a personal independence rig,
-                    Omconsole Technology is meant to be the control layer that ties it all together.
+                    The current phase is focused on builders, operators and labs who are ready to connect mind, muscle and
+                    gesture controllers to real machines and AR systems – and help evolve the node network.
                 </div>
             </div>
             <div class="cta-footer-right">
-                <a href="mailto:info@omconsole.example" class="btn-primary">
-                    <span>Request Product Brief</span>
+                <a href="mailto:ioncoreenergy@gmail.com" class="btn-primary">
+                    <span>Request Early Adopter Brief</span>
                 </a>
                 <div class="cta-footer-meta">
-                    Include a short note about your use case (assistive, robotics, industrial site, or lab) and
-                    any existing hardware you’d like to connect.
+                    Email <strong>ioncoreenergy@gmail.com</strong> with a short note about your controllers, hardware
+                    (robots, dashboards, AR devices), and what you want Omconsole to operate.
                 </div>
             </div>
         </section>
 
         <div class="tiny-footer">
-            Omconsole Technology • Mind • Muscle • Gesture • Tone • Robotics Control
+            Omconsole Neural Control Console • IonCore Energy • Mind • Muscle • Gesture • Tone • Robotics • Node-Based Updates
         </div>
     </main>
 </div>
 </body>
 </html>
+

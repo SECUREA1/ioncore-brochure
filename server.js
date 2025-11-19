@@ -39,6 +39,72 @@ const ADMIN_PROMO_SECTION = `
     <a href="/admin.html" class="btn" style="margin-top:38px;display:inline-flex;padding:16px 34px;border-radius:999px;background:#6aff3b;color:#030712;font-weight:700;font-size:1.05rem;text-decoration:none;">Launch Admin Control Center</a>
   </section>
 `;
+const TIMEPIECE_LOCK_OVERLAY = `
+  <style id="timepiece-lock-overlay-styles">
+    .timepiece-lock-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(3, 7, 18, 0.92);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+    .timepiece-lock-overlay__card {
+      max-width: 520px;
+      width: min(520px, 92vw);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(7, 12, 22, 0.94);
+      text-align: center;
+      padding: clamp(28px, 6vw, 48px);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+    }
+    .timepiece-lock-overlay__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #facc15;
+      border: 1px solid rgba(250, 204, 21, 0.45);
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+    .timepiece-lock-overlay__title {
+      margin: 0 0 12px;
+      font-size: clamp(1.6rem, 3vw, 2rem);
+      color: #f5f8ff;
+    }
+    .timepiece-lock-overlay__text {
+      margin: 0 0 16px;
+      color: #c7d2e0;
+      line-height: 1.6;
+    }
+    .timepiece-lock-overlay__contact {
+      margin: 0;
+      color: #f5f8ff;
+      font-weight: 600;
+    }
+    .timepiece-lock-overlay__contact a {
+      color: #6aff3b;
+      text-decoration: none;
+    }
+  </style>
+  <div class="timepiece-lock-overlay" role="alert" aria-live="assertive">
+    <div class="timepiece-lock-overlay__card">
+      <div class="timepiece-lock-overlay__badge">Locked for updates</div>
+      <h2 class="timepiece-lock-overlay__title">Timepiece minting is temporarily paused.</h2>
+      <p class="timepiece-lock-overlay__text">We&apos;re refreshing the Ioncore Timepieces mint experience and have disabled on-page minting while the update is deployed.</p>
+      <p class="timepiece-lock-overlay__contact">Contact <a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a> to reserve an edition.</p>
+    </div>
+  </div>
+`;
 const CARDANO_POLICY_ID =
   process.env.CARDANO_POLICY_ID || 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
 
@@ -154,6 +220,19 @@ async function saveStore() {
     console.error('Failed to persist gateway store', error);
     throw error;
   }
+}
+
+function injectSnippetBeforeBodyClose(html, snippet, marker) {
+  if (!html || !snippet) {
+    return html;
+  }
+  if (marker && html.includes(marker)) {
+    return html;
+  }
+  if (/<\/body>/i.test(html)) {
+    return html.replace(/<\/body>/i, `${snippet}</body>`);
+  }
+  return `${html}${snippet}`;
 }
 
 function formatFileSize(bytes) {
@@ -2141,6 +2220,7 @@ app.get('/timepieces', async (req, res) => {
         html += ADMIN_PROMO_SECTION;
       }
     }
+    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_LOCK_OVERLAY, 'timepiece-lock-overlay');
     res.type('html').send(html);
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);

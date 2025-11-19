@@ -1,1250 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Omconsole Neural Control Console – IonCore Energy</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Omconsole Neural Control Console by IonCore Energy – a node-based mind, muscle, gesture, tone and robotics control stack built on a custom chip for AR and transferable control." />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
-        :root {
-            --bg: #05060a;
-            --bg-elevated: #0b0e15;
-            --accent: #4df3c6;
-            --accent-soft: rgba(77, 243, 198, 0.1);
-            --accent-strong: rgba(77, 243, 198, 0.2);
-            --accent-alt: #5aa5ff;
-            --text-main: #ffffff;
-            --text-soft: #a6b0c3;
-            --border-subtle: #1d2230;
-            --danger: #ff6b6b;
-            --radius-lg: 18px;
-            --radius-xl: 26px;
-            --shadow-soft: 0 18px 50px rgba(0, 0, 0, 0.65);
-            --shadow-chip: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: radial-gradient(circle at top, #101524 0, #05060a 45%);
-            color: var(--text-main);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .page {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px 16px 80px;
-        }
-
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 4px 24px;
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            backdrop-filter: blur(16px);
-            background: linear-gradient(to bottom, rgba(5, 6, 10, 0.96), rgba(5, 6, 10, 0.75), transparent);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-mark {
-            width: 32px;
-            height: 32px;
-            border-radius: 14px;
-            background: radial-gradient(circle at 30% 0, var(--accent), var(--accent-alt));
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 25px rgba(90, 165, 255, 0.35);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .logo-mark::after {
-            content: "";
-            position: absolute;
-            inset: 7px;
-            border-radius: 999px;
-            border: 2px solid rgba(0,0,0,0.4);
-        }
-
-        .logo-text-main {
-            font-weight: 600;
-            font-size: 15px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .logo-text-sub {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: var(--accent);
-        }
-
-        .logo-text-brand {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: var(--text-soft);
-        }
-
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: 13px;
-        }
-
-        nav a {
-            color: var(--text-soft);
-            padding: 6px 10px;
-            border-radius: 999px;
-            transition: all 0.18s ease;
-        }
-
-        nav a:hover {
-            color: var(--text-main);
-            background-color: rgba(255, 255, 255, 0.04);
-        }
-
-        .nav-badge {
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--accent);
-            background: rgba(0,0,0,0.4);
-        }
-
-        /* Hero */
-
-        .hero {
-            display: grid;
-            grid-template-columns: minmax(0, 3fr) minmax(0, 2.4fr);
-            gap: 32px;
-            margin-top: 16px;
-            margin-bottom: 40px;
-        }
-
-        @media (max-width: 900px) {
-            .hero {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .hero-copy {
-            padding-right: 16px;
-        }
-
-        .hero-kicker {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            background: var(--accent-soft);
-            color: var(--accent);
-        }
-
-        .hero-kicker-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 999px;
-            background: var(--accent);
-            box-shadow: 0 0 12px rgba(77, 243, 198, 0.9);
-        }
-
-        .hero-title {
-            margin-top: 18px;
-            font-size: clamp(32px, 4vw, 42px);
-            line-height: 1.05;
-            font-weight: 700;
-        }
-
-        .hero-title span {
-            background: linear-gradient(90deg, var(--accent), var(--accent-alt));
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .hero-subtitle {
-            margin-top: 16px;
-            color: var(--text-soft);
-            font-size: 15px;
-            max-width: 560px;
-        }
-
-        .hero-subtitle-strong {
-            margin-top: 10px;
-            color: var(--accent);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.16em;
-        }
-
-        .hero-pill-row {
-            margin-top: 18px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-size: 11px;
-        }
-
-        .hero-pill {
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: var(--text-soft);
-        }
-
-        .hero-actions {
-            margin-top: 24px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .btn-primary,
-        .btn-ghost {
-            border-radius: 999px;
-            padding: 10px 22px;
-            font-size: 14px;
-            font-weight: 500;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(120deg, var(--accent), var(--accent-alt));
-            color: #020308;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px) translateZ(0);
-            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.9);
-        }
-
-        .btn-ghost {
-            background: rgba(255, 255, 255, 0.02);
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .btn-label-sub {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.16em;
-            opacity: 0.8;
-        }
-
-        .hero-meta {
-            margin-top: 18px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 18px;
-            font-size: 11px;
-            color: var(--text-soft);
-        }
-
-        .hero-meta span strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        /* Hero visual */
-
-        .hero-visual {
-            border-radius: var(--radius-xl);
-            background: radial-gradient(circle at 20% 0, rgba(77, 243, 198, 0.15), transparent 55%),
-                        radial-gradient(circle at 90% 100%, rgba(90, 165, 255, 0.16), transparent 50%),
-                        var(--bg-elevated);
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: var(--shadow-soft);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-visual-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .chip {
-            background: rgba(5, 6, 10, 0.9);
-            border-radius: 18px;
-            padding: 12px 12px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: var(--shadow-chip);
-        }
-
-        .chip-label {
-            font-size: 11px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--text-soft);
-        }
-
-        .chip-title {
-            margin-top: 6px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .chip-sub {
-            margin-top: 4px;
-            font-size: 11px;
-            color: var(--text-soft);
-        }
-
-        .chip-bar {
-            margin-top: 8px;
-            position: relative;
-            width: 100%;
-            height: 6px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            overflow: hidden;
-        }
-
-        .chip-bar-fill {
-            position: absolute;
-            inset: 0;
-            width: 64%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, var(--accent), var(--accent-alt));
-        }
-
-        .chip-bar-fill.alt {
-            width: 84%;
-            background: linear-gradient(90deg, var(--accent-alt), var(--accent));
-        }
-
-        .hero-visual-tag {
-            position: absolute;
-            bottom: 14px;
-            left: 18px;
-            font-size: 11px;
-            color: var(--text-soft);
-            background: rgba(0, 0, 0, 0.48);
-            padding: 6px 11px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.08);
-            backdrop-filter: blur(14px);
-        }
-
-        .hero-visual-tag span {
-            color: var(--accent);
-        }
-
-        .hero-visual-orbit {
-            position: absolute;
-            inset: 10% 8%;
-            border-radius: 999px;
-            border: 1px dashed rgba(255, 255, 255, 0.08);
-            pointer-events: none;
-        }
-
-        /* Section heading */
-
-        .section-heading {
-            margin: 40px 0 16px;
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .section-subtitle {
-            font-size: 13px;
-            color: var(--text-soft);
-            max-width: 420px;
-        }
-
-        /* Product line cards */
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        @media (max-width: 1024px) {
-            .product-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 700px) {
-            .product-grid {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .product-card {
-            border-radius: var(--radius-lg);
-            background: rgba(11, 14, 21, 0.92);
-            border: 1px solid var(--border-subtle);
-            padding: 16px 16px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(77, 243, 198, 0.35);
-            box-shadow: var(--shadow-soft);
-        }
-
-        .product-chip {
-            font-size: 11px;
-            padding: 3px 9px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: var(--text-soft);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .product-chip-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 999px;
-            background: var(--accent);
-        }
-
-        .product-name {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .product-tagline {
-            font-size: 13px;
-            color: var(--text-soft);
-        }
-
-        .product-meta-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .product-meta {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px dashed rgba(255, 255, 255, 0.08);
-            color: var(--text-soft);
-        }
-
-        .product-footer {
-            margin-top: auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-soft);
-        }
-
-        .product-footer strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        .product-link {
-            font-size: 12px;
-            text-decoration: none;
-            color: var(--accent-alt);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Use-cases and specs */
-
-        .split-section {
-            display: grid;
-            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-            gap: 22px;
-            margin-top: 10px;
-        }
-
-        @media (max-width: 900px) {
-            .split-section {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .usecase-list {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        @media (max-width: 700px) {
-            .usecase-list {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .usecase-card {
-            border-radius: 16px;
-            padding: 12px 12px 10px;
-            background: rgba(11, 14, 21, 0.92);
-            border: 1px solid var(--border-subtle);
-        }
-
-        .usecase-title {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .usecase-desc {
-            margin-top: 4px;
-            font-size: 12px;
-            color: var(--text-soft);
-        }
-
-        .usecase-tag {
-            margin-top: 6px;
-            font-size: 11px;
-            color: var(--accent);
-        }
-
-        .spec-card {
-            border-radius: 18px;
-            padding: 14px;
-            background: radial-gradient(circle at 0 0, rgba(77, 243, 198, 0.16), transparent 50%),
-                        rgba(11, 14, 21, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .spec-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .spec-title {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .spec-badge {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: var(--accent);
-        }
-
-        .spec-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 12px;
-        }
-
-        .spec-table tr td {
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .spec-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .spec-table td:first-child {
-            color: var(--text-soft);
-            width: 46%;
-        }
-
-        .spec-table td:last-child {
-            text-align: right;
-        }
-
-        .spec-note {
-            margin-top: 8px;
-            font-size: 11px;
-            color: var(--text-soft);
-        }
-
-        /* Steps */
-
-        .steps-row {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        @media (max-width: 900px) {
-            .steps-row {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 600px) {
-            .steps-row {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .step-card {
-            border-radius: 16px;
-            padding: 12px 12px 10px;
-            background: rgba(11, 14, 21, 0.92);
-            border: 1px solid var(--border-subtle);
-            font-size: 12px;
-            color: var(--text-soft);
-        }
-
-        .step-number {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-
-        .step-title {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--text-main);
-        }
-
-        /* Early adopters / nodes */
-
-        .early-section {
-            margin-top: 34px;
-            border-radius: 18px;
-            padding: 16px 16px 14px;
-            background: radial-gradient(circle at 60% 0, rgba(77, 243, 198, 0.22), transparent 60%),
-                        rgba(5, 6, 10, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            display: grid;
-            grid-template-columns: minmax(0, 2.5fr) minmax(0, 2fr);
-            gap: 18px;
-        }
-
-        @media (max-width: 900px) {
-            .early-section {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .early-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .early-sub {
-            margin-top: 8px;
-            font-size: 13px;
-            color: var(--text-soft);
-        }
-
-        .early-badges {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            font-size: 11px;
-        }
-
-        .early-badge {
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.18);
-            color: var(--accent);
-        }
-
-        .early-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            font-size: 12px;
-            color: var(--text-soft);
-        }
-
-        .early-list li {
-            margin-bottom: 6px;
-        }
-
-        /* CTA footer */
-
-        .cta-footer {
-            margin-top: 44px;
-            border-radius: var(--radius-xl);
-            padding: 18px 18px 20px;
-            background: radial-gradient(circle at 60% 40%, rgba(77, 243, 198, 0.26), transparent 60%),
-                        radial-gradient(circle at 0 120%, rgba(90, 165, 255, 0.35), transparent 55%),
-                        #05060a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: grid;
-            grid-template-columns: minmax(0, 3.2fr) minmax(0, 2fr);
-            gap: 18px;
-            align-items: center;
-        }
-
-        @media (max-width: 900px) {
-            .cta-footer {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
-
-        .cta-footer-title {
-            font-size: 19px;
-            font-weight: 600;
-        }
-
-        .cta-footer-sub {
-            margin-top: 8px;
-            font-size: 13px;
-            color: var(--text-soft);
-            max-width: 480px;
-        }
-
-        .cta-footer-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: rgba(2, 3, 8, 0.9);
-            background: rgba(255,255,255,0.9);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 999px;
-        }
-
-        .cta-footer-label-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 999px;
-            background: var(--danger);
-        }
-
-        .cta-footer-right {
-            text-align: right;
-        }
-
-        @media (max-width: 900px) {
-            .cta-footer-right {
-                text-align: left;
-            }
-        }
-
-        .cta-footer-meta {
-            margin-top: 8px;
-            font-size: 11px;
-            color: var(--text-soft);
-        }
-
-        /* Tiny footer */
-
-        .tiny-footer {
-            margin-top: 22px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: rgba(166, 176, 195, 0.7);
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Omconsole Neural Control Console | Ioncore Energy</title>
+  <meta name="description" content="Omconsole Neural Control Console by Ioncore Energy connects mind, muscle, gesture, tone, and robotic controllers into a unified command stack for immersive operations.">
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .page-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+      gap: 32px;
+      padding: 96px 0 56px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.1rem, 3vw, 2.9rem);
+      margin: 16px 0 12px;
+    }
+
+    .hero p {
+      max-width: 620px;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .hero-visual {
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.1), rgba(106, 255, 59, 0) 60%), var(--surface);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero-visual img {
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: var(--tile-glow-rest);
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pill {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text-med);
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--tile-glow-rest);
+      transition: box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--tile-glow-hover);
+    }
+
+    .tile h3 {
+      margin: 0 0 8px;
+    }
+
+    .tile small {
+      display: block;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: baseline;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .section-header p {
+      max-width: 600px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+
+    .list {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      color: var(--text-med);
+      line-height: 1.6;
+    }
+
+    .cta-band {
+      margin: 90px 0 60px;
+      padding: 26px 24px;
+      border-radius: 20px;
+      background: linear-gradient(120deg, rgba(106, 255, 59, 0.16), rgba(106, 255, 59, 0.04)), var(--surface);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      box-shadow: var(--highlight-glow);
+    }
+
+    .cta-band p {
+      margin: 8px 0 0;
+      max-width: 560px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="page">
-
-    <header>
-        <div class="logo">
-            <div class="logo-mark"></div>
-            <div>
-                <div class="logo-text-sub">Omconsole Neural Control Console</div>
-                <div class="logo-text-main">Mind • Muscle • Gesture • Tone • Robotics</div>
-                <div class="logo-text-brand">IonCore Energy</div>
-            </div>
-        </div>
-        <nav>
-            <a href="#product-line">Product Line</a>
-            <a href="#use-cases">Use Cases</a>
-            <a href="#specs">Specs</a>
-            <span class="nav-badge">Custom Chip • Node-Based Updates</span>
-        </nav>
+  <div class="page-shell">
+    <header class="site-header container">
+      <a class="logo" href="/">
+        <img class="logo__mark" src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+        <span class="logo__text"><span class="logo__emphasis">Ioncore</span> Energy</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#controllers">Control modes</a></li>
+          <li><a href="#stack">Stack</a></li>
+          <li><a href="#adoption">Early access</a></li>
+          <li><a href="webpage.html">Ioncore home</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Book a briefing</a>
     </header>
 
-    <main>
-        <!-- HERO -->
-        <section class="hero">
-            <div class="hero-copy">
-                <div class="hero-kicker">
-                    <span class="hero-kicker-dot"></span>
-                    Unified Neural–Machine Control Layer
-                </div>
-                <h1 class="hero-title">
-                    Omconsole Neural Control Console<br />
-                    <span>one interface for mind, muscle, gesture, tone & robotics.</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Developed by IonCore Energy, the Omconsole Neural Control Console lets users communicate with
-                    different mind, muscle and gesture controllers through a single control stack. Early adopters help train
-                    the AI, shape node-based updates, and prove the hardware in real environments.
-                </p>
-                <div class="hero-subtitle-strong">
-                    Built onto a custom Omconsole chip for AR, portability, and transferability between devices.
-                </div>
-
-                <div class="hero-pill-row">
-                    <div class="hero-pill">EEG / EMG / Gesture / Voice</div>
-                    <div class="hero-pill">Custom Omconsole chip for AR</div>
-                    <div class="hero-pill">Node-based AI updates & learning</div>
-                </div>
-
-                <div class="hero-actions">
-                    <a href="#product-line" class="btn-primary">
-                        <span>Explore Omconsole Line</span>
-                        <span class="btn-label-sub">Modules & kits</span>
-                    </a>
-                    <a href="#early" class="btn-ghost">
-                        <span>Join Early Node Network</span>
-                    </a>
-                </div>
-
-                <div class="hero-meta">
-                    <span><strong>Multi-controller support</strong> for mind, muscle & gesture inputs</span>
-                    <span><strong>Custom chip</strong> enabling AR overlays & local control</span>
-                    <span><strong>Node-based</strong> software & firmware evolution</span>
-                </div>
-            </div>
-
-            <div class="hero-visual">
-                <div class="hero-visual-grid">
-                    <div class="chip">
-                        <div class="chip-label">Signal Fusion</div>
-                        <div class="chip-title">Omconsole Core</div>
-                        <div class="chip-sub">
-                            Ingests EEG, EMG, gesture & tone from multiple controllers into one control profile.
-                        </div>
-                        <div class="chip-bar">
-                            <div class="chip-bar-fill"></div>
-                        </div>
-                    </div>
-                    <div class="chip">
-                        <div class="chip-label">Custom Chip</div>
-                        <div class="chip-title">Omconsole Node ASIC</div>
-                        <div class="chip-sub">
-                            On-device processing, AR-ready routing, and transferable control states between hosts.
-                        </div>
-                        <div class="chip-bar">
-                            <div class="chip-bar-fill alt"></div>
-                        </div>
-                    </div>
-                    <div class="chip">
-                        <div class="chip-label">Mind & Muscle</div>
-                        <div class="chip-title">MindLink & MuscleLink</div>
-                        <div class="chip-sub">
-                            Adapter layers for different EEG and EMG controllers, normalized into Omconsole events.
-                        </div>
-                    </div>
-                    <div class="chip">
-                        <div class="chip-label">Node Updates</div>
-                        <div class="chip-title">Omconsole Node Grid</div>
-                        <div class="chip-sub">
-                            Early adopters feed back usage data to improve AI models and firmware revisions.
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-visual-orbit"></div>
-                <div class="hero-visual-tag">
-                    An IonCore Energy system • <span>Custom chip • AR overlay & cross-device transfer</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- PRODUCT LINE -->
-        <section id="product-line">
-            <div class="section-heading">
-                <div>
-                    <div class="section-title">The Omconsole Product Line</div>
-                    <div class="section-subtitle">
-                        A modular, chip-backed stack that talks to different mind, muscle and gesture controllers,
-                        and routes them into robotics, dashboards, AR systems and energy-aware automation.
-                    </div>
-                </div>
-            </div>
-
-            <div class="product-grid">
-                <article class="product-card">
-                    <div class="product-chip">
-                        <span class="product-chip-dot"></span>
-                        Core Module
-                    </div>
-                    <h3 class="product-name">Omconsole Core</h3>
-                    <p class="product-tagline">
-                        Central fusion engine that unifies EEG, EMG, gesture, tone and external sensors into a single,
-                        AI-tuned control profile. Runs directly on the Omconsole chip or host device.
-                    </p>
-                    <div class="product-meta-row">
-                        <span class="product-meta">Multi-controller input routing</span>
-                        <span class="product-meta">Node-aware AI tuning</span>
-                    </div>
-                    <div class="product-footer">
-                        <span>Ideal for <strong>robotics hubs & dashboards</strong></span>
-                        <a href="#specs" class="product-link">View specs →</a>
-                    </div>
-                </article>
-
-                <article class="product-card">
-                    <div class="product-chip">
-                        <span class="product-chip-dot"></span>
-                        Mind Interface
-                    </div>
-                    <h3 class="product-name">MindLink EEG Hub</h3>
-                    <p class="product-tagline">
-                        Interface layer for supported EEG headsets and mind-driven controllers, converting intent patterns
-                        into Omconsole events and AI training signals.
-                    </p>
-                    <div class="product-meta-row">
-                        <span class="product-meta">EEG adapter layer</span>
-                        <span class="product-meta">Node-fed intent patterns</span>
-                    </div>
-                    <div class="product-footer">
-                        <span>Designed for <strong>hands-free intent</strong></span>
-                        <a href="#contact" class="product-link">Integration options →</a>
-                    </div>
-                </article>
-
-                <article class="product-card">
-                    <div class="product-chip">
-                        <span class="product-chip-dot"></span>
-                        Muscle Interface
-                    </div>
-                    <h3 class="product-name">MuscleLink EMG Bands</h3>
-                    <p class="product-tagline">
-                        Multi-zone EMG interface that reads muscle activity from different bands or armbands and normalizes
-                        that activity across supported controllers.
-                    </p>
-                    <div class="product-meta-row">
-                        <span class="product-meta">Works with EMG controllers</span>
-                        <span class="product-meta">Gesture & grip triggers</span>
-                    </div>
-                    <div class="product-footer">
-                        <span>Built for <strong>fine motor control</strong></span>
-                        <a href="#use-cases" class="product-link">See uses →</a>
-                    </div>
-                </article>
-
-                <article class="product-card">
-                    <div class="product-chip">
-                        <span class="product-chip-dot"></span>
-                        Vision Module
-                    </div>
-                    <h3 class="product-name">GestureDeck Vision Hub</h3>
-                    <p class="product-tagline">
-                        Camera and AR-friendly interface for hand, eye and body gestures, used for cursor, UI navigation
-                        and robotic motion in mixed reality setups.
-                    </p>
-                    <div class="product-meta-row">
-                        <span class="product-meta">Hand & body gestures</span>
-                        <span class="product-meta">AR overlay ready</span>
-                    </div>
-                    <div class="product-footer">
-                        <span>Ideal for <strong>AR-style control & UIs</strong></span>
-                        <a href="#specs" class="product-link">Signal paths →</a>
-                    </div>
-                </article>
-
-                <article class="product-card">
-                    <div class="product-chip">
-                        <span class="product-chip-dot"></span>
-                        Audio Module
-                    </div>
-                    <h3 class="product-name">ToneGate Voice & Tone</h3>
-                    <p class="product-tagline">
-                        Short-form voice and tone interface for wake words, simple commands, hums and beeps – mapped directly
-                        into Omconsole actions, even in AR views.
-                    </p>
-                    <div class="product-meta-row">
-                        <span class="product-meta">Voice & tone triggers</span>
-                        <span class="product-meta">Works with visual overlays</span>
-                    </div>
-                    <div class="product-footer">
-                        <span>Perfect for <strong>hands-busy spaces</strong></span>
-                        <a href="#use-cases" class="product-link">Tone workflows →</a>
-                    </div>
-                </article>
-
-                <article class="product-card">
-                    <div class="product-chip">
-                        <span class="product-chip-dot"></span>
-                        Robotics I/O
-                    </div>
-                    <h3 class="product-name">RoboBridge I/O Bay</h3>
-                    <p class="product-tagline">
-                        Output bay that binds Omconsole events to robotic arms, mobile bases, relays, heavy equipment
-                        and industrial controllers – locally or over a node network.
-                    </p>
-                    <div class="product-meta-row">
-                        <span class="product-meta">Digital & analog outputs</span>
-                        <span class="product-meta">Node-aware actuation</span>
-                    </div>
-                    <div class="product-footer">
-                        <span>Connects to <strong>robots, tools & fixtures</strong></span>
-                        <a href="#specs" class="product-link">I/O diagram →</a>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <!-- USE CASES + SPECS -->
-        <section id="use-cases" style="margin-top: 40px;">
-            <div class="section-heading">
-                <div>
-                    <div class="section-title">Where Omconsole Fits</div>
-                    <div class="section-subtitle">
-                        Built for real jobs first: independence rigs, heavy equipment, robotics labs, AR-driven control rooms,
-                        and energy-aware automation under IonCore Energy.
-                    </div>
-                </div>
-            </div>
-
-            <div class="split-section">
-                <div>
-                    <div class="usecase-list">
-                        <div class="usecase-card">
-                            <div class="usecase-title">Assistive & Independence Systems</div>
-                            <div class="usecase-desc">
-                                Combine mind, muscle and gesture controllers so users can operate screens, tools and robots
-                                without relying on traditional mouse/keyboard setups.
-                            </div>
-                            <div class="usecase-tag">Mind, muscle & tone combined</div>
-                        </div>
-
-                        <div class="usecase-card">
-                            <div class="usecase-title">Robotics & Automation Labs</div>
-                            <div class="usecase-desc">
-                                Prototype node-based control schemes for robotic arms, mobile platforms and toolheads – your lab
-                                becomes part of the AI training loop.
-                            </div>
-                            <div class="usecase-tag">RoboBridge I/O & Omconsole Core</div>
-                        </div>
-
-                        <div class="usecase-card">
-                            <div class="usecase-title">Industrial Dashboards & Sites</div>
-                            <div class="usecase-desc">
-                                Use AR and dashboards to watch machines, issue commands, and switch control modes
-                                using gestures, EMG or voice when hands are busy.
-                            </div>
-                            <div class="usecase-tag">Control rooms & heavy equipment</div>
-                        </div>
-
-                        <div class="usecase-card">
-                            <div class="usecase-title">Media, Labs & R&D</div>
-                            <div class="usecase-desc">
-                                Explore how different mind, muscle and gesture controllers behave in the same stack
-                                and feed that data into node-based AI updates.
-                            </div>
-                            <div class="usecase-tag">Experiment-ready API & signals</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="specs">
-                    <div class="spec-card">
-                        <div class="spec-header">
-                            <div>
-                                <div class="spec-title">Core Technical Snapshot</div>
-                            </div>
-                            <div class="spec-badge">Reference Omconsole Stack</div>
-                        </div>
-
-                        <table class="spec-table">
-                            <tr>
-                                <td>Signal Inputs</td>
-                                <td>EEG, EMG, camera, mic, external sensors</td>
-                            </tr>
-                            <tr>
-                                <td>Controller Support</td>
-                                <td>Multiple mind / muscle / gesture devices via adapters</td>
-                            </tr>
-                            <tr>
-                                <td>Latency Target</td>
-                                <td>&lt; 40 ms end-to-end (pipeline-dependent)</td>
-                            </tr>
-                            <tr>
-                                <td>Output Interfaces</td>
-                                <td>GPIO, serial, CAN, USB, network events, AR overlays</td>
-                            </tr>
-                            <tr>
-                                <td>Core Hardware</td>
-                                <td>Custom Omconsole chip + host integrations</td>
-                            </tr>
-                            <tr>
-                                <td>Update Model</td>
-                                <td>Node-based firmware & AI model updates</td>
-                            </tr>
-                        </table>
-
-                        <div class="spec-note">
-                            Note: the Omconsole chip and software stack are tuned per deployment. Early adopters help
-                            refine controller mappings, safety thresholds and AI behaviours through node-based updates.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- HOW IT WORKS -->
-        <section style="margin-top: 44px;">
-            <div class="section-heading">
-                <div>
-                    <div class="section-title">How Omconsole Technology Works</div>
-                    <div class="section-subtitle">
-                        Omconsole is designed as a living control layer – every deployment becomes part of the learning network.
-                    </div>
-                </div>
-            </div>
-
-            <div class="steps-row">
-                <div class="step-card">
-                    <div class="step-number">Step 01</div>
-                    <div class="step-title">Connect Controllers</div>
-                    <div>
-                        Attach supported mind, muscle and gesture controllers into MindLink, MuscleLink and GestureDeck.
-                        The Omconsole chip and Core normalize their signals.
-                    </div>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">Step 02</div>
-                    <div class="step-title">Fuse & Tune</div>
-                    <div>
-                        Use tuners and dashboards to set thresholds, modes, dead-zones and safety logic. Signals are fused
-                        into a single Omconsole profile on the chip or host.
-                    </div>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">Step 03</div>
-                    <div class="step-title">Map to Robots & AR</div>
-                    <div>
-                        Route outputs to robots, tools, or AR UIs via RoboBridge I/O and AR overlays. Control can move with you
-                        between devices without retraining.
-                    </div>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">Step 04</div>
-                    <div class="step-title">Learn & Update Nodes</div>
-                    <div>
-                        With permission, anonymized usage informs AI and firmware updates. Nodes receive refined mappings
-                        and improvements over time.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- EARLY ADOPTERS / NODE NETWORK -->
-        <section id="early" class="early-section">
-            <div>
-                <div class="early-title">Early Adopters & Node-Based Updates</div>
-                <div class="early-sub">
-                    Early Omconsole deployments are not just “beta users” – they are founding nodes in the control network.
-                    Your rigs, labs, and independence setups help teach the AI how real people, real machines, and real sites behave.
-                </div>
-                <div class="early-badges">
-                    <span class="early-badge">Node-based firmware updates</span>
-                    <span class="early-badge">AI mapping improvements</span>
-                    <span class="early-badge">Multi-controller feedback</span>
-                </div>
-            </div>
-            <div>
-                <ul class="early-list">
-                    <li>• Co-design control schemes for mind, muscle, gesture and tone.</li>
-                    <li>• Influence how the chip handles AR overlays and cross-device transfer.</li>
-                    <li>• Get early access to new controller adapters and robotics bindings.</li>
-                    <li>• Receive node-level updates tuned from real-world usage, not just lab simulations.</li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- CONTACT / CTA -->
-        <section id="contact" class="cta-footer">
-            <div>
-                <div class="cta-footer-label">
-                    <span class="cta-footer-label-dot"></span>
-                    Early node invitations
-                </div>
-                <div class="cta-footer-title">
-                    Bring Omconsole into your robotics, automation, AR or independence project.
-                </div>
-                <div class="cta-footer-sub">
-                    The current phase is focused on builders, operators and labs who are ready to connect mind, muscle and
-                    gesture controllers to real machines and AR systems – and help evolve the node network.
-                </div>
-            </div>
-            <div class="cta-footer-right">
-                <a href="mailto:ioncoreenergy@gmail.com" class="btn-primary">
-                    <span>Request Early Adopter Brief</span>
-                </a>
-                <div class="cta-footer-meta">
-                    Email <strong>ioncoreenergy@gmail.com</strong> with a short note about your controllers, hardware
-                    (robots, dashboards, AR devices), and what you want Omconsole to operate.
-                </div>
-            </div>
-        </section>
-
-        <div class="tiny-footer">
-            Omconsole Neural Control Console • IonCore Energy • Mind • Muscle • Gesture • Tone • Robotics • Node-Based Updates
+    <main class="container">
+      <section class="hero" id="overview">
+        <div>
+          <span class="eyebrow">Omconsole Neural Control Console</span>
+          <h1>Full-spectrum neural control for Ioncore ecosystems.</h1>
+          <p>Omconsole fuses mind, muscle, gesture, tone, and robotics inputs into a unified command layer. It is built to orchestrate Ioncore energy deployments, AR overlays, and mechatronic fleets with the same reliability as our inertia systems.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Request early adopter access</a>
+            <a class="btn btn-outline" href="#stack">See how the stack works</a>
+          </div>
+          <div class="pill-list" aria-label="Omconsole capabilities">
+            <span class="pill">Mind ↔️ Robotics sync</span>
+            <span class="pill">Muscle &amp; haptic feedback</span>
+            <span class="pill">Gesture &amp; tone routing</span>
+            <span class="pill">Node-based updates</span>
+          </div>
         </div>
+        <div class="hero-visual">
+          <img src="seintinalai.png" alt="Ioncore Omconsole interface preview" loading="lazy">
+          <div class="mini-grid" aria-label="Operational stats">
+            <div class="tile">
+              <small>Latency budget</small>
+              <h3>&lt;18ms</h3>
+              <p>Edge-trained motion mapping for gesture, gaze, and voice nodes.</p>
+            </div>
+            <div class="tile">
+              <small>IONC safety</small>
+              <h3>Triple gated</h3>
+              <p>Human-in-the-loop holds, automatic quench, and role-based overrides.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section page-section--tight" id="controllers">
+        <div class="section-header">
+          <h2 class="section-title">Control modes tuned to your hardware.</h2>
+          <p class="section-subtitle">Pair Omconsole with neural bands, EMG sleeves, AR wearables, robotics dashboards, or legacy joysticks. Each lane is normalized so operators can mix modalities without retraining their instincts.</p>
+        </div>
+        <div class="feature-grid">
+          <div class="tile">
+            <small>Mind</small>
+            <h3>Neural intent capture</h3>
+            <p>EEG-class and ultrasonic headsets translate focus, assent, and directional intent into precise actions.</p>
+            <ul class="list">
+              <li>Adaptive filters cut noise from motion and ambient chatter.</li>
+              <li>Profiles adjust to pilot stress and workload over time.</li>
+            </ul>
+          </div>
+          <div class="tile">
+            <small>Muscle</small>
+            <h3>EMG + haptic feedback</h3>
+            <p>Forearm, shoulder, and gait sensors produce servo-grade commands while returning tactile cues from the field.</p>
+            <ul class="list">
+              <li>Bidirectional channels for microsecond haptics.</li>
+              <li>Dynamic gain to prevent operator fatigue.</li>
+            </ul>
+          </div>
+          <div class="tile">
+            <small>Gesture &amp; tone</small>
+            <h3>Ambient + voice routing</h3>
+            <p>Optical, LiDAR, and tone stacks capture mid-air gestures and decisive voice markers to drive missions.</p>
+            <ul class="list">
+              <li>Wake words tuned for loud industrial decks.</li>
+              <li>Failsafes to freeze or reverse critical motions.</li>
+            </ul>
+          </div>
+          <div class="tile">
+            <small>Robotics</small>
+            <h3>Fleet-grade orchestration</h3>
+            <p>Supports crawler, drone, manipulator, and vehicular nodes with shared telemetry backhauls.</p>
+            <ul class="list">
+              <li>Compatible with ROS, EtherCAT, and CAN bus pipelines.</li>
+              <li>Coexists with Ioncore energy supervision dashboards.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section page-section--tight" id="stack">
+        <div class="section-header">
+          <h2 class="section-title">The Ioncore control stack.</h2>
+          <p class="section-subtitle">Built to mirror the resilience of our magnetic inertia platforms: modular, field-updateable, and ready for mixed-reality operations.</p>
+        </div>
+        <div class="feature-grid">
+          <div class="tile">
+            <span class="badge"><i class="fa-solid fa-diagram-project"></i> Node mesh</span>
+            <h3>Adaptive node graph</h3>
+            <p>Signal lanes route through a node graph that learns the operator’s tempo, prioritizing low-latency actions while preserving safety locks.</p>
+          </div>
+          <div class="tile">
+            <span class="badge"><i class="fa-solid fa-shield-heart"></i> Safety</span>
+            <h3>Safe-state choreography</h3>
+            <p>Role-based authorizations, dual confirmation for critical moves, and automatic quench routines synced to IONC security policies.</p>
+          </div>
+          <div class="tile">
+            <span class="badge"><i class="fa-solid fa-vr-cardboard"></i> AR</span>
+            <h3>Immersive overlays</h3>
+            <p>Hands-free AR dashboards project status from energy nodes, robotics, and sensor grids into the operator’s field of view.</p>
+          </div>
+          <div class="tile">
+            <span class="badge"><i class="fa-solid fa-code-merge"></i> Integrations</span>
+            <h3>Custom bindings</h3>
+            <p>SDK hooks for lab simulators, industrial control rooms, and third-party analytics so teams can extend Omconsole without rewriting their stack.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-band" id="adoption">
+        <div>
+          <div class="eyebrow">Early adopter program</div>
+          <h3 style="margin: 10px 0 6px;">Join the builders shaping neural control for Ioncore.</h3>
+          <p>Share your controller roster, robotics platforms, and mission profiles. We prioritize teams deploying automation alongside Ioncore generators, cryogenic cooling loops, and hybrid storage suites.</p>
+        </div>
+        <div class="hero-cta" style="margin: 0;">
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a private run-through</a>
+          <a class="btn btn-outline" href="webpage.html">Explore Ioncore portfolio</a>
+        </div>
+      </section>
     </main>
-</div>
+  </div>
 </body>
 </html>
-

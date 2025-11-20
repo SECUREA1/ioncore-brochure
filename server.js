@@ -1108,14 +1108,9 @@ function generateMeknxPassId() {
 }
 
 app.get('/login', async (req, res) => {
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
-    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
-    return res.redirect(safeNext);
-  }
-  await sendHtml(res, path.join(__dirname, 'login.html'));
+  const queryNext = typeof req.query.next === 'string' ? req.query.next : '/webpage.html';
+  const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/webpage.html';
+  res.redirect(safeNext);
 });
 
 app.post('/login', async (req, res) => {
@@ -2153,24 +2148,7 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  if (isPublicRoute(req)) {
-    return next();
-  }
-
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    return next();
-  }
-
-  clearSessionCookie(res);
-
-  const expectsHtml = req.method === 'GET' && req.accepts('html');
-  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
-  if (expectsHtml) {
-    return res.redirect(`/login?next=${nextPath}`);
-  }
-  res.status(401).json({ message: 'Authentication required' });
+  next();
 }
 
 async function getHtmlFiles(dir) {
@@ -2199,7 +2177,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage.html'));
 });
 
 app.get('/timepieces', async (req, res) => {

@@ -948,9 +948,14 @@ async function recordChatLedgerEntry(entry) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+const METRICS_BASE = {
+  live: 11,
+  viewed: 392
+};
+
 const metrics = {
-  live: 0,
-  viewed: 0
+  live: METRICS_BASE.live,
+  viewed: METRICS_BASE.viewed
 };
 
 const activeSessions = new Map();
@@ -967,7 +972,7 @@ function pruneSessions() {
   }
 
   if (changed) {
-    metrics.live = activeSessions.size;
+    metrics.live = METRICS_BASE.live + activeSessions.size;
   }
 }
 
@@ -984,7 +989,7 @@ function registerSession() {
   pruneSessions();
   const sessionId = randomUUID();
   activeSessions.set(sessionId, Date.now());
-  metrics.live = activeSessions.size;
+  metrics.live = METRICS_BASE.live + activeSessions.size;
   metrics.viewed += 1;
   return sessionId;
 }
@@ -995,7 +1000,7 @@ function endSession(sessionId) {
   }
   pruneSessions();
   if (activeSessions.delete(sessionId)) {
-    metrics.live = activeSessions.size;
+    metrics.live = METRICS_BASE.live + activeSessions.size;
   }
 }
 

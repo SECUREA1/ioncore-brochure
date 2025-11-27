@@ -550,6 +550,10 @@ function computeTreasuryHash(value) {
   }
 }
 
+function hashSecret(secret) {
+  return createHash('sha256').update(String(secret)).digest('hex');
+}
+
 function sanitizeUrl(value) {
   if (typeof value !== 'string') {
     return null;
@@ -648,6 +652,9 @@ async function recordGatewaySubmission(submission) {
     createdAt,
     role: normalizeForStorage(submission.role),
     name: normalizeForStorage(submission.name),
+    username: normalizeForStorage(submission.username),
+    passwordHash: submission.password ? hashSecret(submission.password) : '',
+    qualifications: normalizeForStorage(submission.qualifications),
     email: normalizeForStorage(submission.email),
     selections: serializeMetadata(selectionsValue),
     databaseOptIn: submission.databaseOptIn ? 1 : 0,
@@ -663,6 +670,9 @@ async function recordGatewaySubmission(submission) {
     store.gatewayUsers[entryId] = {
       role: record.role,
       name: record.name,
+      username: record.username,
+      passwordHash: record.passwordHash,
+      qualifications: record.qualifications,
       email: record.email,
       selections: record.selections,
       databaseOptIn: 1,
@@ -1413,6 +1423,9 @@ app.post('/gateway', async (req, res) => {
   const role = typeof body.role === 'string' ? body.role.trim().toLowerCase() : '';
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
+  const username = typeof body.username === 'string' ? body.username.trim() : '';
+  const password = typeof body.password === 'string' ? body.password.trim() : '';
+  const qualifications = typeof body.qualifications === 'string' ? body.qualifications.trim() : '';
   const streamsRaw = body.streams;
   const databaseOptInRaw = body.databaseOptIn;
 
@@ -1430,6 +1443,22 @@ app.post('/gateway', async (req, res) => {
 
   if (!name) {
     return res.status(400).json({ message: 'Enter your full name to continue.' });
+  }
+
+  if (!username) {
+    return res.status(400).json({ message: 'Provide a username so we can anchor your gateway identity.' });
+  }
+
+  if (!password || password.length < 8) {
+    return res
+      .status(400)
+      .json({ message: 'Create a gateway password with at least 8 characters to continue.' });
+  }
+
+  if (!qualifications || qualifications.length < 10) {
+    return res
+      .status(400)
+      .json({ message: 'Share a brief qualifications summary to contextualize your request.' });
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1470,6 +1499,9 @@ app.post('/gateway', async (req, res) => {
   const submission = {
     role,
     name,
+    username,
+    password,
+    qualifications,
     email,
     selections: normalizedStreams,
     databaseOptIn,

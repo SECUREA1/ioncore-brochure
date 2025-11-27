@@ -129,6 +129,8 @@ const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
 
 const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
+const BACKUP_DIR = path.join(DATA_DIR, 'backups');
+await fs.mkdir(BACKUP_DIR, { recursive: true });
 
 const FILE_BROADCAST_SCAN_INTERVAL_MS = 1000 * 60;
 const FILE_BROADCAST_IGNORE_DIRS = new Set(['node_modules', 'data', '.git', '.github', '.cache', '.next']);
@@ -220,6 +222,59 @@ async function saveStore() {
     console.error('Failed to persist gateway store', error);
     throw error;
   }
+}
+
+async function listBackups() {
+  try {
+    const entries = await fs.readdir(BACKUP_DIR, { withFileTypes: true });
+    const files = entries.filter((entry) => entry.isFile() && entry.name.endsWith('.json'));
+    const details = await Promise.all(
+      files.map(async (file) => {
+        const fullPath = path.join(BACKUP_DIR, file.name);
+        const stats = await fs.stat(fullPath);
+        return {
+          name: file.name,
+          path: fullPath,
+          sizeBytes: stats.size,
+          modifiedAt: stats.mtime.toISOString()
+        };
+      })
+    );
+    details.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
+    return details;
+  } catch (error) {
+    console.error('Unable to list backups', error);
+    return [];
+  }
+}
+
+async function createBackupSnapshot() {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const filename = `gateway-store-${timestamp}.json`;
+  const fullPath = path.join(BACKUP_DIR, filename);
+  const payload = {
+    savedAt: new Date().toISOString(),
+    store
+  };
+  await fs.writeFile(fullPath, JSON.stringify(payload, null, 2), 'utf8');
+  const stats = await fs.stat(fullPath);
+  return {
+    name: filename,
+    path: fullPath,
+    sizeBytes: stats.size,
+    modifiedAt: stats.mtime.toISOString()
+  };
+}
+
+async function getBackupSummary() {
+  const backups = await listBackups();
+  const latest = backups[0] || null;
+  return {
+    totalBackups: backups.length,
+    lastBackupAt: latest ? latest.modifiedAt : null,
+    lastBackupFile: latest ? latest.name : null,
+    lastBackupSizeBytes: latest ? latest.sizeBytes : null
+  };
 }
 
 function injectSnippetBeforeBodyClose(html, snippet, marker) {
@@ -2286,6 +2341,7 @@ app.get('/api/admin/overview', async (req, res) => {
   const uptimeSeconds = Math.max(0, Math.floor(process.uptime()));
   const startedAt = new Date(Date.now() - uptimeSeconds * 1000).toISOString();
   const lastBroadcastScan = lastFileBroadcastScan ? new Date(lastFileBroadcastScan).toISOString() : null;
+  const backupSummary = await getBackupSummary();
 
   const serverStatus = {
     activeSessions: metrics.live,
@@ -2311,7 +2367,8 @@ app.get('/api/admin/overview', async (req, res) => {
     fileBroadcasts: {
       total: fileBroadcasts.length,
       lastScanCompletedAt: lastBroadcastScan
-    }
+    },
+    backups: backupSummary
   };
 
   const activityTimeline = [];
@@ -2576,8 +2633,24 @@ app.get('/api/admin/overview', async (req, res) => {
     timepieceMintLedger: timepieceMintLedgerSummary,
     fileBroadcasts: fileBroadcastsSummary,
     chatServerLedger: sortByTimestampDesc(chatServerLedger, 'createdAt'),
-    activityTimeline
+    activityTimeline,
+    backupSummary
   });
+});
+
+app.post('/api/admin/backup', async (req, res) => {
+  try {
+    await saveStore();
+    await createBackupSnapshot();
+    const backupSummary = await getBackupSummary();
+    res.json({
+      message: 'Backup created successfully.',
+      backupSummary
+    });
+  } catch (error) {
+    console.error('Failed to create backup snapshot', error);
+    res.status(500).json({ message: 'Unable to create backup snapshot. Retry shortly.' });
+  }
 });
 
 app.post('/api/admin/file-broadcasts/rescan', async (req, res) => {

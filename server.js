@@ -129,6 +129,8 @@ const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
 
 const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
+const BACKUP_DIR = path.join(DATA_DIR, 'backups');
+await fs.mkdir(BACKUP_DIR, { recursive: true });
 
 const FILE_BROADCAST_SCAN_INTERVAL_MS = 1000 * 60;
 const FILE_BROADCAST_IGNORE_DIRS = new Set(['node_modules', 'data', '.git', '.github', '.cache', '.next']);
@@ -2313,6 +2315,7 @@ app.get('/api/admin/overview', async (req, res) => {
   const uptimeSeconds = Math.max(0, Math.floor(process.uptime()));
   const startedAt = new Date(Date.now() - uptimeSeconds * 1000).toISOString();
   const lastBroadcastScan = lastFileBroadcastScan ? new Date(lastFileBroadcastScan).toISOString() : null;
+  const backupSummary = await getBackupSummary();
 
   const serverStatus = {
     activeSessions: metrics.live,
@@ -2338,7 +2341,8 @@ app.get('/api/admin/overview', async (req, res) => {
     fileBroadcasts: {
       total: fileBroadcasts.length,
       lastScanCompletedAt: lastBroadcastScan
-    }
+    },
+    backups: backupSummary
   };
 
   const activityTimeline = [];
@@ -2603,8 +2607,24 @@ app.get('/api/admin/overview', async (req, res) => {
     timepieceMintLedger: timepieceMintLedgerSummary,
     fileBroadcasts: fileBroadcastsSummary,
     chatServerLedger: sortByTimestampDesc(chatServerLedger, 'createdAt'),
-    activityTimeline
+    activityTimeline,
+    backupSummary
   });
+});
+
+app.post('/api/admin/backup', async (req, res) => {
+  try {
+    await saveStore();
+    await createBackupSnapshot();
+    const backupSummary = await getBackupSummary();
+    res.json({
+      message: 'Backup created successfully.',
+      backupSummary
+    });
+  } catch (error) {
+    console.error('Failed to create backup snapshot', error);
+    res.status(500).json({ message: 'Unable to create backup snapshot. Retry shortly.' });
+  }
 });
 
 app.post('/api/admin/file-broadcasts/rescan', async (req, res) => {

@@ -600,6 +600,31 @@
           </article>
         </div>
       </section>
+      <section aria-labelledby="persistence-title" id="persistence-memory">
+        <div class="section-header">
+          <div>
+            <span class="eyebrow">Persistent Memory</span>
+            <h2 id="persistence-title">Durable Snapshot Ledger</h2>
+            <p>Write the full datastore to disk for long-term recall and auditability.</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn" type="button" id="create-backup">Create Backup Snapshot</button>
+            <span class="status-pill" id="backup-status">Ready</span>
+          </div>
+        </div>
+        <div class="admin-card-grid">
+          <article class="metric-card">
+            <h3>Last Snapshot</h3>
+            <strong id="backup-last">—</strong>
+            <p class="text-muted" id="backup-last-detail">No backups recorded.</p>
+          </article>
+          <article class="metric-card">
+            <h3>Total Snapshots</h3>
+            <strong id="backup-total">0</strong>
+            <p class="text-muted">All persisted memory captures stored on disk.</p>
+          </article>
+        </div>
+      </section>
       <section aria-labelledby="metrics-title">
         <div class="section-header">
           <div>
@@ -1306,6 +1331,11 @@
 
       const statusBanner = document.getElementById('status-banner');
       const generatedAt = document.getElementById('generated-at');
+      const backupLast = document.getElementById('backup-last');
+      const backupLastDetail = document.getElementById('backup-last-detail');
+      const backupTotal = document.getElementById('backup-total');
+      const backupStatus = document.getElementById('backup-status');
+      const createBackupButton = document.getElementById('create-backup');
       const integrityDataHash = document.getElementById('integrity-data-hash');
       const integrityMetadataHash = document.getElementById('integrity-metadata-hash');
       const integrityCombinedHash = document.getElementById('integrity-combined-hash');
@@ -2017,6 +2047,27 @@
         }
       }
 
+      function updateBackupSummary() {
+        if (!backupLast || !backupLastDetail || !backupTotal) {
+          return;
+        }
+        const summary = state.data?.backupSummary || {};
+        const total = Number.isFinite(summary.totalBackups) ? summary.totalBackups : 0;
+        backupTotal.textContent = formatNumber(total);
+
+        if (summary.lastBackupAt) {
+          backupLast.textContent = formatDate(summary.lastBackupAt);
+          backupLastDetail.textContent = `Saved ${formatRelativeTime(summary.lastBackupAt)} · ${summary.lastBackupFile || 'Snapshot'}`;
+        } else {
+          backupLast.textContent = '—';
+          backupLastDetail.textContent = 'No backups recorded.';
+        }
+
+        if (backupStatus) {
+          backupStatus.textContent = total > 0 ? 'Snapshots retained' : 'Ready';
+        }
+      }
+
       function formatRelativeTime(value) {
         if (!value) return '—';
         const date = new Date(value);
@@ -2140,6 +2191,7 @@
           state.integrity = createIntegrityState();
         }
         updateIntegritySummary();
+        updateBackupSummary();
 
         generatedAt.textContent = 'Synced ' + formatDate(state.data.generatedAt);
 
@@ -3902,6 +3954,42 @@
             setFileBroadcastStatus(error.message || 'Failed to reindex file broadcasts.', 'error');
           } finally {
             rescanFileBroadcastsButton.disabled = false;
+          }
+        });
+      }
+
+      if (createBackupButton) {
+        createBackupButton.addEventListener('click', async () => {
+          if (createBackupButton.disabled) {
+            return;
+          }
+          createBackupButton.disabled = true;
+          if (backupStatus) backupStatus.textContent = 'Saving…';
+          try {
+            const response = await fetch('/api/admin/backup', {
+              method: 'POST',
+              headers: { Accept: 'application/json' }
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error((payload && payload.message) || 'Failed to persist snapshot.');
+            }
+            if (payload.backupSummary && state.data) {
+              state.data.backupSummary = payload.backupSummary;
+            }
+            updateBackupSummary();
+            setStatus(payload.message || 'Backup created successfully.', 'success');
+          } catch (error) {
+            console.error('Backup creation failed', error);
+            setStatus(error.message || 'Unable to create backup snapshot.', 'error');
+            if (backupStatus) backupStatus.textContent = 'Backup failed';
+          } finally {
+            createBackupButton.disabled = false;
+            if (backupStatus) {
+              backupStatus.textContent = state.data?.backupSummary?.totalBackups
+                ? 'Snapshots retained'
+                : 'Ready';
+            }
           }
         });
       }

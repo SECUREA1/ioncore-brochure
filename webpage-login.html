@@ -592,12 +592,35 @@
                   <span class="gateway-toggle__indicator" aria-hidden="true"></span>
                   <span class="gateway-toggle__content">
                     <span class="gateway-toggle__title">Operations alignment</span>
-                    <span class="gateway-toggle__copy">Collaboration tools, tasking dashboards, and program readiness updates.</span>
+                  <span class="gateway-toggle__copy">Collaboration tools, tasking dashboards, and program readiness updates.</span>
+                  </span>
+                </span>
+              </label>
+              <label class="gateway-toggle">
+                <input type="checkbox" name="streams" value="guest-interest">
+                <span class="gateway-toggle__body">
+                  <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                  <span class="gateway-toggle__content">
+                    <span class="gateway-toggle__title">Guest interest</span>
+                    <span class="gateway-toggle__copy">Preview highlights curated for visitors evaluating Ioncore intelligence.</span>
                   </span>
                 </span>
               </label>
             </div>
             <p class="gateway__error" data-error-for="gateway-streams" role="alert"></p>
+          </div>
+          <div class="gateway__input">
+            <label for="gateway-passphrase">Access passphrase</label>
+            <input
+              type="password"
+              id="gateway-passphrase"
+              name="passphrase"
+              autocomplete="off"
+              inputmode="text"
+              required
+              placeholder="Required to continue"
+            >
+            <p class="gateway__error" data-error-for="gateway-passphrase" role="alert"></p>
           </div>
           <div class="gateway__input gateway__toggles gateway__toggles--secondary">
             <label class="gateway-toggle gateway-toggle--compact">
@@ -664,7 +687,7 @@
     }
 
     function clearErrors() {
-      ['gateway-name', 'gateway-email', 'gateway-streams'].forEach((id) => setError(id, ''));
+      ['gateway-name', 'gateway-email', 'gateway-streams', 'gateway-passphrase'].forEach((id) => setError(id, ''));
       const generalError = document.getElementById('gateway-general-error');
       if (generalError) generalError.remove();
       form?.removeAttribute('aria-describedby');
@@ -712,6 +735,7 @@
       const email = form.elements.namedItem('email');
       const streamInputs = Array.from(form.querySelectorAll('input[name="streams"]'));
       const databaseToggle = form.elements.namedItem('databaseOptIn');
+      const passphrase = form.elements.namedItem('passphrase');
 
       if (!name.value.trim()) {
         setError('gateway-name', 'Enter your full name to continue.');
@@ -727,6 +751,15 @@
       const selectedStreams = streamInputs.filter((input) => input.checked).map((input) => input.value);
       if (selectedStreams.length === 0) {
         setError('gateway-streams', 'Select at least one access toggle to continue.');
+        hasError = true;
+      }
+
+      const passphraseValue = passphrase?.value.trim();
+      if (!passphraseValue) {
+        setError('gateway-passphrase', 'Enter the required access code to proceed.');
+        hasError = true;
+      } else if (passphraseValue.toLowerCase() !== 'roadrash') {
+        setError('gateway-passphrase', 'Access code is incorrect.');
         hasError = true;
       }
 

@@ -590,6 +590,20 @@
               <p class="gateway__error" data-error-for="gateway-password" role="alert"></p>
             </div>
           </div>
+          <div class="gateway__form-row">
+            <div class="gateway__input">
+              <label for="gateway-passcode">Gateway passcode <span class="gateway__optional">Required code: Batman18</span></label>
+              <input
+                type="password"
+                id="gateway-passcode"
+                name="passcode"
+                autocomplete="one-time-code"
+                required
+                placeholder="Enter the issued passcode"
+              >
+              <p class="gateway__error" data-error-for="gateway-passcode" role="alert"></p>
+            </div>
+          </div>
           <div class="gateway__input gateway__toggles" id="gateway-streams" role="group" aria-labelledby="gateway-streams-label">
             <span id="gateway-streams-label" class="gateway__toggle-label">Choose the intelligence streams to unlock</span>
             <div class="gateway__toggle-list">
@@ -703,7 +717,7 @@
     }
 
     function clearErrors() {
-      ['gateway-name', 'gateway-email', 'gateway-username', 'gateway-password', 'gateway-streams', 'gateway-qualifications'].forEach((id) =>
+      ['gateway-name', 'gateway-email', 'gateway-username', 'gateway-password', 'gateway-passcode', 'gateway-streams', 'gateway-qualifications'].forEach((id) =>
         setError(id, '')
       );
       const generalError = document.getElementById('gateway-general-error');
@@ -753,6 +767,7 @@
       const email = form.elements.namedItem('email');
       const username = form.elements.namedItem('username');
       const password = form.elements.namedItem('password');
+      const passcode = form.elements.namedItem('passcode');
       const qualifications = form.elements.namedItem('qualifications');
       const streamInputs = Array.from(form.querySelectorAll('input[name="streams"]'));
       const databaseToggle = form.elements.namedItem('databaseOptIn');
@@ -770,6 +785,15 @@
       const passwordValue = password.value.trim();
       if (!passwordValue || passwordValue.length < 8) {
         setError('gateway-password', 'Create a gateway password with at least 8 characters.');
+        hasError = true;
+      }
+
+      const passcodeValue = passcode.value.trim();
+      if (!passcodeValue) {
+        setError('gateway-passcode', 'Enter the issued gateway passcode.');
+        hasError = true;
+      } else if (passcodeValue !== 'Batman18') {
+        setError('gateway-passcode', 'The gateway passcode is incorrect.');
         hasError = true;
       }
 
@@ -803,6 +827,7 @@
         name: name.value.trim(),
         username: username.value.trim(),
         password: passwordValue,
+        passcode: passcodeValue,
         qualifications: qualificationsValue,
         email: emailValue,
         streams: selectedStreams,

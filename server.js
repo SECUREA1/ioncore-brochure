@@ -222,6 +222,33 @@ async function saveStore() {
   }
 }
 
+async function flushStore(reason = 'shutdown') {
+  try {
+    await saveChain.catch(() => {});
+  } catch (error) {
+    console.error(`Store flush failed during ${reason}`, error);
+  }
+}
+
+function registerShutdownHooks() {
+  let shuttingDown = false;
+
+  async function handleShutdown(signal) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    await flushStore(signal);
+    if (signal === 'SIGINT' || signal === 'SIGTERM') {
+      process.exit(0);
+    }
+  }
+
+  process.once('beforeExit', () => handleShutdown('beforeExit'));
+  process.once('SIGINT', () => handleShutdown('SIGINT'));
+  process.once('SIGTERM', () => handleShutdown('SIGTERM'));
+}
+
+registerShutdownHooks();
+
 function injectSnippetBeforeBodyClose(html, snippet, marker) {
   if (!html || !snippet) {
     return html;

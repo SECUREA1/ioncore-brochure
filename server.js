@@ -988,6 +988,7 @@ function pruneSessions() {
 
 const AUTH_USER = process.env.BASIC_AUTH_USER || 'guest';
 const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'boots';
+const GATEWAY_PASSCODE = process.env.GATEWAY_PASSCODE || 'Batman18';
 
 const COOKIE_NAME = 'ioncore_session';
 const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
@@ -1425,9 +1426,14 @@ app.post('/gateway', async (req, res) => {
   const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
   const username = typeof body.username === 'string' ? body.username.trim() : '';
   const password = typeof body.password === 'string' ? body.password.trim() : '';
+  const passcode = typeof body.passcode === 'string' ? body.passcode.trim() : '';
   const qualifications = typeof body.qualifications === 'string' ? body.qualifications.trim() : '';
   const streamsRaw = body.streams;
   const databaseOptInRaw = body.databaseOptIn;
+
+  if (!passcode || passcode !== GATEWAY_PASSCODE) {
+    return res.status(401).json({ message: 'Enter the correct gateway passcode to continue.' });
+  }
 
   const roleLabels = new Map([
     ['investor', 'Investor'],
@@ -1517,6 +1523,9 @@ app.post('/gateway', async (req, res) => {
       .status(500)
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
+
+  const sessionId = createAuthSession();
+  setSessionCookie(res, sessionId);
 
   const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
   const readableSelections = normalizedStreams.map((value) => streamOptions.get(value));
@@ -2157,13 +2166,7 @@ function isPublicRoute(req) {
     const publicHtml = new Set([
       '/login',
       '/login.html',
-      '/',
-      '/webpage.html',
-      '/ioncore-contracting.html',
-      '/IONCORECHAT',
-      '/IONCORECHAT/',
-      '/IONCORECHAT/index',
-      '/IONCORECHAT/index.html'
+      '/webpage-login.html'
     ]);
     if (publicHtml.has(req.path)) {
       return true;
@@ -2185,7 +2188,25 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  next();
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  const sessionValid = validateAuthSession(sessionId);
+
+  if (sessionValid) {
+    return next();
+  }
+
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    const destination = encodeURIComponent(req.originalUrl || req.url || '/webpage.html');
+    return res.redirect(`/webpage-login.html?next=${destination}`);
+  }
+
+  return res
+    .status(401)
+    .json({ message: 'Gateway clearance required. Authenticate with the access passcode to continue.' });
 }
 
 async function getHtmlFiles(dir) {

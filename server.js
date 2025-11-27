@@ -224,58 +224,32 @@ async function saveStore() {
   }
 }
 
-async function listBackups() {
+async function flushStore(reason = 'shutdown') {
   try {
-    const entries = await fs.readdir(BACKUP_DIR, { withFileTypes: true });
-    const files = entries.filter((entry) => entry.isFile() && entry.name.endsWith('.json'));
-    const details = await Promise.all(
-      files.map(async (file) => {
-        const fullPath = path.join(BACKUP_DIR, file.name);
-        const stats = await fs.stat(fullPath);
-        return {
-          name: file.name,
-          path: fullPath,
-          sizeBytes: stats.size,
-          modifiedAt: stats.mtime.toISOString()
-        };
-      })
-    );
-    details.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
-    return details;
+    await saveChain.catch(() => {});
   } catch (error) {
-    console.error('Unable to list backups', error);
-    return [];
+    console.error(`Store flush failed during ${reason}`, error);
   }
 }
 
-async function createBackupSnapshot() {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const filename = `gateway-store-${timestamp}.json`;
-  const fullPath = path.join(BACKUP_DIR, filename);
-  const payload = {
-    savedAt: new Date().toISOString(),
-    store
-  };
-  await fs.writeFile(fullPath, JSON.stringify(payload, null, 2), 'utf8');
-  const stats = await fs.stat(fullPath);
-  return {
-    name: filename,
-    path: fullPath,
-    sizeBytes: stats.size,
-    modifiedAt: stats.mtime.toISOString()
-  };
+function registerShutdownHooks() {
+  let shuttingDown = false;
+
+  async function handleShutdown(signal) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    await flushStore(signal);
+    if (signal === 'SIGINT' || signal === 'SIGTERM') {
+      process.exit(0);
+    }
+  }
+
+  process.once('beforeExit', () => handleShutdown('beforeExit'));
+  process.once('SIGINT', () => handleShutdown('SIGINT'));
+  process.once('SIGTERM', () => handleShutdown('SIGTERM'));
 }
 
-async function getBackupSummary() {
-  const backups = await listBackups();
-  const latest = backups[0] || null;
-  return {
-    totalBackups: backups.length,
-    lastBackupAt: latest ? latest.modifiedAt : null,
-    lastBackupFile: latest ? latest.name : null,
-    lastBackupSizeBytes: latest ? latest.sizeBytes : null
-  };
-}
+registerShutdownHooks();
 
 function injectSnippetBeforeBodyClose(html, snippet, marker) {
   if (!html || !snippet) {

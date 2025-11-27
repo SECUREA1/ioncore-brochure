@@ -150,6 +150,25 @@
       font-size: clamp(1rem, 2.2vw, 1.15rem);
     }
 
+    .gateway__badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.6rem;
+    }
+
+    .gateway__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.82rem;
+      color: rgba(225, 235, 255, 0.9);
+    }
+
     .gateway__roles {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -462,6 +481,15 @@
       margin-top: 0.35rem;
     }
 
+    .gateway__note {
+      margin: -0.15rem 0 0.35rem;
+      font-size: 0.85rem;
+      color: rgba(226, 232, 240, 0.82);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
     .gateway__optional {
       display: block;
       font-size: 0.75rem;
@@ -524,6 +552,11 @@
           <span>Ioncore Energy</span>
           <h1 id="gateway-title" class="gateway__title">Secure intelligence gateway</h1>
           <p class="gateway__subtitle">Choose how you partner with Ioncore Energy to unlock investor dossiers, industrial deployment kits, and team operations intelligence.</p>
+          <div class="gateway__badges" aria-hidden="true">
+            <span class="gateway__badge"><i class="fa-solid fa-shield-halved"></i> SOC2-minded handling</span>
+            <span class="gateway__badge"><i class="fa-solid fa-bolt"></i> Fast-track access</span>
+            <span class="gateway__badge"><i class="fa-solid fa-key"></i> Passcode: roadrash</span>
+          </div>
         </div>
       </header>
 
@@ -585,21 +618,22 @@
                 autocomplete="new-password"
                 minlength="8"
                 required
-                placeholder="Create a secure phrase"
+                placeholder="Create a secure phrase (8+ characters)"
               >
+              <span class="gateway__note"><i class="fa-solid fa-lock"></i>Use a phrase you do not reuse elsewhere.</span>
               <p class="gateway__error" data-error-for="gateway-password" role="alert"></p>
             </div>
           </div>
           <div class="gateway__form-row">
             <div class="gateway__input">
-              <label for="gateway-passcode">Gateway passcode <span class="gateway__optional">Required code: Batman18</span></label>
+              <label for="gateway-passcode">Gateway passcode <span class="gateway__optional">Required code: roadrash</span></label>
               <input
                 type="password"
                 id="gateway-passcode"
                 name="passcode"
                 autocomplete="one-time-code"
                 required
-                placeholder="Enter the issued passcode"
+                placeholder="Type roadrash to continue"
               >
               <p class="gateway__error" data-error-for="gateway-passcode" role="alert"></p>
             </div>
@@ -608,7 +642,7 @@
             <span id="gateway-streams-label" class="gateway__toggle-label">Choose the intelligence streams to unlock</span>
             <div class="gateway__toggle-list">
               <label class="gateway-toggle">
-                <input type="checkbox" name="streams" value="investor-dossier">
+                <input type="checkbox" name="streams" value="investor-dossier" checked>
                 <span class="gateway-toggle__body">
                   <span class="gateway-toggle__indicator" aria-hidden="true"></span>
                   <span class="gateway-toggle__content">
@@ -692,6 +726,11 @@
     const submitButton = document.querySelector('.gateway__submit');
     const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
     let selectedRole = '';
+
+    if (roleButtons.length) {
+      roleButtons[0].classList.add('is-selected');
+      selectedRole = roleButtons[0].dataset.role;
+    }
 
     roleButtons.forEach((button) => {
       button.addEventListener('click', () => {
@@ -792,8 +831,8 @@
       if (!passcodeValue) {
         setError('gateway-passcode', 'Enter the issued gateway passcode.');
         hasError = true;
-      } else if (passcodeValue !== 'Batman18') {
-        setError('gateway-passcode', 'The gateway passcode is incorrect.');
+      } else if (passcodeValue.toLowerCase() !== 'roadrash') {
+        setError('gateway-passcode', 'Use the current passcode: roadrash.');
         hasError = true;
       }
 

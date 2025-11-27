@@ -150,25 +150,6 @@
       font-size: clamp(1rem, 2.2vw, 1.15rem);
     }
 
-    .gateway__badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-top: 0.6rem;
-    }
-
-    .gateway__badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.45rem 0.75rem;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.04);
-      font-size: 0.82rem;
-      color: rgba(225, 235, 255, 0.9);
-    }
-
     .gateway__roles {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -481,28 +462,6 @@
       margin-top: 0.35rem;
     }
 
-    .gateway__note {
-      margin: -0.15rem 0 0.35rem;
-      font-size: 0.85rem;
-      color: rgba(226, 232, 240, 0.82);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .gateway__input-note {
-      margin: -0.25rem 0 0.25rem;
-      font-size: 0.85rem;
-      color: rgba(198, 216, 246, 0.82);
-    }
-
-    .gateway__input.is-soft-disabled input {
-      opacity: 0.55;
-      background: rgba(4, 12, 26, 0.45);
-      border-color: rgba(255, 255, 255, 0.08);
-      cursor: not-allowed;
-    }
-
     .gateway__optional {
       display: block;
       font-size: 0.75rem;
@@ -565,11 +524,6 @@
           <span>Ioncore Energy</span>
           <h1 id="gateway-title" class="gateway__title">Secure intelligence gateway</h1>
           <p class="gateway__subtitle">Choose how you partner with Ioncore Energy to unlock investor dossiers, industrial deployment kits, and team operations intelligence.</p>
-          <div class="gateway__badges" aria-hidden="true">
-            <span class="gateway__badge"><i class="fa-solid fa-shield-halved"></i> SOC2-minded handling</span>
-            <span class="gateway__badge"><i class="fa-solid fa-bolt"></i> Fast-track access</span>
-            <span class="gateway__badge"><i class="fa-solid fa-key"></i> Passcode protected</span>
-          </div>
         </div>
       </header>
 
@@ -609,53 +563,11 @@
               <p class="gateway__error" data-error-for="gateway-email" role="alert"></p>
             </div>
           </div>
-          <div class="gateway__form-row">
-            <div class="gateway__input">
-              <label for="gateway-username">Gateway username</label>
-              <input
-                type="text"
-                id="gateway-username"
-                name="username"
-                autocomplete="username"
-                required
-                placeholder="javery-partner"
-              >
-              <p class="gateway__error" data-error-for="gateway-username" role="alert"></p>
-            </div>
-            <div class="gateway__input">
-              <label for="gateway-password">Gateway password</label>
-              <input
-                type="password"
-                id="gateway-password"
-                name="password"
-                autocomplete="new-password"
-                minlength="8"
-                required
-                placeholder="Create a secure phrase (8+ characters)"
-              >
-              <span class="gateway__note"><i class="fa-solid fa-lock"></i>Use a phrase you do not reuse elsewhere.</span>
-              <p class="gateway__error" data-error-for="gateway-password" role="alert"></p>
-            </div>
-          </div>
-          <div class="gateway__form-row">
-            <div class="gateway__input">
-              <label for="gateway-passcode">Gateway passcode</label>
-              <input
-                type="password"
-                id="gateway-passcode"
-                name="passcode"
-                autocomplete="one-time-code"
-                required
-                placeholder="Enter your issued passcode"
-              >
-              <p class="gateway__error" data-error-for="gateway-passcode" role="alert"></p>
-            </div>
-          </div>
           <div class="gateway__input gateway__toggles" id="gateway-streams" role="group" aria-labelledby="gateway-streams-label">
             <span id="gateway-streams-label" class="gateway__toggle-label">Choose the intelligence streams to unlock</span>
             <div class="gateway__toggle-list">
               <label class="gateway-toggle">
-                <input type="checkbox" name="streams" value="investor-dossier" checked>
+                <input type="checkbox" name="streams" value="investor-dossier">
                 <span class="gateway-toggle__body">
                   <span class="gateway-toggle__indicator" aria-hidden="true"></span>
                   <span class="gateway-toggle__content">
@@ -684,18 +596,7 @@
                   </span>
                 </span>
               </label>
-              <label class="gateway-toggle">
-                <input type="checkbox" name="streams" value="guest-pass">
-                <span class="gateway-toggle__body">
-                  <span class="gateway-toggle__indicator" aria-hidden="true"></span>
-                  <span class="gateway-toggle__content">
-                    <span class="gateway-toggle__title">Guest pass fast track</span>
-                    <span class="gateway-toggle__copy">Bypass username and password creation—authenticate with the issued passcode only.</span>
-                  </span>
-                </span>
-              </label>
             </div>
-            <p class="gateway__input-note" id="gateway-guest-note">Selecting guest pass will disable username and password requirements.</p>
             <p class="gateway__error" data-error-for="gateway-streams" role="alert"></p>
           </div>
           <div class="gateway__input gateway__toggles gateway__toggles--secondary">
@@ -709,18 +610,6 @@
                 </span>
               </span>
             </label>
-          </div>
-          <div class="gateway__input">
-            <label for="gateway-qualifications">Qualifications and context</label>
-            <textarea
-              id="gateway-qualifications"
-              name="qualifications"
-              rows="4"
-              minlength="10"
-              required
-              placeholder="Briefly outline your role, relevant clearances, or procurement authority."
-            ></textarea>
-            <p class="gateway__error" data-error-for="gateway-qualifications" role="alert"></p>
           </div>
         </fieldset>
         <div class="gateway__actions">
@@ -749,16 +638,7 @@
     const statusCode = document.getElementById('gateway-status-code');
     const submitButton = document.querySelector('.gateway__submit');
     const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
-    const usernameField = document.getElementById('gateway-username');
-    const passwordField = document.getElementById('gateway-password');
-    const guestPassToggle = document.querySelector('input[name="streams"][value="guest-pass"]');
-    const guestPassNote = document.getElementById('gateway-guest-note');
     let selectedRole = '';
-
-    if (roleButtons.length) {
-      roleButtons[0].classList.add('is-selected');
-      selectedRole = roleButtons[0].dataset.role;
-    }
 
     roleButtons.forEach((button) => {
       button.addEventListener('click', () => {
@@ -767,9 +647,6 @@
         selectedRole = button.dataset.role;
       });
     });
-
-    guestPassToggle?.addEventListener('change', applyGuestPassState);
-    applyGuestPassState();
 
     function setError(id, message) {
       const field = document.getElementById(id);
@@ -787,47 +664,10 @@
     }
 
     function clearErrors() {
-      ['gateway-name', 'gateway-email', 'gateway-username', 'gateway-password', 'gateway-passcode', 'gateway-streams', 'gateway-qualifications'].forEach((id) =>
-        setError(id, '')
-      );
+      ['gateway-name', 'gateway-email', 'gateway-streams'].forEach((id) => setError(id, ''));
       const generalError = document.getElementById('gateway-general-error');
       if (generalError) generalError.remove();
       form?.removeAttribute('aria-describedby');
-    }
-
-    function applyGuestPassState() {
-      const guestSelected = !!(guestPassToggle && guestPassToggle.checked);
-      const usernameWrapper = usernameField?.closest('.gateway__input');
-      const passwordWrapper = passwordField?.closest('.gateway__input');
-
-      if (usernameField) {
-        usernameField.required = !guestSelected;
-        usernameField.disabled = guestSelected;
-      }
-
-      if (passwordField) {
-        passwordField.required = !guestSelected;
-        passwordField.disabled = guestSelected;
-      }
-
-      if (usernameWrapper) {
-        usernameWrapper.classList.toggle('is-soft-disabled', guestSelected);
-      }
-
-      if (passwordWrapper) {
-        passwordWrapper.classList.toggle('is-soft-disabled', guestSelected);
-      }
-
-      if (guestPassNote) {
-        guestPassNote.textContent = guestSelected
-          ? 'Guest pass enabled: only the issued passcode is required.'
-          : 'Selecting guest pass will disable username and password requirements.';
-      }
-
-      if (guestSelected) {
-        setError('gateway-username', '');
-        setError('gateway-password', '');
-      }
     }
 
     function showGeneralError(message) {
@@ -870,35 +710,11 @@
 
       const name = form.elements.namedItem('name');
       const email = form.elements.namedItem('email');
-      const username = form.elements.namedItem('username');
-      const password = form.elements.namedItem('password');
-      const passcode = form.elements.namedItem('passcode');
-      const qualifications = form.elements.namedItem('qualifications');
       const streamInputs = Array.from(form.querySelectorAll('input[name="streams"]'));
-      const selectedStreams = streamInputs.filter((input) => input.checked).map((input) => input.value);
-      const guestPassSelected = selectedStreams.includes('guest-pass');
       const databaseToggle = form.elements.namedItem('databaseOptIn');
 
       if (!name.value.trim()) {
         setError('gateway-name', 'Enter your full name to continue.');
-        hasError = true;
-      }
-
-      const usernameValue = username.value.trim();
-      if (!guestPassSelected && !usernameValue) {
-        setError('gateway-username', 'Provide a username so we can anchor your gateway identity.');
-        hasError = true;
-      }
-
-      const passwordValue = password.value.trim();
-      if (!guestPassSelected && (!passwordValue || passwordValue.length < 8)) {
-        setError('gateway-password', 'Create a gateway password with at least 8 characters.');
-        hasError = true;
-      }
-
-      const passcodeValue = passcode.value.trim();
-      if (!passcodeValue) {
-        setError('gateway-passcode', 'Enter the issued gateway passcode.');
         hasError = true;
       }
 
@@ -908,12 +724,7 @@
         hasError = true;
       }
 
-      const qualificationsValue = qualifications.value.trim();
-      if (!qualificationsValue || qualificationsValue.length < 10) {
-        setError('gateway-qualifications', 'Share a brief qualifications summary to contextualize your request.');
-        hasError = true;
-      }
-
+      const selectedStreams = streamInputs.filter((input) => input.checked).map((input) => input.value);
       if (selectedStreams.length === 0) {
         setError('gateway-streams', 'Select at least one access toggle to continue.');
         hasError = true;
@@ -929,10 +740,6 @@
       const requestPayload = {
         role: selectedRole,
         name: name.value.trim(),
-        username: guestPassSelected ? 'guest-pass' : usernameValue,
-        password: guestPassSelected ? 'guest-pass' : passwordValue,
-        passcode: passcodeValue,
-        qualifications: qualificationsValue,
         email: emailValue,
         streams: selectedStreams,
         databaseOptIn: !!databaseToggle && databaseToggle.checked
@@ -981,8 +788,6 @@
       const payload = {
         role: selectedRole,
         name: name.value.trim(),
-        username: username.value.trim(),
-        qualifications: qualificationsValue,
         streams: selectedStreams,
         databaseOptIn: !!(databaseToggle && databaseToggle.checked),
         grantedAt: now,

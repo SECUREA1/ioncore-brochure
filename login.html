@@ -2841,11 +2841,7 @@
     const ioncChartButton = document.getElementById('ionc-chart-button');
     const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
-    const rawNextPath = query.get('next');
-    const nextPath =
-      rawNextPath && rawNextPath.startsWith('/') && !rawNextPath.startsWith('//')
-        ? rawNextPath
-        : '/index.html';
+    const nextPath = query.get('next') || '/';
     const modeButtons = Array.from(document.querySelectorAll('.auth-mode[role="tab"]'));
     const panels = Array.from(document.querySelectorAll('.mode-panel'));
     const usernameInput = document.getElementById('username');

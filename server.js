@@ -550,10 +550,6 @@ function computeTreasuryHash(value) {
   }
 }
 
-function hashSecret(secret) {
-  return createHash('sha256').update(String(secret)).digest('hex');
-}
-
 function sanitizeUrl(value) {
   if (typeof value !== 'string') {
     return null;
@@ -652,9 +648,6 @@ async function recordGatewaySubmission(submission) {
     createdAt,
     role: normalizeForStorage(submission.role),
     name: normalizeForStorage(submission.name),
-    username: normalizeForStorage(submission.username),
-    passwordHash: submission.password ? hashSecret(submission.password) : '',
-    qualifications: normalizeForStorage(submission.qualifications),
     email: normalizeForStorage(submission.email),
     selections: serializeMetadata(selectionsValue),
     databaseOptIn: submission.databaseOptIn ? 1 : 0,
@@ -670,9 +663,6 @@ async function recordGatewaySubmission(submission) {
     store.gatewayUsers[entryId] = {
       role: record.role,
       name: record.name,
-      username: record.username,
-      passwordHash: record.passwordHash,
-      qualifications: record.qualifications,
       email: record.email,
       selections: record.selections,
       databaseOptIn: 1,
@@ -958,14 +948,9 @@ async function recordChatLedgerEntry(entry) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const METRICS_BASE = {
-  live: 11,
-  viewed: 392
-};
-
 const metrics = {
-  live: METRICS_BASE.live,
-  viewed: METRICS_BASE.viewed
+  live: 0,
+  viewed: 0
 };
 
 const activeSessions = new Map();
@@ -982,13 +967,12 @@ function pruneSessions() {
   }
 
   if (changed) {
-    metrics.live = METRICS_BASE.live + activeSessions.size;
+    metrics.live = activeSessions.size;
   }
 }
 
 const AUTH_USER = process.env.BASIC_AUTH_USER || 'guest';
 const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'boots';
-const GATEWAY_PASSCODE = process.env.GATEWAY_PASSCODE || 'roadrash';
 
 const COOKIE_NAME = 'ioncore_session';
 const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
@@ -1000,7 +984,7 @@ function registerSession() {
   pruneSessions();
   const sessionId = randomUUID();
   activeSessions.set(sessionId, Date.now());
-  metrics.live = METRICS_BASE.live + activeSessions.size;
+  metrics.live = activeSessions.size;
   metrics.viewed += 1;
   return sessionId;
 }
@@ -1011,7 +995,7 @@ function endSession(sessionId) {
   }
   pruneSessions();
   if (activeSessions.delete(sessionId)) {
-    metrics.live = METRICS_BASE.live + activeSessions.size;
+    metrics.live = activeSessions.size;
   }
 }
 
@@ -1124,9 +1108,14 @@ function generateMeknxPassId() {
 }
 
 app.get('/login', async (req, res) => {
-  const queryNext = typeof req.query.next === 'string' ? req.query.next : '/index.html';
-  const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/index.html';
-  res.redirect(`/login.html?next=${encodeURIComponent(safeNext)}`);
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
+    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
+    return res.redirect(safeNext);
+  }
+  await sendHtml(res, path.join(__dirname, 'login.html'));
 });
 
 app.post('/login', async (req, res) => {
@@ -1136,10 +1125,10 @@ app.post('/login', async (req, res) => {
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
   const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
-  let nextPath = typeof body.next === 'string' ? body.next : '/index.html';
+  let nextPath = typeof body.next === 'string' ? body.next : '/webpage.html';
 
   if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
-    nextPath = '/index.html';
+    nextPath = '/webpage.html';
   }
 
   const method = walletAddress
@@ -1424,16 +1413,8 @@ app.post('/gateway', async (req, res) => {
   const role = typeof body.role === 'string' ? body.role.trim().toLowerCase() : '';
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
-  const username = typeof body.username === 'string' ? body.username.trim() : '';
-  const password = typeof body.password === 'string' ? body.password.trim() : '';
-  const passcode = typeof body.passcode === 'string' ? body.passcode.trim() : '';
-  const qualifications = typeof body.qualifications === 'string' ? body.qualifications.trim() : '';
   const streamsRaw = body.streams;
   const databaseOptInRaw = body.databaseOptIn;
-
-  if (!passcode || passcode !== GATEWAY_PASSCODE) {
-    return res.status(401).json({ message: 'Enter the correct gateway passcode to continue.' });
-  }
 
   const roleLabels = new Map([
     ['investor', 'Investor'],
@@ -1449,22 +1430,6 @@ app.post('/gateway', async (req, res) => {
 
   if (!name) {
     return res.status(400).json({ message: 'Enter your full name to continue.' });
-  }
-
-  if (!username) {
-    return res.status(400).json({ message: 'Provide a username so we can anchor your gateway identity.' });
-  }
-
-  if (!password || password.length < 8) {
-    return res
-      .status(400)
-      .json({ message: 'Create a gateway password with at least 8 characters to continue.' });
-  }
-
-  if (!qualifications || qualifications.length < 10) {
-    return res
-      .status(400)
-      .json({ message: 'Share a brief qualifications summary to contextualize your request.' });
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1505,9 +1470,6 @@ app.post('/gateway', async (req, res) => {
   const submission = {
     role,
     name,
-    username,
-    password,
-    qualifications,
     email,
     selections: normalizedStreams,
     databaseOptIn,
@@ -1523,9 +1485,6 @@ app.post('/gateway', async (req, res) => {
       .status(500)
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
-
-  const sessionId = createAuthSession();
-  setSessionCookie(res, sessionId);
 
   const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
   const readableSelections = normalizedStreams.map((value) => streamOptions.get(value));
@@ -2166,7 +2125,13 @@ function isPublicRoute(req) {
     const publicHtml = new Set([
       '/login',
       '/login.html',
-      '/webpage-login.html'
+      '/',
+      '/webpage.html',
+      '/ioncore-contracting.html',
+      '/IONCORECHAT',
+      '/IONCORECHAT/',
+      '/IONCORECHAT/index',
+      '/IONCORECHAT/index.html'
     ]);
     if (publicHtml.has(req.path)) {
       return true;
@@ -2193,20 +2158,19 @@ function requireAuth(req, res, next) {
   }
 
   const sessionId = getSessionIdFromCookies(req);
-  const sessionValid = validateAuthSession(sessionId);
-
-  if (sessionValid) {
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
     return next();
   }
 
-  if (req.method === 'GET' || req.method === 'HEAD') {
-    const destination = encodeURIComponent(req.originalUrl || req.url || '/index.html');
-    return res.redirect(`/login.html?next=${destination}`);
-  }
+  clearSessionCookie(res);
 
-  return res
-    .status(401)
-    .json({ message: 'Gateway clearance required. Authenticate with the access passcode to continue.' });
+  const expectsHtml = req.method === 'GET' && req.accepts('html');
+  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
+  if (expectsHtml) {
+    return res.redirect(`/login?next=${nextPath}`);
+  }
+  res.status(401).json({ message: 'Authentication required' });
 }
 
 async function getHtmlFiles(dir) {
@@ -2235,7 +2199,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'index.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
 });
 
 app.get('/timepieces', async (req, res) => {

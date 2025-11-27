@@ -490,6 +490,19 @@
       gap: 0.4rem;
     }
 
+    .gateway__input-note {
+      margin: -0.25rem 0 0.25rem;
+      font-size: 0.85rem;
+      color: rgba(198, 216, 246, 0.82);
+    }
+
+    .gateway__input.is-soft-disabled input {
+      opacity: 0.55;
+      background: rgba(4, 12, 26, 0.45);
+      border-color: rgba(255, 255, 255, 0.08);
+      cursor: not-allowed;
+    }
+
     .gateway__optional {
       display: block;
       font-size: 0.75rem;
@@ -555,7 +568,7 @@
           <div class="gateway__badges" aria-hidden="true">
             <span class="gateway__badge"><i class="fa-solid fa-shield-halved"></i> SOC2-minded handling</span>
             <span class="gateway__badge"><i class="fa-solid fa-bolt"></i> Fast-track access</span>
-            <span class="gateway__badge"><i class="fa-solid fa-key"></i> Passcode: roadrash</span>
+            <span class="gateway__badge"><i class="fa-solid fa-key"></i> Passcode protected</span>
           </div>
         </div>
       </header>
@@ -671,7 +684,18 @@
                   </span>
                 </span>
               </label>
+              <label class="gateway-toggle">
+                <input type="checkbox" name="streams" value="guest-pass">
+                <span class="gateway-toggle__body">
+                  <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                  <span class="gateway-toggle__content">
+                    <span class="gateway-toggle__title">Guest pass fast track</span>
+                    <span class="gateway-toggle__copy">Bypass username and password creation—authenticate with the issued passcode only.</span>
+                  </span>
+                </span>
+              </label>
             </div>
+            <p class="gateway__input-note" id="gateway-guest-note">Selecting guest pass will disable username and password requirements.</p>
             <p class="gateway__error" data-error-for="gateway-streams" role="alert"></p>
           </div>
           <div class="gateway__input gateway__toggles gateway__toggles--secondary">
@@ -725,6 +749,10 @@
     const statusCode = document.getElementById('gateway-status-code');
     const submitButton = document.querySelector('.gateway__submit');
     const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
+    const usernameField = document.getElementById('gateway-username');
+    const passwordField = document.getElementById('gateway-password');
+    const guestPassToggle = document.querySelector('input[name="streams"][value="guest-pass"]');
+    const guestPassNote = document.getElementById('gateway-guest-note');
     let selectedRole = '';
 
     if (roleButtons.length) {
@@ -739,6 +767,9 @@
         selectedRole = button.dataset.role;
       });
     });
+
+    guestPassToggle?.addEventListener('change', applyGuestPassState);
+    applyGuestPassState();
 
     function setError(id, message) {
       const field = document.getElementById(id);
@@ -762,6 +793,41 @@
       const generalError = document.getElementById('gateway-general-error');
       if (generalError) generalError.remove();
       form?.removeAttribute('aria-describedby');
+    }
+
+    function applyGuestPassState() {
+      const guestSelected = !!(guestPassToggle && guestPassToggle.checked);
+      const usernameWrapper = usernameField?.closest('.gateway__input');
+      const passwordWrapper = passwordField?.closest('.gateway__input');
+
+      if (usernameField) {
+        usernameField.required = !guestSelected;
+        usernameField.disabled = guestSelected;
+      }
+
+      if (passwordField) {
+        passwordField.required = !guestSelected;
+        passwordField.disabled = guestSelected;
+      }
+
+      if (usernameWrapper) {
+        usernameWrapper.classList.toggle('is-soft-disabled', guestSelected);
+      }
+
+      if (passwordWrapper) {
+        passwordWrapper.classList.toggle('is-soft-disabled', guestSelected);
+      }
+
+      if (guestPassNote) {
+        guestPassNote.textContent = guestSelected
+          ? 'Guest pass enabled: only the issued passcode is required.'
+          : 'Selecting guest pass will disable username and password requirements.';
+      }
+
+      if (guestSelected) {
+        setError('gateway-username', '');
+        setError('gateway-password', '');
+      }
     }
 
     function showGeneralError(message) {
@@ -809,6 +875,8 @@
       const passcode = form.elements.namedItem('passcode');
       const qualifications = form.elements.namedItem('qualifications');
       const streamInputs = Array.from(form.querySelectorAll('input[name="streams"]'));
+      const selectedStreams = streamInputs.filter((input) => input.checked).map((input) => input.value);
+      const guestPassSelected = selectedStreams.includes('guest-pass');
       const databaseToggle = form.elements.namedItem('databaseOptIn');
 
       if (!name.value.trim()) {
@@ -816,13 +884,14 @@
         hasError = true;
       }
 
-      if (!username.value.trim()) {
+      const usernameValue = username.value.trim();
+      if (!guestPassSelected && !usernameValue) {
         setError('gateway-username', 'Provide a username so we can anchor your gateway identity.');
         hasError = true;
       }
 
       const passwordValue = password.value.trim();
-      if (!passwordValue || passwordValue.length < 8) {
+      if (!guestPassSelected && (!passwordValue || passwordValue.length < 8)) {
         setError('gateway-password', 'Create a gateway password with at least 8 characters.');
         hasError = true;
       }
@@ -848,7 +917,6 @@
         hasError = true;
       }
 
-      const selectedStreams = streamInputs.filter((input) => input.checked).map((input) => input.value);
       if (selectedStreams.length === 0) {
         setError('gateway-streams', 'Select at least one access toggle to continue.');
         hasError = true;
@@ -864,8 +932,8 @@
       const requestPayload = {
         role: selectedRole,
         name: name.value.trim(),
-        username: username.value.trim(),
-        password: passwordValue,
+        username: guestPassSelected ? 'guest-pass' : usernameValue,
+        password: guestPassSelected ? 'guest-pass' : passwordValue,
         passcode: passcodeValue,
         qualifications: qualificationsValue,
         email: emailValue,

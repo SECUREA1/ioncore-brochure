@@ -626,14 +626,14 @@
           </div>
           <div class="gateway__form-row">
             <div class="gateway__input">
-              <label for="gateway-passcode">Gateway passcode <span class="gateway__optional">Required code: roadrash</span></label>
+              <label for="gateway-passcode">Gateway passcode</label>
               <input
                 type="password"
                 id="gateway-passcode"
                 name="passcode"
                 autocomplete="one-time-code"
                 required
-                placeholder="Type roadrash to continue"
+                placeholder="Enter your issued passcode"
               >
               <p class="gateway__error" data-error-for="gateway-passcode" role="alert"></p>
             </div>
@@ -832,7 +832,7 @@
         setError('gateway-passcode', 'Enter the issued gateway passcode.');
         hasError = true;
       } else if (passcodeValue.toLowerCase() !== 'roadrash') {
-        setError('gateway-passcode', 'Use the current passcode: roadrash.');
+        setError('gateway-passcode', 'Passcode not recognized. Confirm the issued code to continue.');
         hasError = true;
       }
 

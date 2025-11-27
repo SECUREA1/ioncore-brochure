@@ -900,9 +900,6 @@
       if (!passcodeValue) {
         setError('gateway-passcode', 'Enter the issued gateway passcode.');
         hasError = true;
-      } else if (passcodeValue.toLowerCase() !== 'roadrash') {
-        setError('gateway-passcode', 'Passcode not recognized. Confirm the issued code to continue.');
-        hasError = true;
       }
 
       const emailValue = email.value.trim();

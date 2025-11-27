@@ -1124,9 +1124,9 @@ function generateMeknxPassId() {
 }
 
 app.get('/login', async (req, res) => {
-  const queryNext = typeof req.query.next === 'string' ? req.query.next : '/webpage.html';
-  const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/webpage.html';
-  res.redirect(safeNext);
+  const queryNext = typeof req.query.next === 'string' ? req.query.next : '/index.html';
+  const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/index.html';
+  res.redirect(`/login.html?next=${encodeURIComponent(safeNext)}`);
 });
 
 app.post('/login', async (req, res) => {
@@ -1136,10 +1136,10 @@ app.post('/login', async (req, res) => {
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
   const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
-  let nextPath = typeof body.next === 'string' ? body.next : '/webpage.html';
+  let nextPath = typeof body.next === 'string' ? body.next : '/index.html';
 
   if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
-    nextPath = '/webpage.html';
+    nextPath = '/index.html';
   }
 
   const method = walletAddress
@@ -2200,8 +2200,8 @@ function requireAuth(req, res, next) {
   }
 
   if (req.method === 'GET' || req.method === 'HEAD') {
-    const destination = encodeURIComponent(req.originalUrl || req.url || '/webpage.html');
-    return res.redirect(`/webpage-login.html?next=${destination}`);
+    const destination = encodeURIComponent(req.originalUrl || req.url || '/index.html');
+    return res.redirect(`/login.html?next=${destination}`);
   }
 
   return res
@@ -2235,7 +2235,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage.html'));
+  await sendHtml(res, path.join(__dirname, 'index.html'));
 });
 
 app.get('/timepieces', async (req, res) => {

@@ -2777,6 +2777,27 @@
             <label for="password">Clearance Code</label>
             <input id="password" name="password" type="password" placeholder="••••••••">
           </div>
+          <div class="field">
+            <label for="gateway-passcode">Gateway Passcode</label>
+            <input
+              id="gateway-passcode"
+              name="gatewayPasscode"
+              type="password"
+              placeholder="Enter gateway code"
+              autocomplete="off"
+              aria-describedby="gateway-passcode-hint"
+              required
+            >
+            <p id="gateway-passcode-hint" class="field__hint">Gateway passcode required. Use your issued code.</p>
+          </div>
+          <div class="field">
+            <label for="guest-type">Guest Type</label>
+            <select id="guest-type" name="guestType">
+              <option value="delegate">Enterprise delegate or partner review</option>
+              <option value="learning">Interested in learning more (guest)</option>
+            </select>
+            <p class="field__hint">Select your visitor type. Choose “Interested in learning more” to explore as a guest.</p>
+          </div>
         </div>
         <div class="mode-panel" id="meknx-panel" data-mode="meknx" role="tabpanel" aria-labelledby="tab-meknx" hidden>
           <div class="meknx-access-grid">
@@ -2784,7 +2805,7 @@
             <p class="meknx-description">Validate your MEKNX access credential or mint a fresh professional pass to enter the portal.</p>
             <div class="meknx-token-inputs">
               <label for="meknx-passcode">Access Token</label>
-              <input id="meknx-passcode" name="meknxPasscode" type="text" placeholder="MEKNX-ACCESS-0001" autocomplete="off">
+              <input id="meknx-passcode" name="meknxPasscode" type="password" placeholder="••••••••" autocomplete="off">
             </div>
             <div class="meknx-actions">
               <div class="wallet-connect-row">

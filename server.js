@@ -132,6 +132,9 @@ const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 await fs.mkdir(BACKUP_DIR, { recursive: true });
 
+const BACKUP_FILE_PREFIX = 'gateway-store-backup-';
+const BACKUP_FILE_EXTENSION = '.json';
+
 const FILE_BROADCAST_SCAN_INTERVAL_MS = 1000 * 60;
 const FILE_BROADCAST_IGNORE_DIRS = new Set(['node_modules', 'data', '.git', '.github', '.cache', '.next']);
 const FILE_AUDIO_EXTENSIONS = new Set(['.mp3', '.wav', '.ogg', '.m4a', '.flac']);
@@ -221,6 +224,59 @@ async function saveStore() {
   } catch (error) {
     console.error('Failed to persist gateway store', error);
     throw error;
+  }
+}
+
+async function createBackupSnapshot() {
+  try {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `${BACKUP_FILE_PREFIX}${timestamp}${BACKUP_FILE_EXTENSION}`;
+    const destination = path.join(BACKUP_DIR, filename);
+    const payload = JSON.stringify(store, null, 2);
+    await fs.writeFile(destination, payload, 'utf8');
+    return destination;
+  } catch (error) {
+    console.error('Failed to create backup snapshot', error);
+    throw error;
+  }
+}
+
+async function getBackupSummary() {
+  try {
+    const entries = await fs.readdir(BACKUP_DIR, { withFileTypes: true });
+    const snapshots = [];
+
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith(BACKUP_FILE_EXTENSION)) {
+        continue;
+      }
+
+      const fullPath = path.join(BACKUP_DIR, entry.name);
+      try {
+        const stats = await fs.stat(fullPath);
+        snapshots.push({ name: entry.name, modified: stats.mtimeMs, size: stats.size });
+      } catch (error) {
+        console.warn('Unable to inspect backup snapshot', entry.name, error);
+      }
+    }
+
+    snapshots.sort((a, b) => b.modified - a.modified);
+    const latest = snapshots[0];
+
+    return {
+      totalBackups: snapshots.length,
+      lastBackupAt: latest ? new Date(latest.modified).toISOString() : null,
+      lastBackupFile: latest ? latest.name : null,
+      lastBackupSizeBytes: latest ? latest.size : null
+    };
+  } catch (error) {
+    console.error('Failed to summarize backups', error);
+    return {
+      totalBackups: 0,
+      lastBackupAt: null,
+      lastBackupFile: null,
+      lastBackupSizeBytes: null
+    };
   }
 }
 

@@ -4,3 +4,4 @@ data/*.db-shm
 data/*.db-wal
 data/*.json
 !data/gateway-store.json
+data/backups/

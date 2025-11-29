@@ -197,6 +197,35 @@
       font-size: 0.94rem;
     }
 
+    .reference-links {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-left: 6px;
+    }
+
+    .reference-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-decoration: none;
+      box-shadow: var(--tile-glow-rest);
+      transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .reference-btn:hover,
+    .reference-btn:focus-visible {
+      border-color: var(--accent);
+      color: var(--text-high);
+      transform: translateY(-1px);
+    }
+
     .highlight {
       color: var(--accent);
       font-weight: 700;
@@ -240,12 +269,21 @@
           <div class="valuation-pill">
             <small>Capital focus</small>
             <strong>USD 10M raise</strong>
-            <span class="note">Scaling builds, pilots, UL/CE/CSA pathways, and IP filings.【F:fundraising.html†L37-L55】【F:fundraising.html†L154-L190】</span>
+            <span class="note">Scaling builds, pilots, UL/CE/CSA pathways, and IP filings.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L37-L55">fundraising.html#L37-L55</a>
+                <a class="reference-btn" href="fundraising.html#L154-L190">fundraising.html#L154-L190</a>
+              </span>
+            </span>
           </div>
           <div class="valuation-pill">
             <small>Market scope</small>
             <strong>Storage, propulsion, sensing</strong>
-            <span class="note">Multi-market platform with energy, aviation, and surveillance brochures; structured as a core rotor + controls stack.【F:index.html†L41-L140】</span>
+            <span class="note">Multi-market platform with energy, aviation, and surveillance brochures; structured as a core rotor + controls stack.
+              <span class="reference-links">
+                <a class="reference-btn" href="index.html#L41-L140">index.html#L41-L140</a>
+              </span>
+            </span>
           </div>
         </div>
         <div class="cta-row">
@@ -262,9 +300,21 @@
         <h2>Executive snapshot</h2>
         <p>Ioncore is building a magnetic inertia platform with energy storage, propulsion, cooling, and surveillance solutions. Materials position the brand as a resilient, ultra-efficient alternative to conventional storage and backup power while acknowledging current pre-production status and a staged certification journey.</p>
         <ul class="standard-list">
-          <li><strong>Promise:</strong> 98–99% round-trip efficiency, long life, and grid independence for critical operations.【F:fundraising.html†L27-L135】</li>
-        <li><strong>Readiness:</strong> Patent-pending systems; no live-deployment certifications yet; performance data primarily lab and simulation-based.【F:industrial.html†L446-L470】</li>
-        <li><strong>Value lens:</strong> Large TAMs (storage, UPS, EV charging) with blended revenue—hardware sales, PPAs/leases, services, and licensing, anchored by a common rotor/control platform for multiple end-markets.【F:fundraising.html†L58-L114】</li>
+          <li><strong>Promise:</strong> 98–99% round-trip efficiency, long life, and grid independence for critical operations.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L27-L135">fundraising.html#L27-L135</a>
+            </span>
+          </li>
+        <li><strong>Readiness:</strong> Patent-pending systems; no live-deployment certifications yet; performance data primarily lab and simulation-based.
+          <span class="reference-links">
+            <a class="reference-btn" href="industrial.html#L446-L470">industrial.html#L446-L470</a>
+          </span>
+        </li>
+        <li><strong>Value lens:</strong> Large TAMs (storage, UPS, EV charging) with blended revenue—hardware sales, PPAs/leases, services, and licensing, anchored by a common rotor/control platform for multiple end-markets.
+          <span class="reference-links">
+            <a class="reference-btn" href="fundraising.html#L58-L114">fundraising.html#L58-L114</a>
+          </span>
+        </li>
         </ul>
       </section>
 
@@ -273,17 +323,45 @@
         <p>Headline raise details and traction highlights from the fundraising brief, with quick links back to the source page.</p>
         <h3>Value proposition</h3>
         <ul class="standard-list">
-          <li><strong>Ultra-high efficiency:</strong> Magnetic inertia storage with near-zero degradation over time.【F:fundraising.html†L30-L36】</li>
-          <li><strong>Grid independence:</strong> Seamless backup or off-grid operation to avoid downtime.【F:fundraising.html†L32-L35】</li>
-          <li><strong>Modular &amp; scalable:</strong> Configurable from residential-scale to multi-MW industrial systems.【F:fundraising.html†L32-L35】</li>
-          <li><strong>Environmental leadership:</strong> Designed for substantial CO₂ reduction and compliance with green-building certifications.【F:fundraising.html†L34-L36】</li>
+          <li><strong>Ultra-high efficiency:</strong> Magnetic inertia storage with near-zero degradation over time.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L30-L36">fundraising.html#L30-L36</a>
+            </span>
+          </li>
+          <li><strong>Grid independence:</strong> Seamless backup or off-grid operation to avoid downtime.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L32-L35">fundraising.html#L32-L35</a>
+            </span>
+          </li>
+          <li><strong>Modular &amp; scalable:</strong> Configurable from residential-scale to multi-MW industrial systems.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L32-L35">fundraising.html#L32-L35</a>
+            </span>
+          </li>
+          <li><strong>Environmental leadership:</strong> Designed for substantial CO₂ reduction and compliance with green-building certifications.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L34-L36">fundraising.html#L34-L36</a>
+            </span>
+          </li>
         </ul>
 
         <h3>Fundraising ask</h3>
         <ul class="standard-list">
-          <li><strong>Total raise:</strong> USD 10 million.【F:fundraising.html†L37-L42】</li>
-          <li><strong>Use of proceeds:</strong> Scale manufacturing, launch pilot projects, accelerate R&amp;D, and secure patents.【F:fundraising.html†L39-L41】</li>
-          <li><strong>Target close:</strong> Q4 2025.【F:fundraising.html†L41-L42】</li>
+          <li><strong>Total raise:</strong> USD 10 million.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L37-L42">fundraising.html#L37-L42</a>
+            </span>
+          </li>
+          <li><strong>Use of proceeds:</strong> Scale manufacturing, launch pilot projects, accelerate R&amp;D, and secure patents.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L39-L41">fundraising.html#L39-L41</a>
+            </span>
+          </li>
+          <li><strong>Target close:</strong> Q4 2025.
+            <span class="reference-links">
+              <a class="reference-btn" href="fundraising.html#L41-L42">fundraising.html#L41-L42</a>
+            </span>
+          </li>
         </ul>
 
         <h3>Traction &amp; milestones</h3>
@@ -313,21 +391,38 @@
         <li class="card-item">
           <strong>Origin &amp; IP</strong>
           <ul>
-            <li>Magnetic inertia core conceived for ultra-efficient storage with regenerative cooling pathways; patent filings in motion across rotor geometry, control electronics, and hybrid storage stacks.【F:fundraising.html†L178-L190】</li>
-            <li>Reference brochures show consistent rotor + controls architecture reused across storage, propulsion, and sensing applications.【F:index.html†L41-L140】</li>
+            <li>Magnetic inertia core conceived for ultra-efficient storage with regenerative cooling pathways; patent filings in motion across rotor geometry, control electronics, and hybrid storage stacks.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L178-L190">fundraising.html#L178-L190</a>
+              </span>
+            </li>
+            <li>Reference brochures show consistent rotor + controls architecture reused across storage, propulsion, and sensing applications.
+              <span class="reference-links">
+                <a class="reference-btn" href="index.html#L41-L140">index.html#L41-L140</a>
+              </span>
+            </li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Build milestones</strong>
           <ul>
-            <li>Bench prototypes validated for efficiency and thermal stability; cryogenic and cooling subsystems outlined for next-gen builds.【F:fundraising.html†L37-L55】【F:industrial.html†L446-L470】</li>
+            <li>Bench prototypes validated for efficiency and thermal stability; cryogenic and cooling subsystems outlined for next-gen builds.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L37-L55">fundraising.html#L37-L55</a>
+                <a class="reference-btn" href="industrial.html#L446-L470">industrial.html#L446-L470</a>
+              </span>
+            </li>
             <li>Fieldable pilot units and certification test articles are the next gating deliverables, tied to the current raise.</li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Market validation</strong>
           <ul>
-            <li>Healthcare/data-centre UPS and EV charging selected as first serviceable markets with clear uptime economics and PPA potential.【F:fundraising.html†L58-L114】</li>
+            <li>Healthcare/data-centre UPS and EV charging selected as first serviceable markets with clear uptime economics and PPA potential.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L58-L114">fundraising.html#L58-L114</a>
+              </span>
+            </li>
             <li>Brochures for aviation propulsion and surveillance create optionality but remain pre-certification.</li>
           </ul>
         </li>
@@ -352,21 +447,41 @@
         <li class="card-item">
           <strong>Energy storage &amp; cooling</strong>
           <ul>
-            <li>Magnetic inertia storage, hybrid flywheel + battery, cryogenic cooling subsystems.【F:index.html†L41-L140】</li>
-            <li>High-efficiency claims with pending UL 9540/CE/CSA certifications.【F:fundraising.html†L178-L190】</li>
+            <li>Magnetic inertia storage, hybrid flywheel + battery, cryogenic cooling subsystems.
+              <span class="reference-links">
+                <a class="reference-btn" href="index.html#L41-L140">index.html#L41-L140</a>
+              </span>
+            </li>
+            <li>High-efficiency claims with pending UL 9540/CE/CSA certifications.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L178-L190">fundraising.html#L178-L190</a>
+              </span>
+            </li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Propulsion</strong>
           <ul>
-            <li>Magnetic Inertia Jet Engine with regenerative power recovery and thrust targets for UAV to hypersonic envelopes.【F:Magnetic Inertia Jet Engine.html†L35-L120】</li>
-            <li>Requires FAA/EASA certification path; currently in concept/lab validation stage.【F:industrial.html†L446-L470】</li>
+            <li>Magnetic Inertia Jet Engine with regenerative power recovery and thrust targets for UAV to hypersonic envelopes.
+              <span class="reference-links">
+                <a class="reference-btn" href="Magnetic Inertia Jet Engine.html#L35-L120">Magnetic Inertia Jet Engine.html#L35-L120</a>
+              </span>
+            </li>
+            <li>Requires FAA/EASA certification path; currently in concept/lab validation stage.
+              <span class="reference-links">
+                <a class="reference-btn" href="industrial.html#L446-L470">industrial.html#L446-L470</a>
+              </span>
+            </li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Surveillance &amp; controls</strong>
           <ul>
-            <li>Sentinel multi-cam AI, neural consoles, and integrated node systems for monitoring and control.【F:index.html†L100-L133】</li>
+            <li>Sentinel multi-cam AI, neural consoles, and integrated node systems for monitoring and control.
+              <span class="reference-links">
+                <a class="reference-btn" href="index.html#L100-L133">index.html#L100-L133</a>
+              </span>
+            </li>
             <li>Cybersecurity posture and compliance frameworks not yet detailed in brochures.</li>
           </ul>
         </li>
@@ -386,13 +501,21 @@
           <strong>Hardware &amp; project sales</strong>
           <ul>
             <li>One-time unit sales for 100 kW–1 MW storage blocks with margin uplift through proprietary rotors and controls.</li>
-            <li>Integrated turnkey projects (storage + cooling + controls) for hospitals, data centres, and industrials.【F:fundraising.html†L58-L114】</li>
+            <li>Integrated turnkey projects (storage + cooling + controls) for hospitals, data centres, and industrials.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L58-L114">fundraising.html#L58-L114</a>
+              </span>
+            </li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Recurring energy revenues</strong>
           <ul>
-            <li>Power purchase agreements (USD 1.80–2.50/kWh) and availability-based leases with uptime SLAs.【F:fundraising.html†L115-L125】</li>
+            <li>Power purchase agreements (USD 1.80–2.50/kWh) and availability-based leases with uptime SLAs.
+              <span class="reference-links">
+                <a class="reference-btn" href="fundraising.html#L115-L125">fundraising.html#L115-L125</a>
+              </span>
+            </li>
             <li>Monitoring, maintenance, and predictive analytics subscriptions layered on deployed assets.</li>
           </ul>
         </li>
@@ -458,22 +581,47 @@
         <li class="card-item">
           <strong>Target markets</strong>
           <ul>
-            <li>Grid storage, healthcare/data-centre UPS, EV charging; TAMs cited at USD 500B (storage), USD 40B (UPS), USD 30B (EV charging).【F:fundraising.html†L58-L67】</li>
-            <li>Initial serviceable focus on ~USD 5B healthcare/data-centre segment.【F:fundraising.html†L58-L67】</li>
+              <li>Grid storage, healthcare/data-centre UPS, EV charging; TAMs cited at USD 500B (storage), USD 40B (UPS), USD 30B (EV charging).
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L58-L67">fundraising.html#L58-L67</a>
+                </span>
+              </li>
+              <li>Initial serviceable focus on ~USD 5B healthcare/data-centre segment.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L58-L67">fundraising.html#L58-L67</a>
+                </span>
+              </li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Revenue levers</strong>
           <ul>
-            <li>Hardware sales, PPAs/leases, monitoring &amp; service contracts, and technology licensing.【F:fundraising.html†L107-L114】</li>
-            <li>Illustrative pricing: USD 120k (100 kW) to USD 1M (1 MW) with PPA rates of USD 1.80–2.50/kWh.【F:fundraising.html†L115-L125】</li>
+              <li>Hardware sales, PPAs/leases, monitoring &amp; service contracts, and technology licensing.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L107-L114">fundraising.html#L107-L114</a>
+                </span>
+              </li>
+              <li>Illustrative pricing: USD 120k (100 kW) to USD 1M (1 MW) with PPA rates of USD 1.80–2.50/kWh.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L115-L125">fundraising.html#L115-L125</a>
+                </span>
+              </li>
           </ul>
         </li>
         <li class="card-item">
           <strong>Capital &amp; milestones</strong>
           <ul>
-            <li>USD 10M raise to scale manufacturing, deploy pilots, and secure patents; UL testing underway with CE/CSA targets in 2026.【F:fundraising.html†L37-L55】【F:fundraising.html†L178-L190】</li>
-            <li>Five-year outlook: USD 50M revenue, ~25% EBITDA, break-even by mid-Year 3; exit options include OEM M&amp;A or IPO post-USD 100M revenue.【F:fundraising.html†L154-L219】</li>
+              <li>USD 10M raise to scale manufacturing, deploy pilots, and secure patents; UL testing underway with CE/CSA targets in 2026.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L37-L55">fundraising.html#L37-L55</a>
+                  <a class="reference-btn" href="fundraising.html#L178-L190">fundraising.html#L178-L190</a>
+                </span>
+              </li>
+              <li>Five-year outlook: USD 50M revenue, ~25% EBITDA, break-even by mid-Year 3; exit options include OEM M&amp;A or IPO post-USD 100M revenue.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L154-L219">fundraising.html#L154-L219</a>
+                </span>
+              </li>
           </ul>
         </li>
       </ul>
@@ -486,7 +634,11 @@
         <li class="card-item">
           <strong>Raise structure</strong>
           <ul>
-            <li>Current: USD 10M seed/Series A hybrid to fund pilots, certification, and production tooling.【F:fundraising.html†L37-L55】</li>
+              <li>Current: USD 10M seed/Series A hybrid to fund pilots, certification, and production tooling.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L37-L55">fundraising.html#L37-L55</a>
+                </span>
+              </li>
             <li>Preferred equity with 1–1.5x non-participating liquidation preference; board seat plus information rights.</li>
           </ul>
         </li>
@@ -507,7 +659,11 @@
         <li class="card-item">
           <strong>Exit pathways</strong>
           <ul>
-            <li>Strategic M&amp;A by grid storage OEMs, aviation integrators, or industrial automation players once USD 50–100M revenue is visible.【F:fundraising.html†L154-L219】</li>
+              <li>Strategic M&amp;A by grid storage OEMs, aviation integrators, or industrial automation players once USD 50–100M revenue is visible.
+                <span class="reference-links">
+                  <a class="reference-btn" href="fundraising.html#L154-L219">fundraising.html#L154-L219</a>
+                </span>
+              </li>
             <li>IPO optionality post-profitability with platform narrative across storage, propulsion, and sensing.</li>
           </ul>
         </li>

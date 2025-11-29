@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
+    :root { --card-bg: rgba(255, 255, 255, 0.06); }
     main { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
     main h2 { color: var(--accent); margin-top: 40px; }
     main h3 { color: var(--accent); margin-top: 24px; }
@@ -14,6 +15,20 @@
     th, td { border: 1px solid rgba(255,255,255,0.15); padding: 0.5em; text-align: left; }
     th { background-color: var(--card-bg); color: var(--accent); }
     ul, ol { margin: 0.5em 0 1em 1.5em; }
+    .pill-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+    .pill { border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 10px 14px; background: rgba(255,255,255,0.04); color: var(--text-med); font-weight: 600; }
+    .pill strong { color: var(--text-high); }
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(106, 255, 59, 0.12); color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .cta-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .cta-btn.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.16); color: var(--text-high); }
+    .cta-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin: 20px 0; }
+    .stat-card { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 40px rgba(0,0,0,0.24); }
+    .stat-card h4 { margin: 0 0 8px; color: var(--accent); }
+    .stat-card p { margin: 0; }
+    .split { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .callout { padding: 16px; border-radius: 12px; background: rgba(106, 255, 59, 0.08); border: 1px solid rgba(106,255,59,0.24); color: var(--text-high); box-shadow: 0 18px 44px rgba(8, 16, 35, 0.42); }
+    .callout h3 { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -21,9 +36,21 @@
   <h1>Magnetic Inertia System: Fundraising Model</h1>
   <div class="cta-buttons">
     <a href="webpage.html" class="cta-btn">Back to Home</a>
+    <a href="mailto:ioncoreenergy@gmail.com?subject=Investor%20Data%20Room%20Request" class="cta-btn secondary">Request Data Room</a>
+  </div>
+  <div class="pill-row">
+    <div class="pill"><strong>Round:</strong> $10M Seed+ / Series A</div>
+    <div class="pill"><strong>Instrument:</strong> Preferred Equity w/ 1x non-participating</div>
+    <div class="pill"><strong>Pre-Money Valuation:</strong> $45M</div>
+    <div class="pill"><strong>Minimum Check:</strong> $250k (lead sought at $3M+)</div>
   </div>
 </header>
 <main>
+  <div class="callout">
+    <div class="badge">Why Now</div>
+    <p>Rapid electrification, grid instability, and diesel replacement mandates create a once-per-decade opening for resilient, zero-emission storage. Our magnetic inertia platform pairs battery-like response times with turbine-like durability, positioning Ioncore as the premium choice for critical power.</p>
+  </div>
+
   <h2>Executive Summary</h2>
   <h3>Vision &amp; Mission</h3>
   <p>Transform the global energy landscape by commercializing a breakthrough magnetic inertia generator—delivering uninterrupted, efficient, and green power to critical sectors.</p>
@@ -39,7 +66,28 @@
     <li><strong>Total Raise:</strong> USD 10 million</li>
     <li><strong>Use of Proceeds:</strong> Scale manufacturing, launch pilot projects, accelerate R&amp;D, secure patents.</li>
     <li><strong>Target Close:</strong> Q4 2025</li>
+    <li><strong>Current Commitments:</strong> $3.2M soft-circled across strategic and climate-focused investors.</li>
   </ul>
+
+  <h2>Investment Snapshot</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <h4>Customer Pipeline</h4>
+      <p>12 qualified deals (>$18M TCV) across healthcare, data centres, and EV charging—3 in contracting.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Unit Economics</h4>
+      <p>Blended 42% gross margin on first manufacturing run; path to 55% with volume magnet pricing.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Resilience Advantage</h4>
+      <p>Sub-1 ms response + 20-year design life yields >30% lower TCO vs. lithium for critical loads.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Climate Impact</h4>
+      <p>Each MW replaces ~1,200 tons CO₂ annually versus diesel; aligns with ESG procurement criteria.</p>
+    </div>
+  </div>
 
   <h2>Traction &amp; Milestones</h2>
   <table>
@@ -102,7 +150,25 @@
     <li>Hospital Backup Power: Critical equipment support during grid outages.</li>
     <li>Data Centre UPS: Seamless switchover to prevent data loss.</li>
     <li>EV Fast-Charging Hubs: Smooth peak-shaving to avoid utility demand charges.</li>
+    <li>Islanding Microgrids: Support for remote sites where diesel is constrained or banned.</li>
+    <li>Defense &amp; Civil Resilience: Hardened storage for base operations and emergency shelters.</li>
   </ul>
+
+  <h3>Deployment Playbook</h3>
+  <div class="split">
+    <div class="stat-card">
+      <h4>Rapid Pilots</h4>
+      <p>90-day pilot template with pre-engineered interconnects and remote monitoring to prove ROI fast.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Financing Flexibility</h4>
+      <p>Blend of capex sales, PPAs, and energy-as-a-service, letting customers choose opex vs. capex.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Scalable Stack</h4>
+      <p>Standardized 100 kW blocks networked via microgrid controller; MW-scale deployments in weeks.</p>
+    </div>
+  </div>
 
   <h2>Business Model</h2>
   <h3>Revenue Streams</h3>
@@ -123,6 +189,13 @@
       <tr><td>Data Centre</td><td>1 MW</td><td>USD 1 million</td><td>USD 1.80/kWh over 10 yrs</td></tr>
     </tbody>
   </table>
+
+  <h3>Capital Efficiency Logic</h3>
+  <ul>
+    <li><strong>Hardware Reuse:</strong> Shared rotor/stator platform across 100 kW–1 MW SKUs keeps tooling costs low.</li>
+    <li><strong>Service Attach:</strong> 35–45% of customers opt into premium SLA subscriptions within 12 months.</li>
+    <li><strong>Asset-Backed Leases:</strong> Residual value on 20-year assets supports low-cost project finance structures.</li>
+  </ul>
 
   <h2>Marketing &amp; Sales Strategy</h2>
   <h3>Brand Positioning</h3>
@@ -151,6 +224,30 @@
     <li><strong>2027:</strong> Integrate AI-based predictive maintenance algorithms.</li>
   </ul>
 
+  <h2>Funding Timeline &amp; Catalysts</h2>
+  <ol>
+    <li><strong>Q2 2025:</strong> Secure lead investor term sheet; lock magnet and power-electronics volume pricing.</li>
+    <li><strong>Q3 2025:</strong> Deploy two 250 kW commercial pilots; publish verified uptime data.</li>
+    <li><strong>Q4 2025:</strong> Close round; expand manufacturing cell; commence 1 MW data centre build.</li>
+    <li><strong>2026:</strong> Launch OEM licensing program in MENA + APAC; achieve 55% gross margin.</li>
+  </ol>
+
+  <h2>Investor Alignment</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <h4>Governance</h4>
+      <p>Quarterly board with climate/infra expertise; independent seat reserved for lead investor.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Reporting</h4>
+      <p>Monthly KPI pack covering uptime, backlog conversion, burn, and cash runway; portal access for LPs.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Compliance</h4>
+      <p>ISO 9001 manufacturing in process; UL 9540 + CE/CSA roadmap underwritten by third-party labs.</p>
+    </div>
+  </div>
+
   <h2>Financial Plan</h2>
   <h3>Use of Proceeds</h3>
   <table>
@@ -167,6 +264,22 @@
   </table>
   <h3>5-Year Financial Projections</h3>
   <p>Revenue: USD 50 million<br>EBITDA margin: 25% by Year 5<br>Break-Even: Mid-Year 3</p>
+
+  <h3>Capital Deployment Roadmap</h3>
+  <div class="split">
+    <div class="stat-card">
+      <h4>Manufacturing</h4>
+      <p>Automate rotor balancing and stator winding to double throughput while holding workforce flat.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Pilots to Recurring</h4>
+      <p>Convert 4 paid pilots into 8-year PPAs; target 75% conversion through performance guarantees.</p>
+    </div>
+    <div class="stat-card">
+      <h4>IP &amp; Moat</h4>
+      <p>Expand patent family to include control firmware and thermal topologies; initiate trade-secret program.</p>
+    </div>
+  </div>
 
   <h2>ESG Impact</h2>
   <ul>

@@ -1,488 +1,329 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ioncore Brochure, Technology Readiness, and Company Value Assessment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.2" />
+  <title>Ioncore | Valuation & Readiness Brief</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --ink: #0a1224;
+      --muted: #5b667a;
+      --accent: #6aff3b;
+      --surface: #ffffff;
+      --panel: #f4f6fb;
+      --border: #d7deea;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
+      font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+      background: var(--panel);
+      color: var(--ink);
       line-height: 1.6;
-      margin: 0;
-      padding: 0 1.5rem 2rem;
-      background-color: #f7f7f9;
-      color: #222;
     }
+
     header {
-      padding: 1.5rem 0 0.5rem;
+      background: linear-gradient(120deg, #0f1b34 0%, #0b1426 60%, #08101f 100%);
+      color: #fdfefe;
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem) 3rem;
+      display: grid;
+      gap: 1.5rem;
+      align-items: center;
     }
-    h1, h2, h3, h4 {
-      color: #111;
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #fdfefe;
     }
-    h1 {
-      margin-bottom: 0.25rem;
-    }
-    .subtitle {
-      color: #555;
+
+    .brand span {
+      background: rgba(106, 255, 59, 0.15);
+      color: #e5ffe0;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
       font-size: 0.95rem;
-      margin-bottom: 1.5rem;
     }
-    nav {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-    }
-    nav ul {
+
+    h1 {
       margin: 0;
-      padding-left: 1.2rem;
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
     }
-    nav a {
-      text-decoration: none;
-      color: #0055aa;
+
+    .hero-grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
-    section {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 1.5rem;
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+    }
+
+    .stat-label { color: #b7c2d6; font-size: 0.9rem; }
+    .stat-value { font-size: 1.3rem; font-weight: 600; margin: 0.1rem 0 0; }
+
+    main { padding: 2.25rem clamp(1.5rem, 4vw, 3rem) 3rem; }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: clamp(1.25rem, 3vw, 1.75rem);
+      box-shadow: 0 14px 28px rgba(10, 18, 36, 0.05);
       margin-bottom: 1.5rem;
     }
-    ul, ol {
-      margin-top: 0.4rem;
-      margin-bottom: 0.4rem;
+
+    .section h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+      letter-spacing: -0.01em;
     }
-    strong {
+
+    .section p { margin: 0.25rem 0 0.75rem; color: var(--muted); }
+
+    .list-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .list-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 1rem 1.1rem;
+      color: var(--ink);
+      height: 100%;
+    }
+
+    .list-card strong { display: block; margin-bottom: 0.35rem; }
+
+    ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.5rem 0 0;
+    }
+
+    .pill {
+      background: rgba(106, 255, 59, 0.15);
+      color: #0f2314;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
       font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid rgba(106, 255, 59, 0.4);
     }
-    .tagline {
-      font-style: italic;
-      color: #444;
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
     }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6aff3b, #3fc219);
+      color: #0c1a1f;
+      box-shadow: 0 8px 18px rgba(63, 194, 25, 0.25);
+    }
+
+    .btn-secondary {
+      background: #0f1b34;
+      color: #fdfefe;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(12, 26, 31, 0.12); }
+
     .note {
       font-size: 0.9rem;
-      color: #666;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 2rem 1.25rem; }
+      main { padding: 1.5rem 1.25rem 2rem; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Ioncore Brochure, Technology Readiness, and Company Value Assessment</h1>
-    <p class="subtitle">
-      Consolidated view of product brochures, pre-production standards, market positioning, and company value narrative.
-    </p>
+    <div class="brand">Ioncore <span>Valuation &amp; Readiness</span></div>
+    <h1>High-level view of Ioncore’s platform, maturity, and value story.</h1>
+    <div class="hero-grid">
+      <div class="stat-card">
+        <div class="stat-label">Technology posture</div>
+        <div class="stat-value">Pre-production (TRL 4–5)</div>
+        <p class="note">Lab-validated performance; field pilots and certifications in progress.</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Capital focus</div>
+        <div class="stat-value">USD 10M raise</div>
+        <p class="note">Scaling builds, pilots, UL/CE/CSA pathways, and IP filings.【F:fundraising.html†L37-L55】【F:fundraising.html†L154-L190】</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Market scope</div>
+        <div class="stat-value">Storage, propulsion, sensing</div>
+        <p class="note">Multi-market platform with energy, aviation, and surveillance brochures.【F:index.html†L41-L140】</p>
+      </div>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="index.html">Back to brochure library</a>
+      <a class="btn btn-secondary" href="fullexperience.html#technology">Explore magnetic inertia tech</a>
+    </div>
   </header>
 
-  <nav>
-    <strong>Table of Contents</strong>
-    <ul>
-      <li><a href="#executive-summary">1. Executive Summary</a></li>
-      <li><a href="#brochure-review">2. Brochure Review &amp; Pre-Production Evaluation</a>
-        <ul>
-          <li><a href="#scope-sources">2.1 Scope and Sources</a></li>
-          <li><a href="#portfolio-overview">2.2 Portfolio Overview</a></li>
-          <li><a href="#readiness-assessment">2.3 Readiness Assessment (Pre-Production Standards)</a></li>
-          <li><a href="#recommended-next-steps">2.4 Recommended Next Steps Before Pilots</a></li>
-          <li><a href="#brochure-overall">2.5 Overall Evaluation</a></li>
-        </ul>
-      </li>
-      <li><a href="#company-value">3. Company Value &amp; Market Narrative</a>
-        <ul>
-          <li><a href="#core-value-proposition">3.1 Core Value Proposition</a></li>
-          <li><a href="#market-opportunity">3.2 Market Opportunity</a></li>
-          <li><a href="#business-model">3.3 Business Model and Revenue Levers</a></li>
-          <li><a href="#traction-capital-ip">3.4 Traction, Capital Plan, and IP</a></li>
-          <li><a href="#financial-outlook">3.5 Financial Outlook and Value Drivers</a></li>
-          <li><a href="#company-overall">3.6 Overall Assessment of Company Value</a></li>
-          <li><a href="#company-value-statement">3.7 Company Value Statement (Customer, Business, Strategic)</a></li>
-        </ul>
-      </li>
-      <li><a href="#integrated-view">4. Integrated View: Technology &amp; Company Value</a></li>
-    </ul>
-  </nav>
-
-  <!-- 1. EXECUTIVE SUMMARY -->
-  <section id="executive-summary">
-    <h2>1. Executive Summary</h2>
-    <p>
-      Ioncore positions itself as a next-generation energy and propulsion company built around magnetic inertia
-      systems that promise ultra-high efficiency, grid independence, and modular scaling across residential,
-      commercial, and industrial use cases.【F:fundraising.html†L27-L36】 The brochure index covers more than twenty
-      offerings, spanning energy storage, propulsion, cooling, surveillance, and services, indicating a wide and
-      heterogeneous product catalog targeting multiple markets simultaneously.【F:index.html†L41-L140】
-    </p>
-    <p>
-      From a <strong>technical readiness</strong> perspective, brochures present ambitious figures—such as 12,000 lbf
-      thrust and 98–99% round-trip efficiency—while explicitly noting that core systems are patent-pending and untested
-      in live field deployments, with performance derived from lab tests and simulations.【F:industrial.html†L446-L470】
-      This points to Technology Readiness Level (TRL) 4–5 (lab validation) rather than pilot-proven TRL 7–8.
-    </p>
-    <p>
-      From a <strong>company value</strong> perspective, Ioncore’s fundraising materials emphasize large addressable
-      markets in grid storage, critical-power UPS, and EV charging, alongside a diversified revenue model combining
-      hardware sales, PPAs/leases, services, and licensing.【F:fundraising.html†L58-L67】【F:fundraising.html†L107-L114】
-      Early prototype results (e.g., 99% efficiency, 48-hour off-grid pilot) and a USD 10M capital plan to scale
-      manufacturing and certifications underpin a growth thesis built on industrializing the magnetic inertia platform.
-    </p>
-    <p class="tagline">
-      Overall, Ioncore currently represents a high-potential, early-stage platform: strong vision and early technical
-      proofs, but still reliant on future validation, certification, and scaling milestones to unlock full commercial
-      and investor value.
-    </p>
-  </section>
-
-  <!-- 2. BROCHURE REVIEW & PRE-PRODUCTION EVALUATION -->
-  <section id="brochure-review">
-    <h2>2. Ioncore Brochure Review and Pre-Production Evaluation</h2>
-
-    <section id="scope-sources">
-      <h3>2.1 Scope and Sources</h3>
+  <main>
+    <section class="section">
+      <h2>Executive snapshot</h2>
+      <p>Ioncore is building a magnetic inertia platform with energy storage, propulsion, cooling, and surveillance solutions. Materials position the brand as a resilient, ultra-efficient alternative to conventional storage and backup power while acknowledging current pre-production status.</p>
       <ul>
-        <li>
-          Reviewed the brochure library index and representative brochures across propulsion, energy storage, cooling,
-          controls, and services to characterize the offering breadth and readiness claims.
+        <li><strong>Promise:</strong> 98–99% round-trip efficiency, long life, and grid independence for critical operations.【F:fundraising.html†L27-L135】</li>
+        <li><strong>Readiness:</strong> Patent-pending systems; no live-deployment certifications yet; performance data primarily lab and simulation-based.【F:industrial.html†L446-L470】</li>
+        <li><strong>Value lens:</strong> Large TAMs (storage, UPS, EV charging) with blended revenue—hardware sales, PPAs/leases, services, and licensing.【F:fundraising.html†L58-L114】</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Portfolio at a glance</h2>
+      <p>Brochures span multiple verticals, signaling a platform play but also highlighting focus risk until core tech is validated.</p>
+      <ul class="list-grid">
+        <li class="list-card">
+          <strong>Energy storage &amp; cooling</strong>
+          <ul>
+            <li>Magnetic inertia storage, hybrid flywheel + battery, cryogenic cooling subsystems.【F:index.html†L41-L140】</li>
+            <li>High-efficiency claims with pending UL 9540/CE/CSA certifications.【F:fundraising.html†L178-L190】</li>
+          </ul>
         </li>
-        <li>
-          Findings cite the brochure index and detailed product pages for propulsion and industrial deployments.
+        <li class="list-card">
+          <strong>Propulsion</strong>
+          <ul>
+            <li>Magnetic Inertia Jet Engine with regenerative power recovery and thrust targets for UAV to hypersonic envelopes.【F:Magnetic Inertia Jet Engine.html†L35-L120】</li>
+            <li>Requires FAA/EASA certification path; currently in concept/lab validation stage.【F:industrial.html†L446-L470】</li>
+          </ul>
+        </li>
+        <li class="list-card">
+          <strong>Surveillance &amp; controls</strong>
+          <ul>
+            <li>Sentinel multi-cam AI, neural consoles, and integrated node systems for monitoring and control.【F:index.html†L100-L133】</li>
+            <li>Cybersecurity posture and compliance frameworks not yet detailed in brochures.</li>
+          </ul>
+        </li>
+      </ul>
+      <div class="pill-row">
+        <span class="pill">Strength: differentiated magnetic inertia IP</span>
+        <span class="pill">Gap: verified field data</span>
+        <span class="pill">Gap: certifications &amp; quality system</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Readiness checklist</h2>
+      <p>Key steps to move from lab validation to pilot-grade deployments.</p>
+      <ul class="list-grid">
+        <li class="list-card">
+          <strong>Verification &amp; validation</strong>
+          <ul>
+            <li>Structured test matrices for storage (UL 9540/9540A, IEEE 1547.1) and propulsion (DO-160/DO-178/DO-254 equivalents).</li>
+            <li>Accredited lab testing for efficiency, safety, and endurance.</li>
+          </ul>
+        </li>
+        <li class="list-card">
+          <strong>Certification pathway</strong>
+          <ul>
+            <li>Map sector requirements (UL/CE/CSA for storage; FAA/EASA for propulsion) with timelines and responsible owners.</li>
+            <li>Export-control review (ITAR/EAR) for defense-adjacent propulsion modules.</li>
+          </ul>
+        </li>
+        <li class="list-card">
+          <strong>Quality &amp; supply chain</strong>
+          <ul>
+            <li>QMS aligned to ISO 9001/AS9100; supplier qualification for superconducting materials and precision machining.</li>
+            <li>Reliability engineering (HALT/HASS) and documented MTBF/MTTR expectations.</li>
+          </ul>
+        </li>
+        <li class="list-card">
+          <strong>Cyber &amp; control hardening</strong>
+          <ul>
+            <li>IEC 62443/ISO 27001 baselines, secure OTA updates, audit logging, and safety interlocks for connected dashboards.</li>
+          </ul>
         </li>
       </ul>
     </section>
 
-    <section id="portfolio-overview">
-      <h3>2.2 Portfolio Overview</h3>
-      <ul>
-        <li>
-          The brochure index lists more than twenty offerings spanning magnetic inertia hardware (flywheels, generators),
-          integrated cooling, aviation propulsion, surveillance, contracting, and accessories, showing a wide but
-          heterogeneous catalog and multiple markets targeted simultaneously.【F:index.html†L41-L140】
+    <section class="section">
+      <h2>Market &amp; valuation framing</h2>
+      <p>High-level economics and investor narrative built around the magnetic inertia platform.</p>
+      <ul class="list-grid">
+        <li class="list-card">
+          <strong>Target markets</strong>
+          <ul>
+            <li>Grid storage, healthcare/data-centre UPS, EV charging; TAMs cited at USD 500B (storage), USD 40B (UPS), USD 30B (EV charging).【F:fundraising.html†L58-L67】</li>
+            <li>Initial serviceable focus on ~USD 5B healthcare/data-centre segment.【F:fundraising.html†L58-L67】</li>
+          </ul>
         </li>
-        <li>
-          The Magnetic Inertia Jet Engine brochure describes a propulsion platform with magnetic bearings, cryogenic
-          cooling, regenerative power recovery, and claimed thrust and speed envelopes for UAV through hypersonic
-          aircraft use cases.【F:Magnetic Inertia Jet Engine.html†L35-L120】
+        <li class="list-card">
+          <strong>Revenue levers</strong>
+          <ul>
+            <li>Hardware sales, PPAs/leases, monitoring &amp; service contracts, and technology licensing.【F:fundraising.html†L107-L114】</li>
+            <li>Illustrative pricing: USD 120k (100 kW) to USD 1M (1 MW) with PPA rates of USD 1.80–2.50/kWh.【F:fundraising.html†L115-L125】</li>
+          </ul>
         </li>
-        <li>
-          Industrial brochure disclaimers state that core technology is patent-pending and untested in live field
-          deployments, with performance figures derived from lab tests and simulations rather than certified
-          trials.【F:industrial.html†L446-L470】
-        </li>
-        <li>
-          Fundraising materials highlight magnetic inertia storage with high efficiency and cycle life, emphasize plans
-          to secure patents, and note additional patents filed for cooling and control algorithms in 2025, indicating at
-          least three patent efforts in-flight rather than granted IP.【F:fundraising.html†L30-L55】
-        </li>
-      </ul>
-    </section>
-
-    <section id="readiness-assessment">
-      <h3>2.3 Readiness Assessment (Pre-Production Standards)</h3>
-      <ul>
-        <li>
-          <strong>Technology maturity:</strong> Multiple brochures present ambitious performance (e.g., 12,000 lbf thrust,
-          98–99% round-trip efficiency) without accompanying third-party validation or certification evidence. The
-          explicit statement that systems are untested in live deployments suggests Technology Readiness Level (TRL)
-          4–5 (lab validation) rather than pilot-proven TRL 7–8.
-        </li>
-        <li>
-          <strong>Safety and compliance:</strong> Aviation propulsion, cryogenic systems, and grid-interactive storage
-          typically require compliance with FAA/EASA, IEC/IEEE grid codes, UL/CE safety marks, and EMC testing.
-          No brochures reference conformity assessments, Failure Modes and Effects Analysis (FMEA), or
-          environmental/safety testing, creating a pre-production gap.
-        </li>
-        <li>
-          <strong>Patents and IP:</strong> Patent-pending status and ongoing filings imply freedom-to-operate and
-          protectability are uncertain. Due diligence should confirm filings, jurisdictions, and any reliance on
-          third-party licensed tech.
-        </li>
-        <li>
-          <strong>Manufacturing and quality:</strong> Claims of aerospace-grade tolerances and modular scaling lack
-          supporting process controls (e.g., AS9100/ISO 9001), supplier qualifications, or production readiness levels.
-          Cooling and magnetic bearing subsystems will require specialized materials validation (cryogenics,
-          superconducting magnets) and endurance testing.
-        </li>
-        <li>
-          <strong>Performance verification:</strong> Estimated ROI, efficiency, and thrust figures require standardized
-          test plans (e.g., IEC 61400-21 for power performance analogs, IEEE 1547 interconnection, DO-160/DO-178/DO-254
-          for avionics, MIL-STD-810 environmental for defense). No test data, test reports, or accredited lab references
-          are provided.
-        </li>
-        <li>
-          <strong>Cyber/controls:</strong> Products cite predictive intelligence and dashboards but provide no
-          cybersecurity posture, audit logging, or safety interlocks; pre-production review should include IEC 62443 /
-          ISO 27001 controls and secure OTA update pathways.
+        <li class="list-card">
+          <strong>Capital &amp; milestones</strong>
+          <ul>
+            <li>USD 10M raise to scale manufacturing, deploy pilots, and secure patents; UL testing underway with CE/CSA targets in 2026.【F:fundraising.html†L37-L55】【F:fundraising.html†L178-L190】</li>
+            <li>Five-year outlook: USD 50M revenue, ~25% EBITDA, break-even by mid-Year 3; exit options include OEM M&amp;A or IPO post-USD 100M revenue.【F:fundraising.html†L154-L219】</li>
+          </ul>
         </li>
       </ul>
     </section>
 
-    <section id="recommended-next-steps">
-      <h3>2.4 Recommended Next Steps Before Pilots</h3>
-      <ol>
-        <li>
-          <strong>Verification &amp; validation:</strong> Draft formal test matrices per domain (grid storage, propulsion,
-          cryogenic cooling) with acceptance criteria aligned to relevant standards; engage accredited labs for initial
-          performance and safety testing.
-        </li>
-        <li>
-          <strong>Certification pathway:</strong> Map required certifications by sector (UL 9540/9540A, UL 1741 SB /
-          IEEE 1547.1 for storage; FAA/EASA Part 33/Part 23/25/27 pathways for propulsion modules) and initiate
-          gap analyses.
-        </li>
-        <li>
-          <strong>Reliability engineering:</strong> Conduct HALT/HASS and durability testing on magnetic bearings,
-          cryogenic loops, and power electronics; capture MTBF/MTTR estimates for customer-facing literature.
-        </li>
-        <li>
-          <strong>Quality and supply chain:</strong> Stand up QMS aligned to ISO 9001/AS9100, qualify suppliers for
-          superconducting materials and precision machining, and document process controls.
-        </li>
-        <li>
-          <strong>IP and regulatory diligence:</strong> Verify patent filings, evaluate freedom-to-operate, and ensure
-          export-control classification (ITAR/EAR) for defense-adjacent propulsion systems.
-        </li>
-        <li>
-          <strong>Safety and cybersecurity:</strong> Implement hazard analyses, safety interlocks, and cybersecurity
-          baselines (IEC 62443/ISO 27001) for control software and connected dashboards.
-        </li>
-      </ol>
-    </section>
-
-    <section id="brochure-overall">
-      <h3>2.5 Overall Evaluation</h3>
-      <p>
-        Ioncore’s brochures communicate a broad, innovative vision spanning energy storage, propulsion, and sensing,
-        but current materials reveal pre-production maturity with unverified performance claims and pending patents.
-        Standard international pre-production evaluation would categorize the portfolio as early-stage technology
-        requiring structured testing, certification planning, and quality maturation before pilot deployments or
-        commercial commitments.
-      </p>
-    </section>
-  </section>
-
-  <!-- 3. COMPANY VALUE & MARKET NARRATIVE -->
-  <section id="company-value">
-    <h2>3. Ioncore Company Value &amp; Market Narrative</h2>
-
-    <section id="core-value-proposition">
-      <h3>3.1 Core Value Proposition</h3>
+    <section class="section">
+      <h2>What to watch next</h2>
+      <p>Proof points that convert the Ioncore story from high-potential to bankable.</p>
       <ul>
-        <li>
-          Magnetic inertia energy systems promise <strong>ultra-high efficiency</strong>, <strong>grid independence</strong>,
-          and <strong>modular scaling from 100 kW to multi-megawatt deployments</strong>, aiming to deliver reliable,
-          low-maintenance power across residential, commercial, and industrial settings.【F:fundraising.html†L27-L36】
-        </li>
-        <li>
-          The mission is framed around transforming the global energy landscape with uninterrupted, green power,
-          positioning the brand as “the world’s cleanest, most reliable energy storage.”【F:fundraising.html†L27-L36】
-          【F:fundraising.html†L127-L129】
-        </li>
+        <li>Independent pilot results (efficiency, uptime, safety) across healthcare/data-centre and aviation testbeds.</li>
+        <li>Certification progress and published timelines for UL/CE/CSA and aviation pathways.</li>
+        <li>Documented QMS, qualified suppliers, and reliability metrics for production-intent units.</li>
+        <li>Clarified IP posture (filed/granted status, jurisdictions) and export-control clearances.</li>
       </ul>
     </section>
-
-    <section id="market-opportunity">
-      <h3>3.2 Market Opportunity</h3>
-      <ul>
-        <li>
-          Targeted markets span grid-scale storage, healthcare/data-centre UPS, and EV charging, with stated total
-          addressable markets (TAMs) of <strong>USD 500B (storage by 2030)</strong>, <strong>USD 40B (critical-power
-          UPS by 2027)</strong>, and <strong>USD 30B (EV charging by 2028)</strong>, while the initial serviceable
-          market focus is approximately <strong>USD 5B</strong> in North American healthcare and data
-          centres.【F:fundraising.html†L58-L67】
-        </li>
-        <li>
-          Competitive positioning emphasizes higher efficiency, longer cycle life, and lower maintenance versus
-          lithium-ion batteries and diesel generation, suggesting potential value capture through performance and
-          lifecycle cost advantages.【F:fundraising.html†L73-L84】
-        </li>
-      </ul>
-    </section>
-
-    <section id="business-model">
-      <h3>3.3 Business Model and Revenue Levers</h3>
-      <ul>
-        <li>
-          Revenue mix combines direct hardware sales, leases/PPAs, service and monitoring subscriptions, and technology
-          licensing, allowing both upfront and recurring cash flows.【F:fundraising.html†L107-L114】
-        </li>
-        <li>
-          Illustrative pricing ranges from <strong>USD 120k</strong> for 100 kW residential systems to
-          <strong>USD 1M</strong> for 1 MW data-centre units, with PPA rates spanning <strong>USD 1.80–2.50/kWh</strong>
-          depending on scale and term, informing revenue-per-installation potential.【F:fundraising.html†L115-L125】
-        </li>
-      </ul>
-    </section>
-
-    <section id="traction-capital-ip">
-      <h3>3.4 Traction, Capital Plan, and IP</h3>
-      <ul>
-        <li>
-          Early signals include lab-scale prototype efficiency (99%), LOIs, and a pilot demonstrating 48-hour
-          off-grid operation, supporting early commercial interest.【F:fundraising.html†L44-L55】
-        </li>
-        <li>
-          A <strong>USD 10M</strong> raise is planned to scale manufacturing, deploy pilots, accelerate R&amp;D, and
-          secure patents, aligning capital deployment to industrialization milestones.【F:fundraising.html†L37-L42】
-          【F:fundraising.html†L154-L169】
-        </li>
-        <li>
-          The IP portfolio is described as patent filings on magnetic rotor geometry and advanced thermal management,
-          with UL 9540 testing underway and CE/CSA certifications targeted in 2026, signaling intent to de-risk
-          regulatory pathways.【F:fundraising.html†L178-L190】
-        </li>
-      </ul>
-    </section>
-
-    <section id="financial-outlook">
-      <h3>3.5 Financial Outlook and Value Drivers</h3>
-      <ul>
-        <li>
-          Five-year projections target <strong>USD 50M revenue</strong> with <strong>25% EBITDA margins</strong> and
-          break-even by mid-Year 3, suggesting enterprise value could be driven by hardware gross margin plus recurring
-          service and licensing streams if execution meets projections.【F:fundraising.html†L154-L169】
-          【F:fundraising.html†L208-L219】
-        </li>
-        <li>
-          Exit pathways include strategic M&amp;A by large OEMs, IPO after surpassing USD 100M revenue, or secondary
-          liquidity, framing potential investor value realization routes.【F:fundraising.html†L208-L219】
-        </li>
-      </ul>
-    </section>
-
-    <section id="company-overall">
-      <h3>3.6 Overall Assessment of Company Value</h3>
-      <p>
-        The company’s value today is anchored in its differentiated magnetic inertia technology vision, early prototype
-        and pilot proofs, diversified revenue design, and sizable target markets. Realizing that value depends on
-        converting stated milestones—product certification, pilot performance, manufacturing scale-up, and IP
-        defensibility—into verifiable results that justify growth and margin assumptions.
-      </p>
-    </section>
-
-    <section id="company-value-statement">
-      <h3>3.7 Company Value Statement (Customer, Business, Strategic)</h3>
-
-      <h4>3.7.1 Customer Value</h4>
-      <p>
-        Brochures and the fundraising deck present Ioncore’s primary value as resilient, high-efficiency energy and
-        propulsion systems that reduce downtime and emissions for sectors like hospitals, data centers, and aviation.
-        Customer-facing value is framed around:
-      </p>
-      <ul>
-        <li>98–99% round-trip efficiency, targeting significant reductions in energy losses;</li>
-        <li>long cycle life, aiming to outperform lithium-ion in longevity and replacement frequency;</li>
-        <li>grid independence and 48-hour off-grid operation for critical operations, supporting continuity of care
-          and services in healthcare and data-centre environments.【F:fundraising.html†L27-L135】
-        </li>
-      </ul>
-
-      <h4>3.7.2 Business Value Creation</h4>
-      <p>
-        Business value is designed around multi-segment revenue generation and capital deployment:
-      </p>
-      <ul>
-        <li>
-          Multi-channel revenue via hardware sales, PPAs/leases, and service contracts, supplemented by technology
-          licensing to OEMs and partners.【F:fundraising.html†L107-L114】
-        </li>
-        <li>
-          A <strong>USD 10 million</strong> raise earmarked to scale manufacturing, deploy pilots, accelerate R&amp;D,
-          and secure patents, signaling that enterprise value is tied to successfully commercializing the magnetic
-          inertia platform across industrial and aerospace markets.【F:fundraising.html†L37-L170】
-        </li>
-        <li>
-          As the installed base grows, recurring service and monitoring revenues are expected to compound, helping
-          support targeted 25% EBITDA margins in the medium term.【F:fundraising.html†L154-L169】
-        </li>
-      </ul>
-
-      <h4>3.7.3 Strategic Value</h4>
-      <p>
-        Strategically, Ioncore positions itself as a platform rather than a single-product company:
-      </p>
-      <ul>
-        <li>
-          A catalog of magnetic inertia products, cooling systems, and surveillance solutions under a unified brand
-          suggests a multi-domain platform play with potential cross-selling and integrated-solution benefits.【F:index.html†L41-L140】
-        </li>
-        <li>
-          However, this breadth also creates focus risk: until core storage and propulsion technologies are validated,
-          certified, and scaled, diversification may stretch resources and complicate execution.【F:industrial.html†L446-L470】
-        </li>
-        <li>
-          If core technologies achieve certification and validated field performance, the broader platform could
-          become a strategic asset for large OEMs seeking differentiated, high-efficiency hardware and control
-          solutions—supporting potential M&amp;A or partnership-driven exits.
-        </li>
-      </ul>
-    </section>
-  </section>
-
-  <!-- 4. INTEGRATED VIEW -->
-  <section id="integrated-view">
-    <h2>4. Integrated View: Technology &amp; Company Value</h2>
-    <p>
-      Taken together, the brochure review and company value narrative paint a coherent but clearly staged picture of
-      Ioncore’s evolution. The <strong>technical portfolio</strong> is broad and innovative, with magnetic inertia
-      platforms spanning storage and propulsion and backed by lab-based efficiency and endurance claims. At the same
-      time, disclosures around “untested in live deployments,” “patent-pending,” and “certifications in progress”
-      indicate that the technology remains in the <em>pre-production</em> band of maturity, with substantive work
-      still required on testing, certification, quality systems, and safety/cybersecurity controls before large-scale
-      commercial roll-out.【F:industrial.html†L446-L470】【F:fundraising.html†L178-L190】
-    </p>
-    <p>
-      The <strong>business and value narrative</strong> is designed for institutional investors and strategic partners:
-      large TAMs, diversified revenue levers, early pilot proofs, and a focused capital plan to bridge from prototypes
-      to industrialization.【F:fundraising.html†L58-L67】【F:fundraising.html†L107-L114】 In this framing, company value is
-      not yet derived from a large deployed asset base or recurring cash flows, but from:
-    </p>
-    <ul>
-      <li>
-        The uniqueness and perceived performance upside of magnetic inertia systems versus incumbent storage and
-        backup solutions.
-      </li>
-      <li>
-        The potential to lock in attractive economics (high gross margin hardware plus recurring service/licensing).
-      </li>
-      <li>
-        The scalability of pilots into healthcare, data centre, and EV charging deployments once certifications and
-        field validations are complete.
-      </li>
-      <li>
-        The prospect of future strategic exits (OEM acquisition or IPO) once revenue scale and certification milestones
-        are achieved.【F:fundraising.html†L208-L219】
-      </li>
-    </ul>
-    <p>
-      From a <strong>pre-production and investment due diligence</strong> perspective, the key gating items for
-      unlocking full company value are:
-    </p>
-    <ul>
-      <li>
-        Demonstrable, independently verified performance and safety data across multiple pilots and environments.
-      </li>
-      <li>
-        Clear certification progress (e.g., UL 9540, CE/CSA, and any sector-specific requirements) with timelines and
-        risk mitigations.【F:fundraising.html†L178-L190】
-      </li>
-      <li>
-        A hardened QMS and supply chain capable of reliably building, testing, and servicing units at scale.
-      </li>
-      <li>
-        A defensible IP and regulatory posture that reduces the risk of competitive imitation or export-control
-        limitations.【F:fundraising.html†L30-L55】
-      </li>
-    </ul>
-    <p>
-      Until those milestones are met, Ioncore’s story is best characterized as a high-potential, early-stage platform
-      company: technically differentiated with credible early signals and a structured path to commercialization, but
-      still in the process of converting ambitious brochures and financial projections into verified, bankable assets
-      and revenue streams.
-    </p>
-    <p class="note">
-      Note: Bracketed references (e.g., 【F:index.html†L41-L140】) correspond to underlying brochure and fundraising
-      materials used as source documents for this assessment.
-    </p>
-  </section>
+  </main>
 </body>
 </html>
-```

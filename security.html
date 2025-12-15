@@ -1,276 +1,633 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Security Sample Demo | Ioncore</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="utf-8" />
+  <title>Multi-Camera Face & Object Recognition with Movement Logging (Web UI)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    :root {
-      --green: #6aff3b;
-      --dark: #0b1b1f;
-      --gray: #e7ecef;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at 10% 10%, rgba(106,255,59,0.08), transparent 28%),
-                  radial-gradient(circle at 90% 20%, rgba(106,255,59,0.06), transparent 30%),
-                  #f8fbff;
-      color: #0f172a;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 32px;
-      background: #fff;
-      border-bottom: 1px solid var(--gray);
-      box-shadow: 0 10px 30px rgba(10, 30, 56, 0.04);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 700;
-      color: var(--dark);
-      text-decoration: none;
-    }
-
-    .brand__mark {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      border: 2px solid var(--dark);
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, #0f1925, #162b33);
-      color: var(--green);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-    }
-
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 32px 24px 64px;
-    }
-
-    .hero {
-      background: #0f1925;
-      color: #e7f5ef;
-      padding: 32px;
-      border-radius: 20px;
-      display: grid;
-      gap: 18px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
-    }
-
-    .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--green); font-weight: 700; }
-    h1 { margin: 0; font-size: 28px; }
-    p { margin: 0; line-height: 1.6; }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 15px;
-      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: var(--green);
-      color: #0b1b1f;
-      box-shadow: 0 12px 30px rgba(106,255,59,0.32);
-    }
-
-    .btn-secondary {
-      background: #0b1b1f;
-      color: #f8fbff;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }
-
-    .panel {
-      margin-top: 28px;
-      background: #fff;
-      border-radius: 16px;
-      padding: 22px;
-      border: 1px solid var(--gray);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-    }
-
-    .panel h2 { margin-top: 0; margin-bottom: 8px; }
-
-    .canvas-wrapper {
-      position: relative;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid var(--gray);
-      background: #f1f5f9;
-      display: grid;
-      place-items: center;
-    }
-
-    #outputCanvas {
-      max-width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 14px;
-      color: #0b1b1f;
-      font-weight: 600;
-    }
-
-    .status i { color: var(--green); }
+    body { font-family: Arial, Helvetica, sans-serif; margin: 10px; background:#f6f7fb; color:#222; }
+    h1 { margin: 6px 0 12px; font-size:20px; }
+    .panel { background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.08); margin:10px 0; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+    .col { flex: 1; min-width: 320px; }
+    .btn { padding:6px 10px; border-radius:4px; border:1px solid #bbb; background:#f0f0f5; cursor:pointer; }
+    .btn.primary { background:#0b79d0; color:#fff; border-color:#0b79d0; }
+    .small { font-size:12px; color:#666; }
+    .feedGrid { display:flex; gap:10px; flex-wrap:wrap; }
+    .feedCard { width:340px; border:1px solid #ddd; border-radius:6px; padding:8px; background:#fbfbff; }
+    .feedCard img { width:320px; height:240px; border:1px solid #ccc; display:block; background:#000; object-fit:cover; }
+    label { font-weight:600; }
+    input, select { padding:6px; border:1px solid #ccc; border-radius:4px; }
+    #unknownFaceImg { width:200px; height:200px; border:1px solid #ddd; object-fit:cover; background:#eee; }
+    #historyList, #trackedList, #fileList { height:180px; overflow:auto; border:1px solid #eee; padding:6px; background:#fff; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { padding:6px 8px; border-bottom:1px solid #eee; text-align:left; }
+    .statusOn { color: green; font-weight:700; }
+    .statusOff { color: red; font-weight:700; }
+    .camChecks label { font-weight:400; margin-right:10px; }
+    .detector { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .detector canvas { border:1px solid #ccc; background:#000; border-radius:4px; }
+    .statusLine { display:flex; align-items:center; gap:8px; margin-top:6px; font-weight:600; }
+    .statusLine i { color:#0b79d0; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
 </head>
 <body>
-  <header>
-    <a class="brand" href="index.html">
-      <span class="brand__mark"><i class="fa-solid fa-shield-halved"></i></span>
-      <span>Ioncore Security Demo</span>
-    </a>
-    <a class="btn btn-secondary" href="index.html"><i class="fa-solid fa-arrow-left"></i>Back to library</a>
-  </header>
+  <h1>Multi-Camera Face & Object Recognition with Movement Logging (Web UI)</h1>
 
-  <main>
-    <section class="hero">
-      <span class="eyebrow">AI Security</span>
-      <h1>Run a sample surveillance detection demo in your browser.</h1>
-      <p>Load the TensorFlow.js COCO-SSD model, try the sample security frame, or upload your own image to visualize detections directly in the browser.</p>
-      <div class="actions">
-        <button id="sampleDemo" class="btn btn-primary"><i class="fa-solid fa-play"></i>Play sample demo</button>
-        <label class="btn btn-secondary" for="imageInput"><i class="fa-solid fa-upload"></i>Upload your own frame</label>
-        <input type="file" id="imageInput" accept="image/*" style="display:none">
+  <div class="panel">
+    <h3>TensorFlow.js COCO-SSD Detector</h3>
+    <div class="small">Load the TensorFlow.js COCO-SSD model, try the sample security frame, or upload your own image to visualize detections directly in the browser. The simulator below keeps running while detections are rendered.</div>
+    <div class="detector">
+      <div>
+        <div class="row" style="align-items:center; gap:6px;">
+          <button class="btn primary" id="playSample">Play sample frame</button>
+          <label class="btn" for="uploadFrame">Upload your own</label>
+          <input type="file" id="uploadFrame" accept="image/*" style="display:none;" />
+        </div>
+        <div class="statusLine" id="detectorStatus"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading simulator...</span></div>
       </div>
-    </section>
+      <canvas id="detectionCanvas" width="640" height="360" aria-label="Detection canvas"></canvas>
+    </div>
+  </div>
 
-    <section class="panel">
-      <h2>Detection output</h2>
-      <p>Frames are scaled to the source resolution and passed through the COCO-SSD model. Detected objects are drawn on the canvas with labeled bounding boxes.</p>
-      <div class="canvas-wrapper">
-        <canvas id="outputCanvas" width="640" height="640" aria-label="Detection canvas"></canvas>
+  <!-- Camera Feeds -->
+  <div class="panel">
+    <h3>Camera Feeds</h3>
+    <div class="small">Click a feed to open a detailed view.</div>
+    <div id="feeds" class="feedGrid"></div>
+  </div>
+
+  <!-- Unknown Face Labeling -->
+  <div class="panel">
+    <h3>Unknown Face Labeling</h3>
+    <div class="row">
+      <div class="col" style="max-width:260px;">
+        <div id="unknownCount" class="small">Unknown Faces in Queue: 0</div>
+        <img id="unknownFaceImg" alt="No unknown faces" />
       </div>
-      <div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Waiting to start...</span></div>
-    </section>
-  </main>
+      <div class="col">
+        <div class="row" style="align-items:center;">
+          <input id="unknownName" placeholder="Enter person's name" style="width:240px;">
+          <button class="btn primary" id="saveUnknownBtn">Save Face</button>
+          <button class="btn" id="rejectUnknownBtn">Reject Face</button>
+        </div>
+        <div class="small" style="margin-top:8px;">
+          Saving stores encodings under <code>known_faces/&lt;name&gt;/encodings.npy</code>.
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <script type="module">
-    import * as cocoSsd from 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.esm.js';
+  <!-- Controls -->
+  <div class="panel">
+    <h3>Controls</h3>
+    <div class="row">
+      <div class="col">
+        <div class="row" style="align-items:center;">
+          <label>Recognition Mode:</label>
+          <button class="btn" id="toggleRecognitionBtn">Toggle</button>
+          <span id="recognitionStatus" class="statusOff">Off</span>
+        </div>
+        <div class="row" style="align-items:center; margin-top:8px;">
+          <label>Camera Display:</label>
+          <button class="btn" id="toggleDisplayBtn">Hide/Show Camera Display</button>
+          <span id="displayStatus" class="statusOn">On</span>
+        </div>
+      </div>
 
-    const SAMPLE_IMAGE = 'sentinal.png';
-    const statusEl = document.getElementById('status');
-    const canvas = document.getElementById('outputCanvas');
-    const ctx = canvas.getContext('2d');
-    let modelPromise;
+      <div class="col">
+        <div class="row" style="align-items:center;">
+          <label>Drawing Mode:</label>
+          <select id="drawingMode">
+            <option>Box</option>
+            <option>Polygon</option>
+          </select>
+          <button class="btn" id="captureFrameBtn">Capture Frame</button>
+          <button class="btn" id="saveSnapshotBtn">Save Snapshot (stub)</button>
+        </div>
+        <div class="small" style="margin-top:8px;">
+          Capture/Save snapshot are UI equivalents; your original “save annotations” was a stub too.
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const setStatus = (message, loading = false) => {
-      statusEl.innerHTML = `${loading ? '<i class="fa-solid fa-circle-notch fa-spin"></i>' : '<i class="fa-solid fa-check-circle"></i>'}<span>${message}</span>`;
-    };
+  <!-- Camera Control -->
+  <div class="panel">
+    <h3>Camera Control</h3>
+    <div class="row">
+      <div class="col">
+        <button class="btn primary" id="toggleCamerasBtn">Turn Cameras Off/On</button>
+        <div style="margin-top:8px;">
+          <div><label>Status:</label></div>
+          <div id="cameraStatus"></div>
+        </div>
+      </div>
 
-    async function ensureModel() {
-      if (!modelPromise) {
-        setStatus('Loading TensorFlow.js COCO-SSD model...', true);
-        modelPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' });
-        await modelPromise;
-        setStatus('Model ready. Choose a frame to run detection.');
+      <div class="col">
+        <div><label>Select Cameras to Open/Close</label></div>
+        <div class="camChecks" style="margin-top:8px;">
+          <label><input type="checkbox" class="camCheck" value="0"> Camera 0</label>
+          <label><input type="checkbox" class="camCheck" value="1"> Camera 1</label>
+          <label><input type="checkbox" class="camCheck" value="2"> Camera 2</label>
+          <label><input type="checkbox" class="camCheck" value="3"> Camera 3</label>
+          <label><input type="checkbox" class="camCheck" value="4"> Camera 4</label>
+        </div>
+        <button class="btn" id="applyCamerasBtn" style="margin-top:8px;">Apply Selection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Object Recall & History -->
+  <div class="panel">
+    <h3>Object Recall and History</h3>
+    <div class="row" style="align-items:center;">
+      <label>Select object to recall:</label>
+      <select id="objectRecallSelect"></select>
+      <button class="btn" id="recallBtn">Recall Location</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div class="col">
+        <label>Object History:</label>
+        <div id="historyList"></div>
+      </div>
+      <div class="col">
+        <label>Saved Annotation Files:</label>
+        <div id="fileList"></div>
+        <button class="btn" id="refreshFilesBtn" style="margin-top:8px;">Refresh File List</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Labeling -->
+  <div class="panel">
+    <h3>Custom Labeling</h3>
+    <div class="row" style="align-items:center;">
+      <label>Set Custom Label for Selected Object:</label>
+      <select id="customLabelSelect"></select>
+      <input id="customLabelInput" placeholder="Custom label name" style="width:260px;">
+      <button class="btn primary" id="saveCustomLabelBtn">Save Custom Label</button>
+    </div>
+    <div class="row" style="align-items:center; margin-top:10px;">
+      <label>Add New Label (user-defined):</label>
+      <input id="newLabelName" placeholder="Enter new object name" style="width:260px;">
+      <button class="btn" id="addNewLabelBtn">Add New Label</button>
+      <span class="small">(Creates userObj_timestamp like your Tkinter button)</span>
+    </div>
+  </div>
+
+  <!-- Tracked Objects -->
+  <div class="panel">
+    <h3>Tracked Objects</h3>
+    <div class="row">
+      <div class="col">
+        <div id="trackedList"></div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" id="refreshTrackedBtn">Refresh Objects</button>
+          <button class="btn" id="showSelectedHistoryBtn">Show Selected Object History</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <h4>Object Interaction Logs (live)</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Object</th>
+              <th>Event</th>
+              <th>Person</th>
+              <th>Held Duration</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="eventsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  import * as cocoSsd from 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.esm.js';
+
+  const SAMPLE_IMAGE = 'sentinal.png';
+  const detectionCanvas = document.getElementById('detectionCanvas');
+  const detectionCtx = detectionCanvas.getContext('2d');
+  const detectorStatus = document.getElementById('detectorStatus');
+  let modelPromise;
+
+  const simulatorState = {
+    openCameras: [0, 1, 2],
+    cameraStatus: { 0: 'On', 1: 'On', 2: 'On', 3: 'Off', 4: 'Off' },
+    recognitionOn: true,
+    displayOn: true,
+    unknownQueue: 1,
+    unknownPreview: SAMPLE_IMAGE,
+    trackedObjects: ['backpack', 'person', 'laptop'],
+    objectMemoryKeys: ['backpack', 'person', 'laptop'],
+    histories: {
+      backpack: [],
+      person: [],
+      laptop: []
+    },
+    customLabels: {},
+    files: ['annotations_2024-01-01.json', 'security_snapshot.jpg']
+  };
+
+  function setDetectorStatus(text, loading = false) {
+    detectorStatus.innerHTML = `${loading ? '<i class="fa-solid fa-circle-notch fa-spin"></i>' : '<i class="fa-solid fa-check"></i>'}<span>${text}</span>`;
+  }
+
+  async function ensureModel() {
+    if (!modelPromise) {
+      setDetectorStatus('Loading TensorFlow.js COCO-SSD model...', true);
+      modelPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' });
+      await modelPromise;
+      setDetectorStatus('Model ready. Choose a frame to run detection.');
+    }
+    return modelPromise;
+  }
+
+  function drawSourceToCanvas(source) {
+    const width = source.width || source.videoWidth || 640;
+    const height = source.height || source.videoHeight || 360;
+    detectionCanvas.width = width;
+    detectionCanvas.height = height;
+    detectionCtx.clearRect(0, 0, width, height);
+    detectionCtx.drawImage(source, 0, 0, width, height);
+  }
+
+  function drawPredictions(predictions) {
+    detectionCtx.lineWidth = 2.5;
+    detectionCtx.font = '600 14px Arial, sans-serif';
+    predictions.forEach(({ bbox, class: label, score }) => {
+      const [x, y, w, h] = bbox;
+      detectionCtx.strokeStyle = '#0b79d0';
+      detectionCtx.fillStyle = 'rgba(11,121,208,0.14)';
+      detectionCtx.beginPath();
+      detectionCtx.rect(x, y, w, h);
+      detectionCtx.fill();
+      detectionCtx.stroke();
+
+      const text = `${label} ${(score * 100).toFixed(1)}%`;
+      const padding = 6;
+      const textWidth = detectionCtx.measureText(text).width + padding * 2;
+      const textHeight = 20;
+      detectionCtx.fillStyle = '#0b79d0';
+      detectionCtx.fillRect(x, Math.max(y - textHeight, 0), textWidth, textHeight);
+      detectionCtx.fillStyle = '#fff';
+      detectionCtx.fillText(text, x + padding, Math.max(y - 6, 12));
+    });
+  }
+
+  async function runDetection(source) {
+    try {
+      const activeModel = await ensureModel();
+      setDetectorStatus('Running detection...', true);
+      drawSourceToCanvas(source);
+      const predictions = await activeModel.detect(detectionCanvas);
+      drawPredictions(predictions);
+      setDetectorStatus(`Detection complete. Found ${predictions.length} object${predictions.length === 1 ? '' : 's'}.`);
+      recordHistoryFromPredictions(predictions);
+    } catch (error) {
+      console.error(error);
+      setDetectorStatus('Detection failed. Check console for details.');
+    }
+  }
+
+  function recordHistoryFromPredictions(predictions) {
+    const now = Date.now() / 1000;
+    predictions.forEach((p) => {
+      const label = p.class;
+      if (!simulatorState.histories[label]) simulatorState.histories[label] = [];
+      simulatorState.histories[label].push({
+        time: now,
+        status: 'detected',
+        person: 'Unknown',
+        box: p.bbox,
+        held_duration: null
+      });
+      if (!simulatorState.objectMemoryKeys.includes(label)) {
+        simulatorState.objectMemoryKeys.push(label);
       }
-      return modelPromise;
+    });
+    renderDropdowns();
+    renderTrackedObjects();
+  }
+
+  function renderFeeds() {
+    const feeds = document.getElementById('feeds');
+    feeds.innerHTML = '';
+    const demoFrames = ['sentinal.png', 'seintinalai.png', 'setinalex.png', 'setinal1.jpeg', 'setinaldrone.png'];
+    simulatorState.openCameras.forEach((idx, i) => {
+      const card = document.createElement('div');
+      card.className = 'feedCard';
+      card.dataset.cam = idx;
+      card.innerHTML = `<div><strong>Camera ${idx}</strong> <span class="small">(click for detailed view)</span></div>`;
+      const img = document.createElement('img');
+      img.src = demoFrames[i % demoFrames.length];
+      img.alt = `Camera ${idx} feed`;
+      img.onclick = () => alert(`Camera ${idx} detailed view placeholder.`);
+      card.appendChild(img);
+      feeds.appendChild(card);
+    });
+  }
+
+  function renderCameraStatus() {
+    const el = document.getElementById('cameraStatus');
+    el.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const st = simulatorState.cameraStatus[i] || 'Off';
+      const div = document.createElement('div');
+      div.innerHTML = `Camera ${i}: <span class="${st === 'On' ? 'statusOn' : 'statusOff'}">${st}</span>`;
+      el.appendChild(div);
     }
 
-    function drawSourceToCanvas(source) {
-      const targetWidth = source.width || source.videoWidth || 640;
-      const targetHeight = source.height || source.videoHeight || 640;
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      ctx.clearRect(0, 0, targetWidth, targetHeight);
-      ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+    document.querySelectorAll('.camCheck').forEach((ch) => {
+      const idx = Number(ch.value);
+      ch.checked = simulatorState.cameraStatus[idx] === 'On';
+    });
+  }
+
+  function renderUnknown() {
+    const countEl = document.getElementById('unknownCount');
+    countEl.innerText = `Unknown Faces in Queue: ${simulatorState.unknownQueue}`;
+    const img = document.getElementById('unknownFaceImg');
+    if (simulatorState.unknownQueue > 0) {
+      img.src = simulatorState.unknownPreview;
+      img.alt = 'Unknown face preview';
+    } else {
+      img.removeAttribute('src');
+      img.alt = 'No unknown faces';
     }
+  }
 
-    function drawPredictions(predictions) {
-      ctx.lineWidth = 2.5;
-      ctx.font = '600 14px Montserrat, system-ui, sans-serif';
-      predictions.forEach(({ bbox, class: label, score }) => {
-        const [x, y, width, height] = bbox;
-        ctx.strokeStyle = '#6aff3b';
-        ctx.fillStyle = 'rgba(106,255,59,0.12)';
-        ctx.beginPath();
-        ctx.rect(x, y, width, height);
-        ctx.fill();
-        ctx.stroke();
+  function renderDropdowns() {
+    const keys = simulatorState.objectMemoryKeys;
+    const recall = document.getElementById('objectRecallSelect');
+    const customSel = document.getElementById('customLabelSelect');
 
-        const caption = `${label} ${(score * 100).toFixed(1)}%`;
-        const padding = 6;
-        const textWidth = ctx.measureText(caption).width + padding * 2;
-        const textHeight = 20;
-        ctx.fillStyle = '#0b1b1f';
-        ctx.fillRect(x, Math.max(y - textHeight, 0), textWidth, textHeight);
-        ctx.fillStyle = '#6aff3b';
-        ctx.fillText(caption, x + padding, Math.max(y - 6, 12));
+    function fillSelect(sel) {
+      sel.innerHTML = '';
+      if (!keys.length) {
+        const opt = document.createElement('option');
+        opt.value = 'No objects logged';
+        opt.text = 'No objects logged';
+        sel.appendChild(opt);
+        return;
+      }
+      keys.forEach((k) => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.text = simulatorState.customLabels[k] || k;
+        sel.appendChild(opt);
       });
     }
 
-    async function runDetection(source) {
-      try {
-        const activeModel = await ensureModel();
-        setStatus('Running detection...', true);
-        drawSourceToCanvas(source);
-        const predictions = await activeModel.detect(canvas);
-        drawPredictions(predictions);
-        setStatus(`Detection complete. Found ${predictions.length} object${predictions.length === 1 ? '' : 's'}.`);
-      } catch (error) {
-        console.error(error);
-        setStatus('Detection failed. Check console for details.');
-      }
+    fillSelect(recall);
+    fillSelect(customSel);
+  }
+
+  function renderTrackedObjects() {
+    const list = document.getElementById('trackedList');
+    list.innerHTML = '';
+    const sel = document.createElement('select');
+    sel.id = 'trackedSelect';
+    sel.size = 10;
+    sel.style.width = '100%';
+
+    simulatorState.trackedObjects.forEach((o) => {
+      const opt = document.createElement('option');
+      opt.value = o;
+      opt.text = simulatorState.customLabels[o] || o;
+      sel.appendChild(opt);
+    });
+
+    sel.ondblclick = async () => {
+      const val = sel.value;
+      if (val) await showHistory(val);
+    };
+
+    list.appendChild(sel);
+  }
+
+  function setRecognitionUI(on) {
+    const st = document.getElementById('recognitionStatus');
+    st.innerText = on ? 'On' : 'Off';
+    st.className = on ? 'statusOn' : 'statusOff';
+  }
+
+  function setDisplayUI(on) {
+    const st = document.getElementById('displayStatus');
+    st.innerText = on ? 'On' : 'Off';
+    st.className = on ? 'statusOn' : 'statusOff';
+  }
+
+  async function showHistory(label) {
+    const hist = simulatorState.histories[label] || [];
+    const box = document.getElementById('historyList');
+    box.innerHTML = '';
+
+    if (!hist.length) {
+      box.innerText = `No history for ${label}.`;
+      return;
     }
 
-    document.getElementById('sampleDemo').addEventListener('click', () => {
-      setStatus('Loading sample security frame...', true);
-      const img = new Image();
-      img.src = SAMPLE_IMAGE;
-      img.onload = () => runDetection(img);
-      img.onerror = () => setStatus('Sample frame missing. Please upload your own image.');
-    });
+    hist
+      .slice(-50)
+      .reverse()
+      .forEach((evt) => {
+        const t = new Date(evt.time * 1000).toLocaleString();
+        const [x, y, w, h] = evt.box || [];
+        const held = evt.held_duration ? `Held for ${Number(evt.held_duration).toFixed(2)}s` : '';
+        const line = document.createElement('div');
+        line.innerText = `${t}: ${label} ${evt.status} by ${evt.person} at (x=${x}, y=${y}, w=${w}, h=${h}) ${held}`;
+        box.appendChild(line);
+      });
+  }
 
-    document.getElementById('imageInput').addEventListener('change', async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      setStatus('Preparing uploaded frame...', true);
-      const bitmap = await createImageBitmap(file);
-      runDetection(bitmap);
+  function refreshFileList() {
+    const files = simulatorState.files;
+    const box = document.getElementById('fileList');
+    box.innerHTML = '';
+    if (!files.length) {
+      box.innerText = 'No files.';
+      return;
+    }
+    files.forEach((f) => {
+      const div = document.createElement('div');
+      div.innerText = f;
+      box.appendChild(div);
     });
+  }
 
-    setStatus('Ready when you are. Click play or upload a frame.');
-  </script>
+  function appendEventRow(evt) {
+    const tbody = document.getElementById('eventsTbody');
+    const tr = document.createElement('tr');
+    const t = new Date(evt.time * 1000).toLocaleString();
+    const held = evt.held_duration !== null && evt.held_duration !== undefined ? `${Number(evt.held_duration).toFixed(2)}s` : '-';
+    const details = `Box: ${JSON.stringify(evt.box)}`;
+    tr.innerHTML = `
+      <td>${t}</td>
+      <td>${evt.object}</td>
+      <td>${evt.status}</td>
+      <td>${evt.person}</td>
+      <td>${held}</td>
+      <td>${details}</td>
+    `;
+    tbody.prepend(tr);
+    while (tbody.children.length > 200) tbody.removeChild(tbody.lastChild);
+  }
+
+  function simulateEvents() {
+    const labels = simulatorState.trackedObjects;
+    if (!labels.length) return;
+    const label = labels[Math.floor(Math.random() * labels.length)];
+    const now = Date.now() / 1000;
+    const evt = {
+      time: now,
+      object: simulatorState.customLabels[label] || label,
+      status: Math.random() > 0.5 ? 'picked' : 'returned',
+      person: Math.random() > 0.5 ? 'Unknown' : 'Guard',
+      held_duration: Math.random() > 0.5 ? Math.random() * 5 + 1 : null,
+      box: [Math.random() * 200, Math.random() * 120, Math.random() * 200 + 40, Math.random() * 140 + 60]
+    };
+    simulatorState.histories[label] = simulatorState.histories[label] || [];
+    simulatorState.histories[label].push(evt);
+    appendEventRow(evt);
+  }
+
+  // Buttons and UI interactions
+  document.getElementById('toggleCamerasBtn').onclick = () => {
+    const turningOff = simulatorState.openCameras.length > 0;
+    simulatorState.openCameras = turningOff ? [] : [0, 1, 2];
+    Object.keys(simulatorState.cameraStatus).forEach((k) => {
+      simulatorState.cameraStatus[k] = turningOff ? 'Off' : 'On';
+    });
+    renderFeeds();
+    renderCameraStatus();
+  };
+
+  document.getElementById('toggleDisplayBtn').onclick = () => {
+    simulatorState.displayOn = !simulatorState.displayOn;
+    setDisplayUI(simulatorState.displayOn);
+  };
+
+  document.getElementById('toggleRecognitionBtn').onclick = () => {
+    simulatorState.recognitionOn = !simulatorState.recognitionOn;
+    setRecognitionUI(simulatorState.recognitionOn);
+  };
+
+  document.getElementById('applyCamerasBtn').onclick = () => {
+    const open = Array.from(document.querySelectorAll('.camCheck'))
+      .filter((ch) => ch.checked)
+      .map((ch) => Number(ch.value));
+    simulatorState.openCameras = open;
+    Object.keys(simulatorState.cameraStatus).forEach((k) => {
+      simulatorState.cameraStatus[k] = open.includes(Number(k)) ? 'On' : 'Off';
+    });
+    renderFeeds();
+    renderCameraStatus();
+  };
+
+  document.getElementById('saveUnknownBtn').onclick = () => {
+    const name = document.getElementById('unknownName').value.trim();
+    if (!name) { alert('Enter a name.'); return; }
+    simulatorState.unknownQueue = Math.max(simulatorState.unknownQueue - 1, 0);
+    simulatorState.trackedObjects.push(name);
+    simulatorState.objectMemoryKeys.push(name);
+    simulatorState.histories[name] = simulatorState.histories[name] || [];
+    document.getElementById('unknownName').value = '';
+    renderUnknown();
+    renderDropdowns();
+    renderTrackedObjects();
+  };
+
+  document.getElementById('rejectUnknownBtn').onclick = () => {
+    simulatorState.unknownQueue = Math.max(simulatorState.unknownQueue - 1, 0);
+    renderUnknown();
+  };
+
+  document.getElementById('recallBtn').onclick = async () => {
+    const label = document.getElementById('objectRecallSelect').value;
+    if (!label || label === 'No objects logged') return;
+    await showHistory(label);
+  };
+
+  document.getElementById('refreshFilesBtn').onclick = () => refreshFileList();
+
+  document.getElementById('saveCustomLabelBtn').onclick = () => {
+    const original = document.getElementById('customLabelSelect').value;
+    const custom = document.getElementById('customLabelInput').value.trim();
+    if (!original || original === 'No objects logged') { alert('Select an object first.'); return; }
+    if (!custom) { alert('Enter a custom label.'); return; }
+    simulatorState.customLabels[original] = custom;
+    document.getElementById('customLabelInput').value = '';
+    renderDropdowns();
+    renderTrackedObjects();
+  };
+
+  document.getElementById('addNewLabelBtn').onclick = () => {
+    const name = document.getElementById('newLabelName').value.trim();
+    if (!name) { alert('Enter a label name.'); return; }
+    if (!simulatorState.objectMemoryKeys.includes(name)) simulatorState.objectMemoryKeys.push(name);
+    if (!simulatorState.trackedObjects.includes(name)) simulatorState.trackedObjects.push(name);
+    simulatorState.histories[name] = simulatorState.histories[name] || [];
+    document.getElementById('newLabelName').value = '';
+    renderDropdowns();
+    renderTrackedObjects();
+  };
+
+  document.getElementById('refreshTrackedBtn').onclick = () => {
+    renderTrackedObjects();
+  };
+
+  document.getElementById('showSelectedHistoryBtn').onclick = async () => {
+    const sel = document.getElementById('trackedSelect');
+    const label = sel ? sel.value : null;
+    if (!label) { alert('No object selected.'); return; }
+    await showHistory(label);
+  };
+
+  document.getElementById('captureFrameBtn').onclick = () => {
+    alert('Capture Frame (stub): In the web clone, frames are already streamed. Add a backend endpoint if you want to save a current JPEG to disk.');
+  };
+  document.getElementById('saveSnapshotBtn').onclick = () => {
+    alert('Save Snapshot not implemented (matches your original stub).');
+  };
+
+  document.getElementById('playSample').addEventListener('click', () => {
+    setDetectorStatus('Loading sample security frame...', true);
+    const img = new Image();
+    img.src = SAMPLE_IMAGE;
+    img.onload = () => runDetection(img);
+    img.onerror = () => setDetectorStatus('Sample frame missing. Please upload your own image.');
+  });
+
+  document.getElementById('uploadFrame').addEventListener('change', async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setDetectorStatus('Preparing uploaded frame...', true);
+    const bitmap = await createImageBitmap(file);
+    runDetection(bitmap);
+  });
+
+  function init() {
+    renderFeeds();
+    renderCameraStatus();
+    renderUnknown();
+    renderDropdowns();
+    renderTrackedObjects();
+    refreshFileList();
+    setRecognitionUI(simulatorState.recognitionOn);
+    setDisplayUI(simulatorState.displayOn);
+    setDetectorStatus('Ready when you are. Click play or upload a frame.');
+    setInterval(simulateEvents, 2000);
+  }
+
+  init();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" integrity="sha512-KcnQx3ZVqhlV+3I8I4JVXu2fLG3gNsYch0eYRqpMfrQa6RlmKCNt2uQ6Xo8X5Yucs5cjox96D65Viw1c4cILbA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>

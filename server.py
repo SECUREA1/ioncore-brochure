@@ -2,47 +2,258 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>YOLOv8 TF.js Integration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security Sample Demo | Ioncore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --green: #6aff3b;
+      --dark: #0b1b1f;
+      --gray: #e7ecef;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at 10% 10%, rgba(106,255,59,0.08), transparent 28%),
+                  radial-gradient(circle at 90% 20%, rgba(106,255,59,0.06), transparent 30%),
+                  #f8fbff;
+      color: #0f172a;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      background: #fff;
+      border-bottom: 1px solid var(--gray);
+      box-shadow: 0 10px 30px rgba(10, 30, 56, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      color: var(--dark);
+      text-decoration: none;
+    }
+
+    .brand__mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 2px solid var(--dark);
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #0f1925, #162b33);
+      color: var(--green);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    .hero {
+      background: #0f1925;
+      color: #e7f5ef;
+      padding: 32px;
+      border-radius: 20px;
+      display: grid;
+      gap: 18px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--green); font-weight: 700; }
+    h1 { margin: 0; font-size: 28px; }
+    p { margin: 0; line-height: 1.6; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #0b1b1f;
+      box-shadow: 0 12px 30px rgba(106,255,59,0.32);
+    }
+
+    .btn-secondary {
+      background: #0b1b1f;
+      color: #f8fbff;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }
+
+    .panel {
+      margin-top: 28px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px;
+      border: 1px solid var(--gray);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+    }
+
+    .panel h2 { margin-top: 0; margin-bottom: 8px; }
+
+    .canvas-wrapper {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--gray);
+      background: #f1f5f9;
+      display: grid;
+      place-items: center;
+    }
+
+    #outputCanvas {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      color: #0b1b1f;
+      font-weight: 600;
+    }
+
+    .status i { color: var(--green); }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
 </head>
 <body>
-  <h1>YOLOv8 Object Detection in Browser</h1>
-  <input type="file" id="imageInput" accept="image/*">
-  <canvas id="outputCanvas" width="640" height="640"></canvas>
+  <header>
+    <a class="brand" href="index.html">
+      <span class="brand__mark"><i class="fa-solid fa-shield-halved"></i></span>
+      <span>Ioncore Security Demo</span>
+    </a>
+    <a class="btn btn-secondary" href="index.html"><i class="fa-solid fa-arrow-left"></i>Back to library</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="eyebrow">AI Security</span>
+      <h1>Run a sample surveillance detection demo in your browser.</h1>
+      <p>Load the pre-exported YOLOv8 TensorFlow.js model, try the sample security frame, or upload your own image to visualize detections in the browser.</p>
+      <div class="actions">
+        <button id="sampleDemo" class="btn btn-primary"><i class="fa-solid fa-play"></i>Play sample demo</button>
+        <label class="btn btn-secondary" for="imageInput"><i class="fa-solid fa-upload"></i>Upload your own frame</label>
+        <input type="file" id="imageInput" accept="image/*" style="display:none">
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Detection output</h2>
+      <p>Frames are scaled to 640x640 for YOLO input. Model tensors are logged for debugging; add your drawing logic for bounding boxes as needed.</p>
+      <div class="canvas-wrapper">
+        <canvas id="outputCanvas" width="640" height="640" aria-label="Detection canvas"></canvas>
+      </div>
+      <div class="status" id="status"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Waiting to start...</span></div>
+    </section>
+  </main>
 
   <script>
-    async function loadAndDetect() {
-      // Load the exported YOLOv8 TF.js model
-      const model = await tf.loadGraphModel('./yolov8n_web_model/model.json');
+    const SAMPLE_IMAGE = 'sentinal.png';
+    const statusEl = document.getElementById('status');
+    const canvas = document.getElementById('outputCanvas');
+    const ctx = canvas.getContext('2d');
+    let model;
 
-      // Get image from input
-      const input = document.getElementById('imageInput');
-      input.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        const img = await createImageBitmap(file);
-        const canvas = document.getElementById('outputCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, 640, 640);
+    const setStatus = (message, loading = false) => {
+      statusEl.innerHTML = `${loading ? '<i class="fa-solid fa-circle-notch fa-spin"></i>' : '<i class="fa-solid fa-check-circle"></i>'}<span>${message}</span>`;
+    };
 
-        // Preprocess image to tensor
-        let tensor = tf.browser.fromPixels(canvas)
-          .resizeNearestNeighbor([640, 640])  // Resize to model input size
-          .toFloat()
-          .div(tf.scalar(255.0))  // Normalize to [0,1]
-          .expandDims();  // Add batch dimension
-
-        // Run inference
-        const predictions = await model.executeAsync(tensor);
-
-        // Post-process predictions (parse boxes, classes, scores)
-        // Note: YOLO output parsing - adapt based on model (e.g., boxes from predictions[0])
-        console.log(predictions);  // Inspect and draw boxes (implement NMS, drawing logic here)
-
-        // Example drawing (pseudo-code)
-        // predictions.dataSync().forEach(pred => drawBox(ctx, pred));
-      });
+    async function ensureModel() {
+      if (!model) {
+        setStatus('Loading TensorFlow.js model...', true);
+        model = await tf.loadGraphModel('./yolov8n_web_model/model.json');
+        setStatus('Model ready. Choose a frame to run detection.');
+      }
+      return model;
     }
-    loadAndDetect();
+
+    function drawSourceToCanvas(source) {
+      const targetSize = 640;
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      ctx.clearRect(0, 0, targetSize, targetSize);
+      ctx.drawImage(source, 0, 0, targetSize, targetSize);
+    }
+
+    async function runDetection(source) {
+      try {
+        const activeModel = await ensureModel();
+        setStatus('Running detection...', true);
+        drawSourceToCanvas(source);
+        let tensor = tf.browser.fromPixels(canvas)
+          .resizeNearestNeighbor([640, 640])
+          .toFloat()
+          .div(tf.scalar(255))
+          .expandDims();
+
+        const output = await activeModel.executeAsync(tensor);
+        const tensors = Array.isArray(output) ? output : [output];
+        console.log('Model output tensors:', tensors.map(t => t.shape));
+        setStatus(`Detection complete. Output tensors: ${tensors.length}. Add your draw logic to visualize boxes.`);
+
+        tensors.forEach(t => t.dispose());
+        tensor.dispose();
+      } catch (error) {
+        console.error(error);
+        setStatus('Detection failed. Check console for details.');
+      }
+    }
+
+    document.getElementById('sampleDemo').addEventListener('click', () => {
+      setStatus('Loading sample security frame...', true);
+      const img = new Image();
+      img.src = SAMPLE_IMAGE;
+      img.onload = () => runDetection(img);
+      img.onerror = () => setStatus('Sample frame missing. Please upload your own image.');
+    });
+
+    document.getElementById('imageInput').addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      setStatus('Preparing uploaded frame...', true);
+      const bitmap = await createImageBitmap(file);
+      runDetection(bitmap);
+    });
+
+    setStatus('Ready when you are. Click play or upload a frame.');
   </script>
 </body>
 </html>

@@ -167,7 +167,7 @@
     <section class="hero">
       <span class="eyebrow">AI Security</span>
       <h1>Run a sample surveillance detection demo in your browser.</h1>
-      <p>Load the pre-exported YOLOv8 TensorFlow.js model, try the sample security frame, or upload your own image to visualize detections in the browser.</p>
+      <p>Load the TensorFlow.js COCO-SSD model, try the sample security frame, or upload your own image to visualize detections directly in the browser.</p>
       <div class="actions">
         <button id="sampleDemo" class="btn btn-primary"><i class="fa-solid fa-play"></i>Play sample demo</button>
         <label class="btn btn-secondary" for="imageInput"><i class="fa-solid fa-upload"></i>Upload your own frame</label>
@@ -177,7 +177,7 @@
 
     <section class="panel">
       <h2>Detection output</h2>
-      <p>Frames are scaled to 640x640 for YOLO input. Model tensors are logged for debugging; add your drawing logic for bounding boxes as needed.</p>
+      <p>Frames are scaled to the source resolution and passed through the COCO-SSD model. Detected objects are drawn on the canvas with labeled bounding boxes.</p>
       <div class="canvas-wrapper">
         <canvas id="outputCanvas" width="640" height="640" aria-label="Detection canvas"></canvas>
       </div>
@@ -185,32 +185,59 @@
     </section>
   </main>
 
-  <script>
+  <script type="module">
+    import * as cocoSsd from 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.esm.js';
+
     const SAMPLE_IMAGE = 'sentinal.png';
     const statusEl = document.getElementById('status');
     const canvas = document.getElementById('outputCanvas');
     const ctx = canvas.getContext('2d');
-    let model;
+    let modelPromise;
 
     const setStatus = (message, loading = false) => {
       statusEl.innerHTML = `${loading ? '<i class="fa-solid fa-circle-notch fa-spin"></i>' : '<i class="fa-solid fa-check-circle"></i>'}<span>${message}</span>`;
     };
 
     async function ensureModel() {
-      if (!model) {
-        setStatus('Loading TensorFlow.js model...', true);
-        model = await tf.loadGraphModel('./yolov8n_web_model/model.json');
+      if (!modelPromise) {
+        setStatus('Loading TensorFlow.js COCO-SSD model...', true);
+        modelPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' });
+        await modelPromise;
         setStatus('Model ready. Choose a frame to run detection.');
       }
-      return model;
+      return modelPromise;
     }
 
     function drawSourceToCanvas(source) {
-      const targetSize = 640;
-      canvas.width = targetSize;
-      canvas.height = targetSize;
-      ctx.clearRect(0, 0, targetSize, targetSize);
-      ctx.drawImage(source, 0, 0, targetSize, targetSize);
+      const targetWidth = source.width || source.videoWidth || 640;
+      const targetHeight = source.height || source.videoHeight || 640;
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      ctx.clearRect(0, 0, targetWidth, targetHeight);
+      ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+    }
+
+    function drawPredictions(predictions) {
+      ctx.lineWidth = 2.5;
+      ctx.font = '600 14px Montserrat, system-ui, sans-serif';
+      predictions.forEach(({ bbox, class: label, score }) => {
+        const [x, y, width, height] = bbox;
+        ctx.strokeStyle = '#6aff3b';
+        ctx.fillStyle = 'rgba(106,255,59,0.12)';
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        ctx.fill();
+        ctx.stroke();
+
+        const caption = `${label} ${(score * 100).toFixed(1)}%`;
+        const padding = 6;
+        const textWidth = ctx.measureText(caption).width + padding * 2;
+        const textHeight = 20;
+        ctx.fillStyle = '#0b1b1f';
+        ctx.fillRect(x, Math.max(y - textHeight, 0), textWidth, textHeight);
+        ctx.fillStyle = '#6aff3b';
+        ctx.fillText(caption, x + padding, Math.max(y - 6, 12));
+      });
     }
 
     async function runDetection(source) {
@@ -218,19 +245,9 @@
         const activeModel = await ensureModel();
         setStatus('Running detection...', true);
         drawSourceToCanvas(source);
-        let tensor = tf.browser.fromPixels(canvas)
-          .resizeNearestNeighbor([640, 640])
-          .toFloat()
-          .div(tf.scalar(255))
-          .expandDims();
-
-        const output = await activeModel.executeAsync(tensor);
-        const tensors = Array.isArray(output) ? output : [output];
-        console.log('Model output tensors:', tensors.map(t => t.shape));
-        setStatus(`Detection complete. Output tensors: ${tensors.length}. Add your draw logic to visualize boxes.`);
-
-        tensors.forEach(t => t.dispose());
-        tensor.dispose();
+        const predictions = await activeModel.detect(canvas);
+        drawPredictions(predictions);
+        setStatus(`Detection complete. Found ${predictions.length} object${predictions.length === 1 ? '' : 's'}.`);
       } catch (error) {
         console.error(error);
         setStatus('Detection failed. Check console for details.');

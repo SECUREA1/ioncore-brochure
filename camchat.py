@@ -11,6 +11,8 @@ import random
 import json
 import logging
 from collections import defaultdict, OrderedDict, deque
+
+from chatter_brain_pro import BrainPro
 import threading
 
 # NEW for notifications & image hosting
@@ -751,6 +753,7 @@ def _notify_maybe_vehicle_label(yolo_label, camera, image_bgr=None):
 # ===================================================================
 CHAT_HISTORY_FILE = "chat_history.json"
 conversation_history = []
+brain: BrainPro | None = None
 
 comms_state = {
     "voice_enabled": True,
@@ -848,6 +851,12 @@ def _append_chat(sender, text):
     if not text: return
     conversation_history.append({"time": time.time(), "sender": sender, "text": text})
     save_chat_history()
+    try:
+        if brain:
+            brain._remember_chat(sender, text)
+            brain._persist_memory()
+    except Exception:
+        pass
 
 # --- dataset Q/A helpers using existing memory stores ---
 def _best_fuzzy(query, candidates):
@@ -956,6 +965,11 @@ def answer_user(user_text):
     if (now - _last_dialog_at) < float(comms_state["dialog_cooldown"]):
         time.sleep(0.05)
     _last_dialog_at = time.time()
+    if brain:
+        try:
+            return brain.reply(user_text, dataset_answerer=answer_from_dataset)
+        except Exception:
+            pass
     ds = answer_from_dataset(user_text)
     if ds: return ds
     return smalltalk_reply(user_text)
@@ -1040,16 +1054,45 @@ def _drain_chat_ui():
         pass
     schedule_after(80, _drain_chat_ui)
 
+
+def init_brain():
+    global brain
+    if brain:
+        return brain
+    try:
+        brain = BrainPro(
+            display_fn=lambda text: chat_add_message("AI", text, speak=False),
+            speak_fn=speak_tts,
+            listen_fn=listen_once,
+            history_ref=conversation_history,
+        )
+        brain.set_dataset_answerer(answer_from_dataset)
+    except Exception:
+        brain = None
+    return brain
+
 last_narrated_at_by_key = defaultdict(float)
 def _narrate_detection(cam, label):
     msg = None
-    if label.startswith("person:") and comms_state["narrate_persons"]:
-        who = label.split("person:",1)[-1].strip()
-        msg = f"I see {who} on {cam}."
-    elif any(label.lower().startswith(x) for x in ["car","bus","truck","motorbike","bicycle","train","boat","airplane","aeroplane"]) and comms_state["narrate_vehicles"]:
-        msg = f"Vehicle detected ({label}) on {cam}."
-    elif comms_state["narrate_objects"] and not label.startswith("person:"):
-        msg = f"{label} on {cam}."
+    try:
+        if brain:
+            if label.startswith("person:") and comms_state["narrate_persons"]:
+                who = label.split("person:", 1)[-1].strip() or "Unknown"
+                msg = brain.on_person(who, cam)
+            elif any(label.lower().startswith(x) for x in ["car","bus","truck","motorbike","bicycle","train","boat","airplane","aeroplane"]) and comms_state["narrate_vehicles"]:
+                msg = brain.on_vehicle(label, cam)
+            elif comms_state["narrate_objects"] and not label.startswith("person:"):
+                msg = brain.on_object(label, cam)
+        if msg is None:
+            if label.startswith("person:") and comms_state["narrate_persons"]:
+                who = label.split("person:",1)[-1].strip()
+                msg = f"I see {who} on {cam}."
+            elif any(label.lower().startswith(x) for x in ["car","bus","truck","motorbike","bicycle","train","boat","airplane","aeroplane"]) and comms_state["narrate_vehicles"]:
+                msg = f"Vehicle detected ({label}) on {cam}."
+            elif comms_state["narrate_objects"] and not label.startswith("person:"):
+                msg = f"{label} on {cam}."
+    except Exception:
+        pass
     if msg:
         chat_add_message("AI", msg, speak=True)
 
@@ -3431,6 +3474,8 @@ if conversation_history:
     for row_ in conversation_history[-200:]:
         display.insert("end", f"{row_['sender']}: {row_['text']}\n\n")
     display.config(state="disabled"); display.yview("end")
+
+init_brain()
 
 schedule_after(150, _drain_chat_ui)
 schedule_after(350, comms_tick)

@@ -66,7 +66,9 @@ _DEFAULT_TEMPLATES = {
         ],
         "core.chat.reply": [
             "{choose:Sure|Alright|Got it}. {clip:user,140}",
-            "Processing. {choose:Working on it|Here's what I have}: {clip:answer,200}",
+            "{choose:Keeping us on track|Recapping what matters}: {clip:context,200}",
+            "{choose:I'm on it|Logging this|Got context}. {clip:user,120} {memory_hint}",
+            "{choose:Noted|Understood|Captured}. Mood feels {mood}. {memory_hint}",
         ],
         "core.chat.casual": [
             "{choose:By the way|On the side}, I remember {memory_hint}.",
@@ -188,6 +190,52 @@ class BrainPro:
         parts = [p.strip() for p in arg.split("|") if p.strip()]
         return random.choice(parts) if parts else ""
 
+    def _context_window(self, limit: int = 6) -> str:
+        """Return a short recap of recent chat to improve flow."""
+        recent = self.memory.get("chat", [])[-limit:]
+        rows = []
+        for item in recent:
+            sender = item.get("sender", "")[:10]
+            text = item.get("text", "")
+            rows.append(f"{sender}: {self._macro_clip(text, 120)}")
+        return " | ".join(rows)
+
+    def _memory_hint(self, keywords: List[str], limit: int = 2) -> str:
+        """Surface related memories (events or chat) that match keywords."""
+        hints: List[str] = []
+
+        def match_words(blob: str) -> bool:
+            blob_l = blob.lower()
+            return any(k.lower() in blob_l for k in keywords if k)
+
+        for entry in reversed(self.memory.get("chat", [])):
+            if match_words(entry.get("text", "")):
+                hints.append(self._macro_clip(entry.get("text", ""), 80))
+            if len(hints) >= limit:
+                break
+
+        if len(hints) < limit:
+            for evt in reversed(self.memory.get("events", [])):
+                blob = " ".join(str(v) for v in evt.values())
+                if match_words(blob):
+                    hints.append(self._macro_clip(blob, 80))
+                if len(hints) >= limit:
+                    break
+
+        if not hints:
+            return ""
+        return "Related: " + " | ".join(hints)
+
+    def _sentiment(self, text: str) -> str:
+        good = {"great", "love", "nice", "cool", "amazing", "awesome", "thanks"}
+        bad = {"bad", "hate", "annoy", "angry", "upset", "broken"}
+        toks = set(self._tokens(text))
+        if toks & good:
+            return "positive"
+        if toks & bad:
+            return "concerned"
+        return "neutral"
+
     def render_template(self, text: str, ctx: Dict[str, Any]) -> str:
         def repl(m):
             expr = m.group(1).strip()
@@ -274,6 +322,7 @@ class BrainPro:
         self._remember_chat("user", user_text)
         self._persist_memory()
         dataset = dataset_answerer or self.dataset_answerer
+        self._remember_chat("User", user_text)
         if dataset:
             ds = dataset(user_text)
             if ds:
@@ -284,6 +333,8 @@ class BrainPro:
         ctx = {
             "user": user_text,
             "keywords": self._extract_keywords(user_text, 4),
+            "context": self._context_window(),
+            "memory_hint": "",
             "answer": "",
             "memory_hint": self._build_memory_hint(user_text.split()[0]) if user_text.strip() else "",
         }
@@ -292,6 +343,14 @@ class BrainPro:
         if random.random() < max(0.1, float(self.tuner.get("humor", 0.15))):
             casual = self._render_from_key("core.chat.casual", ctx, "Keeping things noted.")
             response = f"{response} {casual}"
+            "mood": self._sentiment(user_text),
+        }
+        ctx["memory_hint"] = self._memory_hint(ctx["keywords"], limit=2)
+        response = self._render_from_key(
+            "core.chat.reply",
+            ctx,
+            "Okay. I have the thread in mind and will keep us moving.",
+        )
         self._remember_chat("AI", response)
         self._persist_memory()
         return response

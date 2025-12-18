@@ -48,9 +48,17 @@ _DEFAULT_TEMPLATES = {
             "{choose:Heads up|FYI|Logged}: spotted {obj} on {camera}.",
             "Tracking {obj} via {camera}.",
         ],
+        "core.object_tagged": [
+            "{tag} [{camera}{choose:| · conf {conf}| · seen {count}x}]",
+            "{choose:And then|Suddenly|Popping in}: {tag} (camera {camera}).",
+        ],
         "core.person_seen": [
             "{choose:Noted|Logging|Tagging}: {person} on {camera}.",
             "Eyes on {person} at {camera}.",
+        ],
+        "core.person_recall": [
+            "Last time was {ago} on {camera_last}.",
+            "Previously spotted {ago} via {camera_last}.",
         ],
         "core.vehicle_seen": [
             "Vehicle {vehicle} rolling by {camera}.",
@@ -60,9 +68,19 @@ _DEFAULT_TEMPLATES = {
             "{choose:Sure|Alright|Got it}. {clip:user,140}",
             "Processing. {choose:Working on it|Here's what I have}: {clip:answer,200}",
         ],
+        "core.chat.casual": [
+            "{choose:By the way|On the side}, I remember {memory_hint}.",
+            "{choose:Fun fact|Quick recall}: {memory_hint} (keywords: {keywords}).",
+            "You mentioned {clip:user,120}; pairing that with {memory_hint} if it helps.",
+        ],
         "core.chat.fallback": [
             "I'm here and listening. Can you rephrase?",
             "I didn't catch a target in that request, but I'm ready to help.",
+        ],
+        "core.memory.recall": [
+            "{choose:Last sighting|Recent memory}: {memory_hint}.",
+            "Memory ping → {memory_hint}.",
+            "Pulled from recall: {memory_hint}.",
         ],
     },
 }
@@ -93,6 +111,28 @@ class BrainPro:
         if history_ref:
             self.bootstrap_chat_history(history_ref)
 
+        self.object_tags = {
+            "bottle": ["Bottle spotted—hydration checkpoint!", "A bottle pops up—potion or seltzer?"],
+            "remote": ["Remote in sight—ready to switch universes?", "Remote detected—want me to track where it gets left?"],
+            "cellphone": ["Phone in frame—ping me if it moves?", "Cell phone sighted—log a quick note?"],
+            "cell phone": ["Phone in frame—ping me if it moves?", "Cell phone sighted—log a quick note?"],
+            "laptop": ["Laptop detected—should I keep an eye on it?", "Laptop’s up—project time?"],
+            "tv": ["A TV appears—portal to drama unlocked.", "TV spotted—binge mode engaged?"],
+            "chair": ["Chair ready—the throne of productivity awaits.", "Seat detected—permission to lounge?"],
+            "cup": ["Cup spotted—brew checkpoint!", "Cup in frame—steeped in possibility."],
+            "table": ["Table present—prime stage for plans.", "Table spotted—ready for sketches or snacks."],
+            "couch": ["Couch check—perfect for a debrief.", "Couch in view—calling for a chill session."],
+            "bed": ["Bed detected—nap ambitions rising.", "Bed in sight—dreams on standby."],
+            "microwave": ["Microwave ready—reheating a plot twist?", "Microwave on deck—snack time soon."],
+            "oven": ["Oven detected—preheating suspense.", "Oven in frame—recipes inbound."],
+            "toaster": ["Toaster ready—popping up surprises.", "Toaster spotted—breakfast ally engaged."],
+            "sink": ["Sink found—reset station online.", "Sink in view—rinse and reset?"],
+            "refrigerator": ["Fridge keeps it cool—any midnight snacks to track?", "Refrigerator present—guardian of snacks."],
+            "dog": ["Dog detected—tail-wagging happiness logged.", "Dog in sight—mood booster activated."],
+            "cat": ["Cat spotted—plotting purrfectly.", "Cat in frame—stealth mode probable."],
+            "car": ["Car in view—ready to roll?", "Car detected—should I log its plate?"],
+        }
+
     # ------------------------------------------------------------------
     # Public configuration helpers
     # ------------------------------------------------------------------
@@ -122,6 +162,19 @@ class BrainPro:
                 continue
             scored[w] = scored.get(w, 0.0) + 1.0 + (2.0 / (1.0 + i))
         return [w for w, _ in sorted(scored.items(), key=lambda x: -x[1])[:k]]
+
+    def _format_ago(self, ts: float) -> str:
+        delta = max(0, time.time() - ts)
+        minutes = int(delta // 60)
+        hours = int(minutes // 60)
+        days = int(hours // 24)
+        if delta < 60:
+            return f"{int(delta)}s ago"
+        if minutes < 60:
+            return f"{minutes}m ago"
+        if hours < 24:
+            return f"{hours}h ago"
+        return f"{days}d ago"
 
     def _macro_clip(self, val: str, n: str) -> str:
         try:
@@ -172,6 +225,29 @@ class BrainPro:
         choice = random.choice(tpl) if tpl else fallback
         return self.render_template(choice, ctx)
 
+    def _tag_object(self, obj: str) -> str:
+        bank = self.object_tags.get(obj.lower())
+        if bank:
+            return random.choice(bank)
+        return f"{obj.capitalize()} in view—want me to note anything?"
+
+    def _last_event(self, kind: str, field: str, value: str) -> Optional[Dict[str, Any]]:
+        events = [e for e in reversed(self.memory.get("events", [])) if e.get("kind") == kind and e.get(field) == value]
+        return events[0] if events else None
+
+    def _count_events(self, kind: str, field: str, value: str) -> int:
+        return sum(1 for e in self.memory.get("events", []) if e.get("kind") == kind and e.get(field) == value)
+
+    def _build_memory_hint(self, topic: str) -> str:
+        topic_l = topic.lower().strip()
+        p = self._last_event("person", "person", topic)
+        if p:
+            return f"{topic} last seen {self._format_ago(p['time'])} on {p.get('camera','?')}"
+        o = self._last_event("object", "obj", topic_l)
+        if o:
+            return f"{topic_l} last seen {self._format_ago(o['time'])} on {o.get('camera','?')}"
+        return f"No recent memory for {topic}."
+
     # ------------------------------------------------------------------
     # Memory helpers
     # ------------------------------------------------------------------
@@ -195,6 +271,8 @@ class BrainPro:
     # Conversational interface
     # ------------------------------------------------------------------
     def reply(self, user_text: str, dataset_answerer: Optional[Callable[[str], Optional[str]]] = None) -> str:
+        self._remember_chat("user", user_text)
+        self._persist_memory()
         dataset = dataset_answerer or self.dataset_answerer
         if dataset:
             ds = dataset(user_text)
@@ -207,8 +285,13 @@ class BrainPro:
             "user": user_text,
             "keywords": self._extract_keywords(user_text, 4),
             "answer": "",
+            "memory_hint": self._build_memory_hint(user_text.split()[0]) if user_text.strip() else "",
         }
         response = self._render_from_key("core.chat.reply", ctx, "Okay.")
+        # Blend in casual chit-chat that feels a bit more conversational (BERT-lite)
+        if random.random() < max(0.1, float(self.tuner.get("humor", 0.15))):
+            casual = self._render_from_key("core.chat.casual", ctx, "Keeping things noted.")
+            response = f"{response} {casual}"
         self._remember_chat("AI", response)
         self._persist_memory()
         return response
@@ -219,14 +302,25 @@ class BrainPro:
             "camera": camera,
             "conf": f"{confidence:.2f}" if confidence is not None else "",
             "color": color or "",
+            "tag": self._tag_object(obj),
+            "count": self._count_events("object", "obj", obj),
         }
-        msg = self._render_from_key("core.object_seen", ctx, f"{obj} on {camera}.")
+        msg = self._render_from_key("core.object_tagged", ctx, f"{obj} on {camera}.")
         self.remember_event("object", ctx)
         return msg
 
     def on_person(self, name: str, camera: str) -> str:
         ctx = {"person": name, "camera": camera}
+        last = self._last_event("person", "person", name)
         msg = self._render_from_key("core.person_seen", ctx, f"I see {name} on {camera}.")
+        if last:
+            ctx.update({
+                "ago": self._format_ago(last["time"]),
+                "camera_last": last.get("camera", ""),
+            })
+            recall = self._render_from_key("core.person_recall", ctx, "")
+            if recall:
+                msg = f"{msg} {recall}"
         self.remember_event("person", ctx)
         return msg
 
@@ -234,6 +328,17 @@ class BrainPro:
         ctx = {"vehicle": label, "camera": camera}
         msg = self._render_from_key("core.vehicle_seen", ctx, f"Vehicle {label} on {camera}.")
         self.remember_event("vehicle", ctx)
+        return msg
+
+    def recall_topic(self, topic: str) -> str:
+        hint = self._build_memory_hint(topic)
+        ctx = {
+            "memory_hint": hint,
+            "keywords": ", ".join(self._extract_keywords(topic, 3)),
+        }
+        msg = self._render_from_key("core.memory.recall", ctx, hint)
+        self._remember_chat("AI", msg)
+        self._persist_memory()
         return msg
 
     def chat(self, prompt: str) -> str:

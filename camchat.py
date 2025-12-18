@@ -956,8 +956,19 @@ def answer_from_dataset(user_text):
         return "Vehicles: " + (", ".join(sorted(v)) or "none") + "."
     return None
 
-def smalltalk_reply(_):
-    return "Okay."
+def smalltalk_reply(user_text):
+    snippets = [
+        "Got it—logging that. Want me to recall any faces tied to it?",
+        "Noted. I can pull memory on objects or people if you want details.",
+        "Alright. I can riff on this or check the last time we saw someone.",
+        "I'm here—shout if you want a quick recall or YOLO tag rundown.",
+    ]
+    if brain:
+        try:
+            return brain.recall_topic(user_text)
+        except Exception:
+            pass
+    return random.choice(snippets)
 
 def answer_user(user_text):
     global _last_dialog_at
@@ -3398,8 +3409,33 @@ def _listen():
         chat_add_message("System","I didn’t catch that.")
 tk.Button(row, text="🎤 Listen", command=_listen, state=("normal" if sr is not None else "disabled")).pack(side=tk.LEFT, padx=4)
 
+memory_frame = tk.LabelFrame(comms_frame, text="Memory Recall (faces / objects)")
+memory_frame.grid(row=3, column=0, sticky="ew", padx=6, pady=(0,6))
+memory_frame.columnconfigure(1, weight=1)
+tk.Label(memory_frame, text="Ask the brain for last sightings or YOLO tags:").grid(row=0, column=0, columnspan=3, sticky="w", padx=4, pady=4)
+memory_query_var = tk.StringVar()
+tk.Label(memory_frame, text="Topic").grid(row=1, column=0, sticky="w", padx=4)
+tk.Entry(memory_frame, textvariable=memory_query_var).grid(row=1, column=1, sticky="ew", padx=4)
+
+def _recall_memory():
+    query = memory_query_var.get().strip()
+    if not query:
+        return
+    chat_add_message("You", f"Recall: {query}")
+    resp = None
+    if brain:
+        try:
+            resp = brain.recall_topic(query)
+        except Exception:
+            resp = None
+    if not resp:
+        resp = answer_from_dataset(f"where is {query}") or f"No recall yet for {query}."
+    chat_add_message("AI", resp, speak=False)
+
+tk.Button(memory_frame, text="Recall", command=_recall_memory).grid(row=1, column=2, sticky="ew", padx=4)
+
 tuner = tk.LabelFrame(comms_frame, text="Voice / Response Tuner")
-tuner.grid(row=3, column=0, sticky="ew", padx=6, pady=(0,6))
+tuner.grid(row=4, column=0, sticky="ew", padx=6, pady=(0,6))
 tuner.grid_remove()
 for c in range(8): tuner.columnconfigure(c, weight=1)
 

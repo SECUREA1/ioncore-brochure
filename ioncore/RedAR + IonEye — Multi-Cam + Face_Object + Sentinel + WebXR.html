@@ -4,6 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RedAR + IonEye — Multi-Cam + Face/Object + Sentinel + WebXR</title>
+  <link rel="icon" href="../battery.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../styles.css">
 
   <!-- TFJS -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
@@ -18,27 +24,27 @@
 
   <style>
     :root{
-      --bg:#070A0F;
-      --panel:rgba(255,255,255,0.06);
-      --panel2:rgba(255,255,255,0.08);
-      --border:rgba(255,255,255,0.12);
-      --text:rgba(255,255,255,0.92);
-      --muted:rgba(255,255,255,0.62);
-      --good:#00dc8c;
-      --warn:#ffcc00;
+      --bg:#030712;
+      --panel:rgba(9,16,29,0.9);
+      --panel2:rgba(13,24,46,0.9);
+      --border:rgba(255,255,255,0.14);
+      --text:#f5f8ff;
+      --muted:#b7c7e4;
+      --good:#6aff3b;
+      --warn:#facc15;
       --bad:#ff5563;
-      --accent:#6aa8ff;
-      --shadow:0 10px 30px rgba(0,0,0,0.45);
+      --accent:#6aff3b;
+      --shadow:var(--shadow-card, 0 10px 30px rgba(0,0,0,0.45));
       --radius:14px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --sans: 'Montserrat', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      background: radial-gradient(1400px 900px at 20% 10%, rgba(106,168,255,0.10), transparent 50%),
-                  radial-gradient(1000px 700px at 80% 20%, rgba(0,220,140,0.07), transparent 55%),
-                  var(--bg);
+      background: radial-gradient(1400px 900px at 20% 10%, rgba(106,255,59,0.12), transparent 50%),
+                  radial-gradient(1000px 700px at 80% 20%, rgba(155,255,115,0.10), transparent 55%),
+                  var(--page-gradient, var(--bg));
       color:var(--text);
       font-family: var(--sans);
       overflow-x:hidden;

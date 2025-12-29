@@ -4,9 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IonCore — Ion Eye Dashboard</title>
+  <link rel="icon" href="../battery.svg" type="image/svg+xml">
 
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../styles.css">
 
   <!-- TFJS and Models for demo face/object detection -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
@@ -20,23 +25,23 @@
        IonCore theme + utilities
        --------------------------- */
     :root{
-      --bg-1: #06121a;
-      --bg-2: #071625;
-      --panel: rgba(255,255,255,0.04);
-      --glass: rgba(255,255,255,0.03);
-      --card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      --muted: #9fb3c5;
-      --accent1: #00d1ff;   /* cyan */
-      --accent2: #6b60ff;   /* violet */
-      --accent-glow: linear-gradient(90deg, rgba(0,209,255,0.12), rgba(107,96,255,0.12));
-      --success: #5eead4;
+      --bg-1: #030712;
+      --bg-2: #041021;
+      --panel: rgba(255,255,255,0.06);
+      --glass: rgba(106,255,59,0.12);
+      --card: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      --muted: #b7c7e4;
+      --accent1: #6aff3b;   /* Ioncore green */
+      --accent2: #9bff73;   /* softer neon */
+      --accent-glow: linear-gradient(90deg, rgba(106,255,59,0.22), rgba(155,255,115,0.18));
+      --success: #6aff3b;
       --danger: #ff6b6b;
-      --warning: #ffd166;
-      font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      --warning: #facc15;
+      font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
       color-scheme: dark;
     }
 
-    html,body{height:100%; margin:0; background: linear-gradient(180deg,var(--bg-1), var(--bg-2)); color:#e6eef6; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    html,body{height:100%; margin:0; background: var(--page-gradient, linear-gradient(180deg,var(--bg-1), var(--bg-2))); color:#f5f8ff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
     .app {
       display:grid;
       grid-template-columns: 320px 1fr 360px;
@@ -51,8 +56,8 @@
       background: var(--card);
       border-radius:12px;
       padding:14px;
-      border:1px solid rgba(255,255,255,0.035);
-      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      border:1px solid var(--border, rgba(255,255,255,0.14));
+      box-shadow: var(--shadow-card, 0 8px 30px rgba(2,6,23,0.6));
       backdrop-filter: blur(6px);
     }
 
@@ -61,11 +66,11 @@
       display:flex; gap:12px; align-items:center;
     }
     .logo {
-      width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(135deg,var(--accent1),var(--accent2)); box-shadow:0 6px 16px rgba(107,96,255,0.12), inset 0 -6px 18px rgba(0,0,0,0.1);
+      width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2)); box-shadow:var(--highlight-glow); border:1px solid var(--border, rgba(255,255,255,0.14));
     }
     .logo svg{width:34px;height:34px; filter:drop-shadow(0 4px 18px rgba(0,0,0,0.25));}
-    h1{margin:0;font-size:18px; letter-spacing:0.6px; color:linear-gradient(90deg,var(--accent1),var(--accent2)); font-weight:700; font-family:Poppins,Inter, sans-serif;}
+    h1{margin:0;font-size:18px; letter-spacing:0.6px; color:var(--text); font-weight:700; font-family:'Montserrat',Inter, sans-serif;}
     .tagline{color:var(--muted); font-size:13px; margin-top:3px}
 
     /* Header status */

@@ -47,6 +47,8 @@
     .eyebrow{color:var(--accent-2);font-weight:700;font-size:13px}
     h1{font-size:34px;margin:10px 0 12px 0;line-height:1.04}
     p.lead{color:var(--muted);font-size:16px;margin:0 0 14px 0}
+    .muted{color:var(--muted)}
+    .muted-small{color:var(--muted);font-size:13px}
     .hero__actions{display:flex;gap:12px;margin-top:14px}
     .engagement-counters{display:flex;gap:12px;margin-top:18px}
     .counter-card{background:var(--card);padding:10px;border-radius:10px;min-width:140px;box-shadow:0 6px 20px rgba(2,6,23,0.45);border:1px solid rgba(255,255,255,0.03)}
@@ -97,10 +99,19 @@
     .sync-controls{display:flex;gap:8px;flex-wrap:wrap}
     /* launch tiles */
     .launch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
-    .launch-card{padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(2,6,20,0.9));box-shadow:0 12px 30px rgba(2,6,23,0.45);display:grid;gap:8px}
+    .launch-grid.launch-grid--uniform{align-items:stretch}
+    .launch-card{padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(2,6,20,0.9));box-shadow:0 12px 30px rgba(2,6,23,0.45);display:flex;flex-direction:column;gap:8px;height:100%}
     .launch-card__label{color:var(--muted);font-size:13px;letter-spacing:0.08em;text-transform:uppercase}
     .launch-card__title{font-weight:800;font-size:18px;margin:0}
     .launch-card__meta{color:var(--muted);font-size:14px;margin:0}
+    .launch-card__actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+    /* overlay */
+    .launch-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:999}
+    .launch-overlay.is-open{display:flex}
+    .launch-overlay__panel{width:min(980px,100%);background:linear-gradient(150deg,var(--panel),rgba(4,12,24,0.94));border:1px solid rgba(255,255,255,0.08);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.65);padding:18px;max-height:90vh;overflow:auto}
+    .launch-overlay__header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .launch-overlay__title{margin:0}
+    .launch-overlay__controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     /* responsive */
     @media (max-width:1100px){
       .product-grid{grid-template-columns:repeat(2,1fr)}
@@ -155,6 +166,7 @@
         <div class="hero__actions">
           <a class="btn btn-primary" href="#demo">Interactive Demo</a>
           <a class="btn btn-outline" href="#contact">Request Pilot</a>
+          <button class="btn btn-outline" id="openLaunchOverlay" type="button">HUD + Games Menu</button>
         </div>
 
         <div class="engagement-counters" aria-live="polite">
@@ -198,48 +210,126 @@
       </aside>
     </section>
 
+    <div class="launch-overlay" id="launchOverlay" aria-hidden="true">
+      <div class="launch-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="launchOverlayTitle">
+        <div class="launch-overlay__header">
+          <div>
+            <p class="muted-small" style="margin:0;color:var(--muted)">HUD + Game launchpad</p>
+            <h3 class="launch-overlay__title" id="launchOverlayTitle">Choose an experience to open</h3>
+          </div>
+          <div class="launch-overlay__controls">
+            <span class="muted-small" style="color:var(--muted)">Hover or tap any tile to launch.</span>
+            <button class="btn btn-outline" id="closeLaunchOverlay" type="button">Close</button>
+          </div>
+        </div>
+
+        <div class="launch-grid launch-grid--uniform">
+          <article class="launch-card">
+            <div class="launch-card__label">XR Game</div>
+            <h3 class="launch-card__title">Omconsole Tank Battles (XR)</h3>
+            <p class="launch-card__meta">Tactical tank arenas with XR overlays.</p>
+            <div class="launch-card__actions">
+              <a class="btn btn-outline" href="ioncore/Omconsole%20Tank%20Battles.html">Play</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Space Attack</div>
+            <h3 class="launch-card__title">Atomic Defense — Nebula Upgrade</h3>
+            <p class="launch-card__meta">Orbital defense with upgraded nebula environments.</p>
+            <div class="launch-card__actions">
+              <a class="btn btn-outline" href="ioncore/Atomic%20Defense%20%E2%80%94%20Space%20Attack%20(Nebula%20Upgrade).html">Play</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Aerial Battles</div>
+            <h3 class="launch-card__title">IonCore Drone — Space Battles (Nova)</h3>
+            <p class="launch-card__meta">Drone dogfights with Nova effects and telemetry HUDs.</p>
+            <div class="launch-card__actions">
+              <a class="btn btn-outline" href="ioncore/IonCore%20Drone%20%E2%80%94%20Space%20Battles%20(Nova).html">Play</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Marine Simulator</div>
+            <h3 class="launch-card__title">IonCore — Deep Sea Drone Simulator</h3>
+            <p class="launch-card__meta">Underwater maneuvering with gesture + combat layers.</p>
+            <div class="launch-card__actions">
+              <a class="btn btn-outline" href="ioncore/IonCore%20%E2%80%94%20Deep%20Sea%20Drone%20Simulator%20(Gesture%20%2B%20Combat).html">Play</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Secure Ops</div>
+            <h3 class="launch-card__title">Secure Login – Abyss Runner</h3>
+            <p class="launch-card__meta">Identity lock-in with fast lane access controls.</p>
+            <div class="launch-card__actions">
+              <a class="btn btn-outline" href="ioncore/Secure%20Login%20-%20Abyss%20Runner.html">Launch</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Viewport HUD</div>
+            <h3 class="launch-card__title">IonCore — Mars Run (Viewport HUD)</h3>
+            <p class="launch-card__meta">Terrain overlays and waypoint HUDs for surface runs.</p>
+            <div class="launch-card__actions">
+              <a class="btn btn-outline" href="ioncore/IonCore%20%E2%80%94%20Mars%20Run%20(Viewport%20HUD).html">Launch</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+
     <!-- HUD + GAMES -->
     <section class="container page-section" aria-labelledby="launchpadTitle">
       <span class="eyebrow">Experiences</span>
       <h2 id="launchpadTitle" class="section-title">HUDs and games included in this demo</h2>
       <p class="section-subtitle muted" style="color:var(--muted)">Launch the same HUD layers and immersive simulations showcased in the Sentinel sync experience.</p>
 
-      <div class="launch-grid">
+      <div class="launch-grid launch-grid--uniform">
         <article class="launch-card">
           <div class="launch-card__label">XR Game</div>
           <h3 class="launch-card__title">Omconsole Tank Battles (XR)</h3>
           <p class="launch-card__meta">Tactical tank arenas with XR overlays.</p>
-          <a class="btn btn-outline" href="ioncore/Omconsole%20Tank%20Battles.html">Play</a>
+          <div class="launch-card__actions">
+            <a class="btn btn-outline" href="ioncore/Omconsole%20Tank%20Battles.html">Play</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Space Attack</div>
           <h3 class="launch-card__title">Atomic Defense — Nebula Upgrade</h3>
           <p class="launch-card__meta">Orbital defense with upgraded nebula environments.</p>
-          <a class="btn btn-outline" href="ioncore/Atomic%20Defense%20%E2%80%94%20Space%20Attack%20(Nebula%20Upgrade).html">Play</a>
+          <div class="launch-card__actions">
+            <a class="btn btn-outline" href="ioncore/Atomic%20Defense%20%E2%80%94%20Space%20Attack%20(Nebula%20Upgrade).html">Play</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Aerial Battles</div>
           <h3 class="launch-card__title">IonCore Drone — Space Battles (Nova)</h3>
           <p class="launch-card__meta">Drone dogfights with Nova effects and telemetry HUDs.</p>
-          <a class="btn btn-outline" href="ioncore/IonCore%20Drone%20%E2%80%94%20Space%20Battles%20(Nova).html">Play</a>
+          <div class="launch-card__actions">
+            <a class="btn btn-outline" href="ioncore/IonCore%20Drone%20%E2%80%94%20Space%20Battles%20(Nova).html">Play</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Marine Simulator</div>
           <h3 class="launch-card__title">IonCore — Deep Sea Drone Simulator</h3>
           <p class="launch-card__meta">Underwater maneuvering with gesture + combat layers.</p>
-          <a class="btn btn-outline" href="ioncore/IonCore%20%E2%80%94%20Deep%20Sea%20Drone%20Simulator%20(Gesture%20%2B%20Combat).html">Play</a>
+          <div class="launch-card__actions">
+            <a class="btn btn-outline" href="ioncore/IonCore%20%E2%80%94%20Deep%20Sea%20Drone%20Simulator%20(Gesture%20%2B%20Combat).html">Play</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Secure Ops</div>
           <h3 class="launch-card__title">Secure Login – Abyss Runner</h3>
           <p class="launch-card__meta">Identity lock-in with fast lane access controls.</p>
-          <a class="btn btn-outline" href="ioncore/Secure%20Login%20-%20Abyss%20Runner.html">Launch</a>
+          <div class="launch-card__actions">
+            <a class="btn btn-outline" href="ioncore/Secure%20Login%20-%20Abyss%20Runner.html">Launch</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Viewport HUD</div>
           <h3 class="launch-card__title">IonCore — Mars Run (Viewport HUD)</h3>
           <p class="launch-card__meta">Terrain overlays and waypoint HUDs for surface runs.</p>
-          <a class="btn btn-outline" href="ioncore/IonCore%20%E2%80%94%20Mars%20Run%20(Viewport%20HUD).html">Launch</a>
+          <div class="launch-card__actions">
+            <a class="btn btn-outline" href="ioncore/IonCore%20%E2%80%94%20Mars%20Run%20(Viewport%20HUD).html">Launch</a>
+          </div>
         </article>
       </div>
     </section>
@@ -739,6 +829,24 @@
     if(!el) return;
     el.innerText = `${nowISO()} — ${text}\n` + el.innerText;
   }
+
+  /* =============================
+     HUD/Game overlay launcher
+     ============================= */
+  (function launchOverlayInit(){
+    const overlay = document.getElementById('launchOverlay');
+    const openBtn = document.getElementById('openLaunchOverlay');
+    const closeBtn = document.getElementById('closeLaunchOverlay');
+    if(!overlay || !openBtn || !closeBtn) return;
+    const setOpen = (state) => {
+      overlay.classList.toggle('is-open', state);
+      overlay.setAttribute('aria-hidden', state ? 'false' : 'true');
+    };
+    openBtn.addEventListener('click', () => setOpen(true));
+    closeBtn.addEventListener('click', () => setOpen(false));
+    overlay.addEventListener('click', (e)=>{ if(e.target === overlay) setOpen(false); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') setOpen(false); });
+  })();
 
   /* =============================
      Metrics / Counters (local)

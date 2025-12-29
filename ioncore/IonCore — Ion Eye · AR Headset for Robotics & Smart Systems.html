@@ -38,10 +38,18 @@
     .demo{margin-top:26px; padding:18px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03)}
     /* Launch tiles */
     .launch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
-    .launch-card{padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(8,16,36,0.9));box-shadow:0 12px 30px rgba(2,6,23,0.45);display:grid;gap:8px}
+    .launch-grid.launch-grid--uniform{align-items:stretch}
+    .launch-card{padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(8,16,36,0.9));box-shadow:0 12px 30px rgba(2,6,23,0.45);display:flex;flex-direction:column;gap:8px;height:100%}
     .launch-card__label{color:var(--muted);font-size:13px;letter-spacing:0.08em;text-transform:uppercase}
     .launch-card__title{font-weight:800;font-size:18px;margin:0}
     .launch-card__meta{color:var(--muted);font-size:14px;margin:0}
+    .launch-card__actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+    .launch-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:999}
+    .launch-overlay.is-open{display:flex}
+    .launch-overlay__panel{width:min(980px,100%);background:linear-gradient(150deg,var(--card),rgba(4,12,24,0.94));border:1px solid rgba(255,255,255,0.08);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.65);padding:18px;max-height:90vh;overflow:auto}
+    .launch-overlay__header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .launch-overlay__title{margin:0}
+    .launch-overlay__controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     /* Responsive */
     @media (max-width:980px){
       .features{grid-template-columns:1fr}
@@ -77,6 +85,7 @@
           <div class="cta">
             <button class="btn" onclick="window.scrollTo({behavior:'smooth', top: document.body.scrollHeight})">Try the Interactive Demo</button>
             <button class="btn secondary">Download Brochure</button>
+            <button class="btn secondary" id="openHudOverlay" type="button">Select HUD Demo</button>
           </div>
           <div style="margin-left:12px">
             <span class="badge">Enterprise-ready</span>
@@ -116,30 +125,77 @@
       </div>
     </header>
 
+    <div class="launch-overlay" id="hudOverlay" aria-hidden="true">
+      <div class="launch-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="hudOverlayTitle">
+        <div class="launch-overlay__header">
+          <div>
+            <p class="muted-small" style="margin:0;color:var(--muted)">HUD Launchpad</p>
+            <h3 class="launch-overlay__title" id="hudOverlayTitle">Jump into an AR HUD demo</h3>
+          </div>
+          <div class="launch-overlay__controls">
+            <span class="muted-small" style="color:var(--muted)">Pick a HUD and launch instantly.</span>
+            <button class="btn secondary" id="closeHudOverlay" type="button">Close</button>
+          </div>
+        </div>
+        <div class="launch-grid launch-grid--uniform">
+          <article class="launch-card">
+            <div class="launch-card__label">Field Ops</div>
+            <h3 class="launch-card__title">Ion Eye AR Suite — Field + Sentinel Mesh</h3>
+            <p class="launch-card__meta">Mesh-aware HUD for crews, relays, and Sentinel nodes.</p>
+            <div class="launch-card__actions">
+              <a class="btn" href="IonCore%20%E2%80%94%20Ion%20Eye%20AR%20Suite%20(Field%20%2B%20Sentinel%20Mesh).html">Launch</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Multi-Cam</div>
+            <h3 class="launch-card__title">RedAR + IonEye — Multi-Cam + WebXR</h3>
+            <p class="launch-card__meta">Blend multi-camera feeds with WebXR overlays and Sentinel links.</p>
+            <div class="launch-card__actions">
+              <a class="btn" href="RedAR%20%2B%20IonEye%20%E2%80%94%20Multi-Cam%20%2B%20Face_Object%20%2B%20Sentinel%20%2B%20WebXR.html">Launch</a>
+            </div>
+          </article>
+          <article class="launch-card">
+            <div class="launch-card__label">Operations</div>
+            <h3 class="launch-card__title">Ion Eye Operations Dashboard</h3>
+            <p class="launch-card__meta">System-of-systems HUD for telemetry, alerts, and mission routing.</p>
+            <div class="launch-card__actions">
+              <a class="btn" href="IonCore%20%E2%80%94%20Ion%20Eye%20Dashboard.html">Launch</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+
     <!-- HUD DEMOS -->
     <section style="margin-top:24px">
       <span class="badge">HUD Launchpad</span>
       <h2 style="margin:10px 0 8px">AR HUD demos bundled with Ion Eye</h2>
       <p class="muted">Choose a live HUD experience to mirror the workflows shown in the Sentinel Sync and robotics headset demos.</p>
 
-      <div class="launch-grid">
+      <div class="launch-grid launch-grid--uniform">
         <article class="launch-card">
           <div class="launch-card__label">Field Ops</div>
           <h3 class="launch-card__title">Ion Eye AR Suite — Field + Sentinel Mesh</h3>
           <p class="launch-card__meta">Mesh-aware HUD for crews, relays, and Sentinel nodes.</p>
-          <a class="btn" href="IonCore%20%E2%80%94%20Ion%20Eye%20AR%20Suite%20(Field%20%2B%20Sentinel%20Mesh).html">Launch</a>
+          <div class="launch-card__actions">
+            <a class="btn" href="IonCore%20%E2%80%94%20Ion%20Eye%20AR%20Suite%20(Field%20%2B%20Sentinel%20Mesh).html">Launch</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Multi-Cam</div>
           <h3 class="launch-card__title">RedAR + IonEye — Multi-Cam + WebXR</h3>
           <p class="launch-card__meta">Blend multi-camera feeds with WebXR overlays and Sentinel links.</p>
-          <a class="btn" href="RedAR%20%2B%20IonEye%20%E2%80%94%20Multi-Cam%20%2B%20Face_Object%20%2B%20Sentinel%20%2B%20WebXR.html">Launch</a>
+          <div class="launch-card__actions">
+            <a class="btn" href="RedAR%20%2B%20IonEye%20%E2%80%94%20Multi-Cam%20%2B%20Face_Object%20%2B%20Sentinel%20%2B%20WebXR.html">Launch</a>
+          </div>
         </article>
         <article class="launch-card">
           <div class="launch-card__label">Operations</div>
           <h3 class="launch-card__title">Ion Eye Operations Dashboard</h3>
           <p class="launch-card__meta">System-of-systems HUD for telemetry, alerts, and mission routing.</p>
-          <a class="btn" href="IonCore%20%E2%80%94%20Ion%20Eye%20Dashboard.html">Launch</a>
+          <div class="launch-card__actions">
+            <a class="btn" href="IonCore%20%E2%80%94%20Ion%20Eye%20Dashboard.html">Launch</a>
+          </div>
         </article>
       </div>
     </section>
@@ -400,6 +456,21 @@
   Demo: adapted for product page
   - Same core demo as earlier, but with distinct localStorage key
   ----------------------- */
+
+(function hudOverlayInit(){
+  const overlay = document.getElementById('hudOverlay');
+  const openBtn = document.getElementById('openHudOverlay');
+  const closeBtn = document.getElementById('closeHudOverlay');
+  if(!overlay || !openBtn || !closeBtn) return;
+  const setOpen = (state) => {
+    overlay.classList.toggle('is-open', state);
+    overlay.setAttribute('aria-hidden', state ? 'false' : 'true');
+  };
+  openBtn.addEventListener('click', ()=> setOpen(true));
+  closeBtn.addEventListener('click', ()=> setOpen(false));
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) setOpen(false); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') setOpen(false); });
+})();
 
 const state = { ws:null, btDevice:null, btServer:null, detectionRunning:false, cocoModel:null, blazeface:null, historyKey:'ioncore_demo_history_v1' };
 

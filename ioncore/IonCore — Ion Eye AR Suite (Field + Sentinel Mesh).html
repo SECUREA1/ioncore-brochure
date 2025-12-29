@@ -4,9 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IonCore — Ion Eye AR Suite (Field + Sentinel Mesh)</title>
+  <link rel="icon" href="../battery.svg" type="image/svg+xml">
 
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../styles.css">
 
   <!-- Core libs -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
@@ -22,25 +27,25 @@
        IONCORE AR SUITE — BRANDABLE DESIGN SYSTEM
        ============================================ */
     :root{
-      --accent1:#00d1ff;
-      --accent2:#6b60ff;
-      --bg1:#06121a;
-      --bg2:#071625;
-      --panel: rgba(255,255,255,0.04);
-      --glass: rgba(255,255,255,0.03);
-      --muted:#9fb3c5;
-      --text:#e6eef6;
-      --good:#5eead4;
-      --warn:#ffd166;
+      --accent1:#6aff3b;
+      --accent2:#9bff73;
+      --bg1:#030712;
+      --bg2:#041021;
+      --panel: rgba(255,255,255,0.06);
+      --glass: rgba(106,255,59,0.12);
+      --muted:#b7c7e4;
+      --text:#f5f8ff;
+      --good:#6aff3b;
+      --warn:#facc15;
       --bad:#ff6b6b;
 
       --radius: 12px;
       --radius-sm: 10px;
-      --shadow: 0 10px 36px rgba(2,6,23,0.55);
-      --stroke: 1px solid rgba(255,255,255,0.035);
+      --shadow: 0 10px 36px rgba(2,6,23,0.65);
+      --stroke: 1px solid var(--border, rgba(255,255,255,0.14));
       --trans: 220ms cubic-bezier(.2,.9,.3,1);
 
-      font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
       color-scheme: dark;
     }
 
@@ -59,7 +64,7 @@
       --radius-sm: 10px;
     }
 
-    html,body{height:100%; margin:0; background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    html,body{height:100%; margin:0; background:var(--page-gradient, linear-gradient(180deg,var(--bg1),var(--bg2))); color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
     *{box-sizing:border-box}
 
     /* Layout */

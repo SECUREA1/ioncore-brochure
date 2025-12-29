@@ -198,6 +198,50 @@
     }
     .badge:hover{ transform: translateY(-3px); }
 
+    /* Launchpads */
+    .launch-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .launch-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .launch-btn small{
+      color:var(--muted);
+      font-weight:800;
+    }
+    .xr-select-row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .xr-select-row select{
+      flex:1;
+      min-width:220px;
+    }
+    .xr-player{
+      margin-top:12px;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(0,0,0,0.35);
+      min-height:260px;
+    }
+    .xr-player iframe{
+      width:100%;
+      height:340px;
+      display:block;
+      border:0;
+      background:#000;
+    }
+
     .dot{
       width:10px;height:10px;border-radius:50%;
       background:rgba(255,255,255,0.08);
@@ -917,6 +961,43 @@ Connect any system by emitting JSON messages like:
 { "type":"topology", "links":[{"from":"headset-01","to":"robot-01","label":"cmd"}] }
 
 { "type":"overlay", "nodeId":"sentinel-02", "space":"norm", "ttl":800, "items":[ ... ] }
+            </div>
+          </aside>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 480px; gap:12px; margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <h3>Ion Eye Experience Launchers</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">
+              Jump into the broader IonCore AR stack — headsets, sentinel sync demo, dashboard, and RedAR viewer.
+            </div>
+            <div class="launch-grid">
+              <button class="btn launch-btn" data-launch="IonCore%20%C2%B7%20Ion%20Eye%20%E2%80%94%20Sentinel%20Sync%20%26%20Full%20Demo.html">Sentinel Sync <small>Full demo</small></button>
+              <button class="btn launch-btn" data-launch="IonCore%20%E2%80%94%20Ion%20Eye%20%C2%B7%20AR%20Headset%20for%20Robotics%20%26%20Smart%20Systems.html">AR Headset <small>Robotics &amp; systems</small></button>
+              <button class="btn launch-btn" data-launch="IonCore%20%E2%80%94%20Ion%20Eye%20Dashboard.html">Ops Dashboard <small>Command deck</small></button>
+              <button class="btn launch-btn" data-launch="RedAR%20%2B%20IonEye%20%E2%80%94%20Multi-Cam%20%2B%20Face_Object%20%2B%20Sentinel%20%2B%20WebXR.html">RedAR + WebXR <small>Multi-cam</small></button>
+            </div>
+          </section>
+
+          <aside class="panel" style="padding:12px">
+            <h3>XR Arcade &amp; Sim Launchpad</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">
+              Load IonCore XR/AR mini experiences inline or pop them into a dedicated tab.
+            </div>
+            <div class="xr-select-row">
+              <select id="xrAppSelect">
+                <option value="ioncore/ioncore/Omconsole%20Tank%20Battles.html">Omconsole Tank Battles</option>
+                <option value="ioncore/ioncore/Atomic%20Defense%20%E2%80%94%20Space%20Attack%20(Nebula%20Upgrade).html">Atomic Defense — Space Attack</option>
+                <option value="ioncore/ioncore/IonCore%20Drone%20%E2%80%94%20Space%20Battles%20(Nova).html">IonCore Drone — Space Battles</option>
+                <option value="ioncore/ioncore/IonCore%20%E2%80%94%20Deep%20Sea%20Drone%20Simulator%20(Gesture%20%2B%20Combat).html">Deep Sea Drone Simulator</option>
+                <option value="ioncore/ioncore/Secure%20Login%20-%20Abyss%20Runner.html">Secure Login – Abyss Runner</option>
+                <option value="ioncore/ioncore/IonCore%20%E2%80%94%20Mars%20Run%20(Viewport%20HUD).html">IonCore — Mars Run</option>
+              </select>
+              <button class="btn secondary small" id="btnOpenXrApp">Open tab</button>
+              <button class="btn small" id="btnLoadXrApp">Load inline</button>
+            </div>
+            <div class="xr-player">
+              <iframe id="xrAppFrame" title="IonCore XR App Player"></iframe>
             </div>
           </aside>
         </div>
@@ -3263,6 +3344,32 @@ $('btnFocusCmd').addEventListener('click', ()=>{
   if(!cmd) return;
   sendCommand(cmd, { targetNodeId: id });
 });
+
+/* -----------------------
+   Launchpads
+----------------------- */
+document.querySelectorAll('.launch-btn').forEach((btn)=>{
+  const href = btn.dataset.launch;
+  if(!href) return;
+  btn.addEventListener('click', ()=> window.open(href, '_blank', 'noopener'));
+});
+
+function loadXrFrame(path){
+  const frame = $('xrAppFrame');
+  if(frame && path){
+    frame.src = path;
+    toast('XR app loaded', path, 'good');
+  }
+}
+
+const xrSelect = $('xrAppSelect');
+if(xrSelect){
+  const btnLoad = $('btnLoadXrApp');
+  const btnOpen = $('btnOpenXrApp');
+  btnLoad?.addEventListener('click', ()=> loadXrFrame(xrSelect.value));
+  btnOpen?.addEventListener('click', ()=>{ if(xrSelect.value) window.open(xrSelect.value, '_blank', 'noopener'); });
+  if(xrSelect.value) loadXrFrame(xrSelect.value);
+}
 
 /* -----------------------
    Global badges

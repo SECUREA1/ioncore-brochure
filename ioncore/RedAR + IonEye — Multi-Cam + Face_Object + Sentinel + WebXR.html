@@ -331,6 +331,10 @@
         <button class="btn" id="btnExitXR" disabled>Exit XR</button>
 
         <button class="btn" id="btnPublishOverlay">Publish Overlay → Node</button>
+        <button class="btn" id="btnOpenIonEyeSuite">Ion Eye Suite</button>
+        <button class="btn" id="btnOpenIonEyeDashboard">Ops Dashboard</button>
+        <button class="btn secondary" id="btnOpenSentinelDemo">Sentinel Demo</button>
+        <button class="btn secondary" id="btnOpenXrArcade">XR Arcade</button>
       </div>
     </div>
 
@@ -644,6 +648,10 @@
   const btnEnterXR = document.getElementById('btnEnterXR');
   const btnExitXR = document.getElementById('btnExitXR');
   const btnPublishOverlay = document.getElementById('btnPublishOverlay');
+  const btnOpenIonEyeSuite = document.getElementById('btnOpenIonEyeSuite');
+  const btnOpenIonEyeDashboard = document.getElementById('btnOpenIonEyeDashboard');
+  const btnOpenSentinelDemo = document.getElementById('btnOpenSentinelDemo');
+  const btnOpenXrArcade = document.getElementById('btnOpenXrArcade');
 
   const modelSelect = document.getElementById('modelSelect');
   const confRange = document.getElementById('confRange');
@@ -2676,6 +2684,15 @@
     refreshNodesFromSentinel();
     updateButtons();
   }, 1500);
+
+  function openIonEyeTarget(path, label){
+    window.open(path, '_blank', 'noopener');
+    log('eventLog', `${label} opened in new tab.`);
+  }
+  btnOpenIonEyeSuite.addEventListener('click', ()=> openIonEyeTarget('IonCore%20%E2%80%94%20Ion%20Eye%20AR%20Suite%20(Field%20%2B%20Sentinel%20Mesh).html', 'Ion Eye Suite'));
+  btnOpenIonEyeDashboard.addEventListener('click', ()=> openIonEyeTarget('IonCore%20%E2%80%94%20Ion%20Eye%20Dashboard.html', 'Ops Dashboard'));
+  btnOpenSentinelDemo.addEventListener('click', ()=> openIonEyeTarget('IonCore%20%C2%B7%20Ion%20Eye%20%E2%80%94%20Sentinel%20Sync%20%26%20Full%20Demo.html', 'Sentinel Sync Demo'));
+  btnOpenXrArcade.addEventListener('click', ()=> openIonEyeTarget('ioncore/Omconsole%20Tank%20Battles.html', 'XR Arcade'));
 
   boot();
 })();

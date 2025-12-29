@@ -117,6 +117,14 @@
     .controls{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px; }
     .controls button{ padding:10px; border-radius:10px; font-weight:700; }
 
+    /* launch grid */
+    .launch-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+
     /* logs */
     .log{ background: linear-gradient(180deg, rgba(2,8,16,0.5), rgba(2,8,16,0.35)); padding:12px; border-radius:10px; max-height:220px; overflow:auto; font-family:monospace; font-size:13px; color:#bfefff; border:1px solid rgba(255,255,255,0.02); }
     .timeline{ height:200px; overflow:auto; }
@@ -309,10 +317,10 @@
       </div>
 
       <div style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Gesture</strong> <span class="muted">detected</span></div>
-          <div id="gestureLabel" class="muted">None</div>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>Gesture</strong> <span class="muted">detected</span></div>
+        <div id="gestureLabel" class="muted">None</div>
+      </div>
 
         <div class="controls" style="margin-top:8px">
           <button id="btnArm" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); color:#001">ARM ROBOT</button>
@@ -320,6 +328,17 @@
           <button id="btnMove" style="grid-column:1/3;background:linear-gradient(90deg,#69f0ae,#00e5ff); color:#002">MOVE ROBOT →</button>
           <button id="btnEnergySave" style="background:linear-gradient(90deg,#ffd166,#ff7a7a); color:#001">Energy: SAVE</button>
         </div>
+      </div>
+
+      <hr style="opacity:0.06;margin-top:12px">
+      <h4 style="margin:6px 0">Ion Eye Launchers</h4>
+      <div class="muted">Open linked AR/XR dashboards and demos</div>
+      <div class="launch-grid">
+        <button class="secondary" data-launch-target="IonCore%20%E2%80%94%20Ion%20Eye%20AR%20Suite%20(Field%20%2B%20Sentinel%20Mesh).html">AR Suite (Field)</button>
+        <button class="secondary" data-launch-target="IonCore%20%C2%B7%20Ion%20Eye%20%E2%80%94%20Sentinel%20Sync%20%26%20Full%20Demo.html">Sentinel Sync Demo</button>
+        <button class="secondary" data-launch-target="IonCore%20%E2%80%94%20Ion%20Eye%20%C2%B7%20AR%20Headset%20for%20Robotics%20%26%20Smart%20Systems.html">AR Headset Brief</button>
+        <button class="secondary" data-launch-target="RedAR%20%2B%20IonEye%20%E2%80%94%20Multi-Cam%20%2B%20Face_Object%20%2B%20Sentinel%20%2B%20WebXR.html">RedAR + WebXR</button>
+        <button class="secondary" data-launch-target="ioncore/Omconsole%20Tank%20Battles.html">XR Arcade</button>
       </div>
 
       <hr style="opacity:0.06;margin-top:12px">
@@ -734,6 +753,18 @@ document.getElementById('btnArm').addEventListener('click', ()=>sendCommand('arm
 document.getElementById('btnDisarm').addEventListener('click', ()=>sendCommand('disarm_robot'));
 document.getElementById('btnMove').addEventListener('click', ()=>sendCommand('move_robot',{vx:0.5,vy:0.0,duration:3000}));
 document.getElementById('btnEnergySave').addEventListener('click', ()=>sendCommand('energy_save_mode'));
+
+/* -----------------------
+   Cross-experience launchers
+   ----------------------- */
+document.querySelectorAll('[data-launch-target]').forEach((btn)=>{
+  const href = btn.getAttribute('data-launch-target');
+  if(!href) return;
+  btn.addEventListener('click', ()=>{
+    window.open(href, '_blank', 'noopener');
+    logTo(document.getElementById('timeline'), `Launcher opened: ${href}`);
+  });
+});
 
 /* Simulate other system buttons */
 document.getElementById('simPulse').addEventListener('click', ()=>{

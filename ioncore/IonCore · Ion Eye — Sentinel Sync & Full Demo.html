@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IonCore · Ion Eye — Sentinel Sync & Full Demo</title>
+  <meta name="description" content="Ion Eye by IonCore — Mesh-first AR headset with Sentinel equipment syncing: node channels that let headsets, drones, robots and automations share data securely and deterministically." />
+  <link rel="icon" href="battery.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- ML & Chart libs for the interactive demo -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* Ioncore tile / palette / Montserrat-based styling */
+    :root{
+      --bg:#041021; --panel:#071826; --card:#081826;
+      --accent:#00D1FF; --accent-2:#7B6BFF; --muted:#9FB4C7; --glass:rgba(255,255,255,0.03);
+      --tile-highlight: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.02));
+      --max-width:1200px;
+      font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color:#E9F6FF;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#03101a,#041021);-webkit-font-smoothing:antialiased}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:var(--max-width);margin:0 auto;padding:22px}
+    header.site-header{display:flex;align-items:center;gap:18px;justify-content:space-between;padding:18px 0}
+    .logo{display:flex;align-items:center;gap:12px;font-weight:700;color:var(--accent)}
+    .logo__mark{width:48px;height:48px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow:0 8px 30px rgba(0,0,0,0.45)}
+    .logo__text{font-size:18px}
+    .logo__emphasis{color:#fff}
+    .site-nav ul{display:flex;gap:12px;list-style:none;margin:0;padding:0}
+    .site-nav a{color:var(--muted);font-size:14px;padding:8px 10px;border-radius:8px}
+    .site-nav a:hover{color:var(--accent);background:rgba(255,255,255,0.02)}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:9px;font-weight:700;border:none;cursor:pointer}
+    .btn-primary{background:var(--accent);color:#022;box-shadow:0 8px 30px rgba(0,209,255,0.06)}
+    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    /* hero */
+    .hero{display:flex;gap:28px;align-items:stretch;padding:28px 0}
+    .hero__content{flex:1}
+    .eyebrow{color:var(--accent-2);font-weight:700;font-size:13px}
+    h1{font-size:34px;margin:10px 0 12px 0;line-height:1.04}
+    p.lead{color:var(--muted);font-size:16px;margin:0 0 14px 0}
+    .hero__actions{display:flex;gap:12px;margin-top:14px}
+    .engagement-counters{display:flex;gap:12px;margin-top:18px}
+    .counter-card{background:var(--card);padding:10px;border-radius:10px;min-width:140px;box-shadow:0 6px 20px rgba(2,6,23,0.45);border:1px solid rgba(255,255,255,0.03)}
+    .counter-value{font-weight:800;font-size:20px;display:block}
+    .counter-label{color:var(--muted);font-size:13px}
+    .hero__stats{display:flex;gap:12px;margin-top:18px}
+    .stat-card{background:var(--card);padding:12px;border-radius:10px;flex:1;border:1px solid rgba(255,255,255,0.03)}
+    .hero__visual{width:380px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px}
+    .hero__visual-media{width:100%;height:220px;overflow:hidden;border-radius:8px;margin-bottom:12px}
+    .hero__visual-image{width:100%;height:100%;object-fit:cover;display:block}
+    /* tiles */
+    .tile-highlight{background:var(--tile-highlight);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 8px 30px rgba(2,6,23,0.45)}
+    .product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+    .product-card{padding:18px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.03)}
+    .product-card .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);color:var(--muted);font-size:13px}
+    .product-card h3{margin:10px 0 8px 0}
+    .card-actions{margin-top:12px}
+    .feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .feature-tile{padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    .timeline{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    .timeline-item{display:flex;gap:12px;align-items:flex-start}
+    .timeline-item strong{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:8px 12px;border-radius:8px;color:#032;font-weight:800}
+    .testimonial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .testimonial-card{padding:16px;border-radius:12px}
+    .portfolio-hero{display:flex;gap:18px;align-items:center}
+    .portfolio-hero__media img{width:360px;border-radius:10px}
+    .product-card__media img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+    .product-card__price{font-weight:700;color:var(--muted);margin:8px 0 10px 0}
+    .contact-panel{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:20px}
+    .cta-panel{display:flex;justify-content:space-between;align-items:center;padding:18px}
+    .marketplace-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .marketplace-card{padding:16px;border-radius:10px}
+    .marketplace-form label{display:block;margin:8px 0;color:var(--muted);font-size:14px}
+    .marketplace-form input,.marketplace-form textarea,.contact-form input,.contact-form textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .marketplace-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto;padding:6px}
+    .marketplace-item{padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+    footer.site-footer{margin-top:28px;padding:22px 0;color:var(--muted)}
+    .footer-top{display:flex;gap:24px;justify-content:space-between}
+    .footer-col{flex:1}
+    .visually-hidden{position:absolute!important;clip:rect(1px,1px,1px,1px);padding:0;border:0;height:1px;width:1px;overflow:hidden}
+    /* sentinel console */
+    .sentinel-panel{display:grid;grid-template-columns:300px 1fr 360px;gap:12px;align-items:start}
+    .device-list{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .device-tile{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+    .node-list{max-height:160px;overflow:auto}
+    .subscription-grid{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .node-history{max-height:220px;overflow:auto;padding:8px;background:rgba(255,255,255,0.02);border-radius:8px}
+    .sync-controls{display:flex;gap:8px;flex-wrap:wrap}
+    /* responsive */
+    @media (max-width:1100px){
+      .product-grid{grid-template-columns:repeat(2,1fr)}
+      .testimonial-grid{grid-template-columns:repeat(2,1fr)}
+      .hero{flex-direction:column}
+      .hero__visual{width:100%}
+      .portfolio-hero{flex-direction:column}
+      .sentinel-panel{grid-template-columns:1fr}
+    }
+    @media (max-width:700px){
+      .product-grid{grid-template-columns:1fr}
+      .site-nav ul{display:none}
+      .feature-grid{grid-template-columns:1fr}
+      .testimonial-grid{grid-template-columns:1fr}
+      .marketplace-grid{grid-template-columns:1fr}
+      .portfolio-hero__media img{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header container">
+    <a class="logo" href="/">
+      <img class="logo__mark" src="battery.svg" alt="Ioncore mark" width="48" height="48">
+      <span class="logo__text"><span class="logo__emphasis">IonCore</span> Eye</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#mesh">Mesh</a></li>
+        <li><a href="#sentinel">Sentinel</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#demo">Demo</a></li>
+      </ul>
+    </nav>
+
+    <div style="display:flex;gap:8px;">
+      <a class="btn btn-primary" href="#demo">Try Demo</a>
+      <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Contact</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero container" id="home" aria-labelledby="heroTitle">
+      <div class="hero__content">
+        <span class="eyebrow">Mesh-First AR Headset</span>
+        <h1 id="heroTitle">Ion Eye — Secure AR that connects people, machines, and memory</h1>
+        <p class="lead">A unified augmented reality platform for enterprise operations. Ion Eye fuses robust computer vision, EMG/EEG/retina & gesture control, and a secure global interaction mesh so teams and robots coordinate, learn, and remember — anywhere on the planet.</p>
+
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="#demo">Interactive Demo</a>
+          <a class="btn btn-outline" href="#contact">Request Pilot</a>
+        </div>
+
+        <div class="engagement-counters" aria-live="polite">
+          <div class="counter-card tile-highlight" aria-label="Live viewers">
+            <span class="counter-value" id="live-counter">0</span>
+            <span class="counter-label">Live viewers</span>
+          </div>
+          <div class="counter-card tile-highlight" aria-label="Total views">
+            <span class="counter-value" id="viewed-counter">0</span>
+            <span class="counter-label">Total views</span>
+          </div>
+        </div>
+
+        <div class="hero__stats">
+          <div class="stat-card tile-highlight">
+            <h3>Sub-50ms</h3>
+            <p>Local tracking latency for tight AR orchestration.</p>
+          </div>
+          <div class="stat-card tile-highlight">
+            <h3>Multi-Modal</h3>
+            <p>EMG, EEG, retina/tone and gesture fusion for hands-free control.</p>
+          </div>
+          <div class="stat-card tile-highlight">
+            <h3>Auditable</h3>
+            <p>Encrypted historical memory for replay, training, and compliance.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero__visual" aria-label="Ion Eye highlights">
+        <figure class="hero__visual-media" aria-hidden="true">
+          <img class="hero__visual-image" src="ion-eye-hero.jpg" alt="Ion Eye AR headset render" loading="lazy">
+        </figure>
+        <h3 style="margin:0 0 8px 0">Why teams choose Ion Eye</h3>
+        <ul style="margin:0;padding-left:18px;color:var(--muted);">
+          <li><i class="fa-solid fa-lock"></i> Hardware root-of-trust and tenant key custody</li>
+          <li><i class="fa-solid fa-wifi"></i> Global secure mesh with NAT traversal and edge relays</li>
+          <li><i class="fa-solid fa-brain"></i> Biosignal-driven controls and private telemetry</li>
+          <li><i class="fa-solid fa-robot"></i> Integrations for robotics, energy systems and fleets</li>
+        </ul>
+      </aside>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="container page-section" id="features">
+      <span class="eyebrow">Capabilities</span>
+      <h2 class="section-title">What Ion Eye delivers</h2>
+      <p class="section-subtitle muted" style="color:var(--muted)">A full-stack AR platform built for enterprise demands: secure connectivity, reliable tracking, multi-modal control, and auditable memory.</p>
+
+      <div class="product-grid" style="margin-top:16px;">
+        <article class="product-card tile-highlight">
+          <div class="feature-title">Connectivity</div>
+          <div class="muted" style="margin-top:8px">mTLS, QUIC/ICE traversal, selective relays, and secure OTA for global device fleets.</div>
+        </article>
+
+        <article class="product-card tile-highlight">
+          <div class="feature-title">Computer Vision</div>
+          <div class="muted" style="margin-top:8px">Markerless face & object detection, skeletal pose estimation, and depth-aware overlays for AR workflows.</div>
+        </article>
+
+        <article class="product-card tile-highlight">
+          <div class="feature-title">Biosignal Fusion</div>
+          <div class="muted" style="margin-top:8px">EMG and EEG channels, retina/tone recognition, and gesture fusion for nuanced, hands-free interfaces.</div>
+        </article>
+
+        <article class="product-card tile-highlight">
+          <div class="feature-title">Robotics & Energy</div>
+          <div class="muted" style="margin-top:8px">Idempotent command patterns, safety modes, and telemetry acknowledgements for reliable orchestration.</div>
+        </article>
+
+        <article class="product-card tile-highlight">
+          <div class="feature-title">Telemetry & Memory</div>
+          <div class="muted" style="margin-top:8px">Encrypted historical memory with configurable retention and deterministic merging using CRDT-style patterns.</div>
+        </article>
+
+        <article class="product-card tile-highlight">
+          <div class="feature-title">Developer APIs</div>
+          <div class="muted" style="margin-top:8px">REST, WebSocket, WebRTC, WebBluetooth, and ROS/ROS2 connectors for quick integrations.</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- MESH -->
+    <section class="container page-section" id="mesh" aria-labelledby="meshTitle">
+      <h2 id="meshTitle">Global Secure Mesh</h2>
+      <p class="muted">A resilient Interaction Mesh that captures and synchronizes every interaction — gestures, commands, sensor feeds, and acknowledgements — into a coherent, auditable timeline.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 420px; gap:16px; margin-top:12px;">
+        <div class="card tile-highlight" style="padding:18px;">
+          <h3>Core mesh capabilities</h3>
+          <ul style="color:var(--muted);margin-top:10px;padding-left:18px;">
+            <li><strong>Device attestation</strong> — hardware root-of-trust & signed firmware</li>
+            <li><strong>End-to-end encryption</strong> — TLS 1.3 + optional PQC KEM</li>
+            <li><strong>CRDT sync</strong> — deterministic conflict resolution for collaborative state</li>
+            <li><strong>Offline-first</strong> — local stores with automatic, auditable sync</li>
+          </ul>
+          <p class="muted" style="margin-top:12px">Operators and robots share intent and memory without central bottlenecks; audit trails and replay support training and forensics.</p>
+        </div>
+
+        <aside class="card tile-highlight" style="padding:18px;">
+          <h4 style="margin-top:0">Why it matters</h4>
+          <ul class="muted-small" style="margin-top:10px;padding-left:18px">
+            <li>Distributed coordination with no single point of failure</li>
+            <li>Deterministic merges preserve operator intent</li>
+            <li>Replayable history for compliance and training</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- SENTINEL -->
+    <section class="container page-section" id="sentinel" aria-labelledby="sentinelTitle">
+      <h2 id="sentinelTitle">Sentinel Equipment Syncing</h2>
+      <p class="muted">Sentinel sync is IonCore’s node-based data fabric for operational units. When devices join the same node channel — headsets, drones, robots, and automations — they can securely share telemetry, commands, overlays, and contextual memory with deterministic merging and audit logs.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 420px;gap:16px;margin-top:12px;">
+        <div class="card tile-highlight" style="padding:18px;">
+          <h3>How Sentinel syncing works</h3>
+          <ol style="color:var(--muted);margin-top:10px;padding-left:18px">
+            <li><strong>Node channels</strong> — ephemeral or persistent channels that represent a shared operating context (a room, vehicle, robot task, or mission).</li>
+            <li><strong>Device identity</strong> — each unit has a cryptographic identity (hardware-backed) and registers to nodes via tenant-managed auth.</li>
+            <li><strong>Publish & subscribe</strong> — devices publish events (telemetry, overlays, commands) to a node; subscribers receive those events in deterministic order.</li>
+            <li><strong>Deterministic merge</strong> — events are merged using timestamp + device id ordering and optional CRDT patterns to ensure state convergence.</li>
+            <li><strong>Selective relay</strong> — for global scenarios, edge relays and TURN servers assist connectivity while preserving end-to-end encryption and audit trails.</li>
+          </ol>
+          <p class="muted" style="margin-top:12px">Sentinel allows teams to **call for sync** (on-demand) so all equipment on the same node can share context and act in concert — for example, a headset may trigger a drone sweep and have the drone stream annotated overlays back to the operator’s AR view.</p>
+        </div>
+
+        <aside class="card tile-highlight" style="padding:18px;">
+          <h4 style="margin-top:0">Operational benefits</h4>
+          <ul style="color:var(--muted);margin-top:10px;padding-left:18px;">
+            <li>Coordinated multi-robot tasks with shared situational awareness</li>
+            <li>Live overlay sharing for remote experts and trainees</li>
+            <li>Audit logs and replay for incident investigation</li>
+            <li>Graceful offline operation and deterministic convergence</li>
+          </ul>
+          <h4 style="margin-top:12px">Security</h4>
+          <p class="muted" style="margin-top:6px">Sentinel enforces tenant keys, mTLS device auth, role-based access to nodes, and per-event audit hashing. For regulated environments, Sentinel supports on-prem channel anchors and air-gapped relays.</p>
+        </aside>
+      </div>
+
+      <!-- Sentinel Sync Console -->
+      <div style="margin-top:18px;" class="tile-highlight card">
+        <h3>Sentinel Sync Console (Simulation)</h3>
+        <p class="muted">Use the console below to model node-based syncing. Create devices, create nodes, subscribe devices to nodes, and publish events. The console syncs across browser tabs (BroadcastChannel) for multi-tab demos.</p>
+
+        <div class="sentinel-panel" style="margin-top:12px;">
+          <!-- Devices -->
+          <div>
+            <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+              <strong>Devices</strong>
+              <div style="display:flex;gap:6px">
+                <select id="deviceTypeSelect" style="padding:6px;border-radius:6px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.04)">
+                  <option value="Headset">Headset</option>
+                  <option value="Drone">Drone</option>
+                  <option value="Robot">Robot</option>
+                  <option value="Automation">Automation</option>
+                </select>
+                <input id="deviceNameInput" placeholder="Device name" style="padding:8px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit" />
+                <button class="btn btn-primary" id="btnAddDevice">Add</button>
+              </div>
+            </div>
+
+            <div class="device-list" id="deviceList"></div>
+            <div style="margin-top:8px; display:flex; gap:8px">
+              <button class="btn btn-outline" id="btnClearDevices">Clear devices</button>
+              <button class="btn btn-primary" id="btnExportDevices">Export CSV</button>
+            </div>
+          </div>
+
+          <!-- Node & Subscriptions -->
+          <div>
+            <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+              <strong>Node channels</strong>
+              <div style="display:flex;gap:6px">
+                <input id="nodeNameInput" placeholder="Node name (e.g. Alpha)" style="padding:8px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit" />
+                <button class="btn btn-primary" id="btnAddNode">Create Node</button>
+              </div>
+            </div>
+
+            <div class="node-list" id="nodeList" style="margin-top:8px"></div>
+
+            <div style="margin-top:12px">
+              <strong>Subscriptions</strong>
+              <div class="subscription-grid" id="subscriptionGrid"></div>
+            </div>
+
+            <div style="margin-top:12px">
+              <strong>Publish to Node</strong>
+              <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+                <select id="publishFromDevice" style="padding:8px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit"></select>
+                <select id="publishNode" style="padding:8px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit"></select>
+              </div>
+              <textarea id="publishPayload" rows="3" placeholder='{"action":"overlay","text":"Check valve"}' style="width:100%;margin-top:8px;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit"></textarea>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <button class="btn btn-primary" id="btnPublish">Publish</button>
+                <button class="btn btn-outline" id="btnSimTelemetry">Simulate Telemetry</button>
+                <button class="btn btn-outline" id="btnExportNodeHistory">Export Node History</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Node history & logs -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <strong>Node History</strong>
+              <select id="nodeHistorySelect" style="padding:6px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit"></select>
+            </div>
+
+            <div class="node-history" id="nodeHistory" style="margin-top:8px"></div>
+
+            <h4 style="margin-top:12px">Device Logs</h4>
+            <div id="deviceLogs" style="max-height:180px;overflow:auto;padding:8px;background:rgba(255,255,255,0.02);border-radius:8px;margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;color:var(--muted)">
+          <strong>Notes:</strong> This console is a local simulation. In production Sentinel syncing is secured by mTLS device auth, tenant-managed keys, and optional on-prem anchors or audited edge relays. Events are ordered deterministically using timestamps + device id; for complex collaborative state we recommend CRDT patterns for convergence.
+        </div>
+      </div>
+    </section>
+
+    <!-- SECURITY -->
+    <section class="container page-section" id="security">
+      <h2>Security & Privacy</h2>
+      <div class="card tile-highlight" style="padding:18px; margin-top:12px;">
+        <p class="muted">Security is built in: hardware attestation, signed releases, tenant-managed keys, role-based access, and encrypted telemetry. Biometric data is treated as sensitive — privacy filters, pseudonymization, and configurable retention are first-class features.</p>
+
+        <h4 style="margin-top:12px">Key controls</h4>
+        <ul style="color:var(--muted);padding-left:18px">
+          <li>Secure boot & hardware root-of-trust</li>
+          <li>Signed OTA with rollback protection</li>
+          <li>mTLS peer authentication & audit logs</li>
+          <li>Tenant custody of keys and optional on-prem memory</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section class="demo container page-section" id="demo" aria-labelledby="demoTitle">
+      <h2 id="demoTitle">Interactive Demo (Live)</h2>
+      <p class="muted">Camera face/object overlays, EMG/EEG charts, simulated telemetry/robot commands, and full integration with the Sentinel console above. Open multiple tabs to see cross-tab sync in action.</p>
+
+      <div style="display:grid;grid-template-columns:360px 1fr 360px; gap:12px; margin-top:12px;">
+        <!-- Left -->
+        <aside class="card tile-highlight" style="height:420px; overflow:auto;">
+          <h4>Connectivity</h4>
+          <label class="muted" style="display:block;margin-top:8px">Telemetry channel (local)</label>
+          <input id="wsUrl_demo" type="text" placeholder="(local BroadcastChannel)" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit" disabled />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" id="btnStartLocalBus">Start Local Bus</button>
+            <button class="btn btn-outline" id="btnStopLocalBus">Stop</button>
+          </div>
+
+          <hr style="opacity:0.06;margin:12px 0" />
+
+          <label class="muted">Bluetooth (WebBluetooth)</label>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-outline" id="btnScanBT_demo">Scan & Connect</button>
+            <div style="flex:1">
+              <div id="btDeviceName_demo" class="muted" style="padding-top:6px">No device</div>
+            </div>
+          </div>
+
+          <hr style="opacity:0.06;margin:12px 0" />
+          <h4>Historical Memory</h4>
+          <div class="muted">Saved telemetry events</div>
+          <div id="historyLog_demo" class="counter-card" style="height:160px;overflow:auto;margin-top:8px"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" id="btnExport_demo">Export CSV</button>
+            <button class="btn btn-outline" id="btnClearHistory_demo">Clear</button>
+          </div>
+        </aside>
+
+        <!-- Center -->
+        <main class="card tile-highlight" style="height:420px;padding:12px;display:flex;flex-direction:column;">
+          <h4>Camera & Tracking</h4>
+          <div id="video-wrap-demo" style="flex:1;border-radius:10px;overflow:hidden;background:#000;position:relative;display:flex;align-items:center;justify-content:center">
+            <video id="video_demo" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1)"></video>
+            <canvas id="overlay_demo" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas>
+            <div id="modelStatus" style="position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.4);padding:6px;border-radius:6px;font-size:13px;color:var(--muted)">Loading models…</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div class="muted">Toggles</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <label class="muted">Face</label><input id="faceToggle_demo" type="checkbox" checked />
+              <label class="muted">Objects</label><input id="objToggle_demo" type="checkbox" checked />
+              <label class="muted">Freq</label>
+              <select id="freqSelect_demo" style="padding:6px;border-radius:6px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.04)">
+                <option value="200">200ms</option><option value="350" selected>350ms</option><option value="500">500ms</option>
+              </select>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right -->
+        <aside class="card tile-highlight" style="height:420px;display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>EMG</strong></div>
+              <div id="emgVal_demo">0.00</div>
+            </div>
+            <div style="height:110px;margin-top:8px">
+              <canvas id="emgChart_demo" style="width:100%;height:100%"></canvas>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>EEG</strong></div>
+              <div id="eegVal_demo">0.00</div>
+            </div>
+            <div style="height:110px;margin-top:8px">
+              <canvas id="eegChart_demo" style="width:100%;height:100%"></canvas>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>Gesture</strong><div class="muted" style="font-size:13px">detected</div></div>
+              <div id="gestureLabel_demo" class="muted">None</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-primary" id="btnArm_demo">ARM ROBOT</button>
+              <button class="btn btn-outline" id="btnDisarm_demo">DISARM</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-primary" id="btnMove_demo" style="flex:1">MOVE ROBOT →</button>
+              <button class="btn btn-outline" id="btnEnergySave_demo">Energy: SAVE</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <div class="card tile-highlight" style="flex:1">
+          <h4>Telemetry Log</h4>
+          <div id="telemetryLog_demo" class="marketplace-list" style="height:120px"></div>
+        </div>
+
+        <div class="card tile-highlight" style="width:360px">
+          <h4>Timeline & Commands</h4>
+          <div id="timeline_demo" class="marketplace-list" style="height:120px"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+            <button class="btn btn-outline" id="btnClearTimeline_demo">Clear</button>
+            <button class="btn btn-primary" id="simGesture_demo">Simulate Gesture</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Marketplace (local) -->
+    <section class="container page-section" id="marketplace">
+      <span class="eyebrow">Marketplace</span>
+      <h2 class="section-title">Share assets and bids (local demo)</h2>
+      <div class="marketplace-grid tile-highlight" style="margin-top:12px;">
+        <article class="marketplace-card">
+          <h3>Share an upload</h3>
+          <form id="marketplace-upload-form" class="marketplace-form" novalidate>
+            <label for="marketplace-title">Title
+              <input id="marketplace-title" name="title" type="text" placeholder="Cryogenic Cooling Suite">
+            </label>
+            <label for="marketplace-description">Description
+              <textarea id="marketplace-description" name="description" placeholder="Outline the value, deliverables, or attached media."></textarea>
+            </label>
+            <label for="marketplace-username">Creator name
+              <input id="marketplace-username" name="username" type="text" placeholder="Chaines">
+            </label>
+            <label for="marketplace-wallet">Wallet address
+              <input id="marketplace-wallet" name="walletAddress" type="text" placeholder="0xABC123…">
+            </label>
+            <label for="marketplace-media">Media URL
+              <input id="marketplace-media" name="mediaUrl" type="url" placeholder="https://ioncore/example.mp4">
+            </label>
+            <label for="marketplace-contact">Contact
+              <input id="marketplace-contact" name="contact" type="text" placeholder="you@enterprise.io">
+            </label>
+            <div class="marketplace-form__actions">
+              <button type="submit" class="btn btn-primary">Submit upload</button>
+              <p id="upload-status" class="muted" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </article>
+
+        <article class="marketplace-card">
+          <h3>Place a bid</h3>
+          <form id="marketplace-bid-form" class="marketplace-form" novalidate>
+            <label for="marketplace-asset">Upload
+              <select id="marketplace-asset" name="assetId" required>
+                <option value="">No uploads</option>
+              </select>
+            </label>
+            <label for="marketplace-bidder">Bidder name
+              <input id="marketplace-bidder" name="bidderName" type="text" placeholder="Ioncore Ventures">
+            </label>
+            <label for="marketplace-bid-wallet">Wallet address
+              <input id="marketplace-bid-wallet" name="bidderWallet" type="text" placeholder="0x4837F91B…">
+            </label>
+            <label for="marketplace-amount">Bid amount
+              <input id="marketplace-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="2500" required>
+            </label>
+            <label for="marketplace-currency">Currency
+              <input id="marketplace-currency" name="currency" type="text" maxlength="6" placeholder="USD" value="USD">
+            </label>
+            <label for="marketplace-message">Message
+              <textarea id="marketplace-message" name="message" placeholder="Share delivery timelines, escrow steps, or partnership notes."></textarea>
+            </label>
+            <div class="marketplace-form__actions">
+              <button type="submit" class="btn btn-outline">Submit bid</button>
+              <p id="bid-status" class="muted" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </article>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <div style="flex:1;" class="tile-highlight card">
+          <h4>Community uploads</h4>
+          <div id="marketplace-uploads" class="marketplace-list"></div>
+        </div>
+        <div style="width:360px;" class="tile-highlight card">
+          <h4>Recent bids</h4>
+          <div id="marketplace-bids" class="marketplace-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="container page-section page-section--tight" id="contact">
+      <div class="contact-panel tile-highlight">
+        <div>
+          <span class="eyebrow">Next steps</span>
+          <h2 class="section-title">Schedule a secured strategy session</h2>
+          <p class="muted">Align on NDA, roadmap access, and a tailored engagement path with the IonCore partnerships team. (Local demo stores requests in-browser.)</p>
+        </div>
+        <div style="width:420px">
+          <form id="contact-form" class="contact-form" novalidate>
+            <label for="contact-name">Name</label>
+            <input id="contact-name" name="name" type="text" placeholder="Avery Callahan">
+
+            <label for="contact-email">Email<span aria-hidden="true">*</span></label>
+            <input id="contact-email" name="email" type="email" placeholder="you@enterprise.io" required>
+
+            <label for="contact-message">Mission details</label>
+            <textarea id="contact-message" name="message" rows="4" placeholder="Outline your deployment goals, timeline, and regions of interest."></textarea>
+
+            <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+              <button type="submit" class="btn btn-primary">Transmit request</button>
+              <p id="contact-status" class="muted" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer container">
+    <div class="footer-top">
+      <div class="footer-col">
+        <a class="logo" href="/">
+          <img class="logo__mark" src="battery.svg" alt="Ioncore mark" width="48" height="48">
+          <span class="logo__text"><span class="logo__emphasis">IonCore</span> Eye</span>
+        </a>
+        <p class="muted" style="margin-top:10px">Ion Eye — Secure AR for enterprise robotics, energy systems and mission-critical operations.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul style="list-style:none;padding:0;margin:8px 0 0 0;color:var(--muted)">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#mesh">Mesh</a></li>
+          <li><a href="#sentinel">Sentinel</a></li>
+          <li><a href="#demo">Demo</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <ul style="list-style:none;padding:0;margin:8px 0 0 0;color:var(--muted)">
+          <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+          <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Telegram</a></li>
+          <li><a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:18px;color:var(--muted);font-size:14px">
+      <span>&copy; <script>document.write(new Date().getFullYear())</script> IonCore. All rights reserved.</span>
+      <span>Designed for visionaries investing in secure AR systems.</span>
+    </div>
+  </footer>
+
+  <!-- JavaScript: unified logic (Sentinel, Demo, Marketplace, Contact, Counters) -->
+  <script>
+  /* =============================
+     Utilities & Storage
+     ============================= */
+  const STORAGE = {
+    SENTINEL_KEY: 'ioneye_sentinel_v2',
+    MARKETPLACE_KEY: 'ioneye_marketplace_v1',
+    CONTACTS_KEY: 'ioneye_contacts_v1',
+    HISTORY_KEY: 'ioneye_history_v1',
+    METRICS_KEY: 'ioneye_metrics_v1'
+  };
+
+  function nowISO(){ return new Date().toISOString(); }
+  function uid(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+  function load(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e){ return fallback; } }
+  function save(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  /* BroadcastChannel with localStorage fallback for multi-tab sync */
+  const BC_NAME = 'ioncore_broadcast_v1';
+  let bc = null;
+  try { if ('BroadcastChannel' in window) bc = new BroadcastChannel(BC_NAME); } catch(e){ bc = null; }
+  function bcPost(type, payload){
+    const msg = { type, payload, ts: nowISO() };
+    try {
+      if (bc) { bc.postMessage(msg); }
+      // fallback: localStorage ping
+      else { localStorage.setItem(BC_NAME, JSON.stringify(msg)); localStorage.removeItem(BC_NAME); }
+    } catch(e){ console.warn('Broadcast error', e); }
+  }
+  if (bc) { bc.onmessage = (ev) => { handleBroadcast(ev.data); }; }
+  else {
+    window.addEventListener('storage', (e)=>{
+      if(e.key !== BC_NAME || !e.newValue) return;
+      try { handleBroadcast(JSON.parse(e.newValue)); } catch(_) {}
+    });
+  }
+
+  /* central log helper */
+  function appendLog(elId, text){
+    const el = document.getElementById(elId);
+    if(!el) return;
+    el.innerText = `${nowISO()} — ${text}\n` + el.innerText;
+  }
+
+  /* =============================
+     Metrics / Counters (local)
+     ============================= */
+  (function metricsInit(){
+    let metrics = load(STORAGE.METRICS_KEY, { live:0, viewed:0, sessions:{} });
+    // Each open registers a sessionId
+    const sessionId = uid('sess');
+    metrics.live = (metrics.live || 0) + 1;
+    metrics.viewed = (metrics.viewed || 0) + 1;
+    metrics.sessions[sessionId] = { start: nowISO(), active:true };
+    save(STORAGE.METRICS_KEY, metrics);
+    // reflect in UI
+    document.getElementById('live-counter').textContent = metrics.live.toLocaleString();
+    document.getElementById('viewed-counter').textContent = metrics.viewed.toLocaleString();
+
+    // On unload, decrement live
+    window.addEventListener('beforeunload', ()=>{
+      const m = load(STORAGE.METRICS_KEY, { live:0, viewed:0, sessions:{} });
+      m.live = Math.max(0,(m.live||1)-1);
+      if(m.sessions && m.sessions[sessionId]){ m.sessions[sessionId].end = nowISO(); m.sessions[sessionId].active = false; }
+      save(STORAGE.METRICS_KEY, m);
+      bcPost('metrics_update', { sessionId, live:m.live });
+    });
+    // Listen for broadcast metrics updates to update live counter across tabs
+    function handleMetricsUpdate(payload){
+      try{
+        const m = load(STORAGE.METRICS_KEY, { live:0 });
+        document.getElementById('live-counter').textContent = (m.live || 0).toLocaleString();
+      }catch(e){}
+    }
+    // exposure
+    window.addEventListener('ioncore_metrics_update', ()=> handleMetricsUpdate());
+  })();
+
+  /* =============================
+     Sentinel Simulation
+     ============================= */
+  (function sentinelInit(){
+    const KEY = STORAGE.SENTINEL_KEY;
+    let state = load(KEY, { devices:[], nodes:[], subscriptions:[], messages:[] });
+
+    // Save & broadcast helper
+    function saveState(){
+      save(KEY, state);
+      bcPost('sentinel_state', { state });
+    }
+
+    // Deterministic ordering comparator (ts then deviceId)
+    function compareMessages(a,b){
+      if(a.ts === b.ts) return (a.deviceId || '').localeCompare(b.deviceId || '');
+      return new Date(a.ts) - new Date(b.ts);
+    }
+
+    /* Render functions */
+    function renderDevices(){
+      const container = document.getElementById('deviceList');
+      container.innerHTML = '';
+      state.devices.forEach(d=>{
+        const div = document.createElement('div');
+        div.className = 'device-tile';
+        div.innerHTML = `<div><strong>${escapeHtml(d.name)}</strong><div class="muted" style="font-size:13px">${escapeHtml(d.type)} • ${d.id}</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline" data-id="${d.id}" data-action="view">View</button>
+            <button class="btn btn-primary" data-id="${d.id}" data-action="remove">Remove</button>
+          </div>`;
+        container.appendChild(div);
+      });
+      // publishFrom select
+      const publishFrom = document.getElementById('publishFromDevice'); publishFrom.innerHTML = '';
+      state.devices.forEach(d => {
+        const opt = document.createElement('option'); opt.value = d.id; opt.textContent = `${d.name} (${d.type})`;
+        publishFrom.appendChild(opt);
+      });
+      renderDeviceLogsOverview();
+    }
+
+    function renderNodes(){
+      const list = document.getElementById('nodeList');
+      list.innerHTML = '';
+      state.nodes.forEach(n=>{
+        const div = document.createElement('div'); div.style.marginBottom='8px';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>${escapeHtml(n.name)}</strong><div class="muted" style="font-size:13px">${escapeHtml(n.id)}</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" data-node="${n.id}" data-action="view">View</button>
+            <button class="btn btn-outline" data-node="${n.id}" data-action="remove">Remove</button>
+          </div>
+        </div>`;
+        list.appendChild(div);
+      });
+      const publishNode = document.getElementById('publishNode'); publishNode.innerHTML = '';
+      const nodeHistorySelect = document.getElementById('nodeHistorySelect'); nodeHistorySelect.innerHTML = '';
+      state.nodes.forEach(n=>{
+        const opt = document.createElement('option'); opt.value = n.id; opt.textContent = n.name;
+        publishNode.appendChild(opt);
+        nodeHistorySelect.appendChild(opt.cloneNode(true));
+      });
+    }
+
+    function renderSubscriptions(){
+      const grid = document.getElementById('subscriptionGrid');
+      grid.innerHTML = '';
+      if(state.devices.length === 0 || state.nodes.length === 0){ grid.innerHTML = '<div class="muted">Add at least one device and one node.</div>'; return; }
+      state.devices.forEach(d=>{
+        const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between';
+        const left = document.createElement('div'); left.innerHTML = `<strong>${escapeHtml(d.name)}</strong><div class="muted" style="font-size:13px">${escapeHtml(d.type)}</div>`;
+        const right = document.createElement('div');
+        state.nodes.forEach(n=>{
+          const cbId = `sub_${d.id}_${n.id}`;
+          const checked = !!state.subscriptions.find(s=>s.deviceId===d.id && s.nodeId===n.id);
+          const label = document.createElement('label'); label.style.marginLeft='8px';
+          label.innerHTML = `<input type="checkbox" id="${cbId}" data-device="${d.id}" data-node="${n.id}" ${checked? 'checked':''}> <span class="muted-small">${escapeHtml(n.name)}</span>`;
+          right.appendChild(label);
+        });
+        row.appendChild(left); row.appendChild(right); grid.appendChild(row);
+      });
+      // attach change handlers
+      grid.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+        cb.addEventListener('change', ()=>{
+          const deviceId = cb.getAttribute('data-device'); const nodeId = cb.getAttribute('data-node');
+          if(cb.checked){
+            if(!state.subscriptions.find(s=>s.deviceId===deviceId && s.nodeId===nodeId)){
+              state.subscriptions.push({ deviceId, nodeId });
+              saveState();
+            }
+          } else {
+            state.subscriptions = state.subscriptions.filter(s=>!(s.deviceId===deviceId && s.nodeId===nodeId));
+            saveState();
+          }
+        });
+      });
+    }
+
+    function renderNodeHistory(nodeId){
+      const el = document.getElementById('nodeHistory');
+      el.innerHTML = '';
+      const msgs = state.messages.filter(m=>m.nodeId===nodeId).sort(compareMessages);
+      if(!msgs.length){ el.innerHTML = '<div class="muted">No events for this node.</div>'; return; }
+      msgs.forEach(m=>{
+        const card = document.createElement('div'); card.style.padding='8px'; card.style.borderBottom='1px dashed rgba(255,255,255,0.03)';
+        card.innerHTML = `<div style="font-weight:800">${escapeHtml(m.deviceName)} <span class="muted" style="font-weight:400">• ${escapeHtml(m.deviceType)}</span></div>
+          <div class="muted-small">${m.ts}</div>
+          <pre style="white-space:pre-wrap;background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;margin-top:6px">${escapeHtml(JSON.stringify(m.payload,null,2))}</pre>`;
+        el.appendChild(card);
+      });
+    }
+
+    function renderDeviceLogsOverview(){
+      // show each device recent messages
+      const logEl = document.getElementById('deviceLogs'); logEl.innerHTML = '';
+      state.devices.forEach(d=>{
+        const msgs = state.messages.filter(m=>m.deviceId===d.id).sort((a,b)=> new Date(b.ts)-new Date(a.ts)).slice(0,5);
+        const card = document.createElement('div'); card.style.borderBottom='1px dashed rgba(255,255,255,0.03)'; card.style.padding='8px';
+        const header = `<div style="font-weight:800">${escapeHtml(d.name)} <span class="muted-small">• ${escapeHtml(d.type)}</span></div>`;
+        const lines = msgs.map(m=> `<div class="muted-small" style="margin-top:6px">${m.ts} — ${escapeHtml(JSON.stringify(m.payload))}</div>`).join('');
+        card.innerHTML = header + lines;
+        logEl.appendChild(card);
+      });
+    }
+
+    // Publish message and "deliver" to subscribers (local simulation)
+    function publishMessage(deviceId, nodeId, payload){
+      const device = state.devices.find(d=>d.id===deviceId);
+      const node = state.nodes.find(n=>n.id===nodeId);
+      if(!device || !node) return;
+      const message = {
+        id: uid('msg'),
+        nodeId, nodeName: node.name,
+        deviceId, deviceName: device.name, deviceType: device.type,
+        payload, ts: nowISO()
+      };
+      state.messages.push(message);
+      saveState();
+      // broadcast to other tabs
+      bcPost('sentinel_message', { message });
+      renderAll();
+    }
+
+    // Export CSV
+    function exportNodeCSV(nodeId){
+      const msgs = state.messages.filter(m=>m.nodeId===nodeId).sort(compareMessages);
+      const rows = [['ts','node','device','type','payload']];
+      msgs.forEach(m=> rows.push([m.ts,m.nodeName,m.deviceName,m.deviceType, JSON.stringify(m.payload).replace(/"/g,'""')]));
+      const csv = rows.map(r=>r.map(v=> `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `node_${nodeId}_history.csv`; a.click();
+    }
+
+    function exportDevicesCSV(){
+      const rows = [['id','name','type','created']];
+      state.devices.forEach(d=> rows.push([d.id,d.name,d.type,d.created]));
+      const csv = rows.map(r=> r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = 'devices.csv'; a.click();
+    }
+
+    /* UI wiring */
+    function wireUI(){
+      document.getElementById('btnAddDevice').addEventListener('click', ()=>{
+        const name = document.getElementById('deviceNameInput').value.trim();
+        const type = document.getElementById('deviceTypeSelect').value;
+        if(!name){ alert('Enter a device name'); return; }
+        const d = { id: uid('dev'), name, type, created: nowISO() };
+        state.devices.push(d);
+        saveState();
+        document.getElementById('deviceNameInput').value = '';
+        renderAll();
+      });
+
+      document.getElementById('btnClearDevices').addEventListener('click', ()=>{
+        if(!confirm('Remove ALL devices and their subscriptions/messages?')) return;
+        state.devices = []; state.subscriptions = []; state.messages = [];
+        saveState(); renderAll();
+      });
+
+      document.getElementById('btnExportDevices').addEventListener('click', ()=> exportDevicesCSV());
+
+      document.getElementById('btnAddNode').addEventListener('click', ()=>{
+        const name = document.getElementById('nodeNameInput').value.trim();
+        if(!name){ alert('Enter node name'); return; }
+        const n = { id: uid('node'), name, created: nowISO() };
+        state.nodes.push(n); saveState();
+        document.getElementById('nodeNameInput').value = '';
+        renderAll();
+      });
+
+      document.getElementById('btnPublish').addEventListener('click', ()=>{
+        const deviceId = document.getElementById('publishFromDevice').value;
+        const nodeId = document.getElementById('publishNode').value;
+        const payloadText = document.getElementById('publishPayload').value.trim();
+        if(!deviceId || !nodeId){ alert('Choose device and node'); return; }
+        let payload = {};
+        if(payloadText){ try{ payload = JSON.parse(payloadText); } catch(e){ alert('Payload must be valid JSON'); return; } }
+        publishMessage(deviceId,nodeId,payload);
+      });
+
+      document.getElementById('btnSimTelemetry').addEventListener('click', ()=>{
+        const deviceId = document.getElementById('publishFromDevice').value;
+        const nodeId = document.getElementById('publishNode').value;
+        if(!deviceId || !nodeId){ alert('Choose device and node'); return; }
+        const telemetry = { type:'telemetry', emg: Number((Math.abs(Math.sin(Date.now()/500)+Math.random()*0.4)/1.8).toFixed(3)), eeg: Number((Math.abs(Math.cos(Date.now()/700)+Math.random()*0.6)/2.2).toFixed(3)), ts: nowISO() };
+        publishMessage(deviceId,nodeId, { telemetry });
+      });
+
+      document.getElementById('btnExportNodeHistory').addEventListener('click', ()=>{
+        const nodeId = document.getElementById('nodeHistorySelect').value;
+        if(!nodeId){ alert('No node selected'); return; }
+        exportNodeCSV(nodeId);
+      });
+
+      // Node list action handlers (delegated)
+      document.getElementById('nodeList').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const nodeId = btn.getAttribute('data-node');
+        const action = btn.getAttribute('data-action');
+        if(action === 'view'){ renderNodeHistory(nodeId); document.getElementById('nodeHistorySelect').value = nodeId; }
+        if(action === 'remove'){ state.nodes = state.nodes.filter(n=>n.id !== nodeId); state.subscriptions = state.subscriptions.filter(s=>s.nodeId !== nodeId); state.messages = state.messages.filter(m=>m.nodeId !== nodeId); saveState(); renderAll(); }
+      });
+
+      // Device list actions
+      document.getElementById('deviceList').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const deviceId = btn.getAttribute('data-id');
+        const action = btn.getAttribute('data-action');
+        if(action === 'view'){ renderDeviceLogsOverview(); renderDeviceLog(deviceId); }
+        if(action === 'remove'){ state.devices = state.devices.filter(dd=>dd.id !== deviceId); state.subscriptions = state.subscriptions.filter(s=>s.deviceId !== deviceId); state.messages = state.messages.filter(m=>m.deviceId !== deviceId); saveState(); renderAll(); }
+      });
+
+      // nodeHistorySelect change
+      document.getElementById('nodeHistorySelect').addEventListener('change', ()=> {
+        const nodeId = document.getElementById('nodeHistorySelect').value;
+        if(nodeId) renderNodeHistory(nodeId);
+      });
+    }
+
+    // Render device logs helper for direct view
+    function renderDeviceLog(deviceId){
+      const logEl = document.getElementById('deviceLogs'); logEl.innerHTML = '';
+      const msgs = state.messages.filter(m => m.deviceId === deviceId).sort((a,b)=> new Date(b.ts)-new Date(a.ts));
+      if(!msgs.length){ logEl.innerHTML = '<div class="muted">No events for this device yet.</div>'; return; }
+      msgs.forEach(m=>{
+        const d = document.createElement('div'); d.style.borderBottom='1px dashed rgba(255,255,255,0.03)'; d.style.padding='6px';
+        d.innerHTML = `<div style="font-weight:800">${escapeHtml(m.nodeName)} <span class="muted-small">• ${m.ts}</span></div>
+          <div class="muted-small" style="margin-top:6px">${escapeHtml(JSON.stringify(m.payload))}</div>`;
+        logEl.appendChild(d);
+      });
+    }
+
+    // Broadcast handlers
+    function handleBroadcast(msg){
+      if(!msg || !msg.type) return;
+      if(msg.type === 'sentinel_state'){ // full state sync
+        state = msg.payload.state || state; save(KEY, state); renderAll(); return;
+      }
+      if(msg.type === 'sentinel_message'){ // new message
+        const m = msg.payload.message;
+        if(m && !state.messages.find(x=>x.id === m.id)){
+          state.messages.push(m); saveState(); renderAll();
+        }
+      }
+    }
+    // listen
+    if(bc) bc.onmessage = (ev)=> handleBroadcast(ev.data);
+    else window.addEventListener('storage', (e)=> { if(e.key === BC_NAME && e.newValue) handleBroadcast(JSON.parse(e.newValue)); });
+
+    // Seed demo if empty
+    function seedDemo(){
+      if(!state.nodes.length){
+        state.nodes.push({ id:'node_alpha', name:'Alpha', created: nowISO() }, { id:'node_beta', name:'Beta', created: nowISO() });
+      }
+      if(!state.devices.length){
+        state.devices.push({ id:'dev_headset_1', name:'Headset A', type:'Headset', created: nowISO() });
+        state.devices.push({ id:'dev_drone_1', name:'Drone Scout', type:'Drone', created: nowISO() });
+        state.devices.push({ id:'dev_robot_1', name:'RoboAssist', type:'Robot', created: nowISO() });
+      }
+      if(!state.subscriptions.length){
+        state.subscriptions.push({ deviceId:'dev_headset_1', nodeId:'node_alpha' });
+        state.subscriptions.push({ deviceId:'dev_drone_1', nodeId:'node_alpha' });
+        state.subscriptions.push({ deviceId:'dev_robot_1', nodeId:'node_beta' });
+      }
+      saveState();
+    }
+
+    function renderAll(){
+      renderDevices(); renderNodes(); renderSubscriptions();
+      const nodeSel = document.getElementById('nodeHistorySelect');
+      if(nodeSel && !nodeSel.value && state.nodes[0]) nodeSel.value = state.nodes[0].id;
+      if(nodeSel && nodeSel.value) renderNodeHistory(nodeSel.value);
+      renderDeviceLogsOverview();
+    }
+
+    // initialize
+    seedDemo(); wireUI(); renderAll();
+
+    // expose for debugging
+    window.IonSentinel = { state, publishMessage, exportNodeCSV };
+
+  })();
+
+  /* =============================
+     Interactive Demo (camera + EMG/EEG + commands)
+     Uses TFJS models for face/object detection (in browser)
+     ============================= */
+  (function demoInit(){
+    // Chart setup
+    const emgCtx = document.getElementById('emgChart_demo').getContext('2d');
+    const eegCtx = document.getElementById('eegChart_demo').getContext('2d');
+
+    const makeChart = (ctx, color) => new Chart(ctx, {
+      type:'line',
+      data:{ labels:Array.from({length:40},(_,i)=>i), datasets:[{ data:Array.from({length:40},()=>0), borderColor:color, backgroundColor:color.replace('0.9','0.12'), tension:0.3, radius:0 }] },
+      options:{ animation:false, plugins:{legend:{display:false}}, scales:{ x:{display:false}, y:{min:0, max:1} } }
+    });
+    const emgChart = makeChart(emgCtx,'rgba(0,200,255,0.9)');
+    const eegChart = makeChart(eegCtx,'rgba(120,100,255,0.9)');
+
+    function updateEMG(v){ document.getElementById('emgVal_demo').innerText = Number(v).toFixed(2); emgChart.data.datasets[0].data.push(v); emgChart.data.datasets[0].data.shift(); emgChart.update('none'); }
+    function updateEEG(v){ document.getElementById('eegVal_demo').innerText = Number(v).toFixed(2); eegChart.data.datasets[0].data.push(v); eegChart.data.datasets[0].data.shift(); eegChart.update('none'); }
+
+    // Simulate EMG/EEG updates
+    setInterval(()=>{
+      const emg = Math.abs((Math.sin(Date.now()/500)+Math.random()*0.4)/1.8);
+      const eeg = Math.abs((Math.cos(Date.now()/700)+Math.random()*0.6)/2.2);
+      updateEMG(emg); updateEEG(eeg);
+      // push to history
+      const hist = load(STORAGE.HISTORY_KEY, []);
+      hist.unshift({ ts: nowISO(), type:'sensor', sensor:'emg', value:emg });
+      hist.unshift({ ts: nowISO(), type:'sensor', sensor:'eeg', value:eeg });
+      save(STORAGE.HISTORY_KEY, hist.slice(0,1500));
+      document.getElementById('historyLog_demo').innerText = hist.map(h=>`${h.ts} — ${h.type}:${h.sensor || ''} ${JSON.stringify(h.value)}`).join('\n\n');
+    }, 1200);
+
+    // Telemetry / command buttons
+    function sendCommand(cmd, params={}){
+      const timeline = document.getElementById('timeline_demo');
+      const telemetry = document.getElementById('telemetryLog_demo');
+      const msg = { type:'command', cmd, params, ts: nowISO() };
+      // store in timeline / telemetry
+      timeline.innerText = `${nowISO()} — Sent: ${JSON.stringify(msg)}\n` + timeline.innerText;
+      telemetry.innerText = `${nowISO()} — Local: ${JSON.stringify(msg)}\n` + telemetry.innerText;
+      // also write to sentinel history if a node is selected and a publishing device exists (best-effort integration)
+      try{
+        const publishFrom = document.getElementById('publishFromDevice').value;
+        const publishNode = document.getElementById('publishNode').value;
+        if(publishFrom && publishNode && window.IonSentinel){
+          window.IonSentinel.publishMessage(publishFrom, publishNode, { type:'command', payload:msg });
+        }
+      }catch(e){}
+    }
+    document.getElementById('btnArm_demo').addEventListener('click', ()=> sendCommand('arm_robot'));
+    document.getElementById('btnDisarm_demo').addEventListener('click', ()=> sendCommand('disarm_robot'));
+    document.getElementById('btnMove_demo').addEventListener('click', ()=> sendCommand('move_robot', { vx:0.5, vy:0.0, duration:3000 }));
+    document.getElementById('btnEnergySave_demo').addEventListener('click', ()=> sendCommand('energy_save_mode'));
+    document.getElementById('simGesture_demo').addEventListener('click', ()=>{
+      const g = ['swipe_left','swipe_right','pinch','open_hand','double_tap','none'][Math.floor(Math.random()*6)];
+      document.getElementById('gestureLabel_demo').innerText = g;
+      document.getElementById('timeline_demo').innerText = `${nowISO()} — gesture:${g}\n` + document.getElementById('timeline_demo').innerText;
+    });
+
+    // Camera & TFJS detection loop
+    const video = document.getElementById('video_demo');
+    const overlay = document.getElementById('overlay_demo');
+    const overlayCtx = overlay.getContext('2d');
+    let cocoModel = null, blazeface = null;
+    const modelStatus = document.getElementById('modelStatus');
+
+    async function startCameraAndModels(){
+      try{
+        const s = await navigator.mediaDevices.getUserMedia({ video:{ width:1280, height:720 }, audio:false });
+        video.srcObject = s; await video.play();
+        overlay.width = video.clientWidth; overlay.height = video.clientHeight;
+        // load models and start detection
+        modelStatus.innerText = 'Loading models…';
+        cocoModel = await cocoSsd.load();
+        blazeface = await blazeface.load();
+        modelStatus.innerText = 'Models loaded';
+        detectionLoop();
+      }catch(e){
+        modelStatus.innerText = 'Camera unavailable (secure context required)';
+        console.warn('Camera error', e);
+      }
+    }
+
+    async function detectionLoop(){
+      const freqInput = document.getElementById('freqSelect_demo');
+      while(true){
+        if(video.readyState >= 2){
+          overlay.width = video.clientWidth; overlay.height = video.clientHeight;
+          overlayCtx.clearRect(0,0,overlay.width,overlay.height);
+          const scaleX = overlay.width / video.videoWidth, scaleY = overlay.height / video.videoHeight;
+          if(document.getElementById('faceToggle_demo').checked && blazeface){
+            const preds = await blazeface.estimateFaces(video, false);
+            preds.forEach(p=>{
+              const topLeft = p.topLeft || p.boundingBox?.topLeft;
+              const bottomRight = p.bottomRight || p.boundingBox?.bottomRight;
+              if(!topLeft || !bottomRight) return;
+              const x = topLeft[0], y = topLeft[1], w = bottomRight[0]-x, h = bottomRight[1]-y;
+              overlayCtx.strokeStyle = 'rgba(0,200,255,0.95)'; overlayCtx.lineWidth = 3; overlayCtx.strokeRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+              overlayCtx.fillStyle = 'rgba(0,200,255,0.12)'; overlayCtx.fillRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+            });
+            if(preds.length) appendLog('telemetryLog_demo', `face detections: ${preds.length}`);
+          }
+          if(document.getElementById('objToggle_demo').checked && cocoModel){
+            const dets = await cocoModel.detect(video);
+            dets.slice(0,6).forEach(d=>{
+              const [x,y,w,h] = d.bbox;
+              overlayCtx.strokeStyle = 'rgba(255,200,0,0.95)'; overlayCtx.lineWidth = 2; overlayCtx.strokeRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+              overlayCtx.fillStyle = 'rgba(255,200,0,0.14)'; overlayCtx.fillRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+              overlayCtx.fillStyle = '#001'; overlayCtx.font='14px sans-serif'; overlayCtx.fillText(`${d.class} ${(d.score*100|0)}%`, x*scaleX+6, y*scaleY+18);
+            });
+            if(dets.length) appendLog('telemetryLog_demo', `object detections: ${dets.slice(0,6).map(d=>d.class).join(',')}`);
+          }
+        }
+        await new Promise(r => setTimeout(r, Number(document.getElementById('freqSelect_demo').value || 350)));
+      }
+    }
+
+    // Start camera/models on load (graceful failure)
+    window.addEventListener('load', ()=> startCameraAndModels());
+
+    // Local bus (BroadcastChannel) for telemetry bus (start/stop)
+    let localBus = null;
+    document.getElementById('btnStartLocalBus').addEventListener('click', ()=>{
+      if(localBus) return alert('Local bus already running (BroadcastChannel active).');
+      try{
+        localBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('ioncore_local_bus') : null;
+        if(localBus) { localBus.onmessage = (ev)=> appendLog('telemetryLog_demo', `LocalBus received: ${JSON.stringify(ev.data)}`); alert('Local telemetry bus started (BroadcastChannel). Open another tab to see cross-tab messages.'); }
+        else { alert('BroadcastChannel not supported in this browser.'); }
+      }catch(e){ console.warn(e); alert('Unable to start local bus'); }
+    });
+    document.getElementById('btnStopLocalBus').addEventListener('click', ()=> { if(localBus){ localBus.close(); localBus=null; alert('Local bus stopped'); } });
+
+    // WebBluetooth demo (best effort)
+    document.getElementById('btnScanBT_demo').addEventListener('click', async ()=>{
+      try{
+        const device = await navigator.bluetooth.requestDevice({ acceptAllDevices:true, optionalServices:[] });
+        document.getElementById('btDeviceName_demo').innerText = device.name || device.id;
+        appendLog('telemetryLog_demo', `BT paired: ${device.name||device.id}`);
+      }catch(e){ appendLog('telemetryLog_demo', `BT canceled or failed`); }
+    });
+
+    // telemetry history export/clear
+    document.getElementById('btnExport_demo').addEventListener('click', ()=>{
+      const hist = load(STORAGE.HISTORY_KEY, []);
+      if(!hist.length){ alert('No history to export'); return; }
+      const csv = 'ts,type,detail\\n' + hist.map(h=> `${h.ts},"${JSON.stringify(h).replace(/"/g,'""')}"`).join('\\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='ioneye_history.csv'; a.click();
+    });
+    document.getElementById('btnClearHistory_demo').addEventListener('click', ()=>{ localStorage.removeItem(STORAGE.HISTORY_KEY); document.getElementById('historyLog_demo').innerText=''; });
+
+    // timeline clear
+    document.getElementById('btnClearTimeline_demo').addEventListener('click', ()=> document.getElementById('timeline_demo').innerText='');
+  })();
+
+  /* =============================
+     Marketplace (localStorage)
+     ============================= */
+  (function marketplaceInit(){
+    const KEY = STORAGE.MARKETPLACE_KEY;
+    let state = load(KEY, { uploads:[], bids:[] });
+
+    function saveState(){ save(KEY, state); bcPost('marketplace_update', { state }); renderAll(); }
+    function renderUploads(){ const el = document.getElementById('marketplace-uploads'); el.innerHTML=''; if(!state.uploads.length) { el.innerHTML = '<div class="muted">No uploads yet.</div>'; return; } state.uploads.slice().reverse().forEach(u=>{ const card = document.createElement('article'); card.className='marketplace-item'; card.innerHTML = `<h4>${escapeHtml(u.title)}</h4><div class="marketplace-item__meta"><span>Creator: ${escapeHtml(u.username||'')}</span> <span>Wallet: ${escapeHtml(u.walletAddress||'')}</span></div><p>${escapeHtml(u.description||'')}</p>${u.mediaUrl? `<div class="marketplace-item__media"><a href="${escapeHtml(u.mediaUrl)}" target="_blank" rel="noopener">Open media</a></div>`:''}`; el.appendChild(card); }); }
+    function renderBids(){ const el = document.getElementById('marketplace-bids'); el.innerHTML=''; if(!state.bids.length) { el.innerHTML = '<div class="muted">No bids yet.</div>'; return; } state.bids.slice().reverse().forEach(b=>{ const card = document.createElement('article'); card.className='marketplace-item'; card.innerHTML = `<h4>${escapeHtml(b.amount||'Bid')}</h4><div class="marketplace-item__meta"><span>Asset: ${escapeHtml(b.assetTitle||b.assetId||'')}</span><span>Bidder: ${escapeHtml(b.bidderName||'')}</span></div><p>${escapeHtml(b.message||'')}</p>`; el.appendChild(card); }); }
+    function renderAssetOptions(){ const sel = document.getElementById('marketplace-asset'); sel.innerHTML=''; if(!state.uploads.length){ const opt = document.createElement('option'); opt.value=''; opt.textContent='No uploads'; sel.appendChild(opt); return; } const placeholder = document.createElement('option'); placeholder.value=''; placeholder.textContent='Select upload'; sel.appendChild(placeholder); state.uploads.forEach(u=>{ const opt = document.createElement('option'); opt.value = u.id; opt.textContent = u.title || u.id; sel.appendChild(opt); }); }
+
+    function renderAll(){ renderUploads(); renderBids(); renderAssetOptions(); }
+
+    // Wire forms
+    document.getElementById('marketplace-upload-form').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('marketplace-title').value.trim();
+      if(!title) { document.getElementById('upload-status').innerText='Enter a title'; return; }
+      const upload = { id: uid('u'), title, description: document.getElementById('marketplace-description').value.trim(), username: document.getElementById('marketplace-username').value.trim(), walletAddress: document.getElementById('marketplace-wallet').value.trim(), mediaUrl: document.getElementById('marketplace-media').value.trim(), contact: document.getElementById('marketplace-contact').value.trim(), created: nowISO() };
+      state.uploads.push(upload); saveState();
+      document.getElementById('upload-status').innerText = 'Upload published';
+      e.target.reset();
+    });
+
+    document.getElementById('marketplace-bid-form').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const assetId = document.getElementById('marketplace-asset').value;
+      if(!assetId){ document.getElementById('bid-status').innerText = 'Select an upload'; return; }
+      const upload = state.uploads.find(u=>u.id===assetId);
+      const bid = { id: uid('b'), assetId, assetTitle: upload ? upload.title : '', bidderName: document.getElementById('marketplace-bidder').value.trim(), bidderWallet: document.getElementById('marketplace-bid-wallet').value.trim(), amount: Number(document.getElementById('marketplace-amount').value), currency: document.getElementById('marketplace-currency').value.trim(), message: document.getElementById('marketplace-message').value.trim(), created: nowISO() };
+      if(!bid.amount){ document.getElementById('bid-status').innerText = 'Enter a bid amount'; return; }
+      state.bids.push(bid); saveState(); document.getElementById('bid-status').innerText = 'Bid submitted'; e.target.reset();
+    });
+
+    // Broadcast updates
+    if(bc) bc.onmessage = (ev) => { if(ev.data && ev.data.type === 'marketplace_update' && ev.data.payload && ev.data.payload.state){ state = ev.data.payload.state; renderAll(); } };
+    // initial render
+    renderAll();
+    // expose
+    window.IonMarketplace = { state, saveState, renderAll };
+  })();
+
+  /* =============================
+     Contact form (local)
+     ============================= */
+  (function contactInit(){
+    const KEY = STORAGE.CONTACTS_KEY;
+    let contacts = load(KEY, []);
+    document.getElementById('contact-form').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const message = document.getElementById('contact-message').value.trim();
+      if(!email){ document.getElementById('contact-status').innerText = 'Email required'; return; }
+      contacts.push({ id: uid('c'), name, email, message, ts: nowISO() });
+      save(KEY, contacts);
+      document.getElementById('contact-status').innerText = 'Request received (local demo)';
+      e.target.reset();
+    });
+  })();
+
+  /* =============================
+     Simple sentinel+global broadcast handler
+     (handle cross-tab updates)
+     ============================= */
+  function handleBroadcast(msg){
+    if(!msg || !msg.type) return;
+    // sentinel messages handled in sentinel module via bc.onmessage; but we also process marketplace updates here
+    if(msg.type === 'marketplace_update' && window.IonMarketplace){
+      try{ window.IonMarketplace.state = msg.payload.state; window.IonMarketplace.renderAll(); }catch(e){}
+    }
+    if(msg.type === 'sentinel_state' && window.IonSentinel){
+      try{ window.IonSentinel.state = msg.payload.state; window.IonSentinel.renderAll(); }catch(e){}
+    }
+    if(msg.type === 'sentinel_message' && window.IonSentinel){
+      try{ // ensure message recorded
+        const m = msg.payload.message;
+        if(!window.IonSentinel.state.messages.find(x=>x.id===m.id)){
+          window.IonSentinel.state.messages.push(m); save(STORAGE.SENTINEL_KEY, window.IonSentinel.state); window.IonSentinel.renderAll();
+        }
+      }catch(e){}
+    }
+  }
+  if(bc) bc.onmessage = (e)=> handleBroadcast(e.data);
+  else window.addEventListener('storage', (e)=> { if(e.key === BC_NAME && e.newValue) handleBroadcast(JSON.parse(e.newValue)); });
+
+  /* =============================
+     Final: small boot-time steps
+     ============================= */
+  (function boot(){
+    // prefer to re-render marketplace/sentinel after load
+    setTimeout(()=>{ if(window.IonMarketplace) window.IonMarketplace.renderAll(); if(window.IonSentinel) window.IonSentinel.renderAll(); }, 600);
+  })();
+
+  /* End of unified script */
+  </script>
+</body>
+</html>

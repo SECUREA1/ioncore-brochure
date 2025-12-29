@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IonCore — Ion Eye · AR Headset for Robotics & Smart Systems</title>
+  <meta name="description" content="Ion Eye by IonCore — an AR headset platform with Bluetooth/Wi-Fi, object & face tracking, EMG/EEG/retina/gesture control, telemetry, and historical memory.">
+  <style>
+    :root{
+      --bg:#081224; --card:#071826; --accent:#00d1ff; --accent-2:#7b6bff; --muted:#9fb4c7; --glass: rgba(255,255,255,0.03);
+      --max-width:1200px;
+      font-family: Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;
+      color:#e9f6ff;
+    }
+    body{margin:0; background:linear-gradient(180deg,#041021,#071026); -webkit-font-smoothing:antialiased;}
+    .wrap{max-width:var(--max-width); margin:36px auto; padding:24px;}
+    header.hero{display:flex; gap:24px; align-items:center; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:28px; border:1px solid rgba(255,255,255,0.04);}
+    .hero-left{flex:1}
+    .logo{width:64px;height:64px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#012;box-shadow:0 6px 30px rgba(0,0,0,0.6)}
+    h1{margin:0;font-size:30px; letter-spacing:0.3px}
+    p.lead{margin:10px 0 16px;color:var(--muted);line-height:1.4}
+    .cta{display:flex;gap:12px}
+    .btn{background:var(--accent); color:#022; padding:10px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06); color:var(--muted)}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03); color:var(--muted); font-size:13px}
+    section{margin-top:26px}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:12px}
+    .card{background:var(--card);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 20px rgba(2,6,23,0.5)}
+    .feature-title{font-weight:700;margin-bottom:8px}
+    .muted{color:var(--muted);font-size:14px}
+    .specs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    table.specs{width:100%;border-collapse:collapse}
+    table.specs td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03)}
+    .usecases{display:flex;gap:12px;flex-wrap:wrap}
+    .usecase{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));padding:12px;border-radius:10px;flex:1;min-width:220px}
+    footer{margin-top:28px;padding:18px;border-radius:10px;background:rgba(0,0,0,0.2);text-align:center;color:var(--muted)}
+    /* Demo section */
+    .demo{margin-top:26px; padding:18px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03)}
+    /* Responsive */
+    @media (max-width:980px){
+      .features{grid-template-columns:1fr}
+      header.hero{flex-direction:column;align-items:flex-start}
+      .specs{grid-template-columns:1fr}
+    }
+    /* small helpers */
+    .meta-row{display:flex;align-items:center;gap:12px}
+    .muted-small{color:var(--muted);font-size:13px}
+  </style>
+
+  <!-- JS libs used in the interactive demo at bottom -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-left">
+        <div style="display:flex;gap:16px;align-items:center">
+          <div class="logo">IE</div>
+          <div>
+            <h1>Ion Eye — IonCore AR Headset Platform</h1>
+            <div class="muted">A unified augmented reality system: secure Bluetooth & Wi-Fi, face & object tracking, EMG/EEG/retina/gesture control, fleet telemetry, and historical memory for robotics and energy systems.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px; display:flex; gap:12px; align-items:center;">
+          <div class="cta">
+            <button class="btn" onclick="window.scrollTo({behavior:'smooth', top: document.body.scrollHeight})">Try the Interactive Demo</button>
+            <button class="btn secondary">Download Brochure</button>
+          </div>
+          <div style="margin-left:12px">
+            <span class="badge">Enterprise-ready</span>
+            <span class="badge">RTLS & Telemetry</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:420px; display:flex;flex-direction:column; gap:10px">
+        <div class="card" style="padding:16px; display:flex;flex-direction:column; gap:10px;">
+          <div class="meta-row">
+            <div style="flex:1">
+              <div class="muted-small">Status</div>
+              <div style="font-weight:800">Prototype · Production Ready SDK</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted-small">Price</div>
+              <div style="font-weight:800">$TBD</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="document.getElementById('contactForm').scrollIntoView({behavior:'smooth'})">Request Demo</button>
+            <button class="btn secondary">Contact Sales</button>
+          </div>
+        </div>
+
+        <div class="card muted-small">
+          <div><strong>Highlights</strong></div>
+          <ul style="margin:10px 0 0 18px">
+            <li>Low-latency markerless object & face tracking</li>
+            <li>Multi-modal control: EMG, EEG, retina/tone & hand gestures</li>
+            <li>Seamless integration with robotics & energy systems</li>
+            <li>Secure telemetry, historical memory, and fleet management</li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <!-- FEATURES -->
+    <section>
+      <h2>What Ion Eye does</h2>
+      <p class="lead">Ion Eye is a fully-integrated AR headset solution designed for enterprise applications where hands-free operation, precise tracking, and secure telemetry are essential. It combines advanced sensing modalities, robust connectivity, and developer-friendly APIs for rapid system integration.</p>
+
+      <div class="features">
+        <div class="card">
+          <div class="feature-title">Connectivity</div>
+          <div class="muted">Dual-mode wireless: secure Wi-Fi and low-energy Bluetooth. Supports OTA updates, device provisioning, and mTLS-authenticated telemetry over WebSockets and WebRTC.</div>
+        </div>
+
+        <div class="card">
+          <div class="feature-title">Computer Vision</div>
+          <div class="muted">Real-time face and object tracking with markerless detection, depth-aware overlays, and skeletal gesture estimation — suitable for AR guidance in maintenance, logistics, and training.</div>
+        </div>
+
+        <div class="card">
+          <div class="feature-title">Biosignal Control</div>
+          <div class="muted">EMG & EEG input channels for muscle and neural control, retina/tone recognition, and multi-fusion gesture logic for intuitive device control without touch.</div>
+        </div>
+
+        <div class="card">
+          <div class="feature-title">Robotics & Energy</div>
+          <div class="muted">Command robotics and energy systems via secure control channels. Built-in safety mode, idempotent command patterns, and telemetry acknowledgements to ensure reliable operations.</div>
+        </div>
+
+        <div class="card">
+          <div class="feature-title">Telemetry & Memory</div>
+          <div class="muted">High-frequency telemetry ingestion, historical memory for audit and replay, and SDKs to sync memory to cloud stores for fleet analytics and continuous learning.</div>
+        </div>
+
+        <div class="card">
+          <div class="feature-title">Privacy & Security</div>
+          <div class="muted">End-to-end encryption, authenticated device provisioning, role-based controls, and data governance options for privacy-compliant deployments.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPEC SHEET -->
+    <section>
+      <h2>Technical specifications</h2>
+      <div class="specs" style="margin-top:12px">
+        <div class="card">
+          <table class="specs">
+            <tr><td><strong>Optics</strong></td><td>OLED microdisplay; 40° FOV (configurable)</td></tr>
+            <tr><td><strong>Tracking</strong></td><td>RGB camera + IR depth / IMU fusion; face/object models</td></tr>
+            <tr><td><strong>Biosensors</strong></td><td>4× EMG, 8× EEG channels, retina/tone sensor</td></tr>
+            <tr><td><strong>Connectivity</strong></td><td>Wi-Fi 802.11ax; Bluetooth LE 5.x; optional LTE</td></tr>
+            <tr><td><strong>Compute</strong></td><td>Edge AI SoC, optional GPU module</td></tr>
+            <tr><td><strong>Battery</strong></td><td>6–8 hours typical (modular packs)</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <table class="specs">
+            <tr><td><strong>Security</strong></td><td>mTLS, JWT, hardware root of trust</td></tr>
+            <tr><td><strong>APIs</strong></td><td>REST, WebSocket, WebRTC, WebBluetooth</td></tr>
+            <tr><td><strong>Latency</strong></td><td>Sub-50ms local tracking (depending on mode)</td></tr>
+            <tr><td><strong>Operating Temp</strong></td><td>-10°C to 50°C</td></tr>
+            <tr><td><strong>Form Factor</strong></td><td>Head-mounted with swappable straps; enterprise docking</td></tr>
+            <tr><td><strong>Compliance</strong></td><td>FCC / CE (configurable modules)</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- USE CASES -->
+    <section>
+      <h2>Use cases</h2>
+      <div class="usecases" style="margin-top:12px">
+        <div class="usecase">
+          <strong>Industrial maintenance</strong>
+          <div class="muted" style="margin-top:8px">Hands-free AR overlays for schematics, guided repair, and robotics-assisted lifting control.</div>
+        </div>
+        <div class="usecase">
+          <strong>Medical assistance</strong>
+          <div class="muted" style="margin-top:8px">EEG/EMG-driven controls for accessibility, tele-mentoring, and sensitive data logging with privacy controls.</div>
+        </div>
+        <div class="usecase">
+          <strong>Logistics & warehousing</strong>
+          <div class="muted" style="margin-top:8px">Object recognition for pick & place, inventory verification, and AGV coordination via telemetry.</div>
+        </div>
+        <div class="usecase">
+          <strong>Energy & robotics ops</strong>
+          <div class="muted" style="margin-top:8px">Secure remote command for robots, grid diagnostics, and energy-saving orchestration.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECURITY -->
+    <section>
+      <h2>Security & Privacy</h2>
+      <p class="muted">Ion Eye is developed with defense-in-depth principles: hardware root of trust, signed firmware updates, encrypted telemetry pipes, and role-based access controls. Historical memory can be stored locally or encrypted and synced to a centralized store under tenant control. We recommend anonymization or pseudonymization for any sensitive biosignal data and explicit consent for any biometric data stored long-term.</p>
+    </section>
+
+    <!-- CTA / Contact -->
+    <section>
+      <h2>Get started</h2>
+      <div style="display:flex;gap:16px;align-items:center;margin-top:12px">
+        <div style="flex:1" class="card">
+          <h3>Request an enterprise demo</h3>
+          <p class="muted">Tell us about your deployment and we’ll arrange a tailored demo and a pilot program for your environment.</p>
+          <form id="contactForm" onsubmit="event.preventDefault(); alert('Thanks! Sales will contact you.');">
+            <div style="display:flex;gap:8px">
+              <input name="name" type="text" placeholder="Full name" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit" required/>
+              <input name="company" type="text" placeholder="Company" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit" />
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <input name="email" type="email" placeholder="Email" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit" required/>
+              <input name="phone" type="text" placeholder="Phone (optional)" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit" />
+            </div>
+            <div style="margin-top:8px">
+              <textarea name="message" rows="3" placeholder="Project summary..." style="width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit"></textarea>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button class="btn" type="submit">Request Demo</button>
+              <button class="btn secondary" onclick="document.getElementById('contactForm').reset();">Reset</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="width:320px" class="card">
+          <h3>Partner integrations</h3>
+          <div class="muted">We provide SDKs and reference connectors for:</div>
+          <ul style="margin:10px 0 0 18px" class="muted">
+            <li>ROS / ROS2</li>
+            <li>AWS IoT / Azure IoT</li>
+            <li>Custom WebSocket & WebRTC endpoints</li>
+            <li>Edge inference servers for model offload</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE DEMO -->
+    <section class="demo" id="interactiveDemo">
+      <h2>Interactive Demo (Live)</h2>
+      <p class="muted">Below is a lightweight demo shell. It contains camera-based face & object overlays, simulated EMG/EEG charts, simple robotics commands, and local historical memory. This demo runs models in your browser for quick evaluation. Replace endpoints and UUIDs when wiring to Ion Eye hardware.</p>
+
+      <div style="display:grid;grid-template-columns:360px 1fr 360px; gap:12px; margin-top:12px;">
+        <!-- Left: Connectivity -->
+        <aside class="card" style="height:420px; overflow:auto;">
+          <h4>Connectivity</h4>
+          <label class="muted">Telemetry WebSocket</label>
+          <input id="wsUrl" type="text" placeholder="wss://telemetry.server.example/ws" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit"/>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" id="btnConnectWS">Connect</button>
+            <button class="btn secondary" id="btnDisconnectWS">Disconnect</button>
+          </div>
+
+          <hr style="opacity:0.06;margin:10px 0">
+          <label class="muted">Bluetooth (WebBluetooth)</label>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn secondary" id="btnScanBT">Scan & Connect</button>
+            <div style="flex:1">
+              <div id="btDeviceName" class="muted">No device</div>
+            </div>
+          </div>
+
+          <hr style="opacity:0.06;margin:10px 0">
+          <h4>Historical Memory</h4>
+          <div class="muted">Saved telemetry events</div>
+          <div class="log" id="historyLog" style="height:160px;margin-top:8px;background:#02101a;padding:8px;border-radius:8px;font-family:monospace;font-size:12px;overflow:auto"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" id="btnExport">Export CSV</button>
+            <button class="btn secondary" id="btnClearHistory">Clear</button>
+          </div>
+        </aside>
+
+        <!-- Center: Video -->
+        <main class="card" style="height:420px; padding:12px; display:flex;flex-direction:column;">
+          <h4>Camera & Tracking</h4>
+          <div id="video-wrap" style="flex:1;border-radius:10px;overflow:hidden;background:#000;position:relative;display:flex;align-items:center;justify-content:center">
+            <video id="video" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1)"></video>
+            <canvas id="overlay" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div class="muted">Toggles</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <label class="muted">Face</label><input id="faceToggle" type="checkbox" checked />
+              <label class="muted">Objects</label><input id="objToggle" type="checkbox" checked />
+              <label class="muted">Freq</label>
+              <select id="freqSelect" style="padding:6px;border-radius:6px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.04)">
+                <option value="200">200ms</option><option value="350">350ms</option><option value="500">500ms</option>
+              </select>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right: Sensors & Commands -->
+        <aside class="card" style="height:420px; display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>EMG</strong></div>
+              <div id="emgVal">0.00</div>
+            </div>
+            <div style="height:110px;margin-top:8px">
+              <canvas id="emgChart" style="width:100%;height:100%"></canvas>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>EEG</strong></div>
+              <div id="eegVal">0.00</div>
+            </div>
+            <div style="height:110px;margin-top:8px">
+              <canvas id="eegChart" style="width:100%;height:100%"></canvas>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>Gesture</strong><div class="muted" style="font-size:13px">detected</div></div>
+              <div id="gestureLabel" class="muted">None</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="btnArm">ARM ROBOT</button>
+              <button class="btn secondary" id="btnDisarm">DISARM</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="btnMove" style="flex:1">MOVE ROBOT →</button>
+              <button class="btn secondary" id="btnEnergySave">Energy: SAVE</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Bottom telemetry area -->
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <div class="card" style="flex:1">
+          <h4>Telemetry Log</h4>
+          <div class="log" id="telemetryLog" style="height:120px;background:#02101a;padding:8px;border-radius:8px;font-family:monospace;font-size:12px;overflow:auto"></div>
+        </div>
+        <div class="card" style="width:360px">
+          <h4>Timeline & Commands</h4>
+          <div class="log" id="timeline" style="height:120px;background:#02101a;padding:8px;border-radius:8px;font-family:monospace;font-size:12px;overflow:auto"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+            <button class="btn secondary" id="btnClearTimeline">Clear</button>
+            <button class="btn" id="simGesture">Simulate Gesture</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      &copy; <strong>IonCore</strong> · Ion Eye · For enterprise evaluation only — replace the demo endpoints & keys for production deployments.
+    </footer>
+  </div>
+
+<!-- Interactive demo script -->
+<script>
+/* -----------------------
+  Demo: adapted for product page
+  - Same core demo as earlier, but with distinct localStorage key
+  ----------------------- */
+
+const state = { ws:null, btDevice:null, btServer:null, detectionRunning:false, cocoModel:null, blazeface:null, historyKey:'ioncore_demo_history_v1' };
+
+/* helpers */
+function logTo(el, text){
+  const now = new Date().toISOString();
+  el.innerText = `${now} — ${text}\n` + el.innerText;
+}
+function addToHistory(ev){
+  try{
+    const arr = JSON.parse(localStorage.getItem(state.historyKey) || '[]');
+    arr.unshift({ts:new Date().toISOString(), event:ev});
+    localStorage.setItem(state.historyKey, JSON.stringify(arr.slice(0,1500)));
+    renderHistory();
+  }catch(e){console.error(e)}
+}
+function renderHistory(){
+  const arr = JSON.parse(localStorage.getItem(state.historyKey) || '[]');
+  document.getElementById('historyLog').innerText = arr.map(r=>`${r.ts} — ${JSON.stringify(r.event)}`).join('\n\n');
+}
+
+/* WebSocket */
+const wsStatusEl = document.getElementById('telemetryLog');
+document.getElementById('btnConnectWS').addEventListener('click', ()=>{
+  const url = document.getElementById('wsUrl').value.trim();
+  if(!url){ alert('Enter a WS URL'); return; }
+  state.ws = new WebSocket(url);
+  logTo(wsStatusEl, 'WS connecting...');
+  state.ws.onopen = ()=>{ logTo(wsStatusEl,'WS open'); };
+  state.ws.onclose = ()=>{ logTo(wsStatusEl,'WS closed'); };
+  state.ws.onerror = (e)=>{ logTo(wsStatusEl,'WS error'); };
+  state.ws.onmessage = (m)=>{
+    try{ const msg = JSON.parse(m.data); handleIncomingTelemetry(msg); } catch(e){ logTo(wsStatusEl, m.data) }
+  };
+});
+document.getElementById('btnDisconnectWS').addEventListener('click', ()=>{ if(state.ws){ state.ws.close(); state.ws=null; logTo(wsStatusEl,'WS disconnected'); } });
+
+/* Bluetooth (demo) */
+document.getElementById('btnScanBT').addEventListener('click', async ()=>{
+  try{
+    const device = await navigator.bluetooth.requestDevice({ acceptAllDevices:true, optionalServices:[] });
+    state.btDevice = device;
+    document.getElementById('btDeviceName').innerText = device.name || device.id;
+    logTo(wsStatusEl, `BT: ${device.name||device.id}`);
+    addToHistory({type:'bt_connect', device:device.name||device.id});
+    device.addEventListener('gattserverdisconnected', ()=>{ document.getElementById('btDeviceName').innerText='No device'; logTo(wsStatusEl,'BT disconnected') });
+    const srv = await device.gatt.connect(); state.btServer = srv;
+  }catch(e){ console.warn(e); alert('Bluetooth pairing canceled or failed.'); }
+});
+
+/* Telemetry routing */
+function handleIncomingTelemetry(msg){
+  logTo(document.getElementById('telemetryLog'), 'Incoming: ' + JSON.stringify(msg));
+  addToHistory(msg);
+  if(msg.type==='sensor' && msg.sensor==='emg') updateEMG(msg.value);
+  if(msg.type==='sensor' && msg.sensor==='eeg') updateEEG(msg.value);
+  if(msg.type==='robot_ack') logTo(document.getElementById('timeline'),'Robot ACK: ' + JSON.stringify(msg));
+}
+
+/* Charts */
+const emgChart = (()=> {
+  const ctx = document.getElementById('emgChart').getContext('2d');
+  return new Chart(ctx, {type:'line', data:{labels:Array.from({length:40},(_,i)=>i), datasets:[{data:Array.from({length:40},()=>0), borderColor:'rgba(0,200,255,0.9)', backgroundColor:'rgba(0,200,255,0.12)', tension:0.3,radius:0}]}, options:{animation:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{min:0,max:1}}}});
+})();
+const eegChart = (()=> {
+  const ctx = document.getElementById('eegChart').getContext('2d');
+  return new Chart(ctx, {type:'line', data:{labels:Array.from({length:40},(_,i)=>i), datasets:[{data:Array.from({length:40},()=>0), borderColor:'rgba(120,100,255,0.9)', backgroundColor:'rgba(120,100,255,0.12)', tension:0.3,radius:0}]}, options:{animation:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{min:0,max:1}}}});
+})();
+
+function updateEMG(v){ document.getElementById('emgVal').innerText = Number(v).toFixed(2); emgChart.data.datasets[0].data.push(v); emgChart.data.datasets[0].data.shift(); emgChart.update('none'); }
+function updateEEG(v){ document.getElementById('eegVal').innerText = Number(v).toFixed(2); eegChart.data.datasets[0].data.push(v); eegChart.data.datasets[0].data.shift(); eegChart.update('none'); }
+
+/* Simulate sensors */
+setInterval(()=> {
+  const emg = Math.abs((Math.sin(Date.now()/500)+Math.random()*0.4)/1.8);
+  const eeg = Math.abs((Math.cos(Date.now()/700)+Math.random()*0.6)/2.2);
+  updateEMG(emg); updateEEG(eeg);
+  addToHistory({type:'sensor', sensor:'emg', value:emg}); addToHistory({type:'sensor', sensor:'eeg', value:eeg});
+  logTo(document.getElementById('telemetryLog'), `Sim sensor emg=${emg.toFixed(3)} eeg=${eeg.toFixed(3)}`);
+}, 1200);
+
+/* Commands */
+function sendCommand(cmd, params={}){
+  const message = {type:'command', cmd, params, ts:new Date().toISOString()};
+  if(state.ws && state.ws.readyState===WebSocket.OPEN){ state.ws.send(JSON.stringify(message)); logTo(document.getElementById('timeline'),'Sent: ' + JSON.stringify(message)); }
+  else { logTo(document.getElementById('timeline'),'Local: ' + JSON.stringify(message)); }
+  addToHistory({type:'command', cmd, params});
+}
+document.getElementById('btnArm').addEventListener('click', ()=>sendCommand('arm_robot'));
+document.getElementById('btnDisarm').addEventListener('click', ()=>sendCommand('disarm_robot'));
+document.getElementById('btnMove').addEventListener('click', ()=>sendCommand('move_robot',{vx:0.5, vy:0.0, duration:3000}));
+document.getElementById('btnEnergySave').addEventListener('click', ()=>sendCommand('energy_save_mode'));
+
+/* Simulate gesture */
+const gestures = ['swipe_left','swipe_right','pinch','open_hand','double_tap','none'];
+function simulateGesture(){ const g = gestures[Math.floor(Math.random()*gestures.length)]; document.getElementById('gestureLabel').innerText = g; addToHistory({type:'gesture', gesture:g}); logTo(document.getElementById('timeline'), 'gesture:' + g); }
+document.getElementById('simGesture').addEventListener('click', simulateGesture);
+
+/* History controls */
+document.getElementById('btnClearHistory').addEventListener('click', ()=>{ localStorage.removeItem(state.historyKey); renderHistory(); });
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const arr = JSON.parse(localStorage.getItem(state.historyKey) || '[]');
+  if(!arr.length){ alert('No history'); return; }
+  let csv = 'timestamp,event\n' + arr.map(r => `${r.ts},"${JSON.stringify(r.event).replace(/"/g,'""')}"`).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download='ioncore_demo_history.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+/* Timeline clear */
+document.getElementById('btnClearTimeline').addEventListener('click', ()=>{ document.getElementById('timeline').innerText=''; });
+
+/* Camera + models */
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const overlayCtx = overlay.getContext('2d');
+
+async function startCamera(){ try{ const s=await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720}, audio:false}); video.srcObject=s; await video.play(); resize(); loadModels(); }catch(e){ alert('Camera access required: ' + e.message); } }
+function resize(){ overlay.width = video.clientWidth; overlay.height = video.clientHeight; }
+window.addEventListener('resize', resize);
+
+async function loadModels(){
+  logTo(document.getElementById('telemetryLog'),'Loading models...');
+  state.cocoModel = await cocoSsd.load();
+  state.blazeface = await blazeface.load();
+  logTo(document.getElementById('telemetryLog'),'Models loaded.');
+  startDetectionLoop();
+}
+
+async function startDetectionLoop(){
+  if(state.detectionRunning) return;
+  state.detectionRunning = true;
+  async function run(){
+    if(video.readyState < 2){ setTimeout(run,300); return; }
+    overlayCtx.clearRect(0,0,overlay.width,overlay.height);
+    const scaleX = overlay.width / video.videoWidth;
+    const scaleY = overlay.height / video.videoHeight;
+    if(document.getElementById('faceToggle').checked && state.blazeface){
+      const preds = await state.blazeface.estimateFaces(video, false);
+      preds.forEach(p=>{
+        const [x,y] = p.topLeft || [p.boundingBox?.topLeft?.[0], p.boundingBox?.topLeft?.[1]];
+        const [x2,y2] = p.bottomRight || [p.boundingBox?.bottomRight?.[0], p.boundingBox?.bottomRight?.[1]];
+        if(x==null||y==null||x2==null||y2==null) return;
+        const w = x2-x, h = y2-y;
+        overlayCtx.strokeStyle='rgba(0,200,255,0.9)'; overlayCtx.lineWidth=3; overlayCtx.strokeRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+        overlayCtx.fillStyle='rgba(0,200,255,0.12)'; overlayCtx.fillRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+      });
+      if(preds.length) addToHistory({type:'detection', subtype:'face', count:preds.length});
+    }
+    if(document.getElementById('objToggle').checked && state.cocoModel){
+      const dets = await state.cocoModel.detect(video);
+      dets.slice(0,6).forEach(d => {
+        const [x,y,w,h] = d.bbox;
+        overlayCtx.strokeStyle='rgba(255,200,0,0.95)'; overlayCtx.lineWidth=2; overlayCtx.strokeRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+        overlayCtx.fillStyle='rgba(255,200,0,0.14)'; overlayCtx.fillRect(x*scaleX,y*scaleY,w*scaleX,h*scaleY);
+        overlayCtx.fillStyle='#001'; overlayCtx.font='14px sans-serif'; overlayCtx.fillText(`${d.class} ${(d.score*100|0)}%`, x*scaleX+6, y*scaleY+18);
+      });
+      if(dets.length) addToHistory({type:'detection', subtype:'object', detections:dets.map(d=>d.class)});
+    }
+    setTimeout(run, parseInt(document.getElementById('freqSelect').value || 350));
+  }
+  run();
+}
+startCamera();
+renderHistory();
+
+/* beforeunload tidy */
+window.addEventListener('beforeunload', ()=>{ if(state.ws) state.ws.close(); if(state.btServer && state.btServer.connected) state.btServer.disconnect(); });
+
+/* initial note */
+console.info('Interactive Ion Eye demo loaded. Remember to replace demo placeholders for production.');
+</script>
+</body>
+</html>

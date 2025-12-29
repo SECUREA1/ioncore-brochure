@@ -1,0 +1,2685 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RedAR + IonEye — Multi-Cam + Face/Object + Sentinel + WebXR</title>
+
+  <!-- TFJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <!-- Optional WASM backend (fallback if WebGL is unavailable) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@4.22.0/dist/tf-backend-wasm.min.js"></script>
+
+  <!-- Object detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+
+  <!-- Face detection (BlazeFace UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.1.0/dist/blazeface.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#070A0F;
+      --panel:rgba(255,255,255,0.06);
+      --panel2:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.12);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.62);
+      --good:#00dc8c;
+      --warn:#ffcc00;
+      --bad:#ff5563;
+      --accent:#6aa8ff;
+      --shadow:0 10px 30px rgba(0,0,0,0.45);
+      --radius:14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(1400px 900px at 20% 10%, rgba(106,168,255,0.10), transparent 50%),
+                  radial-gradient(1000px 700px at 80% 20%, rgba(0,220,140,0.07), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      font-family: var(--sans);
+      overflow-x:hidden;
+    }
+
+    .app{
+      display:grid;
+      grid-template-columns: 360px 1fr 360px;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .topbar{
+      grid-column: 1 / -1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .dot{
+      width:10px;height:10px;border-radius:999px;background:var(--good);
+      box-shadow: 0 0 0 6px rgba(0,220,140,0.12);
+    }
+    .title{ font-weight:700; letter-spacing:0.2px; }
+    .subtitle{ color:var(--muted); font-size:12px; margin-top:2px; }
+    .stack{display:flex; flex-direction:column; line-height:1.1}
+    .actions{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 600;
+      transition: transform .08s ease, background .12s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.10); }
+    .btn:active{ transform: scale(0.98); }
+    .btn.primary{
+      border-color: rgba(106,168,255,0.35);
+      background: rgba(106,168,255,0.15);
+    }
+    .btn.danger{
+      border-color: rgba(255,85,99,0.35);
+      background: rgba(255,85,99,0.12);
+    }
+    .pill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      font-size:12px;
+      color:var(--muted);
+      font-family: var(--mono);
+    }
+
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      min-height: 120px;
+    }
+    .panel h3{
+      margin:0 0 10px 0;
+      font-size:14px;
+      letter-spacing:0.2px;
+    }
+    .panel .hint{ color: var(--muted); font-size:12px; line-height:1.35; margin-top:6px; }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin: 8px 0; }
+    .row label{ color: var(--muted); font-size:12px; }
+    .row .right{ display:flex; align-items:center; gap:8px; }
+    input[type="range"]{ width: 180px; }
+    input[type="number"], input[type="text"], select{
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      color: var(--text);
+      outline:none;
+    }
+    .small{ width: 92px !important; }
+    .toggle{
+      display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+      color: var(--muted); font-size:12px;
+    }
+    .toggle input{ transform: translateY(1px); }
+
+    .videoCard{
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      position: relative;
+      border-radius: var(--radius);
+      overflow:hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      background: rgba(0,0,0,0.35);
+      min-height: 420px;
+    }
+    video, img#mjpegView{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit: cover;
+      background: #000;
+    }
+    img#mjpegView{ display:none; }
+    canvas.overlay{
+      position:absolute;
+      left:0; top:0;
+      width:100%;
+      height:100%;
+      pointer-events: none;
+    }
+    canvas.interact{
+      position:absolute;
+      left:0; top:0;
+      width:100%;
+      height:100%;
+      pointer-events: auto;
+      background: transparent;
+    }
+
+    .hudControls{
+      position:absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 40;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-width: 720px;
+    }
+    .hudBar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      padding: 10px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+    }
+    .hudBar .group{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      padding-right:10px; border-right:1px solid rgba(255,255,255,0.12);
+    }
+    .hudBar .group:last-child{ border-right:none; padding-right:0; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 12px;
+      user-select:none;
+    }
+    .chip strong{ color: var(--text); font-family: var(--mono); font-size: 11px; }
+
+    .rightPanel, .leftPanel{
+      grid-row: 2 / 3;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height: 420px;
+    }
+    .leftPanel{ grid-column: 1 / 2; }
+    .rightPanel{ grid-column: 3 / 4; }
+
+    .list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .card{
+      padding: 10px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.22);
+      border-radius: 12px;
+    }
+    .cardTop{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:8px;
+    }
+    .tag{ font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .badge{
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+    }
+    .badge.good{ border-color: rgba(0,220,140,0.35); background: rgba(0,220,140,0.12); color: rgba(0,220,140,0.95); }
+    .badge.warn{ border-color: rgba(255,204,0,0.35); background: rgba(255,204,0,0.12); color: rgba(255,204,0,0.95); }
+
+    .cardActions{ display:flex; gap:8px; flex-wrap:wrap; }
+    .btnTiny{
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      cursor:pointer;
+      color: var(--text);
+    }
+    .btnTiny:hover{ background: rgba(255,255,255,0.10); }
+    .btnTiny.danger{ border-color: rgba(255,85,99,0.35); background: rgba(255,85,99,0.10); }
+    .btnTiny.primary{ border-color: rgba(106,168,255,0.35); background: rgba(106,168,255,0.12); }
+    .btnTiny.good{ border-color: rgba(0,220,140,0.35); background: rgba(0,220,140,0.12); }
+
+    .footer{
+      grid-column: 1 / -1;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .log{
+      height: 180px;
+      overflow:auto;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.80);
+      white-space: pre-wrap;
+    }
+    .kbd{ font-family: var(--mono); border:1px solid rgba(255,255,255,0.14); padding:2px 6px; border-radius:6px; background: rgba(0,0,0,0.25); }
+    .divider{ height:1px; background: rgba(255,255,255,0.10); margin:10px 0; }
+
+    /* Camera manager mini styling */
+    .camList{ display:flex; flex-direction:column; gap:8px; margin-top:10px; max-height: 220px; overflow:auto; }
+    .camRow{
+      display:flex; gap:8px; align-items:center; justify-content:space-between;
+      padding: 10px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.22);
+      border-radius: 12px;
+    }
+    .camMeta{ display:flex; flex-direction:column; gap:4px; min-width: 0; }
+    .camMeta strong{ font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .camMeta span{ font-size: 11px; color: var(--muted); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .camBtns{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+
+    @media (max-width: 1200px){
+      .app{ grid-template-columns: 1fr; grid-template-rows: auto auto auto auto auto; }
+      .leftPanel, .rightPanel, .videoCard{ grid-column: 1 / -1; }
+      .footer{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="dot" id="statusDot"></div>
+        <div class="stack">
+          <div class="title">RedAR + IonEye XR</div>
+          <div class="subtitle">Multi-cam + objects + faces + pins + Sentinel + WebXR live view</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <span class="pill" id="runtimePill">models: (loading)</span>
+        <span class="pill" id="fpsPill">detFPS: 0 | renderFPS: 0</span>
+
+        <button class="btn primary" id="btnStartCam">Start Camera</button>
+        <button class="btn" id="btnStartDet" disabled>Start Detection</button>
+        <button class="btn danger" id="btnStopAll" disabled>Stop</button>
+
+        <button class="btn primary" id="btnEnterXR">Enter XR</button>
+        <button class="btn" id="btnExitXR" disabled>Exit XR</button>
+
+        <button class="btn" id="btnPublishOverlay">Publish Overlay → Node</button>
+      </div>
+    </div>
+
+    <!-- LEFT PANEL -->
+    <div class="leftPanel">
+      <div class="panel">
+        <h3>Detection</h3>
+
+        <div class="row">
+          <label>Models</label>
+          <div class="right" style="min-width:190px">
+            <select id="modelSelect">
+              <option value="coco+face" selected>COCO-SSD + BlazeFace</option>
+              <option value="coco-only">COCO-SSD only</option>
+              <option value="face-only">BlazeFace only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Confidence</label>
+          <div class="right">
+            <input id="confRange" type="range" min="0.05" max="0.95" step="0.05" value="0.50" />
+            <span class="pill" id="confVal">0.50</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Max detections</label>
+          <div class="right">
+            <input id="maxDet" class="small" type="number" min="1" max="50" step="1" value="12" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Max faces</label>
+          <div class="right">
+            <input id="maxFaces" class="small" type="number" min="1" max="20" step="1" value="6" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Detection FPS limit</label>
+          <div class="right">
+            <input id="detFps" class="small" type="number" min="1" max="60" step="1" value="12" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <label class="toggle"><input id="showDetections" type="checkbox" checked> Show boxes</label>
+          <label class="toggle"><input id="showLabels" type="checkbox" checked> Show labels</label>
+        </div>
+
+        <div class="row">
+          <label class="toggle"><input id="showTracks" type="checkbox" checked> Show tracks</label>
+          <label class="toggle"><input id="classAwareMatch" type="checkbox"> Class-aware matching</label>
+        </div>
+
+        <div class="row">
+          <label class="toggle"><input id="fitCover" type="checkbox" checked> Fit: cover (match video)</label>
+          <label class="toggle"><input id="mirrorUserCam" type="checkbox"> Mirror (user cam)</label>
+        </div>
+
+        <div class="hint">
+          Keyboard: <span class="kbd">P</span> pin mode, <span class="kbd">D</span> detections, <span class="kbd">T</span> tracks, <span class="kbd">ESC</span> cancel drag.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Tracker</h3>
+
+        <div class="row">
+          <label class="toggle"><input id="pinMode" type="checkbox"> Pin-on-detection</label>
+          <label class="toggle"><input id="autoTrack" type="checkbox" checked> Auto-track</label>
+        </div>
+
+        <div class="row">
+          <label>IoU threshold</label>
+          <div class="right">
+            <input id="iouTh" class="small" type="number" min="0" max="1" step="0.05" value="0.40" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Smoothing</label>
+          <div class="right">
+            <input id="smoothA" class="small" type="number" min="0" max="1" step="0.05" value="0.25" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Miss tolerance</label>
+          <div class="right">
+            <input id="missTol" class="small" type="number" min="1" max="120" step="1" value="6" />
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btnTiny" id="btnClearTracks">Clear Tracks</button>
+          <button class="btnTiny" id="btnClearPins">Clear Pins</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="hint" id="trackSummary">No active tracks.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Camera Manager</h3>
+
+        <div class="row">
+          <label>Type</label>
+          <div class="right" style="min-width:190px">
+            <select id="camType">
+              <option value="local" selected>Local camera</option>
+              <option value="remoteVideo">Remote video URL</option>
+              <option value="mjpeg">MJPEG URL (img)</option>
+              <option value="device">Sentinel device camera (entry)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Name</label>
+          <div class="right" style="min-width:190px">
+            <input id="camName" type="text" placeholder="ex: Yard Cam" />
+          </div>
+        </div>
+
+        <div class="row" id="rowDevice">
+          <label>Local device</label>
+          <div class="right" style="min-width:190px">
+            <select id="camDeviceSelect"></select>
+          </div>
+        </div>
+
+        <div class="row" id="rowUrl" style="display:none">
+          <label>URL</label>
+          <div class="right" style="min-width:190px">
+            <input id="camUrl" type="text" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btnTiny primary" id="btnAddCam">Add Camera</button>
+          <button class="btnTiny" id="btnSnapCam">Snapshot Active</button>
+          <button class="btnTiny" id="btnExportCams">Export Cams</button>
+        </div>
+
+        <div class="camList" id="camList"></div>
+        <div class="hint">Active camera drives detection + XR. Remote MJPEG uses an image→canvas bridge.</div>
+      </div>
+
+      <div class="panel">
+        <h3>XR / Devices</h3>
+        <div class="hint" id="xrSupportHint">Checking WebXR support…</div>
+        <div class="row">
+          <button class="btnTiny primary" id="btnARSim">Stereo / Glasses Mirror</button>
+          <button class="btnTiny" id="btnFullscreen">Fullscreen</button>
+        </div>
+        <div class="hint">
+          XR mode renders your <strong>live camera + HUD</strong> as a textured quad inside WebXR, so it stays “live” even if passthrough camera frames aren’t accessible.
+        </div>
+      </div>
+    </div>
+
+    <!-- VIDEO + OVERLAY -->
+    <div class="videoCard" id="videoCard">
+      <video id="video" playsinline muted autoplay></video>
+      <img id="mjpegView" alt="MJPEG feed"/>
+
+      <!-- Render canvas (HUD): detections + tracks + annotations -->
+      <canvas id="hudCanvas" class="overlay"></canvas>
+
+      <!-- Interaction canvas: click/touch to pin, drag annotations -->
+      <canvas id="interactionCanvas" class="interact"></canvas>
+
+      <!-- Compact overlay controls -->
+      <div class="hudControls">
+        <div class="hudBar">
+          <div class="group">
+            <div class="chip">mode <strong id="modeChip">idle</strong></div>
+            <div class="chip">pins <strong id="pinsChip">0</strong></div>
+            <div class="chip">tracks <strong id="tracksChip">0</strong></div>
+            <div class="chip">dets <strong id="detsChip">0</strong></div>
+            <div class="chip">faces <strong id="facesChip">0</strong></div>
+          </div>
+          <div class="group">
+            <div class="chip">tip <span style="color:var(--muted)">Enable</span> <strong>P</strong> <span style="color:var(--muted)">then tap a box</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="rightPanel">
+      <div class="panel">
+        <h3>Annotations (Pinned / Free)</h3>
+        <div class="row">
+          <label>Node ID (optional)</label>
+          <div class="right" style="min-width:190px">
+            <input id="nodeId" type="text" placeholder="ex: NODE-ALPHA" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Publish node</label>
+          <div class="right" style="min-width:190px">
+            <select id="publishNodeSelect">
+              <option value="">(no nodes)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btnTiny primary" id="btnNewFree">New free annotation</button>
+          <button class="btnTiny" id="btnExport">Export JSON</button>
+          <button class="btnTiny" id="btnImport">Import JSON</button>
+        </div>
+
+        <div class="hint">
+          Pinned annotations follow detections via IoU tracking. Drag annotations to offset them (pinned) or reposition (free).
+        </div>
+
+        <div class="list" id="annotationList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Live Insights</h3>
+        <div class="hint" id="insightsBox">No detections yet.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Overlay Events</h3>
+        <div class="hint">When you publish an overlay, events appear here (local demo + Sentinel hook).</div>
+        <div class="log" id="overlayEvents" style="height:140px"></div>
+      </div>
+    </div>
+
+    <!-- FOOTER LOGS -->
+    <div class="footer">
+      <div class="log" id="eventLog"></div>
+      <div class="log" id="debugLog"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =========================================================
+  // Utilities
+  // =========================================================
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const nowISO = () => new Date().toISOString();
+  const uid = (p='id') => (crypto?.randomUUID ? `${p}_${crypto.randomUUID()}` : `${p}_${Math.random().toString(36).slice(2)}_${Date.now()}`);
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function log(el, msg){
+    const node = document.getElementById(el);
+    if(!node) return;
+    node.textContent = `${nowISO()} — ${msg}\n` + node.textContent;
+  }
+
+  function setStatus(ok, text){
+    const dot = document.getElementById('statusDot');
+    dot.style.background = ok ? 'var(--good)' : 'var(--warn)';
+    dot.style.boxShadow = ok ? '0 0 0 6px rgba(0,220,140,0.12)' : '0 0 0 6px rgba(255,204,0,0.12)';
+    document.getElementById('modeChip').textContent = text;
+  }
+
+  function drawRoundedRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function colorForId(id){
+    let h = 0;
+    for(let i=0;i<id.length;i++) h = (h*31 + id.charCodeAt(i)) >>> 0;
+    const r = 60 + (h % 160);
+    const g = 60 + ((h>>8) % 160);
+    const b = 60 + ((h>>16) % 160);
+    return `rgba(${r},${g},${b},0.95)`;
+  }
+
+  // =========================================================
+  // DOM refs
+  // =========================================================
+  const videoCard = document.getElementById('videoCard');
+  const video = document.getElementById('video');
+  const mjpegView = document.getElementById('mjpegView');
+
+  const hudCanvas = document.getElementById('hudCanvas');
+  const hudCtx = hudCanvas.getContext('2d');
+
+  const interactionCanvas = document.getElementById('interactionCanvas');
+
+  const btnStartCam = document.getElementById('btnStartCam');
+  const btnStartDet = document.getElementById('btnStartDet');
+  const btnStopAll = document.getElementById('btnStopAll');
+
+  const btnEnterXR = document.getElementById('btnEnterXR');
+  const btnExitXR = document.getElementById('btnExitXR');
+  const btnPublishOverlay = document.getElementById('btnPublishOverlay');
+
+  const modelSelect = document.getElementById('modelSelect');
+  const confRange = document.getElementById('confRange');
+  const confVal = document.getElementById('confVal');
+  const maxDet = document.getElementById('maxDet');
+  const maxFaces = document.getElementById('maxFaces');
+  const detFps = document.getElementById('detFps');
+
+  const showDetections = document.getElementById('showDetections');
+  const showLabels = document.getElementById('showLabels');
+  const showTracks = document.getElementById('showTracks');
+  const classAwareMatch = document.getElementById('classAwareMatch');
+  const fitCover = document.getElementById('fitCover');
+  const mirrorUserCam = document.getElementById('mirrorUserCam');
+
+  const pinMode = document.getElementById('pinMode');
+  const autoTrack = document.getElementById('autoTrack');
+  const iouTh = document.getElementById('iouTh');
+  const smoothA = document.getElementById('smoothA');
+  const missTol = document.getElementById('missTol');
+  const btnClearTracks = document.getElementById('btnClearTracks');
+  const btnClearPins = document.getElementById('btnClearPins');
+
+  const annotationList = document.getElementById('annotationList');
+  const btnNewFree = document.getElementById('btnNewFree');
+  const btnExport = document.getElementById('btnExport');
+  const btnImport = document.getElementById('btnImport');
+  const nodeIdInput = document.getElementById('nodeId');
+  const publishNodeSelect = document.getElementById('publishNodeSelect');
+
+  const runtimePill = document.getElementById('runtimePill');
+  const fpsPill = document.getElementById('fpsPill');
+
+  const pinsChip = document.getElementById('pinsChip');
+  const tracksChip = document.getElementById('tracksChip');
+  const detsChip = document.getElementById('detsChip');
+  const facesChip = document.getElementById('facesChip');
+
+  const trackSummary = document.getElementById('trackSummary');
+  const insightsBox = document.getElementById('insightsBox');
+
+  const overlayEvents = document.getElementById('overlayEvents');
+
+  // Camera manager UI
+  const camType = document.getElementById('camType');
+  const camName = document.getElementById('camName');
+  const camUrl = document.getElementById('camUrl');
+  const camDeviceSelect = document.getElementById('camDeviceSelect');
+  const rowUrl = document.getElementById('rowUrl');
+  const rowDevice = document.getElementById('rowDevice');
+
+  const btnAddCam = document.getElementById('btnAddCam');
+  const btnSnapCam = document.getElementById('btnSnapCam');
+  const btnExportCams = document.getElementById('btnExportCams');
+  const camList = document.getElementById('camList');
+
+  const xrSupportHint = document.getElementById('xrSupportHint');
+  const btnARSim = document.getElementById('btnARSim');
+  const btnFullscreen = document.getElementById('btnFullscreen');
+
+  // =========================================================
+  // Storage + Broadcast
+  // =========================================================
+  const STORAGE_KEYS = {
+    annotations: 'redar_annotations_v2',
+    cameras: 'redar_cameras_v2',
+    sentinelFallback: 'ioneye_sentinel_v1'
+  };
+
+  const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('redar_ioneye_channel') : null;
+
+  function loadJSON(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      return JSON.parse(raw);
+    }catch{ return fallback; }
+  }
+  function saveJSON(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch{}
+  }
+
+  // =========================================================
+  // State
+  // =========================================================
+  let stream = null;
+  let cocoModel = null;
+  let faceModel = null;
+
+  const state = {
+    runningCam: false,
+    runningDet: false,
+    detBusy: false,
+
+    sourceKind: 'video', // 'video' | 'mjpeg'
+    mjpegTimer: null,
+
+    // active camera entry
+    cameras: loadJSON(STORAGE_KEYS.cameras, { activeId: null, items: [] }),
+    activeCamId: null,
+
+    // detections: intrinsic coords
+    detections: [], // {bbox:[x,y,w,h], score, class, kind:'obj'|'face'}
+
+    tracks: [], // {id, bbox:{x,y,w,h}, smooth:{...}, label, score, misses, lastSeen, color}
+    annotations: loadJSON(STORAGE_KEYS.annotations, []), // {id,text,x,y,offsetX,offsetY,size,color,locked,anchor:{trackId,label},ts,nodeId}
+
+    drag: { active:false, annId:null, startPx:0, startPy:0, startAnnX:0, startAnnY:0, startOffX:0, startOffY:0 },
+
+    // FPS
+    _renderFrames: 0, _renderFps: 0, _renderLast: performance.now(),
+    _detFrames: 0, _detFps: 0, _detLast: performance.now(),
+
+    // XR
+    xr: {
+      session: null,
+      gl: null,
+      layer: null,
+      refSpace: null,
+      program: null,
+      quad: null,
+      tex: null,
+      compositeCanvas: document.createElement('canvas'),
+      compositeCtx: null,
+      inXR: false
+    }
+  };
+  state.xr.compositeCtx = state.xr.compositeCanvas.getContext('2d');
+
+  // =========================================================
+  // Sentinel integration (nodes list)
+  // =========================================================
+  function refreshNodesFromSentinel(){
+    let nodes = [];
+    try{
+      if(window.IonSentinel && window.IonSentinel.state && Array.isArray(window.IonSentinel.state.nodes)){
+        nodes = window.IonSentinel.state.nodes;
+      }
+    }catch{}
+    publishNodeSelect.innerHTML = '';
+    if(!nodes.length){
+      publishNodeSelect.innerHTML = `<option value="">(no nodes)</option>`;
+      return;
+    }
+    for(const n of nodes){
+      const o = document.createElement('option');
+      o.value = n.id;
+      o.textContent = n.name || n.id;
+      publishNodeSelect.appendChild(o);
+    }
+  }
+
+  // =========================================================
+  // Broadcast sync
+  // =========================================================
+  function publishAnnotations(){
+    saveJSON(STORAGE_KEYS.annotations, state.annotations);
+    if(bc) bc.postMessage({ type:'annotations:update', payload: state.annotations });
+  }
+
+  function publishCameras(){
+    saveJSON(STORAGE_KEYS.cameras, state.cameras);
+    if(bc) bc.postMessage({ type:'cameras:update', payload: state.cameras });
+  }
+
+  if(bc){
+    bc.onmessage = (ev) => {
+      const msg = ev.data;
+      if(!msg || !msg.type) return;
+      if(msg.type === 'annotations:update' && Array.isArray(msg.payload)){
+        const incoming = msg.payload;
+        const merged = new Map(state.annotations.map(a => [a.id, a]));
+        for(const a of incoming){
+          const cur = merged.get(a.id);
+          if(!cur || (cur.ts || '') < (a.ts || '')) merged.set(a.id, a);
+        }
+        state.annotations = Array.from(merged.values());
+        publishAnnotations();
+        renderAnnotationList();
+        log('eventLog', `Synced annotations (${incoming.length})`);
+      }
+      if(msg.type === 'cameras:update' && msg.payload && Array.isArray(msg.payload.items)){
+        state.cameras = msg.payload;
+        renderCameraList();
+        log('eventLog', `Synced cameras (${state.cameras.items.length})`);
+      }
+      if(msg.type === 'overlay:event' && msg.payload){
+        overlayEvents.textContent = `${nowISO()} — ${msg.payload}\n` + overlayEvents.textContent;
+      }
+    };
+  }
+
+  // =========================================================
+  // Canvas sizing + mapping (handles object-fit cover/contain)
+  // =========================================================
+  function resizeCanvases(){
+    const rect = videoCard.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(2, Math.floor(rect.width * dpr));
+    const h = Math.max(2, Math.floor(rect.height * dpr));
+    if(hudCanvas.width !== w || hudCanvas.height !== h){
+      hudCanvas.width = w; hudCanvas.height = h;
+    }
+    if(interactionCanvas.width !== w || interactionCanvas.height !== h){
+      interactionCanvas.width = w; interactionCanvas.height = h;
+    }
+  }
+
+  function getIntrinsicSize(){
+    if(state.sourceKind === 'mjpeg'){
+      // mjpeg bridge canvas will set its own size; use that
+      const c = mjpegBridge.canvas;
+      return { vw: c.width || 1, vh: c.height || 1 };
+    }
+    const vw = video.videoWidth || 1;
+    const vh = video.videoHeight || 1;
+    return { vw, vh };
+  }
+
+  // mapping intrinsic->canvas pixels w/ cover/contain behavior
+  function getRenderMapping(outW, outH){
+    const { vw, vh } = getIntrinsicSize();
+    const cover = !!fitCover.checked;
+    const scale = cover ? Math.max(outW / vw, outH / vh) : Math.min(outW / vw, outH / vh);
+    const drawW = vw * scale;
+    const drawH = vh * scale;
+    const dx = (outW - drawW) / 2;
+    const dy = (outH - drawH) / 2;
+    return { vw, vh, scale, dx, dy };
+  }
+
+  function pointerToIntrinsic(evt){
+    const rect = interactionCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const px = (evt.clientX - rect.left) * dpr;
+    const py = (evt.clientY - rect.top) * dpr;
+
+    const m = getRenderMapping(hudCanvas.width, hudCanvas.height);
+    const ix = (px - m.dx) / m.scale;
+    const iy = (py - m.dy) / m.scale;
+
+    return { px, py, ix, iy, m };
+  }
+
+  // =========================================================
+  // MJPEG bridge (img -> canvas)
+  // =========================================================
+  const mjpegBridge = {
+    img: new Image(),
+    canvas: document.createElement('canvas'),
+    ctx: null,
+    url: null,
+    tickMs: 100,
+    running: false
+  };
+  mjpegBridge.ctx = mjpegBridge.canvas.getContext('2d');
+  mjpegBridge.img.crossOrigin = 'anonymous';
+
+  function startMJPEG(url){
+    stopMJPEG();
+    state.sourceKind = 'mjpeg';
+    mjpegView.style.display = 'block';
+    video.style.display = 'none';
+
+    mjpegBridge.url = url;
+    mjpegBridge.running = true;
+
+    const loop = async () => {
+      if(!mjpegBridge.running) return;
+      const bust = (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+      mjpegBridge.img.src = url + bust;
+      mjpegView.src = mjpegBridge.img.src;
+
+      await new Promise((res)=> {
+        mjpegBridge.img.onload = () => res();
+        mjpegBridge.img.onerror = () => res();
+      });
+
+      // size bridge canvas to image
+      const w = mjpegBridge.img.naturalWidth || 640;
+      const h = mjpegBridge.img.naturalHeight || 480;
+      if(mjpegBridge.canvas.width !== w || mjpegBridge.canvas.height !== h){
+        mjpegBridge.canvas.width = w;
+        mjpegBridge.canvas.height = h;
+      }
+      mjpegBridge.ctx.drawImage(mjpegBridge.img, 0, 0, w, h);
+
+      setTimeout(loop, mjpegBridge.tickMs);
+    };
+    loop();
+  }
+
+  function stopMJPEG(){
+    mjpegBridge.running = false;
+    mjpegBridge.url = null;
+  }
+
+  function getActiveSourceElement(){
+    // TFJS can read from <video>, <img>, or <canvas>. We use:
+    // - video for normal camera/remote video
+    // - mjpegBridge.canvas for mjpeg mode
+    return (state.sourceKind === 'mjpeg') ? mjpegBridge.canvas : video;
+  }
+
+  // =========================================================
+  // IoU tracking
+  // =========================================================
+  function iou(a, b){
+    const ax1=a.x, ay1=a.y, ax2=a.x+a.w, ay2=a.y+a.h;
+    const bx1=b.x, by1=b.y, bx2=b.x+b.w, by2=b.y+b.h;
+    const ix1=Math.max(ax1,bx1), iy1=Math.max(ay1,by1), ix2=Math.min(ax2,bx2), iy2=Math.min(ay2,by2);
+    const iw=Math.max(0, ix2-ix1), ih=Math.max(0, iy2-iy1);
+    const inter=iw*ih;
+    const union=(a.w*a.h)+(b.w*b.h)-inter;
+    return union<=0 ? 0 : inter/union;
+  }
+
+  function createTrackFromDet(det){
+    const [x,y,w,h] = det.bbox;
+    const id = uid('trk');
+    const t = {
+      id,
+      bbox: {x,y,w,h},
+      smooth: {x,y,w,h},
+      label: det.class || null,
+      score: det.score || null,
+      misses: 0,
+      lastSeen: performance.now(),
+      color: colorForId(id)
+    };
+    state.tracks.push(t);
+    return t;
+  }
+
+  function updateTracksWithDetections(dets){
+    const th = clamp(parseFloat(iouTh.value) || 0.4, 0, 1);
+    const alpha = clamp(parseFloat(smoothA.value) || 0.25, 0, 1);
+    const tol = clamp(parseInt(missTol.value) || 6, 1, 240);
+    const classAware = !!classAwareMatch.checked;
+
+    const matches = [];
+    for(let ti=0; ti<state.tracks.length; ti++){
+      const t = state.tracks[ti];
+      for(let di=0; di<dets.length; di++){
+        const d = dets[di];
+        if(classAware && t.label && d.class && t.label !== d.class) continue;
+        const bb = { x:d.bbox[0], y:d.bbox[1], w:d.bbox[2], h:d.bbox[3] };
+        const val = iou(t.bbox, bb);
+        if(val >= th) matches.push({ti, di, val});
+      }
+    }
+    matches.sort((a,b)=>b.val-a.val);
+
+    const matchedTracks = new Set();
+    const matchedDets = new Set();
+
+    for(const m of matches){
+      if(matchedTracks.has(m.ti) || matchedDets.has(m.di)) continue;
+      matchedTracks.add(m.ti);
+      matchedDets.add(m.di);
+
+      const t = state.tracks[m.ti];
+      const d = dets[m.di];
+      const bb = { x:d.bbox[0], y:d.bbox[1], w:d.bbox[2], h:d.bbox[3] };
+
+      t.smooth.x = alpha*bb.x + (1-alpha)*t.smooth.x;
+      t.smooth.y = alpha*bb.y + (1-alpha)*t.smooth.y;
+      t.smooth.w = alpha*bb.w + (1-alpha)*t.smooth.w;
+      t.smooth.h = alpha*bb.h + (1-alpha)*t.smooth.h;
+
+      t.bbox.x = t.smooth.x; t.bbox.y = t.smooth.y; t.bbox.w = t.smooth.w; t.bbox.h = t.smooth.h;
+      t.misses = 0;
+      t.lastSeen = performance.now();
+      t.label = d.class || t.label;
+      t.score = d.score || t.score;
+    }
+
+    for(let i=0;i<state.tracks.length;i++){
+      if(!matchedTracks.has(i)) state.tracks[i].misses++;
+    }
+
+    for(let i=state.tracks.length-1;i>=0;i--){
+      if(state.tracks[i].misses >= tol){
+        const trackId = state.tracks[i].id;
+        for(const a of state.annotations){
+          if(a.anchor?.trackId === trackId){
+            a.anchor.trackId = null;
+            a.ts = nowISO();
+          }
+        }
+        state.tracks.splice(i,1);
+      }
+    }
+
+    if(autoTrack.checked){
+      for(let di=0; di<dets.length; di++){
+        if(!matchedDets.has(di)){
+          createTrackFromDet(dets[di]);
+        }
+      }
+    }
+  }
+
+  function findBestTrackForDet(det){
+    const th = clamp(parseFloat(iouTh.value) || 0.4, 0, 1);
+    const bb = { x:det.bbox[0], y:det.bbox[1], w:det.bbox[2], h:det.bbox[3] };
+    let best = null;
+    let bestVal = 0;
+    for(const t of state.tracks){
+      const val = iou(t.bbox, bb);
+      if(val > bestVal){ bestVal = val; best = t; }
+    }
+    return (best && bestVal >= th) ? best : null;
+  }
+
+  // =========================================================
+  // Annotations
+  // =========================================================
+  function makeAnnotation({text, x, y, color, size, anchorTrackId=null, anchorLabel=null}){
+    const nodeId = (nodeIdInput.value || '').trim() || null;
+    return {
+      id: uid('ann'),
+      text: text || 'Pinned',
+      x: clamp(x,0,1),
+      y: clamp(y,0,1),
+      offsetX: 0,
+      offsetY: 0,
+      size: size || 18,
+      color: color || 'rgba(0,220,140,0.95)',
+      locked: false,
+      anchor: { trackId: anchorTrackId, label: anchorLabel || null },
+      nodeId,
+      ts: nowISO()
+    };
+  }
+
+  function getAnnotation(id){
+    return state.annotations.find(a => a.id === id) || null;
+  }
+
+  function deleteAnnotation(id){
+    const idx = state.annotations.findIndex(a => a.id === id);
+    if(idx >= 0){
+      state.annotations.splice(idx,1);
+      publishAnnotations();
+      renderAnnotationList();
+      log('eventLog', `Deleted annotation ${id}`);
+    }
+  }
+
+  function clearPinnedAnnotations(){
+    state.annotations = state.annotations.filter(a => !a.anchor?.trackId);
+    publishAnnotations();
+    renderAnnotationList();
+  }
+
+  function computeAnnotationPositionIntrinsic(ann){
+    const { vw, vh } = getIntrinsicSize();
+    if(!ann.anchor?.trackId){
+      return { x: ann.x * vw, y: ann.y * vh };
+    }
+    const t = state.tracks.find(t => t.id === ann.anchor.trackId);
+    if(!t){
+      return { x: ann.x * vw, y: ann.y * vh };
+    }
+    const cx = (t.bbox.x + t.bbox.w/2) / vw;
+    const cy = (t.bbox.y + t.bbox.h/2) / vh;
+    const nx = clamp(cx + (ann.offsetX || 0), 0, 1);
+    const ny = clamp(cy + (ann.offsetY || 0), 0, 1);
+    ann.x = nx; ann.y = ny;
+    return { x: nx * vw, y: ny * vh };
+  }
+
+  // =========================================================
+  // Hit testing
+  // =========================================================
+  function hitTestDetection(ix, iy){
+    for(const d of state.detections){
+      const [x,y,w,h] = d.bbox;
+      if(ix >= x && ix <= x+w && iy >= y && iy <= y+h) return d;
+    }
+    let best = null, bestDist = Infinity;
+    for(const d of state.detections){
+      const [x,y,w,h] = d.bbox;
+      const cx = x + w/2, cy = y + h/2;
+      const dist = Math.hypot(cx - ix, cy - iy);
+      if(dist < bestDist){ bestDist = dist; best = d; }
+    }
+    return bestDist < 140 ? best : null;
+  }
+
+  function hitTestAnnotationAtPointer(px, py){
+    // px/py are canvas pixels
+    const m = getRenderMapping(hudCanvas.width, hudCanvas.height);
+    for(let i=state.annotations.length-1;i>=0;i--){
+      const a = state.annotations[i];
+      const posI = computeAnnotationPositionIntrinsic(a); // intrinsic
+      const x = posI.x * m.scale + m.dx;
+      const y = posI.y * m.scale + m.dy;
+      const w = Math.max(90, (a.text||'').length * 8);
+      const h = 28;
+      const left = x - 10;
+      const top = y - 34;
+      if(px >= left && px <= left + w && py >= top && py <= top + h){
+        return a;
+      }
+    }
+    return null;
+  }
+
+  // =========================================================
+  // HUD draw (reusable: screen canvas AND XR composite)
+  // =========================================================
+  function drawHUD(ctx, outW, outH){
+    ctx.clearRect(0,0,outW,outH);
+
+    const m = getRenderMapping(outW, outH);
+
+    // Mirror option (only visually; detections are not mirrored)
+    if(mirrorUserCam.checked && state.sourceKind !== 'mjpeg'){
+      // mirror the HUD to match mirrored video display (if you set a mirrored camera)
+      // For simplicity: we mirror the whole HUD layer here; if you don't mirror the video, leave this off.
+      ctx.save();
+      ctx.translate(outW, 0);
+      ctx.scale(-1, 1);
+      drawHUDInternal(ctx, outW, outH, m);
+      ctx.restore();
+    } else {
+      drawHUDInternal(ctx, outW, outH, m);
+    }
+  }
+
+  function drawHUDInternal(ctx, outW, outH, m){
+    // 1) Detections
+    if(showDetections.checked){
+      for(const d of state.detections){
+        const [x,y,w,h] = d.bbox;
+        const bx = x*m.scale + m.dx, by = y*m.scale + m.dy, bw = w*m.scale, bh = h*m.scale;
+
+        ctx.lineWidth = 2;
+        const stroke = (d.kind === 'face') ? 'rgba(0,220,140,0.92)' : 'rgba(106,168,255,0.90)';
+        const fill = (d.kind === 'face') ? 'rgba(0,220,140,0.10)' : 'rgba(106,168,255,0.12)';
+        ctx.strokeStyle = stroke;
+        ctx.fillStyle = fill;
+        ctx.strokeRect(bx,by,bw,bh);
+        ctx.fillRect(bx,by,bw,bh);
+
+        if(showLabels.checked){
+          const label = `${d.class || 'obj'} ${(d.score*100).toFixed(0)}%`;
+          ctx.font = `12px ${getComputedStyle(document.body).fontFamily}`;
+          const pad = 6;
+          const tw = ctx.measureText(label).width + pad*2;
+          const tx = bx;
+          const ty = Math.max(14, by - 8);
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          drawRoundedRect(ctx, tx, ty-14, tw, 18, 8);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.92)';
+          ctx.fillText(label, tx+pad, ty);
+        }
+      }
+    }
+
+    // 2) Tracks
+    if(showTracks.checked){
+      for(const t of state.tracks){
+        const bx = t.bbox.x*m.scale + m.dx, by = t.bbox.y*m.scale + m.dy, bw = t.bbox.w*m.scale, bh = t.bbox.h*m.scale;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = t.color;
+        ctx.setLineDash([7,6]);
+        ctx.strokeRect(bx,by,bw,bh);
+        ctx.setLineDash([]);
+
+        const tag = `${t.label||'trk'} • ${t.id.slice(-6)} • miss:${t.misses}`;
+        ctx.font = `11px ${getComputedStyle(document.body).fontFamily}`;
+        const pad = 6;
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        const tw = ctx.measureText(tag).width + pad*2;
+        drawRoundedRect(ctx, bx, by+bh+6, tw, 18, 8);
+        ctx.fill();
+        ctx.fillStyle = t.color;
+        ctx.fillText(tag, bx+pad, by+bh+19);
+      }
+    }
+
+    // 3) Annotations
+    for(const a of state.annotations){
+      const posI = computeAnnotationPositionIntrinsic(a);
+      const x = posI.x*m.scale + m.dx;
+      const y = posI.y*m.scale + m.dy;
+
+      const txt = a.text || 'Annotation';
+      const size = a.size || 18;
+
+      ctx.font = `600 ${size}px ${getComputedStyle(document.body).fontFamily}`;
+      const padX = 10;
+      const padY = 7;
+      const tw = ctx.measureText(txt).width;
+      const w = tw + padX*2;
+      const h = size + padY*2;
+
+      const left = x - 10;
+      const top = y - h - 10;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.60)';
+      ctx.strokeStyle = a.color || 'rgba(0,220,140,0.95)';
+      ctx.lineWidth = 1.5;
+      drawRoundedRect(ctx, left, top, w, h, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = a.color || 'rgba(0,220,140,0.95)';
+      ctx.beginPath();
+      ctx.arc(left + 10, top + h/2, 4.5, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.93)';
+      ctx.fillText(txt, left + padX, top + h - padY);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left + 10, top + h);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+
+      if(a.locked){
+        ctx.font = `12px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.fillStyle = 'rgba(255,255,255,0.60)';
+        ctx.fillText('🔒', left + w - 20, top + h - 8);
+      }
+    }
+  }
+
+  // Screen render loop
+  function renderHUDLoop(){
+    resizeCanvases();
+    drawHUD(hudCtx, hudCanvas.width, hudCanvas.height);
+
+    // FPS counters
+    state._renderFrames++;
+    const t = performance.now();
+    if(t - state._renderLast > 900){
+      state._renderFps = (state._renderFrames * 1000) / (t - state._renderLast);
+      state._renderFrames = 0;
+      state._renderLast = t;
+      fpsPill.textContent = `detFPS: ${state._detFps.toFixed(1)} | renderFPS: ${state._renderFps.toFixed(1)}`;
+    }
+
+    requestAnimationFrame(renderHUDLoop);
+  }
+
+  // =========================================================
+  // Insights + chips
+  // =========================================================
+  function renderInsights(){
+    const counts = new Map();
+    let faceCount = 0;
+    for(const d of state.detections){
+      if(d.kind === 'face') faceCount++;
+      const k = d.class || 'unknown';
+      counts.set(k, (counts.get(k)||0)+1);
+    }
+    facesChip.textContent = String(faceCount);
+
+    if(counts.size === 0){
+      insightsBox.textContent = 'No detections yet.';
+      return;
+    }
+    const sorted = Array.from(counts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    const lines = [];
+    lines.push(`Top classes:`);
+    for(const [k,v] of sorted) lines.push(`• ${k}: ${v}`);
+    lines.push('');
+    lines.push(`Pinned annotations: ${state.annotations.filter(a=>a.anchor?.trackId).length}`);
+    lines.push(`Active tracks: ${state.tracks.length}`);
+    insightsBox.textContent = lines.join('\n');
+  }
+
+  function renderTrackSummary(){
+    tracksChip.textContent = String(state.tracks.length);
+    pinsChip.textContent = String(state.annotations.filter(a=>a.anchor?.trackId).length);
+    detsChip.textContent = String(state.detections.length);
+
+    if(state.tracks.length === 0){
+      trackSummary.textContent = 'No active tracks.';
+      return;
+    }
+    const hot = state.tracks.slice().sort((a,b)=>a.misses-b.misses).slice(0,6);
+    trackSummary.textContent = hot.map(t => `[${t.id.slice(-6)}] ${t.label||'trk'} miss:${t.misses}`).join('  •  ');
+  }
+
+  // =========================================================
+  // Annotation list UI
+  // =========================================================
+  function renderAnnotationList(){
+    annotationList.innerHTML = '';
+    if(state.annotations.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'hint';
+      empty.textContent = 'No annotations yet. Enable Pin Mode (P) and tap a box, or create a free annotation.';
+      annotationList.appendChild(empty);
+      return;
+    }
+
+    for(const a of state.annotations.slice().sort((p,q)=> (q.ts||'').localeCompare(p.ts||''))){
+      const pinned = !!a.anchor?.trackId;
+      const badge = pinned ? `<span class="badge good">pinned</span>` : `<span class="badge warn">free</span>`;
+      const label = pinned ? (a.anchor?.label || 'track') : '—';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="cardTop">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="tag">${a.id.slice(-8)}</div>
+            ${badge}
+            <div class="tag">${pinned ? ('label: ' + escapeHtml(label)) : ''}</div>
+          </div>
+          <div class="tag">${(a.ts||'').replace('T',' ').replace('Z','')}</div>
+        </div>
+
+        <div class="row" style="margin:6px 0 10px 0; gap:8px">
+          <label style="min-width:50px">Text</label>
+          <div class="right" style="flex:1; min-width:0">
+            <input type="text" value="${escapeHtml(a.text||'')}" data-action="editText" data-id="${a.id}">
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Size</label>
+          <div class="right">
+            <input class="small" type="number" min="10" max="48" step="1" value="${a.size||18}" data-action="editSize" data-id="${a.id}">
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Color</label>
+          <div class="right">
+            <input class="small" type="text" value="${escapeHtml(a.color||'rgba(0,220,140,0.95)')}" data-action="editColor" data-id="${a.id}">
+          </div>
+        </div>
+
+        <div class="cardActions">
+          <button class="btnTiny ${a.locked ? '' : 'primary'}" data-action="toggleLock" data-id="${a.id}">${a.locked ? 'Unlock' : 'Lock'}</button>
+          <button class="btnTiny" data-action="unpin" data-id="${a.id}" ${pinned ? '' : 'disabled'}>Unpin</button>
+          <button class="btnTiny good" data-action="focus" data-id="${a.id}">Focus</button>
+          <button class="btnTiny danger" data-action="delete" data-id="${a.id}">Delete</button>
+        </div>
+      `;
+      annotationList.appendChild(card);
+    }
+  }
+
+  // =========================================================
+  // TFJS initialization + model loading
+  // =========================================================
+  async function initTF(){
+    // WASM path
+    try{
+      if(tf?.wasm?.setWasmPaths){
+        tf.wasm.setWasmPaths('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@4.22.0/dist/');
+      }
+    }catch{}
+
+    // Prefer WebGL, fallback to WASM, then CPU
+    const tryBackends = ['webgl', 'wasm', 'cpu'];
+    for(const b of tryBackends){
+      try{
+        await tf.setBackend(b);
+        await tf.ready();
+        log('eventLog', `TF backend: ${b}`);
+        return b;
+      }catch(e){
+        log('debugLog', `TF backend failed (${b}): ${e?.message || e}`);
+      }
+    }
+    return 'cpu';
+  }
+
+  async function loadModels(){
+    runtimePill.textContent = 'models: loading…';
+    setStatus(false, 'loading');
+
+    await initTF();
+
+    try{
+      cocoModel = await cocoSsd.load();
+      log('eventLog', 'Loaded COCO-SSD');
+    }catch(e){
+      log('eventLog', `COCO-SSD load failed: ${e?.message || e}`);
+      cocoModel = null;
+    }
+
+    try{
+      // BlazeFace global is "blazeface"
+      faceModel = await blazeface.load();
+      log('eventLog', 'Loaded BlazeFace');
+    }catch(e){
+      log('eventLog', `BlazeFace load failed: ${e?.message || e}`);
+      faceModel = null;
+    }
+
+    const ok = !!(cocoModel || faceModel);
+    runtimePill.textContent = `models: ${cocoModel ? 'coco' : '—'} + ${faceModel ? 'face' : '—'}`;
+    setStatus(ok, ok ? 'ready' : 'model failed');
+
+    btnStartDet.disabled = !state.runningCam || !ok;
+  }
+
+  // =========================================================
+  // Detection loop (objects + faces)
+  // =========================================================
+  async function runDetectionTick(){
+    if(!state.runningDet || state.detBusy) return;
+    const src = getActiveSourceElement();
+    if(!src) return;
+
+    // source readiness
+    if(state.sourceKind === 'video'){
+      if(video.readyState < 2) return;
+    } else {
+      if(!mjpegBridge.canvas.width || !mjpegBridge.canvas.height) return;
+    }
+
+    state.detBusy = true;
+    const th = clamp(parseFloat(confRange.value)||0.5, 0, 1);
+    const maxN = clamp(parseInt(maxDet.value)||12, 1, 50);
+    const maxF = clamp(parseInt(maxFaces.value)||6, 1, 30);
+
+    const mode = modelSelect.value;
+    const wantCoco = (mode === 'coco+face' || mode === 'coco-only');
+    const wantFace = (mode === 'coco+face' || mode === 'face-only');
+
+    try{
+      const dets = [];
+
+      // Objects
+      if(wantCoco && cocoModel){
+        const raw = await cocoModel.detect(src);
+        const objs = raw
+          .filter(p => (p.score ?? 0) >= th)
+          .sort((a,b)=> (b.score??0) - (a.score??0))
+          .slice(0, maxN)
+          .map(p => ({
+            bbox: p.bbox,
+            score: p.score ?? 0,
+            class: p.class ?? 'object',
+            kind: 'obj'
+          }));
+        dets.push(...objs);
+      }
+
+      // Faces
+      if(wantFace && faceModel){
+        // blazeFace returns array of face objects; we convert to bbox
+        const faces = await faceModel.estimateFaces(src, false);
+        const top = faces
+          .slice(0, maxF)
+          .map((f, i) => {
+            // f.topLeft & f.bottomRight can be tensors or arrays
+            const tl = Array.isArray(f.topLeft) ? f.topLeft : (f.topLeft?.arraySync ? f.topLeft.arraySync() : [0,0]);
+            const br = Array.isArray(f.bottomRight) ? f.bottomRight : (f.bottomRight?.arraySync ? f.bottomRight.arraySync() : [0,0]);
+            const x = tl[0], y = tl[1], w = Math.max(1, br[0]-tl[0]), h = Math.max(1, br[1]-tl[1]);
+            const prob = Array.isArray(f.probability) ? (f.probability[0] ?? 0.99) : (f.probability ?? 0.99);
+            return {
+              bbox: [x,y,w,h],
+              score: prob,
+              class: `face`,
+              kind: 'face'
+            };
+          })
+          .filter(f => f.score >= th);
+        dets.push(...top);
+      }
+
+      state.detections = dets;
+
+      // Tracks update
+      updateTracksWithDetections(dets);
+
+      // Update anchored annotations
+      for(const a of state.annotations){
+        if(a.anchor?.trackId){
+          computeAnnotationPositionIntrinsic(a);
+          a.ts = nowISO();
+        }
+      }
+      publishAnnotations();
+
+      // FPS
+      state._detFrames++;
+      const dt = performance.now();
+      if(dt - state._detLast > 900){
+        state._detFps = (state._detFrames * 1000) / (dt - state._detLast);
+        state._detFrames = 0;
+        state._detLast = dt;
+      }
+
+      renderInsights();
+      renderTrackSummary();
+
+    }catch(e){
+      log('debugLog', `Detect error: ${e?.message || e}`);
+    } finally {
+      state.detBusy = false;
+    }
+  }
+
+  function startDetectionLoop(){
+    const targetFps = clamp(parseInt(detFps.value)||12, 1, 60);
+    const minDelta = 1000 / targetFps;
+    let last = performance.now();
+
+    const loop = async () => {
+      if(!state.runningDet) return;
+      const t = performance.now();
+      if(t - last >= minDelta){
+        last = t;
+        await runDetectionTick();
+      }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  // =========================================================
+  // Camera Manager
+  // =========================================================
+  async function refreshLocalDevices(){
+    camDeviceSelect.innerHTML = '';
+    try{
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(d => d.kind === 'videoinput');
+      if(!cams.length){
+        camDeviceSelect.innerHTML = `<option value="">(no cameras)</option>`;
+        return;
+      }
+      for(const d of cams){
+        const o = document.createElement('option');
+        o.value = d.deviceId;
+        o.textContent = d.label || `Camera ${d.deviceId.slice(0,6)}`;
+        camDeviceSelect.appendChild(o);
+      }
+    }catch(e){
+      camDeviceSelect.innerHTML = `<option value="">(permission needed)</option>`;
+    }
+  }
+
+  function ensureActiveCamId(){
+    if(state.cameras.activeId && state.cameras.items.some(c => c.id === state.cameras.activeId)){
+      state.activeCamId = state.cameras.activeId;
+      return;
+    }
+    if(state.cameras.items.length){
+      state.cameras.activeId = state.cameras.items[0].id;
+      state.activeCamId = state.cameras.activeId;
+      publishCameras();
+    }
+  }
+
+  function renderCameraList(){
+    ensureActiveCamId();
+    camList.innerHTML = '';
+    if(!state.cameras.items.length){
+      camList.innerHTML = `<div class="hint">No cameras yet. Add one above.</div>`;
+      return;
+    }
+
+    for(const c of state.cameras.items){
+      const row = document.createElement('div');
+      row.className = 'camRow';
+      const active = (c.id === state.activeCamId);
+
+      row.innerHTML = `
+        <div class="camMeta">
+          <strong>${escapeHtml(c.name || 'Camera')}</strong>
+          <span>${escapeHtml(c.kind)}${active ? ' • ACTIVE' : ''}</span>
+        </div>
+        <div class="camBtns">
+          <button class="btnTiny ${active ? 'good' : ''}" data-act="select" data-id="${c.id}">${active ? 'Active' : 'Select'}</button>
+          <button class="btnTiny primary" data-act="start" data-id="${c.id}">Start</button>
+          <button class="btnTiny" data-act="stop" data-id="${c.id}">Stop</button>
+          <button class="btnTiny" data-act="remove" data-id="${c.id}">Remove</button>
+        </div>
+      `;
+      camList.appendChild(row);
+    }
+  }
+
+  function stopCurrentStream(){
+    try{
+      if(stream){
+        for(const tr of stream.getTracks()) tr.stop();
+        stream = null;
+      }
+    }catch{}
+  }
+
+  function stopActiveCamera(){
+    stopCurrentStream();
+    stopMJPEG();
+    state.runningCam = false;
+    btnStartCam.disabled = false;
+    setStatus(!!(cocoModel||faceModel), (cocoModel||faceModel) ? (state.runningDet ? 'detecting' : 'ready') : 'idle');
+  }
+
+  async function startCameraFromEntry(camEntry){
+    if(!camEntry) return;
+
+    stopAll(false); // stop detection/cam but keep UI/annotations
+    state.detections = [];
+    state.tracks = [];
+
+    // set active id
+    state.activeCamId = camEntry.id;
+    state.cameras.activeId = camEntry.id;
+    publishCameras();
+    renderCameraList();
+
+    // switch view mode
+    if(camEntry.kind === 'mjpeg'){
+      stopCurrentStream();
+      startMJPEG(camEntry.url);
+      state.runningCam = true;
+      btnStartCam.disabled = true;
+      btnStopAll.disabled = false;
+      btnStartDet.disabled = !(cocoModel || faceModel);
+      setStatus(true, (state.runningDet ? 'detecting' : 'ready'));
+      log('eventLog', `Started MJPEG: ${camEntry.name}`);
+      return;
+    }
+
+    mjpegView.style.display = 'none';
+    video.style.display = 'block';
+    stopMJPEG();
+    state.sourceKind = 'video';
+
+    try{
+      if(camEntry.kind === 'remoteVideo'){
+        stopCurrentStream();
+        video.srcObject = null;
+        video.src = camEntry.url;
+        video.muted = true;
+        video.playsInline = true;
+        await video.play().catch(()=>{});
+        state.runningCam = true;
+        btnStartCam.disabled = true;
+        btnStopAll.disabled = false;
+        btnStartDet.disabled = !(cocoModel || faceModel);
+        setStatus(true, (state.runningDet ? 'detecting' : 'ready'));
+        log('eventLog', `Started remote video: ${camEntry.name}`);
+        return;
+      }
+
+      if(camEntry.kind === 'device'){
+        // Sentinel device entry: not a browser camera stream by itself.
+        log('eventLog', `Sentinel device camera entry selected: ${camEntry.name}. (Provide stream URL or integrate device streaming to use as video source.)`);
+        alert('This is a Sentinel device camera entry. Add a Remote video URL (WebRTC/HLS/mp4) if you want a playable stream in-browser.');
+        return;
+      }
+
+      // local camera
+      const constraints = {
+        video: {
+          deviceId: camEntry.deviceId ? { exact: camEntry.deviceId } : undefined,
+          facingMode: camEntry.facingMode || 'environment'
+        },
+        audio: false
+      };
+
+      stopCurrentStream();
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+
+      await video.play();
+      state.runningCam = true;
+
+      btnStartCam.disabled = true;
+      btnStopAll.disabled = false;
+      btnStartDet.disabled = !(cocoModel || faceModel);
+
+      setStatus(true, (state.runningDet ? 'detecting' : 'ready'));
+      log('eventLog', `Camera started: ${camEntry.name}`);
+
+      resizeCanvases();
+      window.addEventListener('resize', resizeCanvases);
+
+    }catch(e){
+      log('eventLog', `Camera failed: ${e?.message || e}`);
+      setStatus(false, 'camera failed');
+    }
+  }
+
+  // Add camera
+  function addCamera(){
+    const kind = camType.value;
+    const name = (camName.value || '').trim() || `${kind.toUpperCase()}-${Math.floor(Math.random()*1000)}`;
+
+    const entry = { id: uid('cam'), name, kind, created: nowISO() };
+
+    if(kind === 'local'){
+      entry.deviceId = camDeviceSelect.value || null;
+      entry.facingMode = 'environment';
+    }
+    if(kind === 'remoteVideo' || kind === 'mjpeg'){
+      const url = (camUrl.value || '').trim();
+      if(!url){ alert('Enter a URL'); return; }
+      entry.url = url;
+    }
+    if(kind === 'device'){
+      entry.assignedDeviceId = null;
+      // if sentinel devices exist, default to first
+      try{
+        const devs = window.IonSentinel?.state?.devices || [];
+        if(devs.length) entry.assignedDeviceId = devs[0].id;
+      }catch{}
+    }
+
+    state.cameras.items.push(entry);
+    if(!state.cameras.activeId) state.cameras.activeId = entry.id;
+    publishCameras();
+    renderCameraList();
+    log('eventLog', `Added camera: ${name}`);
+  }
+
+  // Export cams
+  function exportCamerasCSV(){
+    const rows = [['id','name','kind','url','deviceId','created']];
+    for(const c of state.cameras.items){
+      rows.push([c.id, c.name, c.kind, c.url||'', c.deviceId||'', c.created||'']);
+    }
+    const csv = rows.map(r=> r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download = 'redar_cameras.csv';
+    a.click();
+  }
+
+  // Snapshot active (for publish/compositing)
+  function snapshotActiveToDataURL(){
+    const src = getActiveSourceElement();
+    const { vw, vh } = getIntrinsicSize();
+    const c = document.createElement('canvas');
+    c.width = vw; c.height = vh;
+    const ctx = c.getContext('2d');
+
+    try{
+      if(state.sourceKind === 'mjpeg'){
+        ctx.drawImage(src, 0,0, vw,vh);
+      } else {
+        ctx.drawImage(video, 0,0, vw,vh);
+      }
+      // draw HUD in intrinsic space by reusing drawHUD with a temporary mapping:
+      // We’ll draw HUD into a temp canvas at the same output size and then alpha-blit.
+      const temp = document.createElement('canvas');
+      temp.width = vw; temp.height = vh;
+      const tctx = temp.getContext('2d');
+
+      // Temporarily force mapping to "contain" (no crop) for intrinsic snapshot to reduce confusion
+      // but keep it aligned by drawing from intrinsic coordinates directly:
+      // easiest: drawHUD on a temp canvas that uses same mapping logic. We’ll set fitCover off during this draw.
+      const prev = fitCover.checked;
+      fitCover.checked = false;
+      drawHUD(tctx, vw, vh);
+      fitCover.checked = prev;
+
+      ctx.drawImage(temp, 0,0);
+      return c.toDataURL('image/png');
+    }catch(e){
+      log('debugLog', `Snapshot failed: ${e?.message||e}`);
+      return null;
+    }
+  }
+
+  // =========================================================
+  // Camera UI wiring
+  // =========================================================
+  camType.addEventListener('change', () => {
+    const k = camType.value;
+    rowUrl.style.display = (k === 'remoteVideo' || k === 'mjpeg') ? 'flex' : 'none';
+    rowDevice.style.display = (k === 'local') ? 'flex' : 'none';
+  });
+
+  btnAddCam.addEventListener('click', addCamera);
+  btnExportCams.addEventListener('click', exportCamerasCSV);
+  btnSnapCam.addEventListener('click', () => {
+    const data = snapshotActiveToDataURL();
+    if(data) log('eventLog', 'Snapshot captured (active camera)');
+  });
+
+  camList.addEventListener('click', async (ev) => {
+    const el = ev.target;
+    if(!(el instanceof HTMLElement)) return;
+    const act = el.getAttribute('data-act');
+    const id = el.getAttribute('data-id');
+    if(!act || !id) return;
+
+    const camEntry = state.cameras.items.find(c => c.id === id);
+    if(!camEntry) return;
+
+    if(act === 'select'){
+      state.activeCamId = id;
+      state.cameras.activeId = id;
+      publishCameras();
+      renderCameraList();
+      return;
+    }
+    if(act === 'start'){
+      await startCameraFromEntry(camEntry);
+      return;
+    }
+    if(act === 'stop'){
+      stopActiveCamera();
+      log('eventLog', `Stopped: ${camEntry.name}`);
+      return;
+    }
+    if(act === 'remove'){
+      if(!confirm('Remove camera?')) return;
+      state.cameras.items = state.cameras.items.filter(c => c.id !== id);
+      if(state.cameras.activeId === id) state.cameras.activeId = state.cameras.items[0]?.id || null;
+      publishCameras();
+      renderCameraList();
+      log('eventLog', `Removed camera ${camEntry.name}`);
+      return;
+    }
+  });
+
+  // =========================================================
+  // Camera quick-start (topbar Start Camera)
+  // =========================================================
+  async function startDefaultCamera(){
+    // If cameras exist, start the active one; else start environment camera and create an entry.
+    if(state.cameras.items.length){
+      ensureActiveCamId();
+      const camEntry = state.cameras.items.find(c => c.id === state.activeCamId) || state.cameras.items[0];
+      await startCameraFromEntry(camEntry);
+      return;
+    }
+
+    // Create a quick local camera entry (environment)
+    const entry = { id: uid('cam'), name: 'Local Environment', kind: 'local', deviceId: null, facingMode: 'environment', created: nowISO() };
+    state.cameras.items.push(entry);
+    state.cameras.activeId = entry.id;
+    publishCameras();
+    renderCameraList();
+    await startCameraFromEntry(entry);
+  }
+
+  // =========================================================
+  // Stop / Start detection
+  // =========================================================
+  function stopAll(full=true){
+    state.runningDet = false;
+    state.runningCam = full ? false : state.runningCam;
+
+    state.detections = [];
+    state.tracks = [];
+    renderTrackSummary();
+    renderInsights();
+
+    if(full){
+      stopCurrentStream();
+      stopMJPEG();
+      video.srcObject = null;
+      video.removeAttribute('src');
+      state.sourceKind = 'video';
+      mjpegView.style.display = 'none';
+      video.style.display = 'block';
+
+      btnStartCam.disabled = false;
+      btnStartDet.disabled = true;
+      btnStopAll.disabled = true;
+
+      setStatus(!!(cocoModel||faceModel), (cocoModel||faceModel) ? 'ready' : 'idle');
+      log('eventLog', 'Stopped camera + detection');
+    }else{
+      btnStartDet.disabled = !state.runningCam || !(cocoModel||faceModel);
+      setStatus(!!(cocoModel||faceModel), (cocoModel||faceModel) ? 'ready' : 'idle');
+    }
+  }
+
+  btnStartCam.addEventListener('click', startDefaultCamera);
+
+  btnStartDet.addEventListener('click', async () => {
+    if(!(cocoModel || faceModel)){
+      log('eventLog','No models loaded.');
+      return;
+    }
+    if(!state.runningCam){
+      log('eventLog','Start the camera first.');
+      return;
+    }
+    state.runningDet = true;
+    btnStartDet.disabled = true;
+    btnStopAll.disabled = false;
+    setStatus(true, 'detecting');
+    log('eventLog', 'Detection started');
+    startDetectionLoop();
+  });
+
+  btnStopAll.addEventListener('click', () => stopAll(true));
+
+  // =========================================================
+  // Pins + drag interaction
+  // =========================================================
+  function addPinnedAnnotationFromDetection(det){
+    const { vw, vh } = getIntrinsicSize();
+    const [x,y,w,h] = det.bbox;
+    const cx = (x + w/2) / vw;
+    const cy = (y + h/2) / vh;
+
+    let track = findBestTrackForDet(det);
+    if(!track) track = createTrackFromDet(det);
+
+    const text = det.kind === 'face' ? `Pinned: face` : (det.class ? `Pinned: ${det.class}` : 'Pinned');
+    const ann = makeAnnotation({
+      text,
+      x: cx,
+      y: cy,
+      color: det.kind === 'face' ? 'rgba(0,220,140,0.95)' : 'rgba(106,168,255,0.95)',
+      size: 18,
+      anchorTrackId: track.id,
+      anchorLabel: det.kind === 'face' ? 'face' : (det.class || null)
+    });
+
+    state.annotations.push(ann);
+    publishAnnotations();
+    renderAnnotationList();
+    renderTrackSummary();
+
+    log('eventLog', `Pinned ${ann.id} → track ${track.id.slice(-6)} (${ann.anchor.label||'obj'})`);
+  }
+
+  function addFreeAnnotationAtCenter(){
+    const ann = makeAnnotation({
+      text: 'New note',
+      x: 0.5,
+      y: 0.5,
+      color: 'rgba(106,168,255,0.95)',
+      size: 18,
+      anchorTrackId: null
+    });
+    state.annotations.push(ann);
+    publishAnnotations();
+    renderAnnotationList();
+    log('eventLog', `Created free annotation ${ann.id}`);
+  }
+
+  interactionCanvas.addEventListener('pointerdown', (evt) => {
+    if(!state.runningCam) return;
+    interactionCanvas.setPointerCapture(evt.pointerId);
+
+    const { px, py, ix, iy } = pointerToIntrinsic(evt);
+
+    // drag annotation
+    const ann = hitTestAnnotationAtPointer(px, py);
+    if(ann && !ann.locked){
+      state.drag.active = true;
+      state.drag.annId = ann.id;
+      state.drag.startPx = px;
+      state.drag.startPy = py;
+      state.drag.startAnnX = ann.x;
+      state.drag.startAnnY = ann.y;
+      state.drag.startOffX = ann.offsetX || 0;
+      state.drag.startOffY = ann.offsetY || 0;
+      log('eventLog', `Drag start ${ann.id}`);
+      return;
+    }
+
+    // pin mode: tap detection box
+    if(pinMode.checked){
+      const det = hitTestDetection(ix, iy);
+      if(det){
+        addPinnedAnnotationFromDetection(det);
+      }else{
+        log('eventLog', 'Pin miss: no detection under tap');
+      }
+    }
+  });
+
+  interactionCanvas.addEventListener('pointermove', (evt) => {
+    if(!state.drag.active) return;
+    const ann = getAnnotation(state.drag.annId);
+    if(!ann) return;
+
+    const { px, py } = pointerToIntrinsic(evt);
+    const dx = px - state.drag.startPx;
+    const dy = py - state.drag.startPy;
+
+    const m = getRenderMapping(hudCanvas.width, hudCanvas.height);
+    const ndx = dx / (m.scale * m.vw);
+    const ndy = dy / (m.scale * m.vh);
+
+    if(ann.anchor?.trackId){
+      ann.offsetX = clamp(state.drag.startOffX + ndx, -0.5, 0.5);
+      ann.offsetY = clamp(state.drag.startOffY + ndy, -0.5, 0.5);
+    }else{
+      ann.x = clamp(state.drag.startAnnX + ndx, 0, 1);
+      ann.y = clamp(state.drag.startAnnY + ndy, 0, 1);
+    }
+    ann.ts = nowISO();
+    publishAnnotations();
+  });
+
+  interactionCanvas.addEventListener('pointerup', () => {
+    if(state.drag.active){
+      const ann = getAnnotation(state.drag.annId);
+      if(ann) log('eventLog', `Drag end ${ann.id}`);
+    }
+    state.drag.active = false;
+    state.drag.annId = null;
+  });
+
+  // Keyboard shortcuts
+  window.addEventListener('keydown', (e) => {
+    if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if(e.key === 'Escape'){
+      state.drag.active = false;
+      state.drag.annId = null;
+    }
+    if(e.key.toLowerCase() === 'p'){ pinMode.checked = !pinMode.checked; log('eventLog', `Pin mode: ${pinMode.checked}`); }
+    if(e.key.toLowerCase() === 'd'){ showDetections.checked = !showDetections.checked; }
+    if(e.key.toLowerCase() === 't'){ showTracks.checked = !showTracks.checked; }
+  });
+
+  // =========================================================
+  // Annotation controls
+  // =========================================================
+  btnClearTracks.addEventListener('click', () => {
+    state.tracks = [];
+    for(const a of state.annotations){
+      if(a.anchor?.trackId){
+        a.anchor.trackId = null;
+        a.ts = nowISO();
+      }
+    }
+    publishAnnotations();
+    renderAnnotationList();
+    renderTrackSummary();
+    log('eventLog', 'Cleared tracks (annotations remain as free)');
+  });
+
+  btnClearPins.addEventListener('click', () => {
+    clearPinnedAnnotations();
+    log('eventLog', 'Cleared pinned annotations (kept free annotations)');
+  });
+
+  btnNewFree.addEventListener('click', addFreeAnnotationAtCenter);
+
+  btnExport.addEventListener('click', () => {
+    const data = JSON.stringify(state.annotations, null, 2);
+    navigator.clipboard.writeText(data).then(() => {
+      log('eventLog', `Exported ${state.annotations.length} annotations to clipboard`);
+    }).catch(() => prompt('Copy annotations JSON:', data));
+  });
+
+  btnImport.addEventListener('click', () => {
+    const raw = prompt('Paste annotations JSON (array):');
+    if(!raw) return;
+    try{
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) throw new Error('Not an array');
+      const cleaned = arr.map(a => ({
+        id: a.id || uid('ann'),
+        text: a.text || 'Imported',
+        x: clamp(Number(a.x)||0.5,0,1),
+        y: clamp(Number(a.y)||0.5,0,1),
+        offsetX: Number(a.offsetX)||0,
+        offsetY: Number(a.offsetY)||0,
+        size: clamp(Number(a.size)||18,10,48),
+        color: a.color || 'rgba(0,220,140,0.95)',
+        locked: !!a.locked,
+        anchor: a.anchor && typeof a.anchor === 'object' ? { trackId: a.anchor.trackId||null, label: a.anchor.label||null } : { trackId:null, label:null },
+        nodeId: a.nodeId || null,
+        ts: a.ts || nowISO()
+      }));
+      state.annotations = cleaned;
+      publishAnnotations();
+      renderAnnotationList();
+      log('eventLog', `Imported ${cleaned.length} annotations`);
+    }catch(e){
+      log('eventLog', `Import failed: ${e?.message || e}`);
+    }
+  });
+
+  annotationList.addEventListener('input', (ev) => {
+    const el = ev.target;
+    if(!(el instanceof HTMLElement)) return;
+    const id = el.getAttribute('data-id');
+    const action = el.getAttribute('data-action');
+    if(!id || !action) return;
+    const a = getAnnotation(id);
+    if(!a) return;
+
+    if(action === 'editText'){ a.text = el.value; a.ts = nowISO(); publishAnnotations(); }
+    if(action === 'editSize'){ a.size = clamp(parseInt(el.value)||18, 10, 48); a.ts = nowISO(); publishAnnotations(); }
+    if(action === 'editColor'){ a.color = el.value || a.color; a.ts = nowISO(); publishAnnotations(); }
+  });
+
+  annotationList.addEventListener('click', (ev) => {
+    const el = ev.target;
+    if(!(el instanceof HTMLElement)) return;
+    const id = el.getAttribute('data-id');
+    const action = el.getAttribute('data-action');
+    if(!id || !action) return;
+
+    const a = getAnnotation(id);
+    if(!a) return;
+
+    if(action === 'toggleLock'){
+      a.locked = !a.locked;
+      a.ts = nowISO();
+      publishAnnotations();
+      renderAnnotationList();
+      log('eventLog', `${a.locked ? 'Locked' : 'Unlocked'} ${a.id}`);
+    }
+    if(action === 'unpin'){
+      if(a.anchor?.trackId){
+        a.anchor.trackId = null;
+        a.anchor.label = null;
+        a.ts = nowISO();
+        publishAnnotations();
+        renderAnnotationList();
+        log('eventLog', `Unpinned ${a.id}`);
+      }
+    }
+    if(action === 'focus'){
+      if(a.anchor?.trackId){
+        a.offsetX = 0; a.offsetY = 0;
+      }else{
+        a.x = 0.5; a.y = 0.5;
+      }
+      a.ts = nowISO();
+      publishAnnotations();
+      log('eventLog', `Focused ${a.id}`);
+    }
+    if(action === 'delete'){
+      deleteAnnotation(a.id);
+      renderAnnotationList();
+    }
+  });
+
+  confRange.addEventListener('input', () => confVal.textContent = Number(confRange.value).toFixed(2));
+  confVal.textContent = Number(confRange.value).toFixed(2);
+
+  // =========================================================
+  // Sentinel publish overlay
+  // =========================================================
+  function publishOverlayToNode(){
+    const nodeId = (publishNodeSelect.value || '').trim();
+    if(!nodeId){
+      alert('Select a node (or create one in Sentinel) to publish to.');
+      return;
+    }
+    const frame = snapshotActiveToDataURL();
+    if(!frame){
+      alert('Could not capture overlay frame.');
+      return;
+    }
+    const payload = {
+      type: 'overlay',
+      ts: nowISO(),
+      nodeId,
+      cameraId: state.activeCamId,
+      frame,
+      meta: {
+        detCount: state.detections.length,
+        pinCount: state.annotations.filter(a=>a.anchor?.trackId).length,
+        trackCount: state.tracks.length
+      }
+    };
+
+    const deviceId = state.activeCamId || 'camera';
+    if(window.IonSentinel && typeof window.IonSentinel.publishMessage === 'function'){
+      try{
+        window.IonSentinel.publishMessage(deviceId, nodeId, payload);
+        overlayEvents.textContent = `${nowISO()} — Published overlay to node ${nodeId} (IonSentinel)\n` + overlayEvents.textContent;
+        if(bc) bc.postMessage({ type:'overlay:event', payload: `Published overlay to node ${nodeId} (IonSentinel)` });
+        log('eventLog', `Published overlay → node ${nodeId}`);
+        return;
+      }catch(e){
+        log('debugLog', `IonSentinel publish failed: ${e?.message||e}`);
+      }
+    }
+
+    // Fallback: local storage message log
+    const s = loadJSON(STORAGE_KEYS.sentinelFallback, { devices:[], nodes:[], subscriptions:[], messages:[] });
+    s.messages.push({
+      id: uid('msg'),
+      nodeId,
+      nodeName: nodeId,
+      deviceId,
+      deviceName: 'RedAR Camera',
+      deviceType: 'browser',
+      payload,
+      ts: nowISO()
+    });
+    saveJSON(STORAGE_KEYS.sentinelFallback, s);
+    overlayEvents.textContent = `${nowISO()} — Published overlay to node ${nodeId} (local fallback)\n` + overlayEvents.textContent;
+    if(bc) bc.postMessage({ type:'overlay:event', payload: `Published overlay to node ${nodeId} (local fallback)` });
+    log('eventLog', `Published overlay → node ${nodeId} (fallback)`);
+  }
+
+  btnPublishOverlay.addEventListener('click', publishOverlayToNode);
+
+  // =========================================================
+  // WebXR live view: textured quad with (video + HUD) composite
+  // =========================================================
+  function mat4Mul(a,b){
+    const o = new Float32Array(16);
+    for(let r=0;r<4;r++){
+      for(let c=0;c<4;c++){
+        o[r*4+c] =
+          a[r*4+0]*b[0*4+c] +
+          a[r*4+1]*b[1*4+c] +
+          a[r*4+2]*b[2*4+c] +
+          a[r*4+3]*b[3*4+c];
+      }
+    }
+    return o;
+  }
+  function mat4Identity(){
+    const m = new Float32Array(16);
+    m[0]=1; m[5]=1; m[10]=1; m[15]=1;
+    return m;
+  }
+  function mat4Translate(tx,ty,tz){
+    const m = mat4Identity();
+    m[12]=tx; m[13]=ty; m[14]=tz;
+    return m;
+  }
+  function mat4Scale(sx,sy,sz){
+    const m = mat4Identity();
+    m[0]=sx; m[5]=sy; m[10]=sz;
+    return m;
+  }
+
+  function xrCompositeUpdate(){
+    // draw background + HUD into xr.compositeCanvas
+    const src = getActiveSourceElement();
+    const { vw, vh } = getIntrinsicSize();
+    if(!vw || !vh) return;
+
+    // set composite resolution based on intrinsic aspect
+    const targetW = 1280;
+    const targetH = Math.max(2, Math.round(targetW * (vh / vw)));
+    if(state.xr.compositeCanvas.width !== targetW || state.xr.compositeCanvas.height !== targetH){
+      state.xr.compositeCanvas.width = targetW;
+      state.xr.compositeCanvas.height = targetH;
+    }
+
+    const ctx = state.xr.compositeCtx;
+    const outW = state.xr.compositeCanvas.width;
+    const outH = state.xr.compositeCanvas.height;
+
+    // draw camera frame as "cover" to match UI
+    const m = getRenderMapping(outW, outH);
+
+    ctx.clearRect(0,0,outW,outH);
+    try{
+      if(state.sourceKind === 'mjpeg'){
+        ctx.drawImage(src, m.dx, m.dy, m.vw*m.scale, m.vh*m.scale);
+      }else{
+        ctx.drawImage(video, m.dx, m.dy, m.vw*m.scale, m.vh*m.scale);
+      }
+    }catch{}
+
+    // draw overlay on top
+    // (we temporarily draw on a separate layer to avoid clearing background)
+    const overlay = document.createElement('canvas');
+    overlay.width = outW; overlay.height = outH;
+    const octx = overlay.getContext('2d');
+    // temporarily reuse drawHUD internal logic without clearing the background of composite
+    // easiest: drawHUD() draws with clearRect, so here we call drawHUDInternal() directly.
+    if(mirrorUserCam.checked && state.sourceKind !== 'mjpeg'){
+      octx.save();
+      octx.translate(outW, 0);
+      octx.scale(-1, 1);
+      drawHUDInternal(octx, outW, outH, m);
+      octx.restore();
+    }else{
+      drawHUDInternal(octx, outW, outH, m);
+    }
+    ctx.drawImage(overlay, 0,0);
+  }
+
+  function xrMakeGLResources(gl){
+    const vsSrc = `
+      attribute vec3 aPos;
+      attribute vec2 aUV;
+      uniform mat4 uMVP;
+      varying vec2 vUV;
+      void main(){
+        vUV = aUV;
+        gl_Position = uMVP * vec4(aPos, 1.0);
+      }
+    `;
+    const fsSrc = `
+      precision mediump float;
+      varying vec2 vUV;
+      uniform sampler2D uTex;
+      void main(){
+        gl_FragColor = texture2D(uTex, vUV);
+      }
+    `;
+    function compile(type, src){
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+        throw new Error(gl.getShaderInfoLog(s) || 'shader compile failed');
+      }
+      return s;
+    }
+    const vs = compile(gl.VERTEX_SHADER, vsSrc);
+    const fs = compile(gl.FRAGMENT_SHADER, fsSrc);
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){
+      throw new Error(gl.getProgramInfoLog(prog) || 'program link failed');
+    }
+
+    // quad (two triangles) at z = -1 in local space; we will transform with model matrix
+    const verts = new Float32Array([
+      // x, y, z,   u, v
+      -1, -1, 0,   0, 1,
+       1, -1, 0,   1, 1,
+      -1,  1, 0,   0, 0,
+      -1,  1, 0,   0, 0,
+       1, -1, 0,   1, 1,
+       1,  1, 0,   1, 0
+    ]);
+    const vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+    const aPos = gl.getAttribLocation(prog, 'aPos');
+    const aUV = gl.getAttribLocation(prog, 'aUV');
+    const uMVP = gl.getUniformLocation(prog, 'uMVP');
+    const uTex = gl.getUniformLocation(prog, 'uTex');
+
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return { prog, vbo, aPos, aUV, uMVP, uTex, tex };
+  }
+
+  async function enterXR(){
+    if(!navigator.xr){
+      alert('WebXR not available in this browser.');
+      return;
+    }
+    if(!state.runningCam){
+      alert('Start a camera first (XR view shows your camera+HUD).');
+      return;
+    }
+
+    // Prefer immersive-ar, fallback to immersive-vr
+    let mode = null;
+    try{
+      if(await navigator.xr.isSessionSupported('immersive-ar')) mode = 'immersive-ar';
+    }catch{}
+    if(!mode){
+      try{
+        if(await navigator.xr.isSessionSupported('immersive-vr')) mode = 'immersive-vr';
+      }catch{}
+    }
+    if(!mode){
+      alert('No immersive WebXR session supported here. Use Stereo / Glasses Mirror.');
+      return;
+    }
+
+    const sessionInit = {
+      requiredFeatures: ['local-floor'],
+      optionalFeatures: ['dom-overlay'],
+      domOverlay: { root: document.body }
+    };
+
+    try{
+      const session = await navigator.xr.requestSession(mode, sessionInit);
+      state.xr.session = session;
+
+      // Create WebGL context for XR
+      const glCanvas = document.createElement('canvas');
+      const gl = glCanvas.getContext('webgl', { xrCompatible: true, alpha: true, antialias: true });
+      await gl.makeXRCompatible();
+
+      const layer = new XRWebGLLayer(session, gl);
+      session.updateRenderState({ baseLayer: layer });
+
+      const refSpace = await session.requestReferenceSpace('local-floor');
+
+      state.xr.gl = gl;
+      state.xr.layer = layer;
+      state.xr.refSpace = refSpace;
+      state.xr.program = xrMakeGLResources(gl);
+      state.xr.inXR = true;
+
+      btnExitXR.disabled = false;
+
+      log('eventLog', `XR session started: ${mode}`);
+      setStatus(true, 'XR');
+
+      session.addEventListener('end', () => {
+        state.xr.inXR = false;
+        state.xr.session = null;
+        btnExitXR.disabled = true;
+        setStatus(!!(cocoModel||faceModel), state.runningDet ? 'detecting' : 'ready');
+        log('eventLog', 'XR session ended');
+      });
+
+      session.requestAnimationFrame(onXRFrame);
+
+      function onXRFrame(t, frame){
+        const s = frame.session;
+        s.requestAnimationFrame(onXRFrame);
+
+        const pose = frame.getViewerPose(refSpace);
+        if(!pose) return;
+
+        // update composite texture
+        xrCompositeUpdate();
+
+        const gl = state.xr.gl;
+        const layer = state.xr.layer;
+        const res = state.xr.program;
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer);
+        gl.clearColor(0,0,0,0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.enable(gl.DEPTH_TEST);
+
+        // upload texture
+        gl.bindTexture(gl.TEXTURE_2D, res.tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, state.xr.compositeCanvas);
+
+        gl.useProgram(res.prog);
+        gl.bindBuffer(gl.ARRAY_BUFFER, res.vbo);
+
+        gl.enableVertexAttribArray(res.aPos);
+        gl.vertexAttribPointer(res.aPos, 3, gl.FLOAT, false, 20, 0);
+        gl.enableVertexAttribArray(res.aUV);
+        gl.vertexAttribPointer(res.aUV, 2, gl.FLOAT, false, 20, 12);
+
+        gl.uniform1i(res.uTex, 0);
+
+        // render per-view
+        const aspect = state.xr.compositeCanvas.width / state.xr.compositeCanvas.height;
+        // place quad 2m in front
+        const model = mat4Mul(mat4Translate(0, 1.2, -2.0), mat4Scale(1.2*aspect, 1.2, 1));
+
+        for(const view of pose.views){
+          const vp = layer.getViewport(view);
+          gl.viewport(vp.x, vp.y, vp.width, vp.height);
+
+          // MVP = projection * viewMatrix * model
+          const viewM = view.transform.inverse.matrix;
+          const pv = mat4Mul(view.projectionMatrix, viewM);
+          const mvp = mat4Mul(pv, model);
+
+          gl.uniformMatrix4fv(res.uMVP, false, mvp);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+      }
+
+    }catch(e){
+      log('eventLog', `XR start failed: ${e?.message || e}`);
+      alert('XR start failed. Try Stereo / Glasses Mirror.');
+    }
+  }
+
+  function exitXR(){
+    try{
+      if(state.xr.session) state.xr.session.end();
+    }catch{}
+  }
+
+  btnEnterXR.addEventListener('click', enterXR);
+  btnExitXR.addEventListener('click', exitXR);
+
+  // XR support hint
+  async function updateXRHint(){
+    if(!navigator.xr){
+      xrSupportHint.textContent = 'WebXR: not available in this browser.';
+      return;
+    }
+    let ar = false, vr = false;
+    try{ ar = await navigator.xr.isSessionSupported('immersive-ar'); }catch{}
+    try{ vr = await navigator.xr.isSessionSupported('immersive-vr'); }catch{}
+    xrSupportHint.textContent = `WebXR: ${ar ? 'immersive-ar ✓' : 'immersive-ar ✗'} | ${vr ? 'immersive-vr ✓' : 'immersive-vr ✗'} (HTTPS recommended)`;
+  }
+
+  // =========================================================
+  // Stereo / Glasses Mirror (no WebXR required)
+  // =========================================================
+  function startStereoMirror(){
+    if(!state.runningCam){
+      alert('Start a camera first.');
+      return;
+    }
+    // crude but effective: fullscreen container that shows two side-by-side composites
+    const wrap = document.createElement('div');
+    wrap.style.position = 'fixed';
+    wrap.style.inset = '0';
+    wrap.style.background = '#000';
+    wrap.style.zIndex = '99999';
+    wrap.style.display = 'grid';
+    wrap.style.gridTemplateColumns = '1fr 1fr';
+    wrap.style.gap = '0';
+    document.body.appendChild(wrap);
+
+    const cL = document.createElement('canvas');
+    const cR = document.createElement('canvas');
+    cL.style.width = '100%'; cL.style.height = '100%';
+    cR.style.width = '100%'; cR.style.height = '100%';
+    wrap.appendChild(cL); wrap.appendChild(cR);
+
+    const ctxL = cL.getContext('2d');
+    const ctxR = cR.getContext('2d');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Exit Mirror';
+    closeBtn.className = 'btn danger';
+    closeBtn.style.position = 'fixed';
+    closeBtn.style.top = '12px';
+    closeBtn.style.left = '12px';
+    closeBtn.style.zIndex = '100000';
+    document.body.appendChild(closeBtn);
+
+    function resize(){
+      const dpr = window.devicePixelRatio || 1;
+      cL.width = Math.floor(window.innerWidth/2 * dpr);
+      cL.height = Math.floor(window.innerHeight * dpr);
+      cR.width = cL.width;
+      cR.height = cL.height;
+    }
+    resize();
+    const onResize = () => resize();
+    window.addEventListener('resize', onResize);
+
+    let running = true;
+    closeBtn.onclick = () => {
+      running = false;
+      window.removeEventListener('resize', onResize);
+      closeBtn.remove();
+      wrap.remove();
+    };
+
+    const draw = () => {
+      if(!running) return;
+      // compose to both canvases
+      const outW = cL.width, outH = cL.height;
+
+      // background
+      const src = getActiveSourceElement();
+      const m = getRenderMapping(outW, outH);
+
+      ctxL.clearRect(0,0,outW,outH);
+      ctxR.clearRect(0,0,outW,outH);
+
+      try{
+        if(state.sourceKind === 'mjpeg') {
+          ctxL.drawImage(src, m.dx, m.dy, m.vw*m.scale, m.vh*m.scale);
+          ctxR.drawImage(src, m.dx, m.dy, m.vw*m.scale, m.vh*m.scale);
+        } else {
+          ctxL.drawImage(video, m.dx, m.dy, m.vw*m.scale, m.vh*m.scale);
+          ctxR.drawImage(video, m.dx, m.dy, m.vw*m.scale, m.vh*m.scale);
+        }
+      }catch{}
+
+      // overlay
+      // quick draw: reuse the same internal draw onto each ctx
+      if(mirrorUserCam.checked && state.sourceKind !== 'mjpeg'){
+        ctxL.save(); ctxL.translate(outW,0); ctxL.scale(-1,1); drawHUDInternal(ctxL, outW, outH, m); ctxL.restore();
+        ctxR.save(); ctxR.translate(outW,0); ctxR.scale(-1,1); drawHUDInternal(ctxR, outW, outH, m); ctxR.restore();
+      }else{
+        drawHUDInternal(ctxL, outW, outH, m);
+        drawHUDInternal(ctxR, outW, outH, m);
+      }
+
+      requestAnimationFrame(draw);
+    };
+    draw();
+  }
+
+  btnARSim.addEventListener('click', startStereoMirror);
+  btnFullscreen.addEventListener('click', () => {
+    (document.documentElement.requestFullscreen || document.body.requestFullscreen)?.call(document.documentElement);
+  });
+
+  // =========================================================
+  // Boot
+  // =========================================================
+  async function boot(){
+    refreshNodesFromSentinel();
+    await refreshLocalDevices();
+
+    renderAnnotationList();
+    renderCameraList();
+    confVal.textContent = Number(confRange.value).toFixed(2);
+
+    await loadModels();
+    await updateXRHint();
+
+    requestAnimationFrame(renderHUDLoop);
+    log('eventLog', 'Ready. 1) Start Camera  2) Start Detection  3) Toggle Pin Mode (P)  4) Tap a box to pin.');
+    setStatus(false, 'idle');
+  }
+
+  // UI toggles
+  pinMode.addEventListener('change', () => log('eventLog', `Pin mode ${pinMode.checked ? 'ON' : 'OFF'}`));
+  showTracks.addEventListener('change', () => renderTrackSummary());
+  showDetections.addEventListener('change', () => renderInsights());
+  detFps.addEventListener('change', () => log('eventLog', `Det FPS limit: ${detFps.value}`));
+  modelSelect.addEventListener('change', () => log('eventLog', `Mode: ${modelSelect.value}`));
+
+  // Start/stop UI enablement
+  function updateButtons(){
+    btnStartDet.disabled = !state.runningCam || !(cocoModel || faceModel);
+    btnStopAll.disabled = !(state.runningCam || state.runningDet);
+  }
+  setInterval(() => {
+    refreshNodesFromSentinel();
+    updateButtons();
+  }, 1500);
+
+  boot();
+})();
+</script>
+
+</body>
+</html>

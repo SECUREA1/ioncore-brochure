@@ -1,0 +1,2890 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>IonCore — Deep Sea Drone Simulator (Gesture + Combat)</title>
+  <style>
+    :root{
+      --bg0:#050812;
+      --bg1:#071735;
+      --ink:#eaf2ff;
+      --muted:rgba(234,242,255,.74);
+      --glass:rgba(255,255,255,.08);
+      --glass2:rgba(255,255,255,.12);
+      --stroke:rgba(255,255,255,.18);
+      --good:#67ffb4;
+      --warn:#ffd27a;
+      --bad:#ff6b8e;
+      --cyan:#70e3ff;
+      --vio:#caa7ff;
+    }
+    *{ box-sizing:border-box; }
+    html,body{
+      height:100%;
+      margin:0;
+      background: radial-gradient(1200px 800px at 20% 20%, rgba(112,227,255,.10), transparent 55%),
+                  radial-gradient(1000px 700px at 80% 20%, rgba(202,167,255,.10), transparent 55%),
+                  radial-gradient(1000px 700px at 50% 95%, rgba(103,255,180,.10), transparent 55%),
+                  linear-gradient(180deg,var(--bg0),var(--bg1));
+      color:var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      overflow:hidden;
+      user-select:none;
+      -webkit-user-select:none;
+      /* IMPORTANT: keep the page from scrolling; individual panels enable their own touch actions */
+      touch-action: none;
+    }
+    canvas{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      display:block;
+      background: transparent;
+      touch-action:none;
+    }
+
+    /* HUD pills */
+    .hud{
+      position:fixed;
+      left:12px;
+      right:12px;
+      top:12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      pointer-events:none;
+      z-index: 6;
+    }
+    .hud .left, .hud .right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      max-width:70vw;
+      pointer-events:none;
+    }
+    .pill{
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: 0 10px 26px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-weight: 900;
+      letter-spacing:.2px;
+      font-size: 13px;
+      line-height: 1;
+      pointer-events:none;
+      white-space:nowrap;
+    }
+    .pill small{ color:var(--muted); font-weight:800; }
+
+    .barWrap{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .bar{
+      width:170px;
+      height:12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.15);
+      overflow:hidden;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:50%;
+      background: linear-gradient(90deg, rgba(103,255,180,.95), rgba(112,227,255,.95));
+    }
+    .bar.bad > i{
+      background: linear-gradient(90deg, rgba(255,210,122,.95), rgba(255,107,142,.95));
+    }
+
+    .kbd{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 24px;
+      padding: 2px 7px;
+      border-radius: 8px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.9);
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing:.04em;
+      pointer-events:none;
+    }
+
+    /* Bridge toast */
+    .bridge{
+      position:fixed;
+      left:50%;
+      top:74px;
+      transform:translateX(-50%) translateY(-6px);
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.15);
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-weight:900;
+      letter-spacing:.2px;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .18s ease, transform .18s ease;
+      max-width:min(780px, calc(100vw - 24px));
+      text-align:center;
+      z-index: 12;
+    }
+    .bridge.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* SVG HUD overlay */
+    #svgHud{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      pointer-events:none;
+      z-index: 4;
+      opacity: .95;
+    }
+
+    /* Overlays (cover/tuners) */
+    .overlay{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      background: radial-gradient(900px 560px at 50% 0%, rgba(112,227,255,.10), transparent 60%),
+                  radial-gradient(900px 560px at 50% 100%, rgba(202,167,255,.10), transparent 60%),
+                  rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 20;
+      touch-action: auto; /* allow interacting with controls */
+    }
+    .card{
+      width:min(980px, 100%);
+      border-radius: 22px;
+      padding: 18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.05));
+      box-shadow: 0 24px 70px rgba(0,0,0,.5);
+    }
+    .coverTop{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding: 10px 10px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      max-width: 68ch;
+    }
+    .brand .kicker{
+      color: rgba(112,227,255,.92);
+      font-weight:950;
+      letter-spacing:.22em;
+      font-size: 12px;
+      text-transform:uppercase;
+    }
+    .brand .title{
+      font-weight: 980;
+      font-size: clamp(26px, 4vw, 44px);
+      line-height: 1.02;
+      letter-spacing:-.02em;
+    }
+    .brand .sub{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 14px;
+      max-width: 68ch;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .hud .left, .hud .right{ max-width: 100%; }
+    }
+    .panel{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .panel h3{
+      margin:0 0 8px 0;
+      font-size: 13px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color: rgba(255,255,255,.85);
+    }
+    .panel p, .panel li{
+      margin:0;
+      color: rgba(234,242,255,.80);
+      font-weight:800;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .panel ul{
+      margin:8px 0 0 18px;
+      padding:0;
+    }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      padding-top: 12px;
+    }
+    button{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: var(--ink);
+      font-weight: 950;
+      letter-spacing:.2px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .12s ease;
+      touch-action: manipulation;
+    }
+    button:hover{ background: rgba(255,255,255,.14); }
+    button:active{ transform: translateY(1px) scale(.99); }
+    .primary{
+      background: linear-gradient(90deg, rgba(112,227,255,.22), rgba(103,255,180,.18));
+      border-color: rgba(112,227,255,.28);
+    }
+    .danger{
+      background: rgba(255,107,142,.14);
+      border-color: rgba(255,107,142,.28);
+    }
+    button:disabled{
+      opacity: 0.55;
+      cursor:not-allowed;
+    }
+
+    /* Docked right-side log */
+    .dock{
+      position:fixed;
+      right:12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      width:min(420px, calc(100vw - 24px));
+      max-height: 42vh;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      overflow:hidden;
+      z-index: 11;
+      pointer-events:auto;
+      touch-action: auto;
+    }
+    .dockHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      gap: 10px;
+    }
+    .dockHeader .title{
+      font-weight: 950;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+    }
+    .dockHeader .actions{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .dockHeader button{
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    .dockBody{
+      padding: 10px 12px;
+      overflow:auto;
+      max-height: calc(42vh - 50px);
+      font-size: 13px;
+      color: rgba(234,242,255,.82);
+      font-weight: 800;
+      line-height: 1.35;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.18) transparent;
+      touch-action: pan-y;
+    }
+    .dockBody .row{
+      padding: 8px 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      border-radius: 14px;
+      margin-bottom: 8px;
+    }
+    .dockBody .row:last-child{ margin-bottom:0; }
+    .dockBody .ts{
+      font-size: 11px;
+      color: rgba(234,242,255,.60);
+      font-weight: 900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      margin-bottom: 4px;
+    }
+    .dockBody .msg{
+      word-break: break-word;
+    }
+
+    /* Gesture dock (left) */
+    .gestureDock{
+      position:fixed;
+      left:12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      width:min(560px, calc(100vw - 24px));
+      max-height: 42vh;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      overflow:hidden;
+      z-index: 11;
+      pointer-events:auto;
+      touch-action: auto;
+    }
+    .gestureBody{
+      padding: 10px 12px;
+      overflow:auto;
+      max-height: calc(42vh - 50px);
+      touch-action: pan-y;
+    }
+
+    /* Tuners overlay */
+    .tunerGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      .tunerGrid{ grid-template-columns: 1fr; }
+    }
+    .tunerRow{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items:center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .tunerRow:last-child{ border-bottom:none; }
+    .tunerRow label{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      font-weight: 950;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+    }
+    .tunerRow label span{
+      font-weight: 800;
+      text-transform:none;
+      letter-spacing: 0;
+      font-size: 13px;
+      color: rgba(234,242,255,.76);
+    }
+    .tunerRow input[type="range"]{ width: 100%; }
+    .tunerRow .val{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      justify-content:flex-end;
+      min-width: 180px;
+    }
+    .tunerRow input[type="number"]{
+      width: 120px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      color: var(--ink);
+      font-weight: 950;
+      outline:none;
+    }
+    .toggleRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .toggleRow:last-child{ border-bottom:none; }
+    .toggleRow .lbl{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+    }
+    .toggleRow .lbl b{
+      font-weight: 950;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+    }
+    .toggleRow .lbl span{
+      color: rgba(234,242,255,.76);
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .switch{
+      width: 54px;
+      height: 30px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      position:relative;
+      cursor:pointer;
+      flex: 0 0 auto;
+      touch-action: manipulation;
+    }
+    .switch i{
+      position:absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.85);
+      transition: transform .14s ease;
+    }
+    .switch.on{
+      border-color: rgba(112,227,255,.35);
+      background: rgba(112,227,255,.18);
+    }
+    .switch.on i{ transform: translateX(24px); }
+
+    /* Gesture pads */
+    .pads{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 900px){
+      .pads{ grid-template-columns: 1fr; }
+    }
+    .pad{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 18px;
+      padding: 12px;
+      position:relative;
+      overflow:hidden;
+      min-height: 220px;
+      touch-action:none;
+    }
+    .padTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .padTitle b{
+      font-weight: 950;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+    }
+    .padTitle span{
+      color: rgba(234,242,255,.72);
+      font-weight: 850;
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .padArea{
+      position:relative;
+      width: 100%;
+      height: 150px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(220px 160px at 30% 30%, rgba(112,227,255,.10), transparent 60%),
+        radial-gradient(220px 160px at 70% 70%, rgba(202,167,255,.10), transparent 60%),
+        rgba(255,255,255,.05);
+      overflow:hidden;
+      touch-action:none;
+    }
+    .padArea .center{
+      position:absolute;
+      left:50%; top:50%;
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.55);
+      transform: translate(-50%,-50%);
+      box-shadow: 0 0 0 10px rgba(255,255,255,.03);
+      pointer-events:none;
+    }
+    .node{
+      position:absolute;
+      width: 22px; height: 22px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.72);
+      transform: translate(-50%,-50%);
+      cursor:grab;
+      touch-action:none;
+      box-shadow: 0 12px 26px rgba(0,0,0,.25);
+    }
+    .node:active{ cursor:grabbing; }
+    .node.thumb{ background: rgba(112,227,255,.85); border-color: rgba(112,227,255,.45); }
+    .node.index{ background: rgba(255,240,160,.85); border-color: rgba(255,240,160,.45); }
+    .padHint{
+      margin-top: 10px;
+      color: rgba(234,242,255,.70);
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      letter-spacing: .02em;
+    }
+
+    /* On-screen control bar (touch friendly) */
+    .controlBar{
+      position:fixed;
+      left:50%;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      z-index: 13;
+      pointer-events:auto;
+      touch-action: manipulation;
+    }
+    .controlBar button{
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+
+    /* Small screens: default hide dock, use buttons to show */
+    @media (max-width: 900px){
+      .dock{ display:none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <!-- SVG HUD -->
+  <svg id="svgHud" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <radialGradient id="lamp" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="rgba(112,227,255,0.10)"/>
+        <stop offset="60%" stop-color="rgba(112,227,255,0.03)"/>
+        <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+      </radialGradient>
+      <linearGradient id="arcG" x1="0" x2="1">
+        <stop offset="0%" stop-color="rgba(112,227,255,0.95)"/>
+        <stop offset="100%" stop-color="rgba(103,255,180,0.95)"/>
+      </linearGradient>
+    </defs>
+
+    <rect x="0" y="0" width="1000" height="600" fill="url(#lamp)" opacity="0.9"></rect>
+
+    <g opacity="0.85">
+      <circle cx="500" cy="300" r="14" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+      <line x1="500" y1="275" x2="500" y2="255" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+      <line x1="500" y1="325" x2="500" y2="345" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+      <line x1="475" y1="300" x2="455" y2="300" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+      <line x1="525" y1="300" x2="545" y2="300" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+    </g>
+
+    <g id="compass" opacity="0.92">
+      <rect x="320" y="16" width="360" height="38" rx="14" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.14)"/>
+      <text id="compassTxt" x="500" y="41" text-anchor="middle" font-family="system-ui,Segoe UI,Arial" font-weight="900" font-size="14" fill="rgba(234,242,255,0.90)" letter-spacing="2">HDG 000°</text>
+    </g>
+
+    <g opacity="0.92">
+      <path d="M 930 120 A 80 80 0 0 1 930 260" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="12" stroke-linecap="round"/>
+      <path id="batArc" d="M 930 120 A 80 80 0 0 1 930 260" fill="none" stroke="url(#arcG)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"/>
+      <text id="batTxt" x="930" y="205" text-anchor="middle" font-family="system-ui,Segoe UI,Arial" font-weight="950" font-size="14" fill="rgba(234,242,255,0.92)">BAT 100%</text>
+    </g>
+
+    <g opacity="0.92">
+      <path d="M 70 120 A 80 80 0 0 0 70 260" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="12" stroke-linecap="round"/>
+      <path id="depArc" d="M 70 120 A 80 80 0 0 0 70 260" fill="none" stroke="rgba(202,167,255,0.90)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"/>
+      <text id="depTxt" x="70" y="205" text-anchor="middle" font-family="system-ui,Segoe UI,Arial" font-weight="950" font-size="14" fill="rgba(234,242,255,0.92)">DEP 0m</text>
+    </g>
+
+    <g opacity="0.92">
+      <rect x="420" y="548" width="160" height="34" rx="14" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.14)"/>
+      <text id="sonarTxt" x="500" y="570" text-anchor="middle" font-family="system-ui,Segoe UI,Arial" font-weight="950" font-size="13" fill="rgba(234,242,255,0.90)" letter-spacing="1.4">SONAR READY</text>
+    </g>
+  </svg>
+
+  <div class="hud" id="hud" aria-hidden="true" style="display:none;">
+    <div class="left">
+      <div class="pill" id="sectorTxt">Sector: 1</div>
+      <div class="pill" id="samplesTxt">Samples: 0</div>
+      <div class="pill" id="scanTxt">Scans: 0</div>
+      <div class="pill" id="killsTxt">Kills: 0</div>
+      <div class="pill" id="enemyTxt">Hostiles: 0</div>
+      <div class="pill barWrap">
+        <small>HULL</small>
+        <div class="bar bad"><i id="hpFill"></i></div>
+      </div>
+      <div class="pill barWrap">
+        <small>O2</small>
+        <div class="bar"><i id="o2Fill"></i></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="pill"><small>Move</small> <span class="kbd">WASD</span> <span class="kbd">Shift</span></div>
+      <div class="pill"><small>Depth</small> <span class="kbd">R</span>/<span class="kbd">F</span></div>
+      <div class="pill"><small>Fire</small> <span class="kbd">Space</span> / Click / Tap Pinch</div>
+      <div class="pill"><small>Sonar</small> <span class="kbd">E</span> / Hold Pinch</div>
+      <div class="pill"><small>Gesture</small> <span class="kbd">G</span></div>
+      <div class="pill"><small>Tuners</small> <span class="kbd">T</span></div>
+      <div class="pill"><small>Log</small> <span class="kbd">L</span></div>
+      <div class="pill"><small>Pause</small> <span class="kbd">P</span></div>
+    </div>
+  </div>
+
+  <div class="bridge" id="bridge"></div>
+
+  <!-- Docked log panel -->
+  <div class="dock" id="dock" style="display:none;">
+    <div class="dockHeader">
+      <div class="title">Scan & Log</div>
+      <div class="actions">
+        <button id="btnDockScan" class="primary">Scan</button>
+        <button id="btnDockClear">Clear</button>
+        <button id="btnDockCollapse">Hide</button>
+      </div>
+    </div>
+    <div class="dockBody" id="dockBody"></div>
+  </div>
+
+  <!-- Gesture dock -->
+  <div class="gestureDock" id="gestureDock" style="display:none;">
+    <div class="dockHeader">
+      <div class="title">Gesture Control</div>
+      <div class="actions">
+        <button id="btnGestureTuners">Tuners</button>
+        <button id="btnGestureHide" class="danger">Off</button>
+      </div>
+    </div>
+    <div class="gestureBody">
+      <div class="pads">
+        <div class="pad">
+          <div class="padTitle">
+            <b>Left Hand</b>
+            <span class="mono" id="leftReadout">vec(0.00, 0.00) pinch 0.00</span>
+          </div>
+          <div class="padArea" id="padL">
+            <div class="center"></div>
+            <div class="node thumb" id="lThumb" title="Left Thumb"></div>
+            <div class="node index" id="lIndex" title="Left Index"></div>
+          </div>
+          <div class="padHint">
+            <b>Move</b> with thumb vector. <b>Hold pinch</b> to stabilize/hover.
+          </div>
+        </div>
+
+        <div class="pad">
+          <div class="padTitle">
+            <b>Right Hand</b>
+            <span class="mono" id="rightReadout">vec(0.00, 0.00) pinch 0.00</span>
+          </div>
+          <div class="padArea" id="padR">
+            <div class="center"></div>
+            <div class="node thumb" id="rThumb" title="Right Thumb"></div>
+            <div class="node index" id="rIndex" title="Right Index"></div>
+          </div>
+          <div class="padHint">
+            <b>Aim</b> with thumb. <b>Tap pinch</b> = Fire. <b>Hold pinch</b> = Sonar scan.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- On-screen control bar -->
+  <div class="controlBar" id="controlBar" style="display:none;">
+    <button id="btnFire" class="primary">Fire</button>
+    <button id="btnScan" class="primary">Scan</button>
+    <button id="btnPause">Pause</button>
+    <button id="btnTuners">Tuners</button>
+    <button id="btnGesture">Gesture</button>
+    <button id="btnLog">Log</button>
+  </div>
+
+  <!-- COVER -->
+  <div class="overlay" id="cover">
+    <div class="card">
+      <div class="coverTop">
+        <div class="brand">
+          <div class="kicker">IONCORE ENERGY</div>
+          <div class="title">Deep Sea Drone Simulator</div>
+          <div class="sub">
+            Now with <b>in-game gesture controls</b>, <b>combat</b>, and <b>hostiles</b>.
+            Gesture: <b>Tap pinch = Fire</b>, <b>Hold pinch = Scan</b>, <b>Left pinch hold = Hover</b>.
+          </div>
+        </div>
+        <div class="pill" style="pointer-events:none;">
+          <div style="font-weight:950;">Best Samples</div>
+          <div id="bestTxt" style="color:rgba(255,210,122,.92);font-weight:950;margin-top:4px;">0</div>
+          <div style="height:8px"></div>
+          <div style="font-weight:950;">Best Kills</div>
+          <div id="bestKillsTxt" style="color:rgba(255,107,142,.92);font-weight:950;margin-top:4px;">0</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <h3>Controls (keyboard + gesture)</h3>
+          <ul>
+            <li><b>WASD</b> thrusters. <b>Shift</b> boost.</li>
+            <li><b>R/F</b> depth up/down. Mouse (or right-hand gesture) aims heading.</li>
+            <li><b>Space / Click</b> fires. <b>E</b> sonar scan.</li>
+            <li><b>Gesture Mode</b>: Press <b>G</b> or tap “Gesture” to turn on. Use pads to move/aim + pinch actions.</li>
+            <li><b>T</b> opens tuners. <b>L</b> toggles log. <b>P</b> pause.</li>
+          </ul>
+          <p style="margin-top:10px;">
+            Tip: Use tuners to adjust <b>Scan Hold Time</b>, <b>Input Smoothing</b>, and <b>Thrust Multiplier</b>.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h3>Mission</h3>
+          <ul>
+            <li>Scan ruins, vents, and sample nodes.</li>
+            <li>Collect samples by hovering near nodes.</li>
+            <li>Survive hostiles: <b>shoot</b> to protect the hull.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <button id="btnMusic">Music: Off</button>
+        <button id="btnActivate" class="primary">Activate Gesture Controls</button>
+        <button id="btnStart" class="primary">Start Dive</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TUNERS -->
+  <div class="overlay" id="tuners" style="display:none;">
+    <div class="card">
+      <div class="coverTop">
+        <div class="brand">
+          <div class="kicker">TUNERS</div>
+          <div class="title" style="font-size: clamp(22px, 3.3vw, 36px);">Gesture + Control + Combat Settings</div>
+          <div class="sub">
+            Adjust gesture deadzone, pinch threshold, scan-hold time, thrust, smoothing, and weapon cooldown.
+            Gesture pads live in the <b>Gesture Dock</b> (press <b>G</b> to toggle).
+          </div>
+        </div>
+        <div class="pill" style="pointer-events:none;">
+          <div style="font-weight:950;">Gesture</div>
+          <div id="tunerLive" style="color:rgba(112,227,255,.92);font-weight:950;margin-top:4px;">Inactive</div>
+        </div>
+      </div>
+
+      <div class="tunerGrid">
+        <div class="panel">
+          <h3>Gesture Tuners</h3>
+
+          <div class="tunerRow">
+            <label>
+              Micro Range (in)
+              <span>Fine-control deadzone around center (inches).</span>
+              <input id="microRange" type="range" min="0.00" max="2.00" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="microRangeN" type="number" min="0.00" max="2.00" step="0.01" />
+              <span class="mono">in</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Pinch Threshold
+              <span>Pinch activates when pinchValue &gt; threshold.</span>
+              <input id="pinchTh" type="range" min="0.00" max="1.00" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="pinchThN" type="number" min="0.00" max="1.00" step="0.01" />
+              <span class="mono">0..1</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Scan Hold Time (s)
+              <span>Hold pinch at least this long to trigger sonar scan.</span>
+              <input id="scanHold" type="range" min="0.05" max="0.80" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="scanHoldN" type="number" min="0.05" max="0.80" step="0.01" />
+              <span class="mono">sec</span>
+            </div>
+          </div>
+
+          <div class="toggleRow">
+            <div class="lbl">
+              <b>Gesture Fire (tap pinch)</b>
+              <span>Tap right pinch to shoot.</span>
+            </div>
+            <div class="switch" id="gestureFire"><i></i></div>
+          </div>
+
+          <div class="toggleRow">
+            <div class="lbl">
+              <b>Gesture Scan (hold pinch)</b>
+              <span>Hold right pinch to sonar scan.</span>
+            </div>
+            <div class="switch" id="gestureScan"><i></i></div>
+          </div>
+
+          <div class="toggleRow">
+            <div class="lbl">
+              <b>Mirror X</b>
+              <span>Flip X input direction for both hands.</span>
+            </div>
+            <div class="switch" id="mirrorX"><i></i></div>
+          </div>
+
+          <div class="toggleRow">
+            <div class="lbl">
+              <b>Swap Hands</b>
+              <span>Swap which hand drives movement vs aim.</span>
+            </div>
+            <div class="switch" id="swapHands"><i></i></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Control + Combat Tuners</h3>
+
+          <div class="tunerRow">
+            <label>
+              Thrust Multiplier
+              <span>Overall acceleration scale.</span>
+              <input id="thrustMult" type="range" min="0.40" max="2.20" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="thrustMultN" type="number" min="0.40" max="2.20" step="0.01" />
+              <span class="mono">x</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Yaw Speed
+              <span>How fast heading turns toward aim vector.</span>
+              <input id="yawSpeed" type="range" min="0.80" max="6.00" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="yawSpeedN" type="number" min="0.80" max="6.00" step="0.01" />
+              <span class="mono">x</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Depth Response
+              <span>Scale of gesture depth control (aimY).</span>
+              <input id="depthMult" type="range" min="0.20" max="2.50" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="depthMultN" type="number" min="0.20" max="2.50" step="0.01" />
+              <span class="mono">x</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Input Smoothing
+              <span>Higher = smoother but less snappy.</span>
+              <input id="smoothIn" type="range" min="0.00" max="0.70" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="smoothInN" type="number" min="0.00" max="0.70" step="0.01" />
+              <span class="mono">0..</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Fire Cooldown (s)
+              <span>Minimum time between shots.</span>
+              <input id="fireCd" type="range" min="0.05" max="0.60" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="fireCdN" type="number" min="0.05" max="0.60" step="0.01" />
+              <span class="mono">sec</span>
+            </div>
+          </div>
+
+          <div class="tunerRow">
+            <label>
+              Randomness Intensity
+              <span>Current + sensor noise multiplier.</span>
+              <input id="randInt" type="range" min="0.00" max="2.00" step="0.01" />
+            </label>
+            <div class="val">
+              <input id="randIntN" type="number" min="0.00" max="2.00" step="0.01" />
+              <span class="mono">x</span>
+            </div>
+          </div>
+
+          <div class="btnRow">
+            <button id="btnCloseTuners">Close</button>
+            <button id="btnResetTuners" class="danger">Reset Defaults</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ==========================================================
+  // IonCore — Deep Sea Drone Simulator
+  // Enhanced: In-game gesture dock + combat + enemies + tuners
+  // ==========================================================
+
+  // ---------- DOM ----------
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha:true });
+
+  const UI = {
+    hud: document.getElementById('hud'),
+    sectorTxt: document.getElementById('sectorTxt'),
+    samplesTxt: document.getElementById('samplesTxt'),
+    scanTxt: document.getElementById('scanTxt'),
+    killsTxt: document.getElementById('killsTxt'),
+    enemyTxt: document.getElementById('enemyTxt'),
+    hpFill: document.getElementById('hpFill'),
+    o2Fill: document.getElementById('o2Fill'),
+    bridge: document.getElementById('bridge'),
+
+    cover: document.getElementById('cover'),
+    bestTxt: document.getElementById('bestTxt'),
+    bestKillsTxt: document.getElementById('bestKillsTxt'),
+    btnStart: document.getElementById('btnStart'),
+    btnActivate: document.getElementById('btnActivate'),
+    btnMusic: document.getElementById('btnMusic'),
+
+    dock: document.getElementById('dock'),
+    dockBody: document.getElementById('dockBody'),
+    btnDockScan: document.getElementById('btnDockScan'),
+    btnDockClear: document.getElementById('btnDockClear'),
+    btnDockCollapse: document.getElementById('btnDockCollapse'),
+
+    gestureDock: document.getElementById('gestureDock'),
+    btnGestureTuners: document.getElementById('btnGestureTuners'),
+    btnGestureHide: document.getElementById('btnGestureHide'),
+
+    controlBar: document.getElementById('controlBar'),
+    btnFire: document.getElementById('btnFire'),
+    btnScan: document.getElementById('btnScan'),
+    btnPause: document.getElementById('btnPause'),
+    btnTuners: document.getElementById('btnTuners'),
+    btnGesture: document.getElementById('btnGesture'),
+    btnLog: document.getElementById('btnLog'),
+
+    tuners: document.getElementById('tuners'),
+    tunerLive: document.getElementById('tunerLive'),
+
+    microRange: document.getElementById('microRange'),
+    microRangeN: document.getElementById('microRangeN'),
+    pinchTh: document.getElementById('pinchTh'),
+    pinchThN: document.getElementById('pinchThN'),
+    scanHold: document.getElementById('scanHold'),
+    scanHoldN: document.getElementById('scanHoldN'),
+    randInt: document.getElementById('randInt'),
+    randIntN: document.getElementById('randIntN'),
+
+    thrustMult: document.getElementById('thrustMult'),
+    thrustMultN: document.getElementById('thrustMultN'),
+    yawSpeed: document.getElementById('yawSpeed'),
+    yawSpeedN: document.getElementById('yawSpeedN'),
+    depthMult: document.getElementById('depthMult'),
+    depthMultN: document.getElementById('depthMultN'),
+    smoothIn: document.getElementById('smoothIn'),
+    smoothInN: document.getElementById('smoothInN'),
+    fireCd: document.getElementById('fireCd'),
+    fireCdN: document.getElementById('fireCdN'),
+
+    mirrorX: document.getElementById('mirrorX'),
+    swapHands: document.getElementById('swapHands'),
+    gestureFire: document.getElementById('gestureFire'),
+    gestureScan: document.getElementById('gestureScan'),
+
+    btnCloseTuners: document.getElementById('btnCloseTuners'),
+    btnResetTuners: document.getElementById('btnResetTuners'),
+
+    leftReadout: document.getElementById('leftReadout'),
+    rightReadout: document.getElementById('rightReadout'),
+  };
+
+  const SVG = {
+    compassTxt: document.getElementById('compassTxt'),
+    batArc: document.getElementById('batArc'),
+    batTxt: document.getElementById('batTxt'),
+    depArc: document.getElementById('depArc'),
+    depTxt: document.getElementById('depTxt'),
+    sonarTxt: document.getElementById('sonarTxt'),
+  };
+
+  // Pad DOM
+  const padL = document.getElementById('padL');
+  const padR = document.getElementById('padR');
+  const lThumb = document.getElementById('lThumb');
+  const lIndex = document.getElementById('lIndex');
+  const rThumb = document.getElementById('rThumb');
+  const rIndex = document.getElementById('rIndex');
+
+  // ---------- Utils ----------
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t)=> a+(b-a)*t;
+  const rand = (a,b)=> a + Math.random()*(b-a);
+  const randi = (a,b)=> (a + Math.floor(Math.random()*(b-a+1)));
+  const TAU = Math.PI*2;
+
+  function setBridge(msg){
+    UI.bridge.textContent = msg;
+    UI.bridge.classList.add('show');
+    clearTimeout(setBridge._t);
+    setBridge._t = setTimeout(()=> UI.bridge.classList.remove('show'), 1300);
+  }
+
+  // ---------- Resize ----------
+  function resize(){
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width  = Math.floor(innerWidth * dpr);
+    canvas.height = Math.floor(innerHeight * dpr);
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  addEventListener('resize', ()=>{
+    resize();
+    // keep gesture nodes inside pads after resize
+    if(UI.gestureDock.style.display !== 'none'){
+      initPadNodes();
+    }
+  }, { passive:true });
+  resize();
+
+  // ---------- Input ----------
+  const keys = new Set();
+  const mouse = { x: innerWidth*0.5, y: innerHeight*0.5 };
+  addEventListener('mousemove', e => { mouse.x=e.clientX; mouse.y=e.clientY; }, { passive:true });
+
+  // Prevent page scroll on space/arrows
+  addEventListener('keydown', (e)=>{
+    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault();
+
+    keys.add(e.code);
+
+    if(e.repeat) return;
+
+    if(e.code === 'KeyT') toggleTuners();
+    if(e.code === 'KeyP') togglePause();
+    if(e.code === 'KeyE') { ensureLogVisible(); requestScan('keyboard'); }
+    if(e.code === 'Space') fireWeapon('keyboard');
+    if(e.code === 'KeyL') toggleLogDock();
+    if(e.code === 'KeyG') toggleGestureControls();
+  }, { passive:false });
+
+  addEventListener('keyup', e => keys.delete(e.code), { passive:true });
+
+  // Mouse/touch fire on canvas
+  canvas.addEventListener('pointerdown', (e)=>{
+    if(state !== 'running' || paused) return;
+    // Only primary button
+    if(e.button !== 0 && e.pointerType !== 'touch') return;
+    fireWeapon(e.pointerType === 'touch' ? 'touch' : 'mouse');
+  }, { passive:true });
+
+  // ---------- Audio ----------
+  const AudioSys = (() => {
+    let ac=null, master=null, musicOn=false;
+    let musicNode=null, thrNode=null, thrGain=null;
+
+    function ensure(){
+      if(ac) return;
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain();
+      master.gain.value = 0.0;
+      master.connect(ac.destination);
+    }
+
+    function setMaster(on){
+      ensure();
+      master.gain.value = on ? 0.55 : 0.0;
+    }
+
+    function tone(freq=440, dur=0.08, type='sine', gain=0.12){
+      if(!ac || master.gain.value <= 0) return;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = gain;
+      o.connect(g);
+      g.connect(master);
+      const t = ac.currentTime;
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.start(t);
+      o.stop(t + dur + 0.03);
+    }
+
+    function ping(){
+      if(!ac || master.gain.value <= 0) return;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'sine';
+      const t = ac.currentTime;
+      o.frequency.setValueAtTime(320, t);
+      o.frequency.exponentialRampToValueAtTime(1600, t + 0.14);
+      g.gain.setValueAtTime(0.16, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g); g.connect(master);
+      o.start(t);
+      o.stop(t + 0.20);
+
+      const dur = 0.05;
+      const bufferSize = Math.floor(ac.sampleRate * dur);
+      const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+      const data = buffer.getChannelData(0);
+      for(let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1) * (1 - i/bufferSize);
+      const src = ac.createBufferSource();
+      src.buffer = buffer;
+      const fg = ac.createGain();
+      fg.gain.value = 0.09;
+      const f = ac.createBiquadFilter();
+      f.type = 'highpass';
+      f.frequency.value = 900;
+      src.connect(f); f.connect(fg); fg.connect(master);
+      src.start(t);
+      src.stop(t + dur + 0.02);
+    }
+
+    function startMusic(){
+      ensure();
+      musicOn = true;
+      setMaster(true);
+
+      if(musicNode) return;
+
+      const o1 = ac.createOscillator();
+      const o2 = ac.createOscillator();
+      const g  = ac.createGain();
+      const f  = ac.createBiquadFilter();
+
+      o1.type = 'triangle';
+      o2.type = 'triangle';
+      o1.frequency.value = 55;
+      o2.frequency.value = 55.6;
+
+      f.type = 'lowpass';
+      f.frequency.value = 420;
+
+      g.gain.value = 0.0;
+
+      o1.connect(f);
+      o2.connect(f);
+      f.connect(g);
+      g.connect(master);
+
+      const t = ac.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.12, t + 1.0);
+
+      o1.start(t);
+      o2.start(t);
+
+      const lfo = ac.createOscillator();
+      const lfoG = ac.createGain();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.07;
+      lfoG.gain.value = 180;
+      lfo.connect(lfoG);
+      lfoG.connect(f.frequency);
+      lfo.start(t);
+
+      musicNode = { o1, o2, g, f, lfo, lfoG };
+    }
+
+    function stopMusic(){
+      musicOn = false;
+      if(!ac) return;
+      if(musicNode){
+        const t = ac.currentTime;
+        musicNode.g.gain.setValueAtTime(musicNode.g.gain.value, t);
+        musicNode.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+        setTimeout(()=>{
+          try{
+            musicNode.o1.stop(); musicNode.o2.stop(); musicNode.lfo.stop();
+          }catch{}
+          musicNode=null;
+        }, 780);
+      }
+    }
+
+    function setThruster(intensity){
+      if(!ac || master.gain.value <= 0) return;
+      const v = clamp(intensity, 0, 1);
+      if(!thrNode){
+        thrNode = ac.createOscillator();
+        thrGain = ac.createGain();
+        const f = ac.createBiquadFilter();
+        f.type = 'lowpass';
+        f.frequency.value = 800;
+        thrNode.type = 'sawtooth';
+        thrNode.frequency.value = 70;
+        thrGain.gain.value = 0.0;
+        thrNode.connect(f);
+        f.connect(thrGain);
+        thrGain.connect(master);
+        thrNode.start();
+      }
+      thrNode.frequency.value = 60 + v*140;
+      thrGain.gain.value = 0.02 + v*0.10;
+    }
+
+    function stopThruster(){
+      if(thrGain) thrGain.gain.value = 0.0;
+    }
+
+    return {
+      ensure,
+      startMusic,
+      stopMusic,
+      ping,
+      tone,
+      setThruster,
+      stopThruster,
+      get musicOn(){ return musicOn; },
+      setMaster
+    };
+  })();
+
+  // ---------- Persistent best ----------
+  const LS_BEST_SAMPLES = 'ioncore_deepsea_best_samples_v2';
+  const LS_BEST_KILLS   = 'ioncore_deepsea_best_kills_v1';
+  let bestSamples = Number(localStorage.getItem(LS_BEST_SAMPLES) || 0);
+  let bestKills = Number(localStorage.getItem(LS_BEST_KILLS) || 0);
+  UI.bestTxt.textContent = bestSamples;
+  UI.bestKillsTxt.textContent = bestKills;
+
+  // ---------- Tuners (defaults requested + combat additions) ----------
+  const tuners = {
+    microRangeIn: 0.25,
+    pinchThreshold: 0.30,
+    scanHoldSec: 0.28,
+    randomness: 1.00,
+
+    thrustMult: 1.00,
+    yawSpeed: 3.20,
+    depthMult: 1.00,
+    inputSmoothing: 0.18,
+    fireCooldown: 0.14,
+
+    mirrorX: false,
+    swapHands: false,
+    gestureFire: true,
+    gestureScan: true,
+  };
+
+  // ---------- Gesture pads state ----------
+  const pads = {
+    active: false,
+    left:  { vec:{x:0,y:0}, pinch:0, pinchDown:false, stabilize:false, pinchEdge:false },
+    right: { vec:{x:0,y:0}, pinch:0, pinchDown:false, pinchEdge:false, holdT:0, scanFired:false }
+  };
+
+  // ---------- World / Drone Simulator ----------
+  let state = 'cover'; // cover | running | paused | tuners
+  let paused = false;
+  let prevState = 'cover';
+
+  const world = {
+    seed: randi(100000, 999999),
+    objects: [],
+    discovered: new Set(),
+    pulses: [],
+    enemies: [],
+    discoveredEnemies: new Set(),
+    projectiles: [],
+    currentT: 0,
+    sector: 1,
+  };
+
+  const drone = {
+    x: 0, y: 0,
+    vx: 0, vy: 0,
+    depth: 20,
+    vDepth: 0,
+    yaw: 0,
+
+    hullMax: 100,
+    hull: 100,
+    o2Max: 100,
+    o2: 100,
+    batteryMax: 100,
+    battery: 100,
+
+    samples: 0,
+    scans: 0,
+
+    kills: 0,
+    weaponCD: 0,
+
+    hoverHold: 0,
+    sonarCD: 0,
+    lamp: 360,
+  };
+
+  const cam = { x:0, y:0, shake:0 };
+
+  const OBJ = {
+    SAMPLE: 'sample',
+    RUIN: 'ruin',
+    VENT: 'vent',
+    MINE: 'mine',
+  };
+
+  const ENEMY = {
+    DRONE: 'hostile_drone',
+    EEL: 'abyssal_eel'
+  };
+
+  // ---------- Logging ----------
+  const logs = [];
+  function ts(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
+  }
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+  function logEvent(tag, msg){
+    logs.unshift({ t: ts(), tag, msg });
+    while(logs.length > 48) logs.pop();
+    renderLog();
+  }
+  function renderLog(){
+    UI.dockBody.innerHTML = '';
+    for(const row of logs){
+      const el = document.createElement('div');
+      el.className = 'row';
+      el.innerHTML = `
+        <div class="ts">${row.t} • ${row.tag}</div>
+        <div class="msg">${escapeHtml(row.msg)}</div>
+      `;
+      UI.dockBody.appendChild(el);
+    }
+  }
+  function clearLog(){
+    logs.length = 0;
+    renderLog();
+  }
+
+  function ensureLogVisible(){
+    if(UI.dock.style.display === 'none') UI.dock.style.display = 'block';
+  }
+  function toggleLogDock(){
+    if(state === 'cover') return;
+    UI.dock.style.display = (UI.dock.style.display === 'none') ? 'block' : 'none';
+    setBridge(UI.dock.style.display === 'none' ? 'Log hidden.' : 'Log shown.');
+  }
+
+  // ---------- Gesture pad helpers ----------
+  function placeNode(padEl, nodeEl, nx, ny){
+    const rect = padEl.getBoundingClientRect();
+    if(rect.width < 10 || rect.height < 10) return;
+    const x = clamp(rect.width * nx, 10, rect.width - 10);
+    const y = clamp(rect.height * ny, 10, rect.height - 10);
+    nodeEl.style.left = x + 'px';
+    nodeEl.style.top  = y + 'px';
+  }
+
+  function initPadNodes(){
+    placeNode(padL, lThumb, 0.43, 0.55);
+    placeNode(padL, lIndex, 0.62, 0.44);
+    placeNode(padR, rThumb, 0.43, 0.55);
+    placeNode(padR, rIndex, 0.62, 0.44);
+  }
+
+  function makeDraggable(padEl, nodeEl){
+    let dragging = false;
+    let pid = null;
+
+    nodeEl.addEventListener('pointerdown', (e)=>{
+      dragging = true;
+      pid = e.pointerId;
+      try{ nodeEl.setPointerCapture(pid); }catch{}
+      e.preventDefault();
+    }, { passive:false });
+
+    nodeEl.addEventListener('pointermove', (e)=>{
+      if(!dragging) return;
+      const rect = padEl.getBoundingClientRect();
+      if(rect.width < 10 || rect.height < 10) return;
+      const x = clamp(e.clientX - rect.left, 10, rect.width-10);
+      const y = clamp(e.clientY - rect.top, 10, rect.height-10);
+      nodeEl.style.left = x + 'px';
+      nodeEl.style.top  = y + 'px';
+    }, { passive:true });
+
+    function end(){
+      dragging = false;
+      try{ nodeEl.releasePointerCapture(pid); }catch{}
+    }
+    nodeEl.addEventListener('pointerup', end, { passive:true });
+    nodeEl.addEventListener('pointercancel', end, { passive:true });
+  }
+
+  makeDraggable(padL, lThumb);
+  makeDraggable(padL, lIndex);
+  makeDraggable(padR, rThumb);
+  makeDraggable(padR, rIndex);
+
+  function readPad(padEl, thumbEl, indexEl){
+    const rect = padEl.getBoundingClientRect();
+    if(rect.width < 10 || rect.height < 10){
+      return { vec:{x:0,y:0}, pinch:0 };
+    }
+
+    const cx = rect.width * 0.5;
+    const cy = rect.height * 0.5;
+
+    const tx = (parseFloat(thumbEl.style.left) || cx);
+    const ty = (parseFloat(thumbEl.style.top)  || cy);
+    const ix = (parseFloat(indexEl.style.left) || cx);
+    const iy = (parseFloat(indexEl.style.top)  || cy);
+
+    const vx = (tx - cx);
+    const vy = (ty - cy);
+
+    const padRad = Math.min(rect.width, rect.height) * 0.46;
+    let nx = clamp(vx / padRad, -1, 1);
+    let ny = clamp(vy / padRad, -1, 1);
+
+    if(tuners.mirrorX) nx *= -1;
+
+    // micro range (css px ~ 96 per inch)
+    const microPx = tuners.microRangeIn * 96;
+    const deadN = clamp(microPx / padRad, 0, 0.9);
+
+    const mag = Math.hypot(nx, ny);
+    if(mag < deadN){
+      const t = (deadN <= 1e-6) ? 1 : (mag / deadN);
+      nx *= t * 0.35;
+      ny *= t * 0.35;
+    }
+
+    const d = Math.hypot(tx - ix, ty - iy);
+    const maxD = Math.min(rect.width, rect.height) * 0.62;
+    const pinch = clamp(1 - (d / maxD), 0, 1);
+
+    return { vec:{ x:nx, y:ny }, pinch };
+  }
+
+  // ---------- World generation ----------
+  function genWorld(sector=1){
+    world.sector = sector;
+    world.objects.length = 0;
+    world.discovered.clear();
+    world.pulses.length = 0;
+    world.enemies.length = 0;
+    world.discoveredEnemies.clear();
+    world.projectiles.length = 0;
+
+    world.currentT = 0;
+
+    const radius = 2200 + sector*520;
+    const nSamples = 18 + sector*6;
+    const nRuins   = 7 + Math.floor(sector*2.2);
+    const nVents   = 9 + sector*3;
+    const nMines   = 8 + sector*3;
+
+    let id = 1;
+    const addObj = (type, x,y, extra={}) => {
+      world.objects.push({ id:id++, type, x,y, ...extra, alive:true });
+    };
+
+    for(let i=0;i<nSamples;i++){
+      addObj(OBJ.SAMPLE, rand(-radius, radius), rand(-radius, radius), { r: 18, value: randi(1,3) });
+    }
+
+    for(let i=0;i<nRuins;i++){
+      const cx = rand(-radius, radius);
+      const cy = rand(-radius, radius);
+      addObj(OBJ.RUIN, cx, cy, { r: 32, clue: ['glyphs','steel ribs','pressure hull','ancient ring'][randi(0,3)] });
+      const frags = randi(2,4);
+      for(let k=0;k<frags;k++){
+        addObj(OBJ.RUIN, cx+rand(-120,120), cy+rand(-120,120), { r: 24, clue: 'debris' });
+      }
+    }
+
+    for(let i=0;i<nVents;i++){
+      addObj(OBJ.VENT, rand(-radius, radius), rand(-radius, radius), { r: 28, heat: rand(0.8, 1.3) });
+    }
+
+    for(let i=0;i<nMines;i++){
+      addObj(OBJ.MINE, rand(-radius, radius), rand(-radius, radius), { r: 22, armed: true });
+    }
+
+    // Keep origin safer
+    for(const o of world.objects){
+      const d = Math.hypot(o.x, o.y);
+      if(d < 420 && (o.type === OBJ.MINE || o.type === OBJ.VENT)){
+        o.x += (o.x < 0 ? -1 : 1) * 520;
+        o.y += (o.y < 0 ? -1 : 1) * 520;
+      }
+    }
+
+    // Enemies
+    const nEnemies = 4 + sector*2;
+    let eid = 1;
+    for(let i=0;i<nEnemies;i++){
+      const type = (Math.random() < 0.62) ? ENEMY.DRONE : ENEMY.EEL;
+      let x=0,y=0;
+      let tries=0;
+      do{
+        x = rand(-radius, radius);
+        y = rand(-radius, radius);
+        tries++;
+      } while(Math.hypot(x,y) < 540 && tries < 60);
+
+      const baseHp = (type === ENEMY.DRONE) ? 55 : 80;
+      const hp = baseHp + sector*12;
+
+      world.enemies.push({
+        id: eid++,
+        type,
+        x, y,
+        vx: 0, vy: 0,
+        r: (type === ENEMY.DRONE) ? 20 : 26,
+        hp,
+        maxHp: hp,
+        aggro: 760 + sector*90,
+        speed: (type === ENEMY.DRONE) ? 360 : 300,
+        damage: (type === ENEMY.DRONE) ? 9 : 12,
+        phase: Math.random()*TAU,
+        touchCD: 0
+      });
+    }
+  }
+
+  // ---------- HUD sync ----------
+  function syncHUD(){
+    UI.sectorTxt.textContent = `Sector: ${world.sector}`;
+    UI.samplesTxt.textContent = `Samples: ${drone.samples}`;
+    UI.scanTxt.textContent = `Scans: ${drone.scans}`;
+    UI.killsTxt.textContent = `Kills: ${drone.kills}`;
+    UI.enemyTxt.textContent = `Hostiles: ${world.enemies.length}`;
+
+    UI.hpFill.style.width = `${clamp(drone.hull / drone.hullMax, 0, 1) * 100}%`;
+    UI.o2Fill.style.width = `${clamp(drone.o2 / drone.o2Max, 0, 1) * 100}%`;
+
+    const hdg = ((drone.yaw * 180/Math.PI) % 360 + 360) % 360;
+    SVG.compassTxt.textContent = `HDG ${String(Math.round(hdg)).padStart(3,'0')}°`;
+
+    const batP = clamp(drone.battery / drone.batteryMax, 0, 1);
+    const batLen = 390;
+    SVG.batArc.setAttribute('stroke-dasharray', `${batLen*batP} 999`);
+    SVG.batTxt.textContent = `BAT ${Math.round(batP*100)}%`;
+
+    const dep = Math.round(drone.depth);
+    const depP = clamp(dep / 200, 0, 1);
+    const depLen = 390;
+    SVG.depArc.setAttribute('stroke-dasharray', `${depLen*depP} 999`);
+    SVG.depTxt.textContent = `DEP ${dep}m`;
+
+    if(drone.sonarCD > 0) SVG.sonarTxt.textContent = `SONAR COOL ${drone.sonarCD.toFixed(1)}s`;
+    else SVG.sonarTxt.textContent = `SONAR READY`;
+  }
+
+  // ---------- Sonar ----------
+  function requestScan(source='unknown'){
+    if(state !== 'running' || paused) return;
+    if(drone.sonarCD > 0){
+      setBridge('Sonar cooling down.');
+      return;
+    }
+    doScan(source);
+  }
+
+  function doScan(source){
+    drone.scans++;
+    drone.sonarCD = 2.8;
+    drone.battery = Math.max(0, drone.battery - 2.5);
+    AudioSys.ping();
+    cam.shake = Math.max(cam.shake, 12);
+
+    world.pulses.push({
+      x: drone.x, y: drone.y,
+      r: 0,
+      speed: 720,
+      life: 1.1,
+      source
+    });
+
+    logEvent('SCAN', `Sonar ping (${source}).`);
+    setBridge('Sonar ping.');
+    syncHUD();
+  }
+
+  // ---------- Weapons ----------
+  function fireWeapon(source='unknown'){
+    if(state !== 'running' || paused) return;
+    if(drone.weaponCD > 0){
+      return;
+    }
+    if(drone.battery <= 0){
+      setBridge('Battery low.');
+      return;
+    }
+
+    // cost + cooldown
+    drone.weaponCD = tuners.fireCooldown;
+    drone.battery = Math.max(0, drone.battery - 0.9);
+
+    const dirX = Math.cos(drone.yaw);
+    const dirY = Math.sin(drone.yaw);
+
+    const speed = 1150;
+    const px = drone.x + dirX * 26;
+    const py = drone.y + dirY * 26;
+
+    world.projectiles.push({
+      x: px, y: py,
+      vx: dirX * speed + drone.vx*0.25,
+      vy: dirY * speed + drone.vy*0.25,
+      r: 3.2,
+      dmg: 22,
+      life: 0.95
+    });
+
+    // muzzle sparkle
+    sparkle(px, py, 10, 'rgba(112,227,255,0.85)');
+    AudioSys.tone(780 + Math.random()*60, 0.06, 'square', 0.12);
+
+    logEvent('FIRE', `Weapon discharge (${source}).`);
+    syncHUD();
+  }
+
+  // ---------- Particles ----------
+  const particles = [];
+  function sparkle(x,y, n=12, col='rgba(112,227,255,0.85)'){
+    for(let i=0;i<n;i++){
+      const a = Math.random()*TAU;
+      const sp = rand(60, 340);
+      particles.push({
+        x, y,
+        vx: Math.cos(a)*sp,
+        vy: Math.sin(a)*sp,
+        r: rand(1.0, 3.2),
+        life: rand(0.25, 0.75),
+        col
+      });
+    }
+  }
+  function updateParticles(dt){
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.life -= dt;
+      p.x += p.vx*dt;
+      p.y += p.vy*dt;
+      p.vx *= Math.pow(0.05, dt);
+      p.vy *= Math.pow(0.05, dt);
+      if(p.life <= 0) particles.splice(i,1);
+    }
+  }
+
+  // ---------- Environment render helpers ----------
+  function worldToScreen(wx, wy){
+    return { x: (wx - cam.x) + innerWidth*0.5, y: (wy - cam.y) + innerHeight*0.5 };
+  }
+
+  function drawBackground(){
+    const g = ctx.createLinearGradient(0,0,0,innerHeight);
+    g.addColorStop(0, 'rgba(3,6,16,0.90)');
+    g.addColorStop(0.55, 'rgba(6,18,40,0.85)');
+    g.addColorStop(1, 'rgba(2,6,16,0.92)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+
+    ctx.globalAlpha = 0.20;
+    for(let i=0;i<70;i++){
+      const x = (i*89 + (world.currentT*30)) % (innerWidth+200) - 100;
+      const y = (i*53 + (world.currentT*22)) % (innerHeight+200) - 100;
+      ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      ctx.beginPath();
+      ctx.arc(x, y, 1.0 + (i%3)*0.6, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSeafloorHints(){
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.strokeStyle = 'rgba(103,255,180,0.35)';
+    ctx.lineWidth = 1.25;
+
+    const step = 90;
+    const offx = (cam.x*0.12) % step;
+    const offy = (cam.y*0.12) % step;
+
+    for(let y=-step; y<innerHeight+step; y+=step){
+      ctx.beginPath();
+      for(let x=-step; x<innerWidth+step; x+=step){
+        const wx = cam.x + (x - innerWidth*0.5) * 1.4;
+        const wy = cam.y + (y - innerHeight*0.5) * 1.4;
+        const z = Math.sin((wx+world.seed)*0.0012) + Math.cos((wy-world.seed)*0.0011);
+        const dy = z*8 + Math.sin(world.currentT*0.35 + (x+y)*0.01) * 3;
+        const sx = x - offx;
+        const sy = y - offy + dy;
+        if(x===-step) ctx.moveTo(sx,sy);
+        else ctx.lineTo(sx,sy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawObjects(){
+    for(const o of world.objects){
+      const s = worldToScreen(o.x, o.y);
+      const d = Math.hypot(o.x - drone.x, o.y - drone.y);
+
+      const lit = d < drone.lamp;
+      const known = world.discovered.has(o.id);
+      if(!lit && !known) continue;
+
+      const alpha = known ? 0.85 : 0.35;
+      ctx.globalAlpha = alpha;
+
+      if(o.type === OBJ.SAMPLE){
+        ctx.fillStyle = 'rgba(255,240,160,0.90)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 10, 0, TAU);
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha = alpha*0.6;
+        ctx.strokeStyle = 'rgba(255,240,160,0.45)';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 16, 0, TAU);
+        ctx.stroke();
+      }
+
+      if(o.type === OBJ.RUIN){
+        ctx.fillStyle = 'rgba(202,167,255,0.85)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.rect(s.x-10, s.y-10, 20, 20);
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha = alpha*0.6;
+        ctx.strokeStyle = 'rgba(202,167,255,0.40)';
+        ctx.beginPath();
+        ctx.moveTo(s.x-18, s.y+14);
+        ctx.lineTo(s.x+18, s.y-14);
+        ctx.stroke();
+      }
+
+      if(o.type === OBJ.VENT){
+        ctx.fillStyle = 'rgba(112,227,255,0.80)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y-14);
+        ctx.lineTo(s.x+14, s.y+14);
+        ctx.lineTo(s.x-14, s.y+14);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha = alpha*0.25;
+        ctx.fillStyle = 'rgba(112,227,255,0.70)';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y-22, 12 + Math.sin(world.currentT*3 + o.id)*4, 0, TAU);
+        ctx.fill();
+      }
+
+      if(o.type === OBJ.MINE){
+        ctx.fillStyle = 'rgba(255,107,142,0.82)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 10, 0, TAU);
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha = alpha*0.55;
+        ctx.strokeStyle = 'rgba(255,107,142,0.65)';
+        ctx.lineWidth = 2;
+        for(let k=0;k<6;k++){
+          const a = (k/6)*TAU + world.currentT*0.2;
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(s.x + Math.cos(a)*18, s.y + Math.sin(a)*18);
+          ctx.stroke();
+        }
+      }
+
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawEnemies(){
+    for(const e of world.enemies){
+      const s = worldToScreen(e.x, e.y);
+      const d = Math.hypot(e.x - drone.x, e.y - drone.y);
+
+      const lit = d < drone.lamp;
+      const known = world.discoveredEnemies.has(e.id);
+      if(!lit && !known) continue;
+
+      const alpha = known ? 0.92 : 0.35;
+      ctx.globalAlpha = alpha;
+
+      if(e.type === ENEMY.DRONE){
+        ctx.fillStyle = 'rgba(255,107,142,0.85)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, e.r, 0, TAU);
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha = alpha*0.55;
+        ctx.strokeStyle = 'rgba(255,107,142,0.70)';
+        ctx.lineWidth = 2;
+        for(let k=0;k<4;k++){
+          const a = (k/4)*TAU + world.currentT*0.9;
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(s.x + Math.cos(a)*(e.r+10), s.y + Math.sin(a)*(e.r+10));
+          ctx.stroke();
+        }
+      } else {
+        // eel: capsule-ish
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        const a = Math.atan2(e.vy, e.vx);
+        ctx.rotate(isFinite(a) ? a : 0);
+        ctx.fillStyle = 'rgba(202,167,255,0.85)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-e.r*1.5, -e.r*0.55, e.r*3.0, e.r*1.1, e.r*0.55);
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha = alpha*0.85;
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.beginPath();
+        ctx.arc(e.r*0.8, -2, 3.2, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // HP bar when known or close
+      if(known || d < drone.lamp*0.6){
+        const p = clamp(e.hp / e.maxHp, 0, 1);
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(s.x - 22, s.y - e.r - 16, 44, 6);
+        ctx.fillStyle = 'rgba(255,107,142,0.85)';
+        ctx.fillRect(s.x - 22, s.y - e.r - 16, 44*p, 6);
+      }
+
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawProjectiles(){
+    for(const p of world.projectiles){
+      const s = worldToScreen(p.x, p.y);
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = 'rgba(112,227,255,0.90)';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, p.r, 0, TAU);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.25;
+      ctx.strokeStyle = 'rgba(112,227,255,0.85)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, p.r+6, 0, TAU);
+      ctx.stroke();
+
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawPulses(){
+    for(const p of world.pulses){
+      const s = worldToScreen(p.x,p.y);
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = 'rgba(112,227,255,0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, p.r, 0, TAU);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawParticles(){
+    for(const p of particles){
+      const s = worldToScreen(p.x, p.y);
+      const a = clamp(p.life/0.75, 0, 1);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.col;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, p.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawDrone(){
+    const s = worldToScreen(drone.x, drone.y);
+
+    // lamp cone
+    ctx.save();
+    ctx.globalAlpha = 0.16;
+    const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, drone.lamp);
+    grad.addColorStop(0, 'rgba(112,227,255,0.22)');
+    grad.addColorStop(0.6, 'rgba(112,227,255,0.06)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, drone.lamp, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+
+    // body
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(drone.yaw);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.90)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(22, 0);
+    ctx.lineTo(6, -14);
+    ctx.lineTo(-20, -10);
+    ctx.lineTo(-24, 0);
+    ctx.lineTo(-20, 10);
+    ctx.lineTo(6, 14);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = 'rgba(112,227,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(10, 0, 5.5, 0, TAU);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = 'rgba(103,255,180,0.85)';
+    ctx.beginPath();
+    ctx.arc(-18, 0, 6.5, 0, TAU);
+    ctx.fill();
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------- Discover logs ----------
+  function logDiscovery(o, dist){
+    const m = Math.round(dist);
+    if(o.type === OBJ.SAMPLE){
+      logEvent('DISCOVERY', `Sample node detected (#${o.id}) at ~${m}m. Value ${o.value}.`);
+      setBridge('Sample node detected.');
+    } else if(o.type === OBJ.RUIN){
+      logEvent('DISCOVERY', `Ruin signature detected (#${o.id}) at ~${m}m. Clue: ${o.clue}.`);
+      setBridge('Ruin signature detected.');
+    } else if(o.type === OBJ.VENT){
+      logEvent('DISCOVERY', `Thermal vent detected (#${o.id}) at ~${m}m. Avoid plume.`);
+      setBridge('Thermal vent detected.');
+    } else if(o.type === OBJ.MINE){
+      logEvent('DISCOVERY', `Mine detected (#${o.id}) at ~${m}m. Keep distance.`);
+      setBridge('Mine detected.');
+    }
+  }
+
+  function logEnemyDiscovery(e, dist){
+    const m = Math.round(dist);
+    const label = (e.type === ENEMY.DRONE) ? 'Hostile drone' : 'Abyssal eel';
+    logEvent('CONTACT', `${label} detected (#${e.id}) at ~${m}m.`);
+    setBridge(`${label} detected.`);
+  }
+
+  // ---------- Interactions ----------
+  function updateInteractions(dt){
+    // lamp-based reveal
+    for(const o of world.objects){
+      const d = Math.hypot(o.x - drone.x, o.y - drone.y);
+      if(d < drone.lamp*0.55 && !world.discovered.has(o.id)){
+        world.discovered.add(o.id);
+        logDiscovery(o, d);
+      }
+    }
+    for(const e of world.enemies){
+      const d = Math.hypot(e.x - drone.x, e.y - drone.y);
+      if(d < drone.lamp*0.55 && !world.discoveredEnemies.has(e.id)){
+        world.discoveredEnemies.add(e.id);
+        logEnemyDiscovery(e, d);
+      }
+    }
+
+    // hazard collisions + sample collection
+    let nearSample = null;
+    for(const o of world.objects){
+      const d = Math.hypot(o.x - drone.x, o.y - drone.y);
+
+      if(o.type === OBJ.VENT){
+        if(d < o.r + 18){
+          const dmg = (0.7 * o.heat) * dt * 30;
+          drone.hull = Math.max(0, drone.hull - dmg);
+          cam.shake = Math.max(cam.shake, 10);
+          if(Math.random() < 0.06) sparkle(drone.x, drone.y, 8, 'rgba(112,227,255,0.65)');
+        }
+      }
+
+      if(o.type === OBJ.MINE){
+        if(d < o.r + 12){
+          drone.hull = Math.max(0, drone.hull - 42);
+          drone.battery = Math.max(0, drone.battery - 8);
+          cam.shake = Math.max(cam.shake, 20);
+          sparkle(o.x, o.y, 40, 'rgba(255,107,142,0.75)');
+          logEvent('ALERT', `Mine detonation (#${o.id}). Hull damage.`);
+          setBridge('Mine detonation!');
+
+          o.type = OBJ.RUIN;
+          o.clue = 'shrapnel';
+          o.r = 26;
+        }
+      }
+
+      if(o.type === OBJ.SAMPLE){
+        if(d < 46) nearSample = o;
+      }
+    }
+
+    // sample collection: hover near sample with low speed
+    if(nearSample){
+      const speed = Math.hypot(drone.vx, drone.vy);
+      if(speed < 120){
+        drone.hoverHold += dt;
+        if(drone.hoverHold > 1.0){
+          const v = nearSample.value || 1;
+          drone.samples += v;
+          bestSamples = Math.max(bestSamples, drone.samples);
+          localStorage.setItem(LS_BEST_SAMPLES, String(bestSamples));
+          UI.bestTxt.textContent = bestSamples;
+
+          logEvent('SAMPLE', `Collected sample (#${nearSample.id}) for +${v}. Total samples: ${drone.samples}.`);
+          setBridge(`Sample collected +${v}.`);
+
+          sparkle(nearSample.x, nearSample.y, 26, 'rgba(255,240,160,0.85)');
+          world.objects = world.objects.filter(o => o.id !== nearSample.id);
+          drone.hoverHold = 0;
+        }
+      } else {
+        drone.hoverHold = Math.max(0, drone.hoverHold - dt*2.0);
+      }
+    } else {
+      drone.hoverHold = Math.max(0, drone.hoverHold - dt*2.0);
+    }
+
+    // sector progression: samples threshold
+    const needed = 12 + world.sector*8;
+    if(drone.samples >= needed){
+      world.sector++;
+      drone.samples = 0;
+      drone.scans = 0;
+
+      drone.battery = Math.min(drone.batteryMax, drone.battery + 35);
+      drone.o2 = Math.min(drone.o2Max, drone.o2 + 35);
+      drone.hull = Math.min(drone.hullMax, drone.hull + 20);
+
+      genWorld(world.sector);
+      drone.x = 0; drone.y = 0;
+      drone.vx = 0; drone.vy = 0;
+
+      logEvent('SYSTEM', `Sector advanced → ${world.sector}. New field generated.`);
+      setBridge(`Sector ${world.sector}. New field generated.`);
+    }
+  }
+
+  // ---------- Enemies update ----------
+  function updateEnemies(dt){
+    for(let i=world.enemies.length-1;i>=0;i--){
+      const e = world.enemies[i];
+
+      e.touchCD = Math.max(0, e.touchCD - dt);
+
+      const dx = drone.x - e.x;
+      const dy = drone.y - e.y;
+      const d = Math.hypot(dx,dy) || 1;
+
+      // Behavior: wander unless within aggro range
+      let ax = 0, ay = 0;
+      if(d < e.aggro){
+        const nx = dx/d, ny = dy/d;
+        ax += nx * e.speed;
+        ay += ny * e.speed;
+
+        // slight orbit bias
+        const orbit = Math.sin(world.currentT*0.9 + e.phase) * 0.35;
+        ax += -ny * e.speed * orbit;
+        ay +=  nx * e.speed * orbit;
+      } else {
+        ax += Math.cos(world.currentT*0.6 + e.phase) * e.speed * 0.22;
+        ay += Math.sin(world.currentT*0.7 + e.phase) * e.speed * 0.22;
+      }
+
+      // apply accel
+      e.vx += ax * dt;
+      e.vy += ay * dt;
+
+      // drag
+      e.vx *= Math.pow(0.22, dt);
+      e.vy *= Math.pow(0.22, dt);
+
+      // move
+      e.x += e.vx * dt;
+      e.y += e.vy * dt;
+
+      // Contact damage
+      if(d < e.r + 18){
+        if(e.touchCD <= 0){
+          const dmg = e.damage + (world.sector*0.6);
+          drone.hull = Math.max(0, drone.hull - dmg);
+          cam.shake = Math.max(cam.shake, 16);
+          e.touchCD = 0.40;
+
+          // knockback
+          const nx = dx/d, ny = dy/d;
+          drone.vx += nx * 160;
+          drone.vy += ny * 160;
+
+          sparkle(drone.x, drone.y, 16, 'rgba(255,107,142,0.70)');
+          logEvent('HIT', `Contact damage from hostile (#${e.id}). -${dmg.toFixed(0)} hull.`);
+          setBridge('Hull hit!');
+        }
+      }
+    }
+  }
+
+  // ---------- Projectiles update ----------
+  function updateProjectiles(dt){
+    for(let i=world.projectiles.length-1;i>=0;i--){
+      const p = world.projectiles[i];
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      // slight drag
+      p.vx *= Math.pow(0.95, dt);
+      p.vy *= Math.pow(0.95, dt);
+
+      let hit = false;
+
+      // enemy collision
+      for(let j=world.enemies.length-1;j>=0;j--){
+        const e = world.enemies[j];
+        const d = Math.hypot(e.x - p.x, e.y - p.y);
+        if(d < e.r + p.r + 2){
+          e.hp -= p.dmg;
+          cam.shake = Math.max(cam.shake, 10);
+          sparkle(p.x, p.y, 14, 'rgba(112,227,255,0.85)');
+          AudioSys.tone(520 + Math.random()*80, 0.05, 'sine', 0.10);
+
+          if(e.hp <= 0){
+            // kill
+            drone.kills++;
+            bestKills = Math.max(bestKills, drone.kills);
+            localStorage.setItem(LS_BEST_KILLS, String(bestKills));
+            UI.bestKillsTxt.textContent = bestKills;
+
+            const label = (e.type === ENEMY.DRONE) ? 'Hostile drone' : 'Abyssal eel';
+            logEvent('KILL', `${label} neutralized (#${e.id}). Total kills: ${drone.kills}.`);
+            setBridge('Target neutralized.');
+            sparkle(e.x, e.y, 40, (e.type===ENEMY.DRONE) ? 'rgba(255,107,142,0.78)' : 'rgba(202,167,255,0.78)');
+
+            world.enemies.splice(j,1);
+          } else {
+            logEvent('HIT', `Hit hostile (#${e.id}). HP ${(e.hp|0)}/${e.maxHp}.`);
+          }
+
+          hit = true;
+          break;
+        }
+      }
+
+      if(hit || p.life <= 0){
+        world.projectiles.splice(i,1);
+      }
+    }
+  }
+
+  // ---------- Simulation update ----------
+  function updateSim(dt){
+    world.currentT += dt;
+
+    // Gesture reading + smoothing
+    if(pads.active){
+      const Lraw = readPad(padL, lThumb, lIndex);
+      const Rraw = readPad(padR, rThumb, rIndex);
+
+      const sm = clamp(tuners.inputSmoothing, 0, 0.95);
+      const t = clamp(1 - Math.pow(1-sm, dt*60), 0, 1);
+
+      pads.left.vec.x  = lerp(pads.left.vec.x,  Lraw.vec.x,  t);
+      pads.left.vec.y  = lerp(pads.left.vec.y,  Lraw.vec.y,  t);
+      pads.right.vec.x = lerp(pads.right.vec.x, Rraw.vec.x, t);
+      pads.right.vec.y = lerp(pads.right.vec.y, Rraw.vec.y, t);
+
+      pads.left.pinch  = lerp(pads.left.pinch,  Lraw.pinch,  t);
+      pads.right.pinch = lerp(pads.right.pinch, Rraw.pinch, t);
+
+      const lp = (pads.left.pinch > tuners.pinchThreshold);
+      const rp = (pads.right.pinch > tuners.pinchThreshold);
+
+      pads.left.pinchEdge = (!pads.left.pinchDown && lp);
+      pads.right.pinchEdge = (!pads.right.pinchDown && rp);
+
+      // Left pinch = stabilize while held
+      pads.left.pinchDown = lp;
+      pads.left.stabilize = pads.left.pinchDown;
+
+      // Right pinch tap/hold logic
+      if(!pads.right.pinchDown && rp){
+        // rising edge: start hold timer
+        pads.right.holdT = 0;
+        pads.right.scanFired = false;
+      }
+      pads.right.pinchDown = rp;
+
+      if(pads.right.pinchDown){
+        pads.right.holdT += dt;
+
+        // Hold pinch => scan (once)
+        if(tuners.gestureScan && !pads.right.scanFired && pads.right.holdT >= tuners.scanHoldSec){
+          pads.right.scanFired = true;
+          ensureLogVisible();
+          requestScan('hold-pinch');
+        }
+      } else {
+        // release => if it was a short tap and scan not fired, fire shot
+        if(tuners.gestureFire && pads.right.holdT > 0 && pads.right.holdT < tuners.scanHoldSec && !pads.right.scanFired){
+          fireWeapon('tap-pinch');
+        }
+        pads.right.holdT = 0;
+        pads.right.scanFired = false;
+      }
+
+      UI.leftReadout.textContent =
+        `vec(${pads.left.vec.x.toFixed(2)}, ${pads.left.vec.y.toFixed(2)}) pinch ${pads.left.pinch.toFixed(2)}`;
+      UI.rightReadout.textContent =
+        `vec(${pads.right.vec.x.toFixed(2)}, ${pads.right.vec.y.toFixed(2)}) pinch ${pads.right.pinch.toFixed(2)}`;
+    } else {
+      UI.leftReadout.textContent = 'vec(0.00, 0.00) pinch 0.00';
+      UI.rightReadout.textContent = 'vec(0.00, 0.00) pinch 0.00';
+    }
+
+    const useSwap = tuners.swapHands;
+
+    // Movement input
+    let inX = 0, inY = 0;
+
+    if(keys.has('KeyW')) inY -= 1;
+    if(keys.has('KeyS')) inY += 1;
+    if(keys.has('KeyA')) inX -= 1;
+    if(keys.has('KeyD')) inX += 1;
+
+    if(pads.active){
+      const mv = useSwap ? pads.right.vec : pads.left.vec;
+      inX += mv.x;
+      inY += mv.y;
+    }
+
+    const mlen = Math.hypot(inX, inY) || 1;
+    if(mlen > 1){ inX /= mlen; inY /= mlen; }
+
+    // Aim vector
+    let aimX = 0, aimY = 0;
+    if(pads.active){
+      const av = useSwap ? pads.left.vec : pads.right.vec;
+      aimX = av.x;
+      aimY = av.y;
+    } else {
+      const sx = innerWidth*0.5;
+      const sy = innerHeight*0.5;
+      const dx = mouse.x - sx;
+      const dy = mouse.y - sy;
+      const d = Math.hypot(dx,dy) || 1;
+      aimX = dx/d;
+      aimY = dy/d;
+    }
+
+    // Depth
+    let dz = 0;
+    if(keys.has('KeyR')) dz -= 1;
+    if(keys.has('KeyF')) dz += 1;
+
+    if(pads.active){
+      dz += clamp(aimY, -1, 1) * 0.70 * tuners.depthMult;
+    }
+
+    // randomness
+    const rn = tuners.randomness;
+    const currentX = (Math.sin(world.currentT*0.55 + world.seed)*0.6 + Math.sin(world.currentT*0.21 + drone.y*0.0008)*0.8) * 22 * rn;
+    const currentY = (Math.cos(world.currentT*0.49 + world.seed)*0.6 + Math.cos(world.currentT*0.19 + drone.x*0.0007)*0.8) * 18 * rn;
+    const noiseX = (Math.random()*2-1) * 10 * rn;
+    const noiseY = (Math.random()*2-1) * 10 * rn;
+
+    // boost
+    const boosting = keys.has('ShiftLeft') || keys.has('ShiftRight');
+    const boostMult = boosting ? 1.55 : 1.0;
+
+    const thrustBase = 520;
+    const thrust = thrustBase * tuners.thrustMult * boostMult;
+
+    const drag = 1.85;
+    const ax = (inX * thrust + currentX + noiseX);
+    const ay = (inY * thrust + currentY + noiseY);
+
+    drone.vx += ax * dt;
+    drone.vy += ay * dt;
+
+    const stabilize = pads.active && (useSwap ? pads.right.stabilize : pads.left.stabilize);
+    if(stabilize){
+      drone.vx *= Math.pow(0.04, dt);
+      drone.vy *= Math.pow(0.04, dt);
+    }
+
+    drone.vx *= Math.pow(1/drag, dt);
+    drone.vy *= Math.pow(1/drag, dt);
+
+    drone.x += drone.vx * dt;
+    drone.y += drone.vy * dt;
+
+    // depth dynamics
+    const depthAccel = 36;
+    drone.vDepth += (dz * depthAccel + (Math.random()*2-1)*2.5*rn) * dt;
+    drone.vDepth *= Math.pow(0.35, dt);
+    drone.depth += drone.vDepth * dt;
+    drone.depth = clamp(drone.depth, 0, 260);
+
+    // yaw steer
+    const amag = Math.hypot(aimX, aimY);
+    if(amag > 0.15){
+      const targetYaw = Math.atan2(aimY, aimX);
+      let diff = targetYaw - drone.yaw;
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      drone.yaw += diff * clamp(tuners.yawSpeed * dt, 0, 1);
+    }
+
+    // camera follow
+    cam.x = lerp(cam.x, drone.x, clamp(3.5*dt, 0, 1));
+    cam.y = lerp(cam.y, drone.y, clamp(3.5*dt, 0, 1));
+    cam.shake = Math.max(0, cam.shake - dt*20);
+
+    // cooldowns
+    drone.sonarCD = Math.max(0, drone.sonarCD - dt);
+    drone.weaponCD = Math.max(0, drone.weaponCD - dt);
+
+    // thruster hum
+    const speed = Math.hypot(drone.vx, drone.vy);
+    const thrustP = clamp(speed / 750, 0, 1);
+    if(state === 'running'){
+      AudioSys.setThruster(thrustP);
+    } else {
+      AudioSys.stopThruster();
+    }
+
+    // resource drain
+    const depthDrain = 0.008 + (drone.depth/260)*0.025;
+    const moveDrain = 0.010 + thrustP*0.035;
+    drone.battery = Math.max(0, drone.battery - (depthDrain + moveDrain) * dt * 60);
+    drone.o2 = Math.max(0, drone.o2 - (0.010 + (drone.depth/260)*0.020) * dt * 60);
+
+    // pulses update + discovery (objects + enemies)
+    for(let i=world.pulses.length-1;i>=0;i--){
+      const p = world.pulses[i];
+      p.life -= dt;
+      p.r += p.speed * dt;
+
+      for(const o of world.objects){
+        if(world.discovered.has(o.id)) continue;
+        const d = Math.hypot(o.x - p.x, o.y - p.y);
+        if(Math.abs(d - p.r) < 22){
+          world.discovered.add(o.id);
+          logDiscovery(o, d);
+          sparkle(o.x, o.y, 14,
+            o.type===OBJ.SAMPLE ? 'rgba(255,240,160,0.85)' :
+            o.type===OBJ.RUIN   ? 'rgba(202,167,255,0.85)' :
+            o.type===OBJ.VENT   ? 'rgba(112,227,255,0.85)' :
+                                  'rgba(255,107,142,0.85)'
+          );
+        }
+      }
+
+      for(const e of world.enemies){
+        if(world.discoveredEnemies.has(e.id)) continue;
+        const d = Math.hypot(e.x - p.x, e.y - p.y);
+        if(Math.abs(d - p.r) < 26){
+          world.discoveredEnemies.add(e.id);
+          logEnemyDiscovery(e, d);
+          sparkle(e.x, e.y, 16, 'rgba(255,107,142,0.75)');
+        }
+      }
+
+      if(p.life <= 0) world.pulses.splice(i,1);
+    }
+
+    // interactions
+    updateEnemies(dt);
+    updateProjectiles(dt);
+    updateInteractions(dt);
+
+    // fail states
+    if(drone.battery <= 0){
+      setBridge('Battery depleted. Dive ended.');
+      logEvent('SYSTEM', 'Battery depleted. Dive ended.');
+      endDive();
+    } else if(drone.o2 <= 0){
+      setBridge('Oxygen depleted. Dive ended.');
+      logEvent('SYSTEM', 'Oxygen depleted. Dive ended.');
+      endDive();
+    } else if(drone.hull <= 0){
+      setBridge('Hull breach. Dive ended.');
+      logEvent('SYSTEM', 'Hull breach. Dive ended.');
+      endDive();
+    }
+
+    syncHUD();
+  }
+
+  // ---------- Drawing ----------
+  function draw(){
+    drawBackground();
+
+    let sx = 0, sy = 0;
+    if(cam.shake > 0){
+      sx = (Math.random()*2-1) * cam.shake * 0.35;
+      sy = (Math.random()*2-1) * cam.shake * 0.35;
+    }
+
+    ctx.save();
+    ctx.translate(sx, sy);
+
+    drawSeafloorHints();
+    drawPulses();
+    drawObjects();
+    drawEnemies();
+    drawProjectiles();
+    drawParticles();
+    drawDrone();
+
+    ctx.restore();
+
+    ctx.save();
+    const v = ctx.createRadialGradient(innerWidth/2, innerHeight/2, 120, innerWidth/2, innerHeight/2, Math.max(innerWidth, innerHeight)*0.72);
+    v.addColorStop(0, 'rgba(0,0,0,0)');
+    v.addColorStop(1, 'rgba(0,0,0,0.45)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+    ctx.restore();
+  }
+
+  // ---------- Loop ----------
+  let lastT = performance.now();
+  function step(t){
+    requestAnimationFrame(step);
+    const dt = clamp((t - lastT) / 1000, 0, 0.033);
+    lastT = t;
+
+    if(state === 'running' && !paused){
+      updateSim(dt);
+      updateParticles(dt);
+    } else {
+      world.currentT += dt*0.4;
+      updateParticles(dt*0.5);
+      if(state !== 'cover') syncHUD();
+    }
+
+    draw();
+  }
+  requestAnimationFrame(step);
+
+  // ---------- Tuners UI wiring ----------
+  function setSwitch(el, on){
+    el.classList.toggle('on', !!on);
+  }
+  function getSwitch(el){
+    return el.classList.contains('on');
+  }
+
+  function applyTunersToUI(){
+    UI.microRange.value = tuners.microRangeIn.toFixed(2);
+    UI.microRangeN.value = tuners.microRangeIn.toFixed(2);
+
+    UI.pinchTh.value = tuners.pinchThreshold.toFixed(2);
+    UI.pinchThN.value = tuners.pinchThreshold.toFixed(2);
+
+    UI.scanHold.value = tuners.scanHoldSec.toFixed(2);
+    UI.scanHoldN.value = tuners.scanHoldSec.toFixed(2);
+
+    UI.randInt.value = tuners.randomness.toFixed(2);
+    UI.randIntN.value = tuners.randomness.toFixed(2);
+
+    UI.thrustMult.value = tuners.thrustMult.toFixed(2);
+    UI.thrustMultN.value = tuners.thrustMult.toFixed(2);
+
+    UI.yawSpeed.value = tuners.yawSpeed.toFixed(2);
+    UI.yawSpeedN.value = tuners.yawSpeed.toFixed(2);
+
+    UI.depthMult.value = tuners.depthMult.toFixed(2);
+    UI.depthMultN.value = tuners.depthMult.toFixed(2);
+
+    UI.smoothIn.value = tuners.inputSmoothing.toFixed(2);
+    UI.smoothInN.value = tuners.inputSmoothing.toFixed(2);
+
+    UI.fireCd.value = tuners.fireCooldown.toFixed(2);
+    UI.fireCdN.value = tuners.fireCooldown.toFixed(2);
+
+    setSwitch(UI.mirrorX, tuners.mirrorX);
+    setSwitch(UI.swapHands, tuners.swapHands);
+    setSwitch(UI.gestureFire, tuners.gestureFire);
+    setSwitch(UI.gestureScan, tuners.gestureScan);
+
+    UI.tunerLive.textContent = pads.active ? 'Active' : 'Inactive';
+  }
+
+  function bindTunerPair(rangeEl, numEl, getter, setter, decimals=2){
+    const clampAndSet = (v) => {
+      const nv = clamp(Number(v), Number(rangeEl.min), Number(rangeEl.max));
+      setter(nv);
+      rangeEl.value = nv;
+      numEl.value = nv.toFixed(decimals);
+    };
+    rangeEl.addEventListener('input', ()=> clampAndSet(rangeEl.value), { passive:true });
+    numEl.addEventListener('change', ()=> clampAndSet(numEl.value), { passive:true });
+    clampAndSet(getter());
+  }
+
+  function resetTunersDefaults(){
+    tuners.microRangeIn = 0.25;
+    tuners.pinchThreshold = 0.30;
+    tuners.scanHoldSec = 0.28;
+    tuners.randomness = 1.00;
+
+    tuners.thrustMult = 1.00;
+    tuners.yawSpeed = 3.20;
+    tuners.depthMult = 1.00;
+    tuners.inputSmoothing = 0.18;
+    tuners.fireCooldown = 0.14;
+
+    tuners.mirrorX = false;
+    tuners.swapHands = false;
+    tuners.gestureFire = true;
+    tuners.gestureScan = true;
+
+    applyTunersToUI();
+    logEvent('SYSTEM', 'Tuners reset to defaults.');
+    setBridge('Tuners reset.');
+  }
+
+  bindTunerPair(UI.microRange, UI.microRangeN, ()=>tuners.microRangeIn, (v)=> tuners.microRangeIn = v, 2);
+  bindTunerPair(UI.pinchTh, UI.pinchThN, ()=>tuners.pinchThreshold, (v)=> tuners.pinchThreshold = v, 2);
+  bindTunerPair(UI.scanHold, UI.scanHoldN, ()=>tuners.scanHoldSec, (v)=> tuners.scanHoldSec = v, 2);
+  bindTunerPair(UI.randInt, UI.randIntN, ()=>tuners.randomness, (v)=> tuners.randomness = v, 2);
+
+  bindTunerPair(UI.thrustMult, UI.thrustMultN, ()=>tuners.thrustMult, (v)=> tuners.thrustMult = v, 2);
+  bindTunerPair(UI.yawSpeed, UI.yawSpeedN, ()=>tuners.yawSpeed, (v)=> tuners.yawSpeed = v, 2);
+  bindTunerPair(UI.depthMult, UI.depthMultN, ()=>tuners.depthMult, (v)=> tuners.depthMult = v, 2);
+  bindTunerPair(UI.smoothIn, UI.smoothInN, ()=>tuners.inputSmoothing, (v)=> tuners.inputSmoothing = v, 2);
+  bindTunerPair(UI.fireCd, UI.fireCdN, ()=>tuners.fireCooldown, (v)=> tuners.fireCooldown = v, 2);
+
+  UI.mirrorX.addEventListener('click', ()=>{
+    tuners.mirrorX = !tuners.mirrorX;
+    setSwitch(UI.mirrorX, tuners.mirrorX);
+    setBridge(`Mirror X: ${tuners.mirrorX ? 'On' : 'Off'}`);
+  });
+
+  UI.swapHands.addEventListener('click', ()=>{
+    tuners.swapHands = !tuners.swapHands;
+    setSwitch(UI.swapHands, tuners.swapHands);
+    setBridge(`Swap Hands: ${tuners.swapHands ? 'On' : 'Off'}`);
+  });
+
+  UI.gestureFire.addEventListener('click', ()=>{
+    tuners.gestureFire = !tuners.gestureFire;
+    setSwitch(UI.gestureFire, tuners.gestureFire);
+    setBridge(`Gesture Fire: ${tuners.gestureFire ? 'On' : 'Off'}`);
+  });
+
+  UI.gestureScan.addEventListener('click', ()=>{
+    tuners.gestureScan = !tuners.gestureScan;
+    setSwitch(UI.gestureScan, tuners.gestureScan);
+    setBridge(`Gesture Scan: ${tuners.gestureScan ? 'On' : 'Off'}`);
+  });
+
+  UI.btnCloseTuners.addEventListener('click', ()=> closeTuners());
+  UI.btnResetTuners.addEventListener('click', ()=> resetTunersDefaults());
+
+  function openTuners(){
+    prevState = state;
+    UI.tuners.style.display = 'flex';
+    state = 'tuners';
+    paused = true;
+    applyTunersToUI();
+    setBridge('Tuners open.');
+  }
+  function closeTuners(){
+    UI.tuners.style.display = 'none';
+    state = prevState === 'running' || prevState === 'paused' ? 'running' : prevState;
+    paused = false;
+    lastT = performance.now();
+    setBridge('Tuners closed.');
+  }
+  function toggleTuners(){
+    if(state === 'tuners') closeTuners();
+    else openTuners();
+  }
+
+  // ---------- Gesture controls toggle ----------
+  function setPadsActive(on){
+    pads.active = !!on;
+    UI.tunerLive.textContent = pads.active ? 'Active' : 'Inactive';
+
+    // show/hide gesture dock
+    UI.gestureDock.style.display = pads.active ? 'block' : 'none';
+
+    // button labels
+    UI.btnActivate.textContent = pads.active ? 'Gesture Controls: Active' : 'Activate Gesture Controls';
+    UI.btnGesture.textContent = pads.active ? 'Gesture: On' : 'Gesture';
+
+    logEvent('SYSTEM', `Gesture controls ${pads.active ? 'enabled' : 'disabled'}.`);
+    setBridge(`Gesture ${pads.active ? 'enabled' : 'disabled'}.`);
+
+    if(pads.active){
+      requestAnimationFrame(()=> initPadNodes());
+    }
+  }
+
+  function toggleGestureControls(){
+    if(state === 'cover'){
+      setPadsActive(!pads.active);
+      return;
+    }
+    setPadsActive(!pads.active);
+  }
+
+  // ---------- Pause ----------
+  function togglePause(){
+    if(state !== 'running') return;
+    paused = !paused;
+    state = paused ? 'paused' : 'running';
+    UI.btnPause.textContent = paused ? 'Resume' : 'Pause';
+    setBridge(paused ? 'Paused.' : 'Resumed.');
+    if(!paused) lastT = performance.now();
+  }
+
+  // ---------- Dive control ----------
+  function resetDive(){
+    drone.x = 0; drone.y = 0;
+    drone.vx = 0; drone.vy = 0;
+    drone.depth = 20;
+    drone.vDepth = 0;
+    drone.yaw = 0;
+
+    drone.hull = drone.hullMax;
+    drone.o2 = drone.o2Max;
+    drone.battery = drone.batteryMax;
+
+    drone.samples = 0;
+    drone.scans = 0;
+    drone.kills = 0;
+
+    drone.hoverHold = 0;
+    drone.sonarCD = 0;
+    drone.weaponCD = 0;
+
+    cam.x = 0; cam.y = 0; cam.shake = 0;
+
+    genWorld(1);
+    syncHUD();
+    clearLog();
+    logEvent('SYSTEM', 'Dive initialized. Sonar + weapon online.');
+    setBridge('Dive initialized. Sonar + weapon online.');
+  }
+
+  function startDive(){
+    UI.cover.style.display = 'none';
+    UI.hud.style.display = 'flex';
+    UI.controlBar.style.display = 'flex';
+
+    // On wide screens show log by default; on mobile keep it hidden
+    if(innerWidth > 900){
+      UI.dock.style.display = 'block';
+    } else {
+      UI.dock.style.display = 'none';
+    }
+
+    state = 'running';
+    paused = false;
+    resetDive();
+    requestAnimationFrame(()=> initPadNodes());
+    setBridge('Dive started.');
+  }
+
+  function endDive(){
+    state = 'cover';
+    paused = false;
+
+    UI.cover.style.display = 'flex';
+    UI.hud.style.display = 'none';
+    UI.dock.style.display = 'none';
+    UI.controlBar.style.display = 'none';
+    // keep gesture enabled state but hide dock on cover
+    UI.gestureDock.style.display = (pads.active ? 'block' : 'none');
+
+    AudioSys.stopThruster();
+
+    UI.bestTxt.textContent = bestSamples;
+    UI.bestKillsTxt.textContent = bestKills;
+  }
+
+  // ---------- Buttons ----------
+  UI.btnStart.addEventListener('click', ()=>{
+    AudioSys.ensure();
+    AudioSys.setMaster(true); // allow SFX after user gesture
+    startDive();
+  });
+
+  UI.btnActivate.addEventListener('click', ()=>{
+    AudioSys.ensure();
+    AudioSys.setMaster(true);
+    setPadsActive(true);
+  });
+
+  UI.btnMusic.addEventListener('click', ()=>{
+    AudioSys.ensure();
+    AudioSys.setMaster(true);
+    if(!AudioSys.musicOn){
+      AudioSys.startMusic();
+      UI.btnMusic.textContent = 'Music: On';
+      setBridge('Music on.');
+      logEvent('SYSTEM', 'Music enabled.');
+    } else {
+      AudioSys.stopMusic();
+      UI.btnMusic.textContent = 'Music: Off';
+      setBridge('Music off.');
+      logEvent('SYSTEM', 'Music disabled.');
+    }
+  });
+
+  UI.btnDockScan.addEventListener('click', ()=> requestScan('dock'));
+  UI.btnDockClear.addEventListener('click', ()=> { clearLog(); logEvent('SYSTEM','Log cleared.'); });
+  UI.btnDockCollapse.addEventListener('click', ()=>{
+    UI.dock.style.display = 'none';
+    setBridge('Log hidden. Press L / Log button to show.');
+  });
+
+  UI.btnGestureTuners.addEventListener('click', ()=> openTuners());
+  UI.btnGestureHide.addEventListener('click', ()=> setPadsActive(false));
+
+  UI.btnFire.addEventListener('click', ()=> fireWeapon('ui'));
+  UI.btnScan.addEventListener('click', ()=> { ensureLogVisible(); requestScan('ui'); });
+  UI.btnPause.addEventListener('click', ()=> togglePause());
+  UI.btnTuners.addEventListener('click', ()=> toggleTuners());
+  UI.btnGesture.addEventListener('click', ()=> toggleGestureControls());
+  UI.btnLog.addEventListener('click', ()=> toggleLogDock());
+
+  // ---------- Initialize ----------
+  function init(){
+    UI.bestTxt.textContent = bestSamples;
+    UI.bestKillsTxt.textContent = bestKills;
+
+    resetTunersDefaults();
+    applyTunersToUI();
+
+    setPadsActive(false);
+
+    UI.cover.style.display = 'flex';
+    UI.tuners.style.display = 'none';
+    UI.hud.style.display = 'none';
+    UI.dock.style.display = 'none';
+    UI.controlBar.style.display = 'none';
+
+    setBridge('Ready to dive.');
+  }
+  init();
+
+})();
+</script>
+</body>
+</html>

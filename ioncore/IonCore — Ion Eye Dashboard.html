@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IonCore — Ion Eye Dashboard</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- TFJS and Models for demo face/object detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+  <!-- Charting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ---------------------------
+       IonCore theme + utilities
+       --------------------------- */
+    :root{
+      --bg-1: #06121a;
+      --bg-2: #071625;
+      --panel: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      --muted: #9fb3c5;
+      --accent1: #00d1ff;   /* cyan */
+      --accent2: #6b60ff;   /* violet */
+      --accent-glow: linear-gradient(90deg, rgba(0,209,255,0.12), rgba(107,96,255,0.12));
+      --success: #5eead4;
+      --danger: #ff6b6b;
+      --warning: #ffd166;
+      font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color-scheme: dark;
+    }
+
+    html,body{height:100%; margin:0; background: linear-gradient(180deg,var(--bg-1), var(--bg-2)); color:#e6eef6; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    .app {
+      display:grid;
+      grid-template-columns: 320px 1fr 360px;
+      grid-template-rows: auto 340px;
+      gap:18px;
+      padding:22px;
+      height:100vh;
+      box-sizing:border-box;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius:12px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.035);
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      backdrop-filter: blur(6px);
+    }
+
+    header{grid-column:1/4; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 18px;}
+    .brand {
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo {
+      width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2)); box-shadow:0 6px 16px rgba(107,96,255,0.12), inset 0 -6px 18px rgba(0,0,0,0.1);
+    }
+    .logo svg{width:34px;height:34px; filter:drop-shadow(0 4px 18px rgba(0,0,0,0.25));}
+    h1{margin:0;font-size:18px; letter-spacing:0.6px; color:linear-gradient(90deg,var(--accent1),var(--accent2)); font-weight:700; font-family:Poppins,Inter, sans-serif;}
+    .tagline{color:var(--muted); font-size:13px; margin-top:3px}
+
+    /* Header status */
+    .status-row{display:flex; gap:10px; align-items:center;}
+    .status-badge{
+      display:flex; gap:10px; align-items:center; padding:8px 12px; border-radius:999px; font-weight:600;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03); color:var(--muted); font-size:13px;
+    }
+    .status-dot{
+      width:10px; height:10px; border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.35);
+      background:rgba(255,255,255,0.06);
+    }
+    .dot-pulse{ position:relative; }
+    .dot-pulse::after{
+      content:''; position:absolute; left:-6px; top:-6px; width:22px; height:22px; border-radius:50%; opacity:0; background:var(--accent1); animation: pulse 1800ms infinite;
+    }
+    @keyframes pulse{ 0%{ transform:scale(0.85); opacity:0.45 } 70%{ transform:scale(1.6); opacity:0 } 100%{ opacity:0 } }
+
+    /* side panels */
+    .side{overflow:auto; height:calc(100% - 64px); padding:12px}
+    .connect-card{display:flex; flex-direction:column; gap:10px}
+    label.muted{ color:var(--muted); font-size:13px; display:block; margin-bottom:6px}
+    button{background:var(--accent1); color:#022; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; transition:transform .14s ease, box-shadow .14s ease;}
+    button:hover{transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,209,255,0.06)}
+    button.secondary{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.04); font-weight:600;}
+
+    input[type=text]{width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:inherit; box-sizing:border-box}
+
+    /* Center video area */
+    #video-wrap{ position:relative; width:100%; height:100%; background:linear-gradient(180deg,#000,#00121a); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; align-items:stretch; }
+    .video-toolbar{ display:flex; gap:10px; padding:10px; align-items:center; justify-content:space-between; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); }
+    .video-stage{ flex:1; position:relative; display:flex; align-items:center; justify-content:center; }
+    video{ max-width:100%; max-height:100%; object-fit:cover; transform:scaleX(-1); display:block; width:100%; height:100%; }
+    canvas.over{ position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
+
+    /* detection style */
+    .label-box{
+      font-size:12px; font-weight:700; color:#001; padding:6px 8px; border-radius:6px; display:inline-block; transform:translateY(-4px);
+      background: linear-gradient(90deg,var(--accent1), var(--accent2));
+      color:#001;
+    }
+
+    /* sensors */
+    .sensor-card{ padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); }
+    .chart-container{ height:130px; margin-top:8px }
+
+    /* controls grid */
+    .controls{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px; }
+    .controls button{ padding:10px; border-radius:10px; font-weight:700; }
+
+    /* logs */
+    .log{ background: linear-gradient(180deg, rgba(2,8,16,0.5), rgba(2,8,16,0.35)); padding:12px; border-radius:10px; max-height:220px; overflow:auto; font-family:monospace; font-size:13px; color:#bfefff; border:1px solid rgba(255,255,255,0.02); }
+    .timeline{ height:200px; overflow:auto; }
+    .muted{ color:var(--muted); font-size:13px }
+
+    footer{ grid-column:1/4; padding:12px; display:flex; justify-content:flex-end; gap:8px; color:var(--muted); font-size:13px; }
+
+    /* small helpers */
+    .flex-row{ display:flex; gap:12px; align-items:center }
+    .metric{ display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); }
+    .badge{ background:rgba(255,255,255,0.04); padding:6px 10px; border-radius:999px; font-size:13px; color:var(--muted) }
+
+    /* custom scrollbars */
+    ::-webkit-scrollbar { height:10px; width:10px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:999px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+
+    /* responsive */
+    @media (max-width:1100px){
+      .app{ grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; padding:12px; }
+      header{ flex-direction:column; align-items:flex-start; gap:10px; }
+      .side{ height:auto; }
+      aside.panel{ order:3 }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="panel">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <!-- Inline IonCore mark -->
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0" stop-color="#00d1ff"/>
+                <stop offset="1" stop-color="#6b60ff"/>
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="32" r="28" fill="url(#g1)" opacity="0.95"/>
+            <path d="M20 36c4-6 18-10 24-2" stroke="#001" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="38" cy="24" r="3.6" fill="#001"/>
+          </svg>
+        </div>
+        <div>
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <h1>IonCore · Ion Eye</h1>
+            <div class="badge">Beta</div>
+          </div>
+          <div class="tagline muted">AR headset control · robotics telemetry · telemetry demo</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="status-row">
+          <div class="status-badge" id="wifiStatus"><span class="status-dot dot-pulse" style="background:var(--accent1)"></span><span style="min-width:120px">Wi-Fi: unknown</span></div>
+          <div class="status-badge" id="bluetoothStatus"><span class="status-dot" style="background:rgba(255,255,255,0.06)"></span><span>Bluetooth: disconnected</span></div>
+          <div class="status-badge" id="wsStatus"><span class="status-dot" style="background:rgba(255,255,255,0.06)"></span><span>Telemetry: disconnected</span></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;align-items:flex-end">
+          <div class="muted">System Time</div>
+          <div id="sysTime" class="muted" style="font-weight:700"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- LEFT: Connectivity -->
+    <aside class="panel side">
+      <h3 style="margin:0 0 10px 0">Connections</h3>
+
+      <div class="connect-card">
+        <div>
+          <label class="muted">Telemetry WebSocket</label>
+          <input id="wsUrl" type="text" placeholder="wss://telemetry.server.example/ws" value="">
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="btnConnectWS">Connect</button>
+            <button id="btnDisconnectWS" class="secondary" style="background:#ff6b6b;color:#fff">Disconnect</button>
+          </div>
+        </div>
+
+        <hr style="opacity:0.06">
+
+        <div>
+          <label class="muted">Bluetooth (WebBluetooth)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="btnScanBT">Scan & Connect</button>
+            <div style="flex:1">
+              <div id="btDeviceName" class="muted">No device</div>
+            </div>
+          </div>
+        </div>
+
+        <hr style="opacity:0.06">
+
+        <div>
+          <label class="muted">Network</label>
+          <div class="metric" style="margin-top:6px">
+            <div>
+              <div style="font-weight:700">Connection</div>
+              <div id="networkType" class="muted">—</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700" id="downlink">—</div>
+              <div class="muted">Mbps</div>
+            </div>
+          </div>
+        </div>
+
+        <hr style="opacity:0.06">
+
+        <div>
+          <h4 style="margin:6px 0">Device Info</h4>
+          <div class="muted" id="deviceInfo">User agent and device summary</div>
+        </div>
+
+        <hr style="opacity:0.06">
+
+        <div>
+          <h4 style="margin:6px 0">Historical Memory</h4>
+          <div class="muted">Saved telemetry events</div>
+          <div class="log" id="historyLog" style="height:180px"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="btnExport">Export CSV</button>
+            <button id="btnClearHistory" style="background:#ff6b6b">Clear</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: Video + Tracking -->
+    <main class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;flex-direction:column">
+          <h3 style="margin:0">Scene View — Camera & Tracking</h3>
+          <div class="muted" style="margin-top:6px">Face / object detection and overlays (demo models)</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <label class="muted">Face</label>
+          <input id="faceToggle" type="checkbox" checked />
+          <label class="muted">Objects</label>
+          <input id="objToggle" type="checkbox" checked />
+          <label class="muted">Stream</label>
+          <select id="freqSelect" style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)">
+            <option value="200">200ms</option><option value="350">350ms</option><option value="500">500ms</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="video-wrap" style="height:100%;">
+        <div class="video-toolbar">
+          <div class="muted">Camera • Live stream</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="badge" id="cameraStatus">Camera: active</div>
+            <div class="badge" id="modelStatus">Models: unloaded</div>
+          </div>
+        </div>
+
+        <div class="video-stage" id="video-stage">
+          <video id="video" autoplay muted playsinline></video>
+          <canvas id="overlay" class="over" aria-hidden="true"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT: Sensors -->
+    <aside class="panel side">
+      <h3>Sensors & Commands</h3>
+
+      <div style="margin-top:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>EMG</strong> <span class="muted">muscle</span></div>
+          <div id="emgVal">0.00</div>
+        </div>
+        <div class="sensor-card" style="margin-top:8px">
+          <div class="chart-container"><canvas id="emgChart"></canvas></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>EEG</strong> <span class="muted">brain</span></div>
+          <div id="eegVal">0.00</div>
+        </div>
+        <div class="sensor-card" style="margin-top:8px">
+          <div class="chart-container"><canvas id="eegChart"></canvas></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Gesture</strong> <span class="muted">detected</span></div>
+          <div id="gestureLabel" class="muted">None</div>
+        </div>
+
+        <div class="controls" style="margin-top:8px">
+          <button id="btnArm" style="background:linear-gradient(90deg,var(--accent1),var(--accent2)); color:#001">ARM ROBOT</button>
+          <button id="btnDisarm" style="background:#ff6b6b;color:#fff">DISARM</button>
+          <button id="btnMove" style="grid-column:1/3;background:linear-gradient(90deg,#69f0ae,#00e5ff); color:#002">MOVE ROBOT →</button>
+          <button id="btnEnergySave" style="background:linear-gradient(90deg,#ffd166,#ff7a7a); color:#001">Energy: SAVE</button>
+        </div>
+      </div>
+
+      <hr style="opacity:0.06;margin-top:12px">
+      <h4 style="margin:6px 0">Robotics & Energy Telemetry</h4>
+      <div class="muted">Last command:</div>
+      <div class="log" id="cmdLog" style="height:120px"></div>
+
+      <hr style="opacity:0.06;margin-top:12px">
+      <h4 style="margin:6px 0">Raw Telemetry</h4>
+      <div class="log" id="telemetryLog" style="height:120px;"></div>
+    </aside>
+
+    <!-- BOTTOM row -->
+    <div style="grid-column:1/4; display:grid; grid-template-columns:1fr 480px; gap:12px">
+      <section class="panel" style="min-height:260px;">
+        <h3 style="margin:0 0 8px 0">Telemetry Timeline</h3>
+        <div class="log timeline" id="timeline" style="height:200px"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button id="btnClearTimeline" style="background:#ff6b6b">Clear Timeline</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin:0 0 8px 0">System Actions</h3>
+        <div class="muted">Simulate sensors or send commands to the headset</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+          <button id="simPulse">Simulate Pulse Event</button>
+          <button id="simEEG">Simulate EEG Spike</button>
+          <button id="simGesture">Simulate Gesture</button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="muted">IonCore · Telemetry demo · Replace placeholders to connect to real systems</footer>
+  </div>
+
+<script>
+/* -----------------------
+   Preserve the original logic while improving draw/resize and visuals
+   ----------------------- */
+const state = {
+  ws: null,
+  btDevice: null,
+  btServer: null,
+  historyKey: 'ioncore_history_v1',
+  cocoModel: null,
+  blazeface: null,
+  detectionRunning: false
+};
+
+function logTo(el, text){
+  const now = new Date().toISOString();
+  el.innerText = `${now} — ${text}\n` + el.innerText;
+}
+
+/* -----------------------
+   System time + device info
+   ----------------------- */
+function updateSysTime(){
+  document.getElementById('sysTime').innerText = new Date().toLocaleString();
+}
+setInterval(updateSysTime, 1000); updateSysTime();
+
+document.getElementById('deviceInfo').innerText = navigator.userAgent;
+
+/* -----------------------
+   Network info (experimental)
+   ----------------------- */
+function updateNetworkInfo(){
+  const n = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const networkType = n?.effectiveType || 'unknown';
+  const downlink = n?.downlink || '—';
+  document.getElementById('networkType').innerText = networkType;
+  document.getElementById('downlink').innerText = downlink;
+  document.getElementById('wifiStatus').innerHTML = `<span class="status-dot" style="background:var(--accent1)"></span> Wi-Fi: ${networkType}`;
+}
+updateNetworkInfo();
+if (navigator.connection) navigator.connection.addEventListener('change', updateNetworkInfo);
+
+/* -----------------------
+   WebSocket telemetry
+   ----------------------- */
+const wsStatus = document.getElementById('wsStatus');
+document.getElementById('btnConnectWS').addEventListener('click', ()=>{
+  const url = document.getElementById('wsUrl').value.trim();
+  if(!url){ alert('Enter a WS URL'); return; }
+  try {
+    state.ws = new WebSocket(url);
+  } catch(e){ alert('Invalid WS URL'); return; }
+  wsStatus.innerText = 'Telemetry: connecting...';
+  state.ws.onopen = () => { wsStatus.innerText = 'Telemetry: connected'; logTo(document.getElementById('telemetryLog'),'WS open'); };
+  state.ws.onclose = ()=>{ wsStatus.innerText = 'Telemetry: disconnected'; logTo(document.getElementById('telemetryLog'),'WS closed'); };
+  state.ws.onerror = (e)=>{ wsStatus.innerText = 'Telemetry: error'; logTo(document.getElementById('telemetryLog'),'WS error'); };
+  state.ws.onmessage = (m)=>{
+    try{
+      const msg = JSON.parse(m.data);
+      handleIncomingTelemetry(msg);
+    }catch(e){
+      logTo(document.getElementById('telemetryLog'),'Received: ' + m.data);
+    }
+  };
+});
+document.getElementById('btnDisconnectWS').addEventListener('click', ()=>{
+  if(state.ws){ state.ws.close(); state.ws = null; wsStatus.innerText = 'Telemetry: disconnected'; }
+});
+
+/* -----------------------
+   Telemetry history (localStorage)
+   ----------------------- */
+function addToHistory(event){
+  try{
+    const arr = JSON.parse(localStorage.getItem(state.historyKey) || '[]');
+    arr.unshift({ts:new Date().toISOString(), event});
+    localStorage.setItem(state.historyKey, JSON.stringify(arr.slice(0,2000)));
+    renderHistory();
+  }catch(e){ console.error(e); }
+}
+function renderHistory(){
+  const arr = JSON.parse(localStorage.getItem(state.historyKey) || '[]');
+  const el = document.getElementById('historyLog'); el.innerText = arr.map(r=>`${r.ts} — ${JSON.stringify(r.event)}`).join('\n\n');
+}
+document.getElementById('btnClearHistory').addEventListener('click', ()=>{ localStorage.removeItem(state.historyKey); renderHistory(); });
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const arr = JSON.parse(localStorage.getItem(state.historyKey) || '[]');
+  if(!arr.length){ alert('No history'); return; }
+  let csv = 'timestamp,event\n' + arr.map(r => `${r.ts},"${JSON.stringify(r.event).replace(/"/g,'""')}"`).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download='ioncore_history.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+/* -----------------------
+   Incoming telemetry routing
+   ----------------------- */
+function handleIncomingTelemetry(msg){
+  logTo(document.getElementById('timeline'), JSON.stringify(msg));
+  addToHistory(msg);
+  // simple routing: update UI for known types
+  if(msg.type === 'sensor'){
+    if(msg.sensor==='emg') updateEMG(msg.value);
+    if(msg.sensor==='eeg') updateEEG(msg.value);
+  }
+  // robot acknowledgements
+  if(msg.type === 'robot_ack') {
+    logTo(document.getElementById('cmdLog'), `ACK ${msg.cmd} @ ${msg.status}`);
+  }
+  // always add to telemetry log
+  logTo(document.getElementById('telemetryLog'), JSON.stringify(msg));
+}
+
+/* -----------------------
+   Bluetooth scanning (WebBluetooth)
+   ----------------------- */
+document.getElementById('btnScanBT').addEventListener('click', async ()=>{
+  try{
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [/* your GATT UUIDs here */]
+    });
+    state.btDevice = device;
+    document.getElementById('bluetoothStatus').innerText = 'Bluetooth: connected (paired)';
+    document.getElementById('btDeviceName').innerText = device.name || device.id;
+    device.addEventListener('gattserverdisconnected', ()=> {
+      document.getElementById('bluetoothStatus').innerText = 'Bluetooth: disconnected';
+      document.getElementById('btDeviceName').innerText = 'No device';
+    });
+    const srv = await device.gatt.connect();
+    state.btServer = srv;
+    logTo(document.getElementById('telemetryLog'), `BT connected: ${device.name||device.id}`);
+  }catch(e){
+    console.warn('BT fail', e); alert('Bluetooth failed or was canceled.');
+  }
+});
+
+/* -----------------------
+   Camera & detection setup
+   ----------------------- */
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+const cameraStatus = document.getElementById('cameraStatus');
+const modelStatus = document.getElementById('modelStatus');
+
+function resizeCanvas(){
+  // size canvas in actual pixels to match video stream for sharpness
+  const vw = video.videoWidth || video.clientWidth;
+  const vh = video.videoHeight || video.clientHeight;
+  overlay.width = vw;
+  overlay.height = vh;
+  overlay.style.width = video.clientWidth + 'px';
+  overlay.style.height = video.clientHeight + 'px';
+  ctx.imageSmoothingEnabled = true;
+}
+window.addEventListener('resize', ()=> {
+  try{ resizeCanvas(); }catch(e){}
+});
+
+/* Load camera */
+async function startCamera(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ video:{ width:1280, height:720 }, audio:false });
+    video.srcObject = stream;
+    cameraStatus.innerText = 'Camera: active';
+    await video.play();
+    video.addEventListener('loadedmetadata', ()=> {
+      resizeCanvas();
+      loadModels();
+    }, { once:true });
+  }catch(e){
+    alert('Camera access required: ' + (e.message || e));
+    cameraStatus.innerText = 'Camera: error';
+  }
+}
+
+/* Load detection models */
+async function loadModels(){
+  modelStatus.innerText = 'Models: loading...';
+  try{
+    state.cocoModel = await cocoSsd.load();
+    state.blazeface = await blazeface.load();
+    modelStatus.innerText = 'Models: loaded';
+    startDetectionLoop();
+  }catch(e){
+    modelStatus.innerText = 'Models: failed';
+    console.error('Model load failed', e);
+  }
+}
+
+/* Utility to draw rounded rect */
+function roundedRect(ctx, x, y, w, h, r=8){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+/* Detection loop — face (blazeface) + objects (coco-ssd) */
+async function startDetectionLoop(){
+  if(state.detectionRunning) return;
+  state.detectionRunning = true;
+
+  async function drawFaceBoxes(predictions, scaleX, scaleY){
+    ctx.lineWidth = 3;
+    predictions.forEach(p=>{
+      // p.topLeft / bottomRight shape
+      const tl = p.topLeft || p.boundingBox?.topLeft;
+      const br = p.bottomRight || p.boundingBox?.bottomRight;
+      if(!tl || !br) return;
+      const x = tl[0]*scaleX, y = tl[1]*scaleY;
+      const w = (br[0]-tl[0]) * scaleX, h = (br[1]-tl[1]) * scaleY;
+
+      // draw shadow + fill
+      roundedRect(ctx, x-2, y-2, w+4, h+4, 10);
+      ctx.fillStyle = 'rgba(0,200,255,0.08)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,200,255,0.95)';
+      ctx.stroke();
+
+      // label
+      ctx.font = '600 14px Poppins, Inter, sans-serif';
+      const label = 'Face';
+      const tw = ctx.measureText(label).width + 18;
+      roundedRect(ctx, x, y-26, tw, 22, 8);
+      ctx.fillStyle = 'linear-gradient(90deg,#00d1ff,#6b60ff)'; // fallback
+      const grad = ctx.createLinearGradient(x, y-26, x+tw, y-26);
+      grad.addColorStop(0,'#00d1ff'); grad.addColorStop(1,'#6b60ff');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.fillStyle = '#001';
+      ctx.fillText(label, x+10, y-10);
+    });
+    if(predictions.length) addToHistory({ type:'detection', subtype:'face', count:predictions.length });
+  }
+
+  async function drawObjectBoxes(detections, scaleX, scaleY){
+    ctx.lineWidth = 2;
+    detections.slice(0,8).forEach(d=>{
+      const [x0,y0,w0,h0] = d.bbox;
+      const x = x0*scaleX, y = y0*scaleY, w = w0*scaleX, h = h0*scaleY;
+      roundedRect(ctx, x-2, y-2, w+4, h+4, 8);
+      ctx.fillStyle = 'rgba(255,200,0,0.12)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,200,0,0.9)';
+      ctx.stroke();
+
+      // label background
+      ctx.font = '600 13px Inter, sans-serif';
+      const label = `${d.class} ${(d.score*100|0)}%`;
+      const tw = ctx.measureText(label).width + 12;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      roundedRect(ctx, x, y-22, tw, 20, 6);
+      ctx.fill();
+      ctx.fillStyle = '#ffd166';
+      ctx.fillText(label, x+6, y-7);
+    });
+    if(detections.length) addToHistory({ type:'detection', subtype:'object', detections:detections.map(d=>d.class) });
+  }
+
+  async function runOnce(){
+    if(video.readyState < 2) return;
+    ctx.clearRect(0,0,overlay.width, overlay.height);
+    const scaleX = overlay.width / video.videoWidth;
+    const scaleY = overlay.height / video.videoHeight;
+
+    // FE: draw subtle grid overlay for depth
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+    ctx.lineWidth = 1;
+    for(let i=1;i<6;i++){
+      ctx.beginPath();
+      ctx.moveTo(0, overlay.height*i/6);
+      ctx.lineTo(overlay.width, overlay.height*i/6);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if(document.getElementById('faceToggle').checked && state.blazeface){
+      const predictions = await state.blazeface.estimateFaces(video, false);
+      await drawFaceBoxes(predictions, scaleX, scaleY);
+    }
+
+    if(document.getElementById('objToggle').checked && state.cocoModel){
+      const detections = await state.cocoModel.detect(video);
+      await drawObjectBoxes(detections, scaleX, scaleY);
+    }
+  }
+
+  async function loop(){
+    if(!state.detectionRunning) return;
+    try{
+      await runOnce();
+    }catch(e){
+      console.error('detection error', e);
+    }
+    setTimeout(loop, parseInt(document.getElementById('freqSelect').value || 350));
+  }
+  loop();
+}
+
+/* start camera automatically */
+startCamera();
+
+/* -----------------------
+   EMG/EEG Charts (simulated)
+   ----------------------- */
+const emgCtx = document.getElementById('emgChart').getContext('2d');
+const eegCtx = document.getElementById('eegChart').getContext('2d');
+
+function gradientStroke(ctx, colorA, colorB, height){
+  const g = ctx.createLinearGradient(0,0,0,height);
+  g.addColorStop(0, colorA);
+  g.addColorStop(1, colorB);
+  return g;
+}
+
+function makeChart(ctx, label, colorA, colorB){
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels:Array.from({length:40},(_,i)=>i), datasets:[{ label, data:Array.from({length:40},()=>0), borderColor:colorA, backgroundColor: gradientStroke(ctx, colorA, colorB, 140), tension:0.3, radius:0, fill: true }] },
+    options:{ animation:false, plugins:{ legend:{display:false} }, scales:{ x:{display:false}, y:{ min:0, max:1, display:false } }, elements:{ line:{ borderWidth:2 } } }
+  });
+}
+const emgChart = makeChart(emgCtx, 'EMG', '#00d1ff', 'rgba(0,209,255,0.06)');
+const eegChart = makeChart(eegCtx, 'EEG', '#6b60ff', 'rgba(107,96,255,0.06)');
+
+function updateEMG(v){
+  document.getElementById('emgVal').innerText = Number(v).toFixed(2);
+  emgChart.data.datasets[0].data.push(v); emgChart.data.datasets[0].data.shift(); emgChart.update('none');
+}
+function updateEEG(v){
+  document.getElementById('eegVal').innerText = Number(v).toFixed(2);
+  eegChart.data.datasets[0].data.push(v); eegChart.data.datasets[0].data.shift(); eegChart.update('none');
+}
+
+/* Simulate sensor updates every second (demo) */
+setInterval(()=>{
+  const emg = Math.abs((Math.sin(Date.now()/500)+Math.random()*0.4)/1.8);
+  const eeg = Math.abs((Math.cos(Date.now()/700)+Math.random()*0.6)/2.2);
+  updateEMG(emg); updateEEG(eeg);
+  addToHistory({type:'sensor', sensor:'emg', value:emg});
+  addToHistory({type:'sensor', sensor:'eeg', value:eeg});
+}, 1200);
+
+/* -----------------------
+   Gesture simulation
+   ----------------------- */
+const gestures = ['swipe_left','swipe_right','pinch','open_hand','double_tap','none'];
+function simulateGesture(){
+  const g = gestures[Math.floor(Math.random()*gestures.length)];
+  document.getElementById('gestureLabel').innerText = g;
+  addToHistory({type:'gesture', gesture:g});
+  logTo(document.getElementById('timeline'), `gesture:${g}`);
+}
+document.getElementById('simGesture').addEventListener('click', simulateGesture);
+
+/* -----------------------
+   Robotics & Energy Controls
+   ----------------------- */
+function sendCommand(cmd, params={}){
+  const message = { type:'command', cmd, params, ts:new Date().toISOString() };
+  if(state.ws && state.ws.readyState === WebSocket.OPEN){
+    state.ws.send(JSON.stringify(message));
+    logTo(document.getElementById('cmdLog'), 'Sent: ' + JSON.stringify(message));
+  }else{
+    logTo(document.getElementById('cmdLog'), 'Local (sim): ' + JSON.stringify(message));
+  }
+  addToHistory({type:'command', cmd, params});
+}
+document.getElementById('btnArm').addEventListener('click', ()=>sendCommand('arm_robot'));
+document.getElementById('btnDisarm').addEventListener('click', ()=>sendCommand('disarm_robot'));
+document.getElementById('btnMove').addEventListener('click', ()=>sendCommand('move_robot',{vx:0.5,vy:0.0,duration:3000}));
+document.getElementById('btnEnergySave').addEventListener('click', ()=>sendCommand('energy_save_mode'));
+
+/* Simulate other system buttons */
+document.getElementById('simPulse').addEventListener('click', ()=>{
+  const p = {pulse: 72 + Math.round(Math.random()*10)};
+  logTo(document.getElementById('timeline'), `Pulse simulated: ${p.pulse}`);
+  addToHistory({type:'vitals', vitals:p});
+});
+document.getElementById('simEEG').addEventListener('click', ()=>{
+  updateEEG(Math.random()*0.9 + 0.5);
+  addToHistory({type:'sensor', sensor:'eeg_peak', value:Math.random()});
+});
+
+/* -----------------------
+   Timeline controls
+   ----------------------- */
+document.getElementById('btnClearTimeline').addEventListener('click', ()=>{ document.getElementById('timeline').innerText=''; });
+
+/* -----------------------
+   Initialize history
+   ----------------------- */
+renderHistory();
+
+/* -----------------------
+   Notes for integrators (console)
+   ----------------------- */
+console.info(`
+Ion Eye Dashboard loaded (IonCore skins applied).
+Integration notes:
+ - Replace WebSocket address in UI with your telemetry server (wss://...).
+ - Replace WebBluetooth optionalServices with your headset GATT UUIDs and read/write characteristics.
+ - Face detection uses BlazeFace; object detection uses Coco-SSD (TFJS).
+ - Historical memory is persisted to localStorage key "${state.historyKey}".
+`);
+
+/* -----------------------
+  Graceful stop on unload
+  ----------------------- */
+window.addEventListener('beforeunload', ()=>{ if(state.ws) state.ws.close(); if(state.btServer && state.btServer.connected) state.btServer.disconnect(); });
+
+</script>
+</body>
+</html>

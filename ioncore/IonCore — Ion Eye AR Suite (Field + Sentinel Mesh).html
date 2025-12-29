@@ -1,0 +1,3404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IonCore — Ion Eye AR Suite (Field + Sentinel Mesh)</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Core libs -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+  <!-- Optional: MQTT over WebSockets (if you use MQTT connectors) -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    /* ============================================
+       IONCORE AR SUITE — BRANDABLE DESIGN SYSTEM
+       ============================================ */
+    :root{
+      --accent1:#00d1ff;
+      --accent2:#6b60ff;
+      --bg1:#06121a;
+      --bg2:#071625;
+      --panel: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --muted:#9fb3c5;
+      --text:#e6eef6;
+      --good:#5eead4;
+      --warn:#ffd166;
+      --bad:#ff6b6b;
+
+      --radius: 12px;
+      --radius-sm: 10px;
+      --shadow: 0 10px 36px rgba(2,6,23,0.55);
+      --stroke: 1px solid rgba(255,255,255,0.035);
+      --trans: 220ms cubic-bezier(.2,.9,.3,1);
+
+      font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color-scheme: dark;
+    }
+
+    :root[data-theme="light"]{
+      --bg1:#f7fbff;
+      --bg2:#eef5ff;
+      --panel: rgba(2,6,23,0.03);
+      --glass: rgba(2,6,23,0.04);
+      --muted:#3f5d73;
+      --text:#061d26;
+      color-scheme: light;
+    }
+
+    body.field-mode{
+      --radius: 10px;
+      --radius-sm: 10px;
+    }
+
+    html,body{height:100%; margin:0; background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    *{box-sizing:border-box}
+
+    /* Layout */
+    .suite{
+      height:100vh;
+      display:grid;
+      grid-template-columns: 280px 1fr 360px;
+      grid-template-rows: auto 1fr auto;
+      gap:16px;
+      padding:16px;
+    }
+
+    .panel{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Sidebar */
+    .sidebar{
+      grid-row: 1 / 4;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .brand-block{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .logo{
+      width:48px;height:48px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background: linear-gradient(135deg,var(--accent1),var(--accent2));
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      overflow:hidden;
+      flex-shrink:0;
+    }
+    .logo img{width:100%;height:100%;object-fit:cover;display:none;}
+    .logo svg{width:34px;height:34px; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.25));}
+
+    .brand-text{min-width:0}
+    .brand-name{font-family:Poppins,Inter;font-weight:800; letter-spacing:0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .brand-sub{font-size:12px;color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+    .icon-btn{
+      margin-left:auto;
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.05);
+      color:var(--muted);
+      border-radius:10px;
+      width:40px;height:40px;
+      cursor:pointer;
+      transition: transform var(--trans), background var(--trans);
+    }
+    .icon-btn:hover{ transform: translateY(-2px); background: rgba(255,255,255,0.03); }
+
+    .nav{
+      display:flex; flex-direction:column; gap:6px;
+      padding:4px;
+      overflow:auto;
+    }
+    .nav-item{
+      display:flex; gap:12px; align-items:center;
+      padding:10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      transition: transform var(--trans), background var(--trans), box-shadow var(--trans);
+      user-select:none;
+    }
+    .nav-item:hover{ transform: translateX(6px); background: rgba(255,255,255,0.02); }
+    .nav-item.active{ background: linear-gradient(90deg, rgba(0,0,0,0.14), rgba(0,0,0,0.05)); box-shadow: inset 0 0 26px rgba(0,0,0,0.08); }
+    .nav-item svg{width:18px;height:18px; opacity:0.95;}
+    .nav-item .label{font-weight:800}
+    .nav-item .hint{font-size:12px;color:var(--muted); margin-top:2px}
+
+    .sidebar-footer{
+      margin-top:auto;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      padding:10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .pill{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.04);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+    }
+    .pill small{opacity:0.9;font-weight:600}
+
+    /* Topbar */
+    .topbar{
+      grid-column: 2 / 4;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .top-left{display:flex;flex-direction:column;gap:3px; min-width:0}
+    .route-title{font-family:Poppins,Inter;font-size:16px;font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .route-sub{color:var(--muted);font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+    .top-right{display:flex;align-items:center;gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+
+    .badge{
+      display:flex; gap:10px; align-items:center;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      transition: transform var(--trans);
+    }
+    .badge:hover{ transform: translateY(-3px); }
+
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:rgba(255,255,255,0.08);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
+    .dot.pulse{ position:relative; background: var(--accent1); }
+    .dot.pulse::after{
+      content:'';
+      position:absolute; left:-6px; top:-6px;
+      width:22px; height:22px; border-radius:999px;
+      background: var(--accent1);
+      opacity:0;
+      animation: pulse 1600ms infinite;
+      mix-blend-mode: screen;
+    }
+    @keyframes pulse{
+      0%{ transform: scale(.85); opacity:.35 }
+      70%{ transform: scale(1.55); opacity:0 }
+      100%{ opacity:0 }
+    }
+
+    .btn{
+      background: linear-gradient(90deg,var(--accent1),var(--accent2));
+      color:#001;
+      border:none;
+      border-radius: 12px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+      transition: transform var(--trans), box-shadow var(--trans), opacity var(--trans);
+      position:relative;
+      overflow:hidden;
+    }
+    .btn:hover{ transform: translateY(-4px); box-shadow: 0 18px 44px rgba(0,0,0,0.35); }
+    .btn.secondary{
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.06);
+      font-weight:800;
+    }
+    .btn.danger{ background: var(--bad); color:#fff; }
+    .btn.warning{ background: var(--warn); color:#221; }
+    .btn.small{ padding:8px 10px; border-radius: 10px; font-weight:800; }
+
+    /* Ripple micro-interaction */
+    .ripple{
+      position:absolute; border-radius:999px;
+      transform: scale(0); opacity:0.55;
+      background: rgba(255,255,255,0.18);
+      pointer-events:none;
+      animation: ripple 600ms linear;
+    }
+    @keyframes ripple{ to{ transform:scale(5); opacity:0 } }
+
+    /* Main content area */
+    .content{
+      grid-column: 2 / 3;
+      padding:12px;
+      overflow:auto;
+    }
+    .ops{
+      grid-column: 3 / 4;
+      padding:12px;
+      overflow:auto;
+    }
+    .footer{
+      grid-column: 2 / 4;
+      padding:12px 14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* Views */
+    .view{ display:none; gap:12px; }
+    .view.active{ display:flex; flex-direction:column; }
+
+    /* Dashboard layout */
+    .dash-grid{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:12px;
+    }
+
+    /* Live video */
+    .video-card{ padding:12px; }
+    .video-wrap{
+      position:relative;
+      border-radius: 14px;
+      overflow:hidden;
+      background: linear-gradient(180deg,#000,#00121a);
+      border: 1px solid rgba(255,255,255,0.03);
+      min-height: 360px;
+    }
+    .video-toolbar{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .video-stage{
+      position:relative;
+      height:420px;
+    }
+    video{ width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block; }
+    canvas.over{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+    .segmented{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      padding:10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .segmented label{ font-size:13px; color:var(--muted); font-weight:800; }
+    .segmented input, .segmented select{
+      accent-color: var(--accent1);
+    }
+    select, input[type="text"], input[type="number"], textarea{
+      width:100%;
+      padding:10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+      color: inherit;
+      outline:none;
+    }
+    textarea{ min-height: 110px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; }
+
+    /* Sensor cards */
+    .sensor-card{
+      padding:12px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .sensor-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+    .sensor-head .name{ font-weight:900; }
+    .sensor-head .type{ font-size:12px; color:var(--muted); font-weight:800;}
+    .sensor-head .val{ font-weight:900; }
+    .chart{ height:140px; margin-top:8px; }
+
+    /* Logs */
+    .log{
+      background: linear-gradient(180deg, rgba(2,8,16,0.52), rgba(2,8,16,0.36));
+      border: 1px solid rgba(255,255,255,0.02);
+      border-radius: 12px;
+      padding:12px;
+      overflow:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size:12px;
+      color:#bfefff;
+      max-height: 220px;
+      white-space: pre-wrap;
+    }
+
+    /* Ops panel blocks */
+    .block{ padding:12px; border-radius: var(--radius); border:1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.02); }
+    .block h4{ margin:0 0 8px 0; font-family:Poppins,Inter; letter-spacing:0.3px; }
+    .block .muted{ color:var(--muted); font-size:13px; }
+
+    /* Cards / headings */
+    h3{ margin:0; font-family:Poppins,Inter; letter-spacing:0.4px; }
+    hr{ border:none; border-top:1px solid rgba(255,255,255,0.06); opacity:0.8; margin:12px 0; }
+
+    /* Mesh view */
+    .mesh-grid{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:12px;
+    }
+    .mesh-canvas{
+      width:100%;
+      height:520px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(255,255,255,0.02));
+      display:block;
+    }
+    .node-list{
+      display:flex; flex-direction:column; gap:8px;
+      max-height: 320px;
+      overflow:auto;
+      padding-right: 6px;
+    }
+    .node-row{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      padding:10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.02);
+      cursor:pointer;
+      transition: transform var(--trans), background var(--trans);
+    }
+    .node-row:hover{ transform: translateY(-2px); background: rgba(255,255,255,0.03); }
+    .node-row .left{ min-width:0; }
+    .node-row .id{ font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .node-row .meta{ font-size:12px; color:var(--muted); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chip{
+      padding:6px 10px;
+      border-radius: 999px;
+      font-size:12px;
+      font-weight:900;
+      border:1px solid rgba(255,255,255,0.04);
+      color: var(--muted);
+      background: rgba(255,255,255,0.02);
+      display:flex; align-items:center; gap:8px;
+      white-space:nowrap;
+    }
+
+    /* Toasts */
+    .toast-stack{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index: 9999;
+      pointer-events:none;
+    }
+    .toast{
+      pointer-events:auto;
+      min-width: 280px;
+      max-width: 360px;
+      padding:12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(255,255,255,0.02));
+      box-shadow: 0 18px 40px rgba(0,0,0,0.38);
+      animation: toastIn 260ms var(--trans);
+    }
+    @keyframes toastIn{ from{ transform:translateY(10px); opacity:0 } to{ transform:translateY(0); opacity:1 } }
+    .toast .t{ font-weight:900; }
+    .toast .m{ margin-top:4px; color:var(--muted); font-size:13px; }
+    .toast .a{ margin-top:10px; display:flex; gap:8px; justify-content:flex-end; }
+
+    /* Responsive */
+    @media (max-width: 1180px){
+      .suite{
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+      }
+      .sidebar{ grid-row:auto; grid-column:1/2; flex-direction:row; align-items:center; overflow:auto; }
+      .nav{ flex-direction:row; }
+      .content{ grid-column:1/2; }
+      .ops{ grid-column:1/2; }
+      .topbar{ grid-column:1/2; }
+      .footer{ grid-column:1/2; }
+      .dash-grid, .mesh-grid{ grid-template-columns: 1fr; }
+      .video-stage{ height: 340px; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{ width:10px; height:10px; }
+    ::-webkit-scrollbar-thumb{ border-radius:999px; background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); }
+    ::-webkit-scrollbar-track{ background: transparent; }
+  </style>
+</head>
+
+<body>
+  <div class="suite" id="suite">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar panel" aria-label="IonCore Suite Navigation">
+      <div class="brand-block">
+        <div class="logo" title="Brand Logo">
+          <img id="brandLogoImg" alt="Brand Logo" />
+          <!-- fallback logo -->
+          <svg id="brandLogoFallback" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0" stop-color="var(--accent1)"/>
+                <stop offset="1" stop-color="var(--accent2)"/>
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="32" r="28" fill="url(#g1)" opacity="0.95"/>
+            <path d="M20 36c4-6 18-10 24-2" stroke="#001" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="38" cy="24" r="3.6" fill="#001"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-name" id="brandName">IonCore</div>
+          <div class="brand-sub" id="brandTagline">Ion Eye · AR Suite</div>
+        </div>
+        <button class="icon-btn" id="btnSidebarQuick" title="Quick Actions">⚡</button>
+      </div>
+
+      <div class="nav" id="nav">
+        <div class="nav-item active" data-view="dashboard">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zM13 21h8V11h-8v10zM13 3v6h8V3h-8z"/></svg>
+          <div><div class="label">Dashboard</div><div class="hint">Ops overview</div></div>
+        </div>
+
+        <div class="nav-item" data-view="live">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4 -1.79-4-4-4zm0-6C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+          <div><div class="label">Live AR</div><div class="hint">Camera + overlays</div></div>
+        </div>
+
+        <div class="nav-item" data-view="mesh">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 2h4v4H6V2zm8 0h4v4h-4V2zM6 10h4v4H6v-4zm8 0h4v4h-4v-4zM6 18h4v4H6v-4zm8 0h4v4h-4v-4z"/></svg>
+          <div><div class="label">Sentinel Mesh</div><div class="hint">Nodes + topology</div></div>
+        </div>
+
+        <div class="nav-item" data-view="integrations">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 3H3v7h7V3zm11 0h-7v7h7V3zM10 14H3v7h7v-7zm11 0h-7v7h7v-7z"/></svg>
+          <div><div class="label">Integrations</div><div class="hint">Connect systems</div></div>
+        </div>
+
+        <div class="nav-item" data-view="recorder">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 7a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h-2V7h2z"/></svg>
+          <div><div class="label">Recorder</div><div class="hint">Capture + replay</div></div>
+        </div>
+
+        <div class="nav-item" data-view="alerts">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7v5l-2 2v1h18v-1l-2-2V9a7 7 0 0 0-7-7zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>
+          <div><div class="label">Alerts</div><div class="hint">Rules + feed</div></div>
+        </div>
+
+        <div class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19.14,12.94a7.35,7.35,0,0,0,.05-1l2-1.54L20.6,8.1l-2,1.54a7.14,7.14,0,0,0-1.7-.98L16.5,6H13.5L12.8,8.66a7.27,7.27,0,0,0-1.7.98L8.9,8.1,7.81,9.36l2,1.54a7.35,7.35,0,0,0,0,2.28l-2,1.54L8.9,15.9l2-1.54a7.27,7.27,0,0,0,1.7.98L13.5,18h3L17.6,15.34a7.14,7.14,0,0,0,1.7-.98l2,1.54L21.05,14.4Z"/></svg>
+          <div><div class="label">Settings</div><div class="hint">Brand + theme</div></div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="pill" id="pillField">
+          <span>Field</span>
+          <small id="fieldState">OFF</small>
+        </div>
+        <div class="pill" id="pillOffline">
+          <span>Network</span>
+          <small id="offlineState">Online</small>
+        </div>
+      </div>
+    </nav>
+
+    <!-- TOPBAR -->
+    <header class="topbar panel">
+      <div class="top-left">
+        <div class="route-title" id="routeTitle">Dashboard</div>
+        <div class="route-sub" id="routeSub">Field-ready AR operations console</div>
+      </div>
+
+      <div class="top-right">
+        <div class="badge" id="badgeWifi"><span class="dot pulse"></span><span id="wifiText">Wi‑Fi: unknown</span></div>
+        <div class="badge" id="badgeConns"><span class="dot"></span><span id="connText">Links: 0</span></div>
+        <div class="badge" id="badgeShare"><span class="dot"></span><span id="shareText">Share: off</span></div>
+
+        <div class="badge" title="System Time"><span class="dot"></span><span id="sysTime">—</span></div>
+
+        <button class="btn secondary small" id="btnTheme" title="Toggle light/dark">🌗</button>
+        <input id="accentPicker" type="color" value="#00d1ff" title="Accent" style="width:44px;height:40px;border-radius:12px;border:none;padding:3px;background:transparent;cursor:pointer"/>
+        <button class="btn secondary small" id="btnToastTest" title="Test toast">🔔</button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="content panel">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <div class="dash-grid">
+          <section class="video-card panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+              <div>
+                <h3>Scene View</h3>
+                <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">Local camera + ML overlays + remote sentinel overlays</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn secondary small" id="btnSnapshot">📸 Snapshot</button>
+                <button class="btn small" id="btnStartDetect">Start</button>
+                <button class="btn secondary small" id="btnStopDetect">Stop</button>
+              </div>
+            </div>
+
+            <div class="segmented" style="margin-top:10px">
+              <label>Face</label><input id="faceToggle" type="checkbox" checked>
+              <label>Objects</label><input id="objToggle" type="checkbox" checked>
+              <label>Remote overlays</label><input id="remoteOverlayToggle" type="checkbox" checked>
+              <label>Freq</label>
+              <select id="freqSelect" style="max-width:120px">
+                <option value="200">200ms</option>
+                <option value="350" selected>350ms</option>
+                <option value="500">500ms</option>
+              </select>
+            </div>
+
+            <div class="video-wrap" style="margin-top:10px">
+              <div class="video-toolbar">
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="chip"><span class="dot" id="camDot"></span> <span id="camStatus">Camera: idle</span></span>
+                  <span class="chip"><span class="dot" id="modelDot"></span> <span id="modelStatus">Models: unloaded</span></span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="chip">Job: <span id="jobLabel" style="color:var(--text);font-weight:900">—</span></span>
+                </div>
+              </div>
+              <div class="video-stage" id="videoStage">
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="overlay" class="over"></canvas>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel" style="padding:12px; display:flex; flex-direction:column; gap:12px">
+            <div class="sensor-card">
+              <div class="sensor-head">
+                <div>
+                  <div class="name">EMG</div>
+                  <div class="type">muscle</div>
+                </div>
+                <div class="val" id="emgVal">0.00</div>
+              </div>
+              <div class="chart"><canvas id="emgChart"></canvas></div>
+            </div>
+
+            <div class="sensor-card">
+              <div class="sensor-head">
+                <div>
+                  <div class="name">EEG</div>
+                  <div class="type">brain</div>
+                </div>
+                <div class="val" id="eegVal">0.00</div>
+              </div>
+              <div class="chart"><canvas id="eegChart"></canvas></div>
+            </div>
+
+            <div class="sensor-card">
+              <div class="sensor-head">
+                <div>
+                  <div class="name">Gesture</div>
+                  <div class="type">detected</div>
+                </div>
+                <div class="val" id="gestureLabel" style="color:var(--muted)">None</div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px">
+                <button class="btn" id="btnArm">ARM</button>
+                <button class="btn danger" id="btnDisarm">DISARM</button>
+                <button class="btn" id="btnMove" style="grid-column:1/3; background:linear-gradient(90deg,#69f0ae,#00e5ff); color:#002">MOVE →</button>
+                <button class="btn warning" id="btnEnergySave">Energy: SAVE</button>
+              </div>
+
+              <div style="display:flex; gap:10px; margin-top:12px">
+                <button class="btn secondary small" id="simGesture">Sim Gesture</button>
+                <button class="btn secondary small" id="simPulse">Sim Pulse</button>
+                <button class="btn secondary small" id="simEEG">Sim EEG Spike</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 480px; gap:12px; margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <h3>Telemetry Timeline</h3>
+              <div style="display:flex;gap:8px">
+                <button class="btn secondary small" id="btnClearTimeline">Clear</button>
+                <button class="btn secondary small" id="btnExportHistory">Export CSV</button>
+              </div>
+            </div>
+            <div class="log" id="timeline" style="height:220px;margin-top:10px"></div>
+          </section>
+
+          <section class="panel" style="padding:12px">
+            <h3>Ops Quick Actions</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Field-ready macros (queue-safe)
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+              <button class="btn" id="btnEStop" style="background: linear-gradient(90deg, #ff6b6b, #ffb4b4); color:#300">EMERGENCY STOP</button>
+              <button class="btn secondary" id="btnTagJob">Tag Job Site</button>
+              <button class="btn secondary" id="btnRequestOverlays">Request Remote Overlays</button>
+              <button class="btn secondary" id="btnOpenIntegrations">Open Integrations</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- LIVE AR -->
+      <section class="view" id="view-live">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+          <div>
+            <h3>Live AR View</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">Full-screen-ish view for field work</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn secondary small" id="btnLiveFocus">Field HUD</button>
+            <button class="btn secondary small" id="btnLiveSnapshot">Snapshot</button>
+            <button class="btn small" id="btnLiveStart">Start Detect</button>
+            <button class="btn secondary small" id="btnLiveStop">Stop</button>
+          </div>
+        </div>
+
+        <div class="segmented" style="margin-top:12px">
+          <label>Face</label><input id="faceToggle2" type="checkbox" checked>
+          <label>Objects</label><input id="objToggle2" type="checkbox" checked>
+          <label>Remote overlays</label><input id="remoteOverlayToggle2" type="checkbox" checked>
+          <label>Stream</label>
+          <select id="freqSelect2" style="max-width:120px">
+            <option value="200">200ms</option>
+            <option value="350" selected>350ms</option>
+            <option value="500">500ms</option>
+          </select>
+          <div style="margin-left:auto; display:flex; gap:8px; align-items:center">
+            <span class="chip">Overlays: <span id="overlayCount" style="font-weight:900;color:var(--text)">0</span></span>
+            <span class="chip">Nodes: <span id="nodeCount" style="font-weight:900;color:var(--text)">0</span></span>
+          </div>
+        </div>
+
+        <div class="video-wrap" style="margin-top:12px">
+          <div class="video-toolbar">
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="chip"><span class="dot" id="camDot2"></span> <span id="camStatus2">Camera: idle</span></span>
+              <span class="chip"><span class="dot" id="modelDot2"></span> <span id="modelStatus2">Models: unloaded</span></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn secondary small" id="btnToggleGrid">Grid</button>
+              <button class="btn secondary small" id="btnToggleLabels">Labels</button>
+            </div>
+          </div>
+          <div class="video-stage" id="videoStage2" style="height:560px">
+            <!-- Reuse same video element via JS (we’ll move it) -->
+            <div style="display:flex;align-items:center;justify-content:center;color:var(--muted);height:100%;">Loading…</div>
+          </div>
+        </div>
+
+        <div class="panel" style="padding:12px; margin-top:12px">
+          <h3>AR Overlay Protocol</h3>
+          <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+            Remote nodes can send overlays via the telemetry bus using:
+          </div>
+          <pre class="log" style="margin-top:10px; max-height:200px">
+{
+  "type": "overlay",
+  "nodeId": "sentinel-01",
+  "ttl": 800,
+  "space": "norm",
+  "items": [
+    { "kind":"box", "x":0.25, "y":0.18, "w":0.2, "h":0.28, "label":"Hazard", "color":"#ffd166" },
+    { "kind":"text", "x":0.25, "y":0.14, "text":"Gas Leak", "color":"#ff6b6b" },
+    { "kind":"polyline", "points":[[0.1,0.9],[0.2,0.7],[0.35,0.75]], "color":"#00d1ff" }
+  ]
+}
+          </pre>
+        </div>
+      </section>
+
+      <!-- SENTINEL MESH -->
+      <section class="view" id="view-mesh">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+          <div>
+            <h3>Sentinel Mesh</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">Node registry + live topology + overlay routing</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn secondary small" id="btnMeshReset">Reset layout</button>
+            <button class="btn secondary small" id="btnMeshPing">Ping all</button>
+            <button class="btn small" id="btnMeshShare">Share Mesh Live</button>
+          </div>
+        </div>
+
+        <div class="mesh-grid" style="margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <canvas id="meshCanvas" class="mesh-canvas"></canvas>
+            <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px">
+              <div style="color:var(--muted);font-size:13px;font-weight:800">
+                Tip: click a node in the list to focus it. Drag nodes on canvas.
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="chip">Edges: <span id="edgeCount" style="font-weight:900;color:var(--text)">0</span></span>
+                <span class="chip">Nodes: <span id="nodeCount2" style="font-weight:900;color:var(--text)">0</span></span>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel" style="padding:12px">
+            <h3 style="margin-bottom:8px">Nodes</h3>
+            <div class="node-list" id="nodeList"></div>
+
+            <hr>
+            <h3 style="margin-bottom:8px">Focused Node</h3>
+            <div class="block">
+              <div class="muted">ID</div>
+              <div style="font-weight:900;margin-top:2px" id="focusId">—</div>
+              <div class="muted" style="margin-top:10px">Name</div>
+              <div style="font-weight:900;margin-top:2px" id="focusName">—</div>
+              <div class="muted" style="margin-top:10px">Last seen</div>
+              <div style="font-weight:900;margin-top:2px" id="focusSeen">—</div>
+
+              <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+                <button class="btn secondary small" id="btnFocusOverlay">Toggle overlays</button>
+                <button class="btn secondary small" id="btnFocusRequest">Request stream</button>
+                <button class="btn secondary small" id="btnFocusCmd">Send command</button>
+              </div>
+            </div>
+
+            <hr>
+            <h3 style="margin-bottom:8px">Overlay Layers</h3>
+            <div class="block">
+              <div class="muted">Enable / disable remote overlay layers per node</div>
+              <div id="overlayLayerList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- INTEGRATIONS -->
+      <section class="view" id="view-integrations">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+          <div>
+            <h3>Integrations</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">
+              Connect external systems → ingest into IonCore telemetry bus
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn secondary small" id="btnAddPreset">Add presets</button>
+            <button class="btn small" id="btnStartAll">Start all</button>
+            <button class="btn secondary small" id="btnStopAll">Stop all</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 480px; gap:12px; margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <h3>Add Connector</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">Bring in telemetry, overlays, topology from other systems</div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px">
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Type</label>
+                <select id="connType">
+                  <option value="ws">WebSocket (JSON)</option>
+                  <option value="mqtt">MQTT (wss)</option>
+                  <option value="rest">REST Poll</option>
+                  <option value="sse">SSE (EventSource)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Name</label>
+                <input id="connName" type="text" placeholder="Sentinel East / ROS Bridge / Edge Node">
+              </div>
+
+              <div style="grid-column:1/3">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">URL</label>
+                <input id="connUrl" type="text" placeholder="wss://...  |  https://...  |  ws://...">
+              </div>
+
+              <div id="mqttTopicsWrap" style="grid-column:1/3; display:none">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">MQTT Topics (comma separated)</label>
+                <input id="mqttTopics" type="text" placeholder="ioncore/telemetry, ioncore/overlay, nodes/+/status">
+              </div>
+
+              <div id="restIntervalWrap" style="display:none">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Poll ms</label>
+                <input id="restInterval" type="number" value="1000" min="250" step="50">
+              </div>
+
+              <div id="wrapTypeWrap">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Incoming mapping</label>
+                <select id="wrapMode">
+                  <option value="auto" selected>Auto parse IonCore messages</option>
+                  <option value="wrap">Wrap into {type:"external", payload:...}</option>
+                </select>
+              </div>
+
+              <div style="grid-column:1/3; display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-top:6px">
+                <button class="btn secondary" id="btnTestConn">Test</button>
+                <button class="btn" id="btnAddConn">Add Connector</button>
+              </div>
+            </div>
+
+            <hr>
+
+            <h3>Connectors</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Start/stop connectors. All incoming data is merged into the suite telemetry bus.
+            </div>
+            <div id="connectorList" style="display:flex;flex-direction:column;gap:10px;margin-top:12px"></div>
+          </section>
+
+          <aside class="panel" style="padding:12px">
+            <h3>Live Share Node</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              WebRTC P2P share for a field team — share telemetry + overlays without central infra.
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <button class="btn" id="btnCreateShare">Create Share</button>
+              <button class="btn secondary" id="btnJoinShare">Join Share</button>
+              <button class="btn secondary" id="btnCloseShare">Close</button>
+            </div>
+
+            <div style="margin-top:12px">
+              <label style="color:var(--muted);font-weight:800;font-size:13px">Offer / Answer JSON</label>
+              <textarea id="shareSDP" placeholder="Paste offer/answer here..."></textarea>
+              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+                <button class="btn secondary small" id="btnCopySDP">Copy</button>
+                <button class="btn secondary small" id="btnPasteSDP">Paste</button>
+              </div>
+            </div>
+
+            <hr>
+
+            <h3>Protocol Quickstart</h3>
+            <div class="log" style="max-height:220px;margin-top:10px">
+Connect any system by emitting JSON messages like:
+
+{ "type":"sensor", "sensor":"emg", "value":0.42, "nodeId":"headset-01" }
+
+{ "type":"node_status", "nodeId":"sentinel-02", "name":"Sentinel West", "online":true }
+
+{ "type":"topology", "links":[{"from":"headset-01","to":"robot-01","label":"cmd"}] }
+
+{ "type":"overlay", "nodeId":"sentinel-02", "space":"norm", "ttl":800, "items":[ ... ] }
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- RECORDER -->
+      <section class="view" id="view-recorder">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+          <div>
+            <h3>Recorder</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">
+              Record telemetry bus → export → replay for debugging / training
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn" id="btnRecStart">Start Recording</button>
+            <button class="btn secondary" id="btnRecStop">Stop</button>
+            <button class="btn secondary" id="btnRecExport">Export JSON</button>
+            <button class="btn secondary" id="btnRecImport">Import & Replay</button>
+            <input type="file" id="recFile" accept="application/json" style="display:none">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 460px; gap:12px; margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <h3>Recording Buffer</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Current recording in memory (also mirrored into localStorage optionally)
+            </div>
+            <div class="log" id="recLog" style="height:420px;margin-top:12px"></div>
+          </section>
+
+          <aside class="panel" style="padding:12px">
+            <h3>Replay Controls</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Replay emits recorded messages back into the suite bus.
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px">
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Speed</label>
+                <select id="replaySpeed">
+                  <option value="0.25">0.25×</option>
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="2">2×</option>
+                  <option value="4">4×</option>
+                </select>
+              </div>
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Mode</label>
+                <select id="replayMode">
+                  <option value="timed" selected>Timed</option>
+                  <option value="step">Step</option>
+                </select>
+              </div>
+
+              <div style="grid-column:1/3; display:flex; gap:10px; margin-top:6px">
+                <button class="btn" id="btnReplayStart">Replay</button>
+                <button class="btn secondary" id="btnReplayPause">Pause</button>
+                <button class="btn secondary" id="btnReplayStep">Step</button>
+                <button class="btn danger" id="btnReplayStop">Stop</button>
+              </div>
+            </div>
+
+            <hr>
+
+            <h3>Field Export</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Use recordings to share incidents with engineering teams.
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+              <button class="btn secondary" id="btnRecMarkIncident">Mark Incident</button>
+              <button class="btn secondary" id="btnRecClear">Clear Buffer</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ALERTS -->
+      <section class="view" id="view-alerts">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+          <div>
+            <h3>Alerts</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">
+              Rules engine → toast + persistent feed
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn secondary small" id="btnAlertsReset">Reset rules</button>
+            <button class="btn small" id="btnAlertsSave">Save</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 520px; gap:12px; margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <h3>Rules</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">Simple thresholds (extendable)</div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px">
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">EMG threshold</label>
+                <input id="ruleEmg" type="number" min="0" max="1.5" step="0.05" value="0.85">
+              </div>
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">EEG threshold</label>
+                <input id="ruleEeg" type="number" min="0" max="2.0" step="0.05" value="0.95">
+              </div>
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Overlay spam limit / 10s</label>
+                <input id="ruleOverlayRate" type="number" min="1" max="200" step="1" value="60">
+              </div>
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Node timeout (ms)</label>
+                <input id="ruleNodeTimeout" type="number" min="1000" step="250" value="8000">
+              </div>
+
+              <div style="grid-column:1/3; display:flex; gap:8px; align-items:center; margin-top:6px">
+                <input id="ruleEnable" type="checkbox" checked>
+                <label for="ruleEnable" style="color:var(--muted);font-weight:900">Enable rules engine</label>
+              </div>
+
+              <div style="grid-column:1/3">
+                <button class="btn" id="btnAlertsTest">Trigger test alert</button>
+              </div>
+            </div>
+
+            <hr>
+
+            <h3>Alert Feed</h3>
+            <div class="log" id="alertFeed" style="height:320px;margin-top:12px"></div>
+          </section>
+
+          <aside class="panel" style="padding:12px">
+            <h3>What counts as an “Alert”?</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Alerts are raised from live telemetry + node health.
+            </div>
+
+            <div class="log" style="max-height:420px;margin-top:12px">
+Examples raised by the suite:
+
+- EMG over threshold
+- EEG spike over threshold
+- Node silent longer than timeout
+- Overlay stream flooding (DoS / runaway loop)
+- Share link disconnected
+- Command queued too long (offline)
+
+You can extend with:
+- custom rules per nodeId
+- safety zones
+- geofence / job-site constraints
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+          <div>
+            <h3>Settings</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:4px">
+              Brand kit + theme + field profile
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn secondary" id="btnResetBrand">Reset</button>
+            <button class="btn" id="btnSaveBrand">Save</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 520px; gap:12px; margin-top:12px">
+          <section class="panel" style="padding:12px">
+            <h3>Brand Kit</h3>
+            <div style="color:var(--muted);font-size:13px;font-weight:800;margin-top:6px">
+              Customize this suite per team / customer / deployment.
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px">
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Brand name</label>
+                <input id="setBrandName" type="text" value="IonCore">
+              </div>
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Tagline</label>
+                <input id="setBrandTagline" type="text" value="Ion Eye · AR Suite">
+              </div>
+
+              <div style="grid-column:1/3">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Logo (upload)</label>
+                <input id="setLogo" type="file" accept="image/*">
+                <div style="color:var(--muted);font-size:12px;font-weight:800;margin-top:6px">
+                  Saved as data URL in localStorage (good for demos; use a real asset pipeline in production).
+                </div>
+              </div>
+
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Theme</label>
+                <select id="setTheme">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Accent</label>
+                <input id="setAccent" type="color" value="#00d1ff" style="width:100%;height:42px;border-radius:12px;border:none;padding:3px;background:transparent;cursor:pointer">
+              </div>
+
+              <div style="grid-column:1/3">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Field mode</label>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <button class="btn secondary" id="btnToggleField">Toggle Field Mode</button>
+                  <span class="chip">Status: <span id="fieldModeLabel" style="font-weight:900;color:var(--text)">OFF</span></span>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <h3>Job Site Context</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px">
+              <div style="grid-column:1/3">
+                <label style="color:var(--muted);font-weight:800;font-size:13px">Current job label</label>
+                <input id="jobInput" type="text" placeholder="Plant A · Line 3 · Shift B">
+              </div>
+              <div>
+                <button class="btn" id="btnSetJob">Set Job</button>
+              </div>
+              <div>
+                <button class="btn secondary" id="btnClearJob">Clear</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel" style="padding:12px">
+            <h3>Security & Deployment Notes</h3>
+            <div class="log" style="max-height:520px;margin-top:12px">
+Production checklist:
+- Use TLS (wss://) for all sockets.
+- Authenticate connectors (JWT / mutual TLS).
+- Validate telemetry schemas server-side before forwarding to operators.
+- Keep command channels separated from telemetry channels.
+- Rate-limit overlay streams (prevent flood).
+- Enforce RBAC: operator / supervisor / admin.
+- For WebRTC share: use a secured signaling service; manual copy/paste is demo-safe but not ergonomic.
+
+Branding:
+- Host logo and CSS in your assets pipeline.
+- Provide per-customer config via JSON manifest.
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <!-- OPS PANEL -->
+    <aside class="ops panel">
+      <div class="block">
+        <h4>Ops Status</h4>
+        <div class="muted">Real-time suite health & queue</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <div class="pill"><span>Online</span><small id="opsOnline">—</small></div>
+          <div class="pill"><span>Connectors</span><small id="opsConnCount">0</small></div>
+          <div class="pill"><span>Share</span><small id="opsShareState">off</small></div>
+          <div class="pill"><span>Queued cmds</span><small id="opsQueue">0</small></div>
+        </div>
+      </div>
+
+      <div class="block" style="margin-top:12px">
+        <h4>Command Log</h4>
+        <div class="muted">Sent + queued commands</div>
+        <div class="log" id="cmdLog" style="height:160px;margin-top:10px"></div>
+      </div>
+
+      <div class="block" style="margin-top:12px">
+        <h4>Raw Telemetry</h4>
+        <div class="muted">All ingested messages</div>
+        <div class="log" id="telemetryLog" style="height:220px;margin-top:10px"></div>
+      </div>
+
+      <div class="block" style="margin-top:12px">
+        <h4>Field Logs</h4>
+        <div class="muted">Saved events & tags</div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn secondary small" id="btnHistoryClear">Clear history</button>
+          <button class="btn secondary small" id="btnHistoryExport">Export CSV</button>
+          <button class="btn secondary small" id="btnHistoryOpen">Open Recorder</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- FOOTER -->
+    <footer class="footer panel">
+      <div id="footerLeft">IonCore · Ion Eye AR Suite · Field Edition</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="chip">Version <span style="font-weight:900;color:var(--text)">2.0-suite</span></span>
+        <span class="chip">LocalStore <span style="font-weight:900;color:var(--text)">enabled</span></span>
+      </div>
+    </footer>
+
+  </div>
+
+  <div class="toast-stack" id="toasts"></div>
+
+<script>
+/* ============================================================
+   IONCORE AR SUITE — BUS, CONNECTORS, MESH, OVERLAYS, SHARE
+   ============================================================ */
+
+/* -----------------------
+   Storage keys
+----------------------- */
+const KEYS = {
+  theme: 'ioncore_theme_v2',
+  accent: 'ioncore_accent_v2',
+  field: 'ioncore_fieldmode_v2',
+  brand: 'ioncore_brand_v2',
+  job: 'ioncore_job_v2',
+  connectors: 'ioncore_connectors_v2',
+  history: 'ioncore_history_v2',
+  alerts: 'ioncore_alerts_v2',
+  recording: 'ioncore_recording_v2'
+};
+
+/* -----------------------
+   Utils
+----------------------- */
+const $ = (id)=> document.getElementById(id);
+const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
+const nowISO = ()=> new Date().toISOString();
+const now = ()=> Date.now();
+
+function uid(){
+  return 'm_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+}
+
+function safeJSONParse(str){
+  try{ return JSON.parse(str); }catch(e){ return null; }
+}
+
+function logTo(el, text){
+  if(!el) return;
+  el.innerText = `${nowISO()} — ${text}\n` + el.innerText;
+}
+
+function toast(title, message, kind='info'){
+  const host = $('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast';
+
+  const dotColor = kind === 'danger' ? 'var(--bad)' : kind === 'warning' ? 'var(--warn)' : kind === 'good' ? 'var(--good)' : 'var(--accent1)';
+
+  t.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <div class="dot" style="background:${dotColor}; margin-top:4px"></div>
+      <div style="flex:1">
+        <div class="t">${title}</div>
+        <div class="m">${message}</div>
+        <div class="a">
+          <button class="btn secondary small" data-act="close">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+  t.querySelector('[data-act="close"]').addEventListener('click', ()=> t.remove());
+  host.appendChild(t);
+  setTimeout(()=> { if(t.isConnected) t.remove(); }, 5200);
+}
+
+/* Button ripple */
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.btn');
+  if(!btn) return;
+  const r = btn.getBoundingClientRect();
+  const s = document.createElement('span');
+  s.className = 'ripple';
+  s.style.left = (e.clientX - r.left) + 'px';
+  s.style.top = (e.clientY - r.top) + 'px';
+  const size = Math.max(r.width, r.height);
+  s.style.width = s.style.height = size + 'px';
+  btn.appendChild(s);
+  setTimeout(()=> s.remove(), 700);
+});
+
+/* -----------------------
+   Theme / Accent / Field mode
+----------------------- */
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(KEYS.theme, theme);
+  $('setTheme').value = theme;
+}
+function applyAccent(hex){
+  document.documentElement.style.setProperty('--accent1', hex);
+  // derive accent2 as a lighter blend (not perfect but good)
+  const sec = lighten(hex, 0.18);
+  document.documentElement.style.setProperty('--accent2', sec);
+  localStorage.setItem(KEYS.accent, hex);
+
+  $('accentPicker').value = hex;
+  $('setAccent').value = hex;
+}
+function lighten(hex, pct){
+  const n = parseInt(hex.replace('#',''),16);
+  let r = (n>>16) + Math.round(255*pct);
+  let g = ((n>>8)&255) + Math.round(255*pct);
+  let b = (n&255) + Math.round(255*pct);
+  r = Math.min(255,r); g=Math.min(255,g); b=Math.min(255,b);
+  return '#' + ((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+function setFieldMode(on){
+  document.body.classList.toggle('field-mode', on);
+  localStorage.setItem(KEYS.field, String(on));
+  $('fieldState').innerText = on ? 'ON' : 'OFF';
+  $('fieldModeLabel').innerText = on ? 'ON' : 'OFF';
+  $('pillField').style.borderColor = on ? 'rgba(94,234,212,0.35)' : 'rgba(255,255,255,0.04)';
+}
+
+/* -----------------------
+   Brand Kit
+----------------------- */
+function loadBrand(){
+  const brand = safeJSONParse(localStorage.getItem(KEYS.brand) || '{}') || {};
+  $('setBrandName').value = brand.name || 'IonCore';
+  $('setBrandTagline').value = brand.tagline || 'Ion Eye · AR Suite';
+
+  $('brandName').innerText = $('setBrandName').value;
+  $('brandTagline').innerText = $('setBrandTagline').value;
+
+  if(brand.logoDataUrl){
+    const img = $('brandLogoImg');
+    img.src = brand.logoDataUrl;
+    img.style.display = 'block';
+    $('brandLogoFallback').style.display = 'none';
+  }else{
+    $('brandLogoImg').style.display = 'none';
+    $('brandLogoFallback').style.display = 'block';
+  }
+
+  // footer text
+  $('footerLeft').innerText = `${$('setBrandName').value} · ${$('setBrandTagline').value}`;
+}
+function saveBrand(logoDataUrl=null){
+  const brand = {
+    name: $('setBrandName').value.trim() || 'IonCore',
+    tagline: $('setBrandTagline').value.trim() || 'Ion Eye · AR Suite',
+    logoDataUrl: logoDataUrl ?? (safeJSONParse(localStorage.getItem(KEYS.brand) || '{}')||{}).logoDataUrl || null
+  };
+  localStorage.setItem(KEYS.brand, JSON.stringify(brand));
+  $('brandName').innerText = brand.name;
+  $('brandTagline').innerText = brand.tagline;
+  $('footerLeft').innerText = `${brand.name} · ${brand.tagline}`;
+
+  if(brand.logoDataUrl){
+    $('brandLogoImg').src = brand.logoDataUrl;
+    $('brandLogoImg').style.display = 'block';
+    $('brandLogoFallback').style.display = 'none';
+  }else{
+    $('brandLogoImg').style.display = 'none';
+    $('brandLogoFallback').style.display = 'block';
+  }
+  toast('Brand saved', 'Your IonCore suite branding has been updated.', 'good');
+}
+
+/* -----------------------
+   Router
+----------------------- */
+const ROUTE_META = {
+  dashboard: { title:'Dashboard', sub:'Field-ready AR operations console' },
+  live: { title:'Live AR', sub:'Camera + overlays + field HUD' },
+  mesh: { title:'Sentinel Mesh', sub:'Nodes + topology + overlay routing' },
+  integrations: { title:'Integrations', sub:'Connect external systems into the IonCore bus' },
+  recorder: { title:'Recorder', sub:'Capture and replay telemetry + overlays' },
+  alerts: { title:'Alerts', sub:'Rules engine + persistent feed' },
+  settings: { title:'Settings', sub:'Brand kit, theme, deployment profile' }
+};
+
+function setView(name){
+  document.querySelectorAll('.view').forEach(v=> v.classList.remove('active'));
+  const el = $('view-' + name);
+  if(el) el.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n=> n.classList.toggle('active', n.dataset.view === name));
+  $('routeTitle').innerText = ROUTE_META[name]?.title || name;
+  $('routeSub').innerText = ROUTE_META[name]?.sub || '';
+
+  history.replaceState(null, '', '#' + name);
+}
+document.querySelectorAll('.nav-item').forEach(n=>{
+  n.addEventListener('click', ()=> setView(n.dataset.view));
+});
+(function initRoute(){
+  const r = location.hash ? location.hash.replace('#','') : 'dashboard';
+  setView(ROUTE_META[r] ? r : 'dashboard');
+})();
+
+/* -----------------------
+   Offline / network indicator
+----------------------- */
+function updateOnline(){
+  const online = navigator.onLine;
+  $('offlineState').innerText = online ? 'Online' : 'Offline';
+  $('opsOnline').innerText = online ? 'Online' : 'Offline';
+  $('pillOffline').style.borderColor = online ? 'rgba(94,234,212,0.25)' : 'rgba(255,107,107,0.25)';
+  if(!online) toast('Offline', 'Network dropped. Commands will queue if possible.', 'warning');
+}
+window.addEventListener('online', updateOnline);
+window.addEventListener('offline', updateOnline);
+
+/* Network type info */
+function updateNetworkInfo(){
+  const n = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const type = n?.effectiveType || 'unknown';
+  $('wifiText').innerText = `Wi‑Fi: ${type}`;
+}
+if(navigator.connection) navigator.connection.addEventListener('change', updateNetworkInfo);
+updateNetworkInfo();
+updateOnline();
+
+/* System time */
+function updateSysTime(){ $('sysTime').innerText = new Date().toLocaleString(); }
+setInterval(updateSysTime, 1000); updateSysTime();
+
+/* -----------------------
+   History (Field logs) + Timeline
+----------------------- */
+function historyRead(){
+  return safeJSONParse(localStorage.getItem(KEYS.history) || '[]') || [];
+}
+function historyWrite(arr){
+  localStorage.setItem(KEYS.history, JSON.stringify(arr.slice(0, 2500)));
+}
+function historyAdd(event){
+  const arr = historyRead();
+  arr.unshift({ ts: nowISO(), event });
+  historyWrite(arr);
+}
+function exportHistoryCSV(){
+  const arr = historyRead();
+  if(!arr.length){ alert('No history'); return; }
+  const csv = 'timestamp,event\n' + arr.map(r => `${r.ts},"${JSON.stringify(r.event).replace(/"/g,'""')}"`).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='ioncore_history.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* -----------------------
+   Telemetry Bus
+----------------------- */
+const Bus = (() => {
+  const listeners = new Map(); // type -> Set(fn)
+  function on(type, fn){
+    if(!listeners.has(type)) listeners.set(type, new Set());
+    listeners.get(type).add(fn);
+    return ()=> listeners.get(type)?.delete(fn);
+  }
+  function emit(type, payload){
+    listeners.get(type)?.forEach(fn => {
+      try{ fn(payload); }catch(e){ console.error(e); }
+    });
+  }
+  return { on, emit };
+})();
+
+/* -----------------------
+   Node Registry + Topology
+----------------------- */
+const NodeRegistry = (() => {
+  const nodes = new Map(); // nodeId -> data
+  let focusedId = null;
+
+  function ensure(nodeId){
+    if(!nodes.has(nodeId)){
+      nodes.set(nodeId, {
+        nodeId,
+        name: nodeId,
+        color: randomNodeColor(),
+        lastSeen: 0,
+        online: true,
+        overlayEnabled: true,
+        meta: {}
+      });
+    }
+    return nodes.get(nodeId);
+  }
+
+  function upsert(nodeId, partial){
+    const n = ensure(nodeId);
+    Object.assign(n, partial);
+    return n;
+  }
+
+  function seen(nodeId){
+    const n = ensure(nodeId);
+    n.lastSeen = now();
+    n.online = true;
+  }
+
+  function list(){
+    return [...nodes.values()].sort((a,b)=> (b.lastSeen||0) - (a.lastSeen||0));
+  }
+
+  function setFocused(id){
+    focusedId = id;
+    const n = id ? ensure(id) : null;
+    $('focusId').innerText = n ? n.nodeId : '—';
+    $('focusName').innerText = n ? (n.name || n.nodeId) : '—';
+    $('focusSeen').innerText = n ? (n.lastSeen ? `${Math.round((now()-n.lastSeen)/1000)}s ago` : '—') : '—';
+  }
+
+  function focused(){
+    return focusedId;
+  }
+
+  const palette = ['#00d1ff', '#6b60ff', '#69f0ae', '#ffd166', '#ff6b6b', '#60a5fa', '#22c55e', '#a78bfa'];
+  function randomNodeColor(){
+    return palette[(Math.random()*palette.length)|0];
+  }
+
+  return { ensure, upsert, seen, list, setFocused, focused };
+})();
+
+const Topology = (() => {
+  let links = []; // {from,to,label}
+  function setLinks(arr){
+    links = Array.isArray(arr) ? arr.slice(0, 400) : [];
+    $('edgeCount').innerText = String(links.length);
+  }
+  function getLinks(){ return links; }
+  function addLink(l){
+    links.push(l);
+    links = links.slice(0, 400);
+    $('edgeCount').innerText = String(links.length);
+  }
+  return { setLinks, getLinks, addLink };
+})();
+
+/* -----------------------
+   Overlay Store
+----------------------- */
+const OverlayStore = (() => {
+  // nodeId -> {items, expiresAt}
+  const layers = new Map();
+  let showGrid = true;
+  let showLabels = true;
+
+  function setLayer(nodeId, items, ttl=800){
+    const expiresAt = now() + ttl;
+    layers.set(nodeId, { items: items || [], expiresAt });
+  }
+
+  function countActive(){
+    let c = 0;
+    const t = now();
+    for(const [k,v] of layers){
+      if(v.expiresAt > t) c += v.items.length;
+    }
+    return c;
+  }
+
+  function prune(){
+    const t = now();
+    for(const [k,v] of layers){
+      if(v.expiresAt <= t) layers.delete(k);
+    }
+  }
+
+  function getActiveLayers(){
+    prune();
+    return layers;
+  }
+
+  return {
+    setLayer,
+    countActive,
+    getActiveLayers,
+    setShowGrid: (v)=> showGrid = v,
+    setShowLabels: (v)=> showLabels = v,
+    getShowGrid: ()=> showGrid,
+    getShowLabels: ()=> showLabels
+  };
+})();
+
+/* -----------------------
+   Alerts Engine
+----------------------- */
+const Alerts = (() => {
+  const feedEl = $('alertFeed');
+  function appendFeed(text){
+    if(!feedEl) return;
+    feedEl.innerText = `${nowISO()} — ${text}\n` + feedEl.innerText;
+  }
+
+  function loadRules(){
+    const d = safeJSONParse(localStorage.getItem(KEYS.alerts) || '{}') || {};
+    return {
+      enabled: d.enabled ?? true,
+      emg: Number(d.emg ?? 0.85),
+      eeg: Number(d.eeg ?? 0.95),
+      overlayRate10s: Number(d.overlayRate10s ?? 60),
+      nodeTimeoutMs: Number(d.nodeTimeoutMs ?? 8000)
+    };
+  }
+  function saveRules(r){
+    localStorage.setItem(KEYS.alerts, JSON.stringify(r));
+  }
+
+  let rules = loadRules();
+  let overlayEvents = []; // timestamps of overlay messages
+
+  function ruleUIToState(){
+    rules.enabled = $('ruleEnable').checked;
+    rules.emg = Number($('ruleEmg').value);
+    rules.eeg = Number($('ruleEeg').value);
+    rules.overlayRate10s = Number($('ruleOverlayRate').value);
+    rules.nodeTimeoutMs = Number($('ruleNodeTimeout').value);
+  }
+  function stateToRuleUI(){
+    $('ruleEnable').checked = !!rules.enabled;
+    $('ruleEmg').value = String(rules.emg);
+    $('ruleEeg').value = String(rules.eeg);
+    $('ruleOverlayRate').value = String(rules.overlayRate10s);
+    $('ruleNodeTimeout').value = String(rules.nodeTimeoutMs);
+  }
+
+  function raise(title, msg, kind='warning'){
+    toast(title, msg, kind);
+    appendFeed(`${title} — ${msg}`);
+    historyAdd({ type:'alert', title, msg, kind });
+  }
+
+  function tickNodeHealth(){
+    if(!rules.enabled) return;
+    const list = NodeRegistry.list();
+    const t = now();
+    for(const n of list){
+      if(n.nodeId === 'local') continue;
+      if(n.lastSeen && (t - n.lastSeen) > rules.nodeTimeoutMs && n.online){
+        n.online = false;
+        raise('Node timeout', `${n.nodeId} silent for ${Math.round((t-n.lastSeen)/1000)}s`, 'danger');
+      }
+    }
+  }
+  setInterval(tickNodeHealth, 1400);
+
+  function onSensor(msg){
+    if(!rules.enabled) return;
+    if(msg.sensor === 'emg' && Number(msg.value) > rules.emg){
+      raise('EMG high', `${msg.nodeId || 'local'} EMG=${Number(msg.value).toFixed(2)} > ${rules.emg}`, 'warning');
+    }
+    if(msg.sensor === 'eeg' && Number(msg.value) > rules.eeg){
+      raise('EEG spike', `${msg.nodeId || 'local'} EEG=${Number(msg.value).toFixed(2)} > ${rules.eeg}`, 'danger');
+    }
+  }
+
+  function onOverlay(msg){
+    if(!rules.enabled) return;
+    const t = now();
+    overlayEvents.push(t);
+    overlayEvents = overlayEvents.filter(x => (t-x) <= 10000);
+    if(overlayEvents.length > rules.overlayRate10s){
+      raise('Overlay flood', `Overlay messages ${overlayEvents.length}/10s (limit ${rules.overlayRate10s})`, 'danger');
+      overlayEvents = []; // reset to avoid spam
+    }
+  }
+
+  function initUI(){
+    stateToRuleUI();
+    $('btnAlertsSave').addEventListener('click', ()=>{
+      ruleUIToState();
+      saveRules(rules);
+      toast('Rules saved', 'Alert rules persisted.', 'good');
+    });
+    $('btnAlertsReset').addEventListener('click', ()=>{
+      rules = { enabled:true, emg:0.85, eeg:0.95, overlayRate10s:60, nodeTimeoutMs:8000 };
+      stateToRuleUI();
+      saveRules(rules);
+      toast('Rules reset', 'Restored defaults.', 'warning');
+    });
+    $('btnAlertsTest').addEventListener('click', ()=>{
+      raise('Test alert', 'This is a demo alert from IonCore suite.', 'good');
+    });
+  }
+
+  return { initUI, onSensor, onOverlay, raise };
+})();
+
+/* -----------------------
+   Recorder + Replay
+----------------------- */
+const Recorder = (() => {
+  let recording = false;
+  let buffer = []; // {t,msg}
+  let replayTimer = null;
+  let replayIndex = 0;
+  let replayPaused = false;
+
+  function render(){
+    const el = $('recLog');
+    if(!el) return;
+    el.innerText = buffer.slice(0,200).map(r => `${new Date(r.t).toISOString()} — ${JSON.stringify(r.msg)}`).join('\n\n');
+  }
+
+  function start(){
+    recording = true;
+    toast('Recorder', 'Recording started.', 'good');
+  }
+  function stop(){
+    recording = false;
+    toast('Recorder', 'Recording stopped.', 'warning');
+  }
+  function clear(){
+    buffer = [];
+    render();
+    toast('Recorder', 'Buffer cleared.', 'warning');
+  }
+
+  function onTelemetry(msg){
+    if(!recording) return;
+    buffer.unshift({ t: now(), msg });
+    buffer = buffer.slice(0, 4000);
+    if(buffer.length % 20 === 0) render();
+  }
+
+  function exportJSON(){
+    const data = { version: 1, createdAt: nowISO(), buffer: buffer.slice().reverse() };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ioncore-recording-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importAndLoad(obj){
+    if(!obj || !Array.isArray(obj.buffer)) throw new Error('Invalid recording file');
+    buffer = obj.buffer.map(x => ({ t: x.t, msg: x.msg })).reverse(); // keep newest first view
+    render();
+    toast('Recorder', `Imported ${obj.buffer.length} events.`, 'good');
+  }
+
+  function stopReplay(){
+    if(replayTimer) clearTimeout(replayTimer);
+    replayTimer = null;
+    replayIndex = 0;
+    replayPaused = false;
+  }
+
+  function startReplay(){
+    stopReplay();
+    const mode = $('replayMode').value;
+    const speed = Number($('replaySpeed').value || 1);
+
+    const seq = buffer.slice().reverse(); // chronological
+    if(!seq.length){ alert('No recording loaded'); return; }
+
+    replayIndex = 0;
+    replayPaused = false;
+
+    if(mode === 'step'){
+      toast('Replay', 'Step mode ready. Use Step.', 'good');
+      return;
+    }
+
+    function loop(){
+      if(replayPaused) return;
+      if(replayIndex >= seq.length){
+        toast('Replay', 'Replay complete.', 'good');
+        stopReplay();
+        return;
+      }
+      const cur = seq[replayIndex];
+      const next = seq[replayIndex+1];
+      Bus.emit('telemetry', cur.msg); // re-emit
+      ingestMessage(cur.msg, 'replay');
+
+      replayIndex++;
+      if(!next){
+        replayTimer = setTimeout(loop, 50);
+        return;
+      }
+      const dt = Math.max(0, (next.t - cur.t) / speed);
+      replayTimer = setTimeout(loop, clamp(dt, 0, 5000));
+    }
+    toast('Replay', `Timed replay started (${speed}×).`, 'good');
+    loop();
+  }
+
+  function stepReplay(){
+    const seq = buffer.slice().reverse();
+    if(!seq.length){ alert('No recording loaded'); return; }
+    if(replayIndex >= seq.length){
+      toast('Replay', 'Replay complete.', 'good');
+      return;
+    }
+    const cur = seq[replayIndex];
+    Bus.emit('telemetry', cur.msg);
+    ingestMessage(cur.msg, 'replay');
+    replayIndex++;
+  }
+
+  function pauseReplay(){
+    replayPaused = !replayPaused;
+    toast('Replay', replayPaused ? 'Paused' : 'Resumed', 'warning');
+    if(!replayPaused && $('replayMode').value === 'timed') startReplay(); // restarts loop from index 0; simple approach
+  }
+
+  function initUI(){
+    $('btnRecStart').addEventListener('click', start);
+    $('btnRecStop').addEventListener('click', stop);
+    $('btnRecClear').addEventListener('click', clear);
+    $('btnRecExport').addEventListener('click', exportJSON);
+
+    $('btnRecImport').addEventListener('click', ()=> $('recFile').click());
+    $('recFile').addEventListener('change', async ()=>{
+      const f = $('recFile').files[0];
+      if(!f) return;
+      const text = await f.text();
+      const obj = safeJSONParse(text);
+      try{
+        importAndLoad(obj);
+      }catch(e){
+        alert('Invalid recording file');
+      }
+      $('recFile').value = '';
+    });
+
+    $('btnReplayStart').addEventListener('click', startReplay);
+    $('btnReplayStop').addEventListener('click', ()=> { stopReplay(); toast('Replay','Stopped','warning'); });
+    $('btnReplayStep').addEventListener('click', stepReplay);
+    $('btnReplayPause').addEventListener('click', pauseReplay);
+
+    $('btnRecMarkIncident').addEventListener('click', ()=>{
+      historyAdd({ type:'incident_mark', note:'Marked incident', ts: nowISO() });
+      toast('Incident marked', 'Added marker into field logs.', 'warning');
+    });
+  }
+
+  return { initUI, onTelemetry, exportJSON, importAndLoad };
+})();
+
+/* -----------------------
+   Connectors Manager
+----------------------- */
+class BaseConnector{
+  constructor(cfg){
+    this.cfg = cfg;
+    this.id = cfg.id || uid();
+    this.type = cfg.type;
+    this.name = cfg.name || this.type;
+    this.url = cfg.url || '';
+    this.wrapMode = cfg.wrapMode || 'auto';
+    this.status = 'stopped';
+    this.lastError = '';
+  }
+  start(){ this.status='running'; }
+  stop(){ this.status='stopped'; }
+  toJSON(){ return {...this.cfg, id:this.id}; }
+}
+
+class WebSocketConnector extends BaseConnector{
+  constructor(cfg){ super(cfg); this.ws = null; }
+  start(){
+    if(this.ws) this.stop();
+    this.status='connecting';
+    try{
+      this.ws = new WebSocket(this.url);
+    }catch(e){
+      this.status='error';
+      this.lastError = String(e);
+      toast('WS error', this.lastError, 'danger');
+      return;
+    }
+    this.ws.onopen = ()=> { this.status='connected'; updateConnBadges(); toast('WS connected', this.name, 'good'); };
+    this.ws.onclose = ()=> { this.status='stopped'; updateConnBadges(); toast('WS closed', this.name, 'warning'); };
+    this.ws.onerror = ()=> { this.status='error'; updateConnBadges(); toast('WS error', this.name, 'danger'); };
+    this.ws.onmessage = (m)=>{
+      const data = m.data;
+      const obj = typeof data === 'string' ? safeJSONParse(data) : null;
+      if(obj){
+        ingestMessage(mapIncoming(obj, this.wrapMode), this.id);
+      }else{
+        ingestMessage(mapIncoming({ raw: data }, 'wrap'), this.id);
+      }
+    };
+    updateConnBadges();
+  }
+  stop(){
+    if(this.ws){ try{ this.ws.close(); }catch(e){} }
+    this.ws = null;
+    this.status='stopped';
+    updateConnBadges();
+  }
+}
+
+class SSEConnector extends BaseConnector{
+  constructor(cfg){ super(cfg); this.es = null; }
+  start(){
+    if(this.es) this.stop();
+    this.status='connecting';
+    try{
+      this.es = new EventSource(this.url);
+    }catch(e){
+      this.status='error';
+      toast('SSE error', String(e), 'danger'); return;
+    }
+    this.es.onopen = ()=> { this.status='connected'; updateConnBadges(); toast('SSE connected', this.name, 'good'); };
+    this.es.onerror = ()=> { this.status='error'; updateConnBadges(); toast('SSE error', this.name, 'danger'); };
+    this.es.onmessage = (e)=>{
+      const obj = safeJSONParse(e.data);
+      ingestMessage(mapIncoming(obj || { raw: e.data }, obj ? this.wrapMode : 'wrap'), this.id);
+    };
+    updateConnBadges();
+  }
+  stop(){
+    if(this.es){ try{ this.es.close(); }catch(e){} }
+    this.es = null;
+    this.status='stopped';
+    updateConnBadges();
+  }
+}
+
+class RestPollConnector extends BaseConnector{
+  constructor(cfg){ super(cfg); this.timer=null; this.interval=Number(cfg.interval||1000); }
+  start(){
+    this.status='connected';
+    updateConnBadges();
+    const tick = async ()=>{
+      try{
+        const res = await fetch(this.url, { method:'GET' });
+        const txt = await res.text();
+        const obj = safeJSONParse(txt);
+        ingestMessage(mapIncoming(obj || { raw: txt, status: res.status }, obj ? this.wrapMode : 'wrap'), this.id);
+      }catch(e){
+        this.status='error';
+        this.lastError = String(e);
+        updateConnBadges();
+        toast('REST poll error', this.name + ' — ' + this.lastError, 'danger');
+      }
+    };
+    tick();
+    this.timer = setInterval(tick, clamp(this.interval, 250, 60000));
+    toast('REST poll', `${this.name} @ ${this.interval}ms`, 'good');
+  }
+  stop(){
+    if(this.timer) clearInterval(this.timer);
+    this.timer=null;
+    this.status='stopped';
+    updateConnBadges();
+  }
+}
+
+class MqttConnector extends BaseConnector{
+  constructor(cfg){
+    super(cfg);
+    this.client = null;
+    this.topics = (cfg.topics || '').split(',').map(s=>s.trim()).filter(Boolean);
+  }
+  start(){
+    if(!window.mqtt){
+      this.status='error';
+      toast('MQTT unavailable', 'mqtt.js not loaded. Host it locally or enable the CDN.', 'danger');
+      return;
+    }
+    if(this.client) this.stop();
+    this.status='connecting';
+    updateConnBadges();
+
+    try{
+      this.client = window.mqtt.connect(this.url);
+    }catch(e){
+      this.status='error';
+      toast('MQTT error', String(e), 'danger'); return;
+    }
+
+    this.client.on('connect', ()=>{
+      this.status='connected';
+      updateConnBadges();
+      toast('MQTT connected', this.name, 'good');
+      this.topics.forEach(t=> this.client.subscribe(t));
+    });
+    this.client.on('error', (err)=>{
+      this.status='error';
+      this.lastError = String(err);
+      updateConnBadges();
+      toast('MQTT error', this.lastError, 'danger');
+    });
+    this.client.on('message', (topic, payload)=>{
+      const txt = payload.toString();
+      const obj = safeJSONParse(txt);
+      const msg = obj || { raw: txt, topic };
+      ingestMessage(mapIncoming(msg, obj ? this.wrapMode : 'wrap'), this.id);
+    });
+  }
+  stop(){
+    if(this.client){ try{ this.client.end(true); }catch(e){} }
+    this.client=null;
+    this.status='stopped';
+    updateConnBadges();
+  }
+}
+
+function mapIncoming(obj, mode){
+  if(mode === 'wrap'){
+    return { type:'external', payload: obj, ts: nowISO() };
+  }
+  // auto: assume it's already IonCore-ish
+  return obj;
+}
+
+const Connectors = (() => {
+  const instances = new Map(); // id -> connector instance
+  function loadConfigs(){
+    return safeJSONParse(localStorage.getItem(KEYS.connectors) || '[]') || [];
+  }
+  function saveConfigs(cfgs){
+    localStorage.setItem(KEYS.connectors, JSON.stringify(cfgs));
+  }
+  function make(cfg){
+    if(cfg.type === 'ws') return new WebSocketConnector(cfg);
+    if(cfg.type === 'sse') return new SSEConnector(cfg);
+    if(cfg.type === 'rest') return new RestPollConnector(cfg);
+    if(cfg.type === 'mqtt') return new MqttConnector(cfg);
+    return new BaseConnector(cfg);
+  }
+  function init(){
+    const cfgs = loadConfigs();
+    cfgs.forEach(cfg=>{
+      const inst = make(cfg);
+      instances.set(inst.id, inst);
+    });
+    renderConnectorList();
+    updateConnBadges();
+  }
+
+  function add(cfg){
+    const inst = make(cfg);
+    instances.set(inst.id, inst);
+    persist();
+    renderConnectorList();
+    updateConnBadges();
+    toast('Connector added', `${cfg.type.toUpperCase()} — ${cfg.name}`, 'good');
+  }
+
+  function remove(id){
+    const inst = instances.get(id);
+    if(inst) inst.stop();
+    instances.delete(id);
+    persist();
+    renderConnectorList();
+    updateConnBadges();
+  }
+
+  function start(id){
+    const inst = instances.get(id);
+    if(!inst) return;
+    inst.start();
+    renderConnectorList();
+  }
+
+  function stop(id){
+    const inst = instances.get(id);
+    if(!inst) return;
+    inst.stop();
+    renderConnectorList();
+  }
+
+  function startAll(){ instances.forEach(i=> i.start()); renderConnectorList(); }
+  function stopAll(){ instances.forEach(i=> i.stop()); renderConnectorList(); }
+
+  function persist(){
+    const arr = [...instances.values()].map(i=> i.toJSON());
+    saveConfigs(arr);
+  }
+
+  function getStats(){
+    let total = 0, connected = 0;
+    instances.forEach(i=>{
+      total++;
+      if(i.status === 'connected') connected++;
+    });
+    return { total, connected };
+  }
+
+  function list(){ return [...instances.values()]; }
+
+  return { init, add, remove, start, stop, startAll, stopAll, persist, getStats, list };
+})();
+
+/* -----------------------
+   Share Node (WebRTC)
+----------------------- */
+const Share = (() => {
+  let pc = null;
+  let dc = null;
+  let isHost = false;
+  let connected = false;
+  const seenMsgIds = new Set();
+
+  function setShareStatus(){
+    $('shareText').innerText = connected ? 'Share: on' : 'Share: off';
+    $('badgeShare').style.borderColor = connected ? 'rgba(94,234,212,0.3)' : 'rgba(255,255,255,0.03)';
+    $('opsShareState').innerText = connected ? 'on' : 'off';
+    updateConnBadges();
+  }
+
+  function close(){
+    connected = false;
+    try{ dc?.close(); }catch(e){}
+    try{ pc?.close(); }catch(e){}
+    pc = null; dc=null;
+    setShareStatus();
+    toast('Share closed', 'WebRTC session closed.', 'warning');
+  }
+
+  function makePC(){
+    const rtc = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    rtc.oniceconnectionstatechange = ()=>{
+      if(rtc.iceConnectionState === 'connected' || rtc.iceConnectionState === 'completed'){
+        connected = true;
+        setShareStatus();
+        toast('Share connected', 'Live share established.', 'good');
+      }
+      if(['disconnected','failed','closed'].includes(rtc.iceConnectionState)){
+        connected = false;
+        setShareStatus();
+      }
+    };
+
+    rtc.ondatachannel = (e)=>{
+      dc = e.channel;
+      wireDC();
+    };
+    return rtc;
+  }
+
+  function wireDC(){
+    if(!dc) return;
+    dc.onopen = ()=>{
+      connected = true;
+      setShareStatus();
+      toast('Share channel', 'DataChannel open.', 'good');
+    };
+    dc.onclose = ()=>{
+      connected = false;
+      setShareStatus();
+      toast('Share channel', 'DataChannel closed.', 'warning');
+    };
+    dc.onmessage = (e)=>{
+      const obj = safeJSONParse(e.data);
+      if(!obj) return;
+
+      // prevent loops
+      if(obj.id && seenMsgIds.has(obj.id)) return;
+      if(obj.id) seenMsgIds.add(obj.id);
+
+      // mark as remote
+      obj._origin = 'share';
+      ingestMessage(obj, 'share');
+    };
+  }
+
+  async function waitIceGathering(rtc){
+    if(rtc.iceGatheringState === 'complete') return;
+    await new Promise(res=>{
+      const t = setInterval(()=>{
+        if(rtc.iceGatheringState === 'complete'){
+          clearInterval(t); res();
+        }
+      }, 60);
+    });
+  }
+
+  async function createShare(){
+    close();
+    isHost = true;
+    pc = makePC();
+    dc = pc.createDataChannel('ioncore');
+    wireDC();
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await waitIceGathering(pc);
+
+    $('shareSDP').value = JSON.stringify(pc.localDescription);
+    toast('Share offer ready', 'Copy the offer JSON and send to the other operator.', 'good');
+  }
+
+  async function joinShare(){
+    close();
+    isHost = false;
+    pc = makePC();
+
+    const pasted = safeJSONParse($('shareSDP').value.trim());
+    if(!pasted || !pasted.sdp){ alert('Paste a valid offer JSON first.'); return; }
+
+    await pc.setRemoteDescription(new RTCSessionDescription(pasted));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await waitIceGathering(pc);
+
+    $('shareSDP').value = JSON.stringify(pc.localDescription);
+    toast('Share answer ready', 'Send the answer JSON back to the host.', 'good');
+  }
+
+  async function acceptAnswer(){
+    if(!pc) { alert('Create a share first.'); return; }
+    const pasted = safeJSONParse($('shareSDP').value.trim());
+    if(!pasted || !pasted.sdp){ alert('Paste a valid answer JSON.'); return; }
+    await pc.setRemoteDescription(new RTCSessionDescription(pasted));
+    toast('Answer applied', 'Waiting for connection…', 'good');
+  }
+
+  function send(msg){
+    if(!dc || dc.readyState !== 'open') return false;
+    try{
+      dc.send(JSON.stringify(msg));
+      return true;
+    }catch(e){ return false; }
+  }
+
+  function onLocalTelemetry(msg){
+    // send only if connected and message not already from share
+    if(!connected) return;
+    if(msg._origin === 'share') return;
+
+    // ensure id for dedupe
+    const m = {...msg};
+    if(!m.id) m.id = uid();
+    if(seenMsgIds.has(m.id)) return;
+    seenMsgIds.add(m.id);
+
+    send(m);
+  }
+
+  function initUI(){
+    $('btnCreateShare').addEventListener('click', createShare);
+    $('btnJoinShare').addEventListener('click', joinShare);
+    $('btnCloseShare').addEventListener('click', close);
+
+    $('btnCopySDP').addEventListener('click', async ()=>{
+      await navigator.clipboard.writeText($('shareSDP').value);
+      toast('Copied', 'SDP copied to clipboard.', 'good');
+    });
+    $('btnPasteSDP').addEventListener('click', async ()=>{
+      const text = await navigator.clipboard.readText();
+      $('shareSDP').value = text;
+      toast('Pasted', 'Clipboard pasted into SDP box.', 'good');
+      // if host and pasted answer, apply
+      if(pc && isHost){
+        try{ await acceptAnswer(); }catch(e){ console.warn(e); }
+      }
+    });
+
+    setShareStatus();
+  }
+
+  return { initUI, close, onLocalTelemetry, isConnected: ()=>connected };
+})();
+
+/* -----------------------
+   Ingest pipeline (all sources)
+----------------------- */
+function ingestMessage(msg, sourceId='local'){
+  if(!msg || typeof msg !== 'object') return;
+
+  // normalize
+  if(!msg.ts) msg.ts = nowISO();
+  if(!msg.id) msg.id = uid();
+  msg._source = sourceId;
+
+  // node handling
+  const nodeId = msg.nodeId || msg.sourceNodeId || msg.from || (sourceId === 'local' ? 'local' : sourceId);
+  if(nodeId){
+    NodeRegistry.seen(nodeId);
+    if(msg.type === 'node_status'){
+      NodeRegistry.upsert(nodeId, {
+        name: msg.name || nodeId,
+        online: msg.online !== false,
+        meta: { ...msg }
+      });
+    }
+  }
+
+  // topology
+  if(msg.type === 'topology' && Array.isArray(msg.links)){
+    Topology.setLinks(msg.links);
+  }
+  if(msg.type === 'link' && msg.from && msg.to){
+    Topology.addLink({ from: msg.from, to: msg.to, label: msg.label || '' });
+  }
+
+  // overlays
+  if(msg.type === 'overlay' && msg.nodeId && Array.isArray(msg.items)){
+    OverlayStore.setLayer(msg.nodeId, msg.items, Number(msg.ttl || 800));
+    Alerts.onOverlay(msg);
+  }
+
+  // sensors
+  if(msg.type === 'sensor'){
+    Bus.emit('sensor', msg);
+    Alerts.onSensor(msg);
+  }
+
+  // robot ack / command ack
+  if(msg.type === 'robot_ack'){
+    logTo($('cmdLog'), `ACK ${msg.cmd} @ ${msg.status}`);
+  }
+
+  // history (some messages only)
+  if(['sensor','overlay','node_status','topology','link','command','gesture','vitals','alert'].includes(msg.type)){
+    historyAdd(msg);
+  }
+
+  // timeline + raw logs
+  logTo($('timeline'), JSON.stringify(msg));
+  logTo($('telemetryLog'), JSON.stringify(msg));
+
+  // node counts
+  $('nodeCount').innerText = String(NodeRegistry.list().length);
+  $('nodeCount2').innerText = String(NodeRegistry.list().length);
+  $('overlayCount').innerText = String(OverlayStore.countActive());
+
+  // send to share
+  Share.onLocalTelemetry(msg);
+
+  // recorder
+  Recorder.onTelemetry(msg);
+
+  // update mesh panel lists
+  renderNodes();
+}
+
+/* -----------------------
+   Camera + ML detection + Overlay drawing
+----------------------- */
+const Camera = (() => {
+  const video = $('video');
+  const overlay = $('overlay');
+  const ctx = overlay.getContext('2d');
+
+  let stream = null;
+  let cocoModel = null;
+  let blazeModel = null;
+  let running = false;
+  let lastDetectLog = { face:0, object:0 };
+  let labelsOn = true;
+  let gridOn = true;
+
+  function setStatus(which, ok){
+    const dot = which === 'cam' ? $('camDot') : $('modelDot');
+    const dot2 = which === 'cam' ? $('camDot2') : $('modelDot2');
+    const col = ok ? 'var(--good)' : 'rgba(255,255,255,0.08)';
+    if(dot) dot.style.background = col;
+    if(dot2) dot2.style.background = col;
+  }
+
+  function resizeCanvasToVideo(){
+    if(!video.videoWidth) return;
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    overlay.style.width = video.clientWidth + 'px';
+    overlay.style.height = video.clientHeight + 'px';
+  }
+
+  async function startCamera(){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ width:1280, height:720 }, audio:false });
+      video.srcObject = stream;
+      await video.play();
+      $('camStatus').innerText = 'Camera: active';
+      $('camStatus2').innerText = 'Camera: active';
+      setStatus('cam', true);
+      resizeCanvasToVideo();
+      await loadModels();
+    }catch(e){
+      $('camStatus').innerText = 'Camera: error';
+      $('camStatus2').innerText = 'Camera: error';
+      setStatus('cam', false);
+      toast('Camera error', e.message || String(e), 'danger');
+    }
+  }
+
+  async function loadModels(){
+    $('modelStatus').innerText = 'Models: loading...';
+    $('modelStatus2').innerText = 'Models: loading...';
+    setStatus('model', false);
+    try{
+      cocoModel = await cocoSsd.load();
+      blazeModel = await blazeface.load();
+      $('modelStatus').innerText = 'Models: loaded';
+      $('modelStatus2').innerText = 'Models: loaded';
+      setStatus('model', true);
+      toast('Models loaded', 'BlazeFace + COCO-SSD ready.', 'good');
+      startLoop();
+    }catch(e){
+      $('modelStatus').innerText = 'Models: failed';
+      $('modelStatus2').innerText = 'Models: failed';
+      setStatus('model', false);
+      toast('Model load failed', e.message || String(e), 'danger');
+    }
+  }
+
+  function roundedRect(x,y,w,h,r=10){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function drawGrid(){
+    if(!gridOn) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+    ctx.lineWidth = 1;
+    for(let i=1;i<6;i++){
+      ctx.beginPath();
+      ctx.moveTo(0, overlay.height*i/6);
+      ctx.lineTo(overlay.width, overlay.height*i/6);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawLabel(x,y,text,colorA='#00d1ff', colorB='#6b60ff'){
+    if(!labelsOn) return;
+    ctx.save();
+    ctx.font = '700 14px Poppins, Inter, sans-serif';
+    const pad = 10;
+    const w = ctx.measureText(text).width + pad*2;
+    const h = 22;
+    const gx = x, gy = y - 26;
+
+    roundedRect(gx, gy, w, h, 8);
+    const grad = ctx.createLinearGradient(gx,gy,gx+w,gy);
+    grad.addColorStop(0, colorA);
+    grad.addColorStop(1, colorB);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.fillStyle = '#001';
+    ctx.fillText(text, gx+pad, gy+16);
+    ctx.restore();
+  }
+
+  function drawRemoteOverlays(){
+    // remote overlay layers are keyed by nodeId
+    OverlayStore.prune?.(); // if exists
+    const layers = OverlayStore.getActiveLayers();
+    const showRemote = $('remoteOverlayToggle')?.checked ?? true;
+    const showRemote2 = $('remoteOverlayToggle2')?.checked ?? true;
+    if(!showRemote && !showRemote2) return;
+
+    const t = now();
+    for(const [nodeId, layer] of layers){
+      if(layer.expiresAt <= t) continue;
+      const node = NodeRegistry.ensure(nodeId);
+      if(node.overlayEnabled === false) continue;
+
+      layer.items.forEach(item=>{
+        const color = item.color || node.color || '#00d1ff';
+
+        // space: norm (0..1) or video pixels
+        const space = (item.space || 'norm');
+        let x = item.x, y = item.y, w = item.w, h = item.h;
+
+        function sx(v){ return (space === 'norm' ? v * overlay.width : v); }
+        function sy(v){ return (space === 'norm' ? v * overlay.height : v); }
+
+        ctx.save();
+        if(item.kind === 'box'){
+          const bx = sx(x), by = sy(y), bw = sx(w), bh = sy(h);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color + '22';
+          roundedRect(bx,by,bw,bh,10);
+          ctx.fill();
+          ctx.stroke();
+          drawLabel(bx, by, (item.label || node.name || nodeId), color, color);
+        }
+        if(item.kind === 'text'){
+          const tx = sx(x), ty = sy(y);
+          ctx.fillStyle = color;
+          ctx.font = '800 14px Inter, sans-serif';
+          ctx.fillText(item.text || '', tx, ty);
+        }
+        if(item.kind === 'polyline' && Array.isArray(item.points)){
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          item.points.forEach((p, i)=>{
+            const px = sx(p[0]), py = sy(p[1]);
+            if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+          });
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+    }
+  }
+
+  async function runOnce(){
+    if(!running) return;
+    if(video.readyState < 2) return;
+
+    // keep canvas aligned
+    resizeCanvasToVideo();
+    ctx.clearRect(0,0,overlay.width, overlay.height);
+    drawGrid();
+
+    const faceOn = $('faceToggle')?.checked ?? true;
+    const objOn = $('objToggle')?.checked ?? true;
+
+    // ML overlays
+    if(faceOn && blazeModel){
+      const preds = await blazeModel.estimateFaces(video, false);
+      preds.forEach(p=>{
+        const tl = p.topLeft || p.boundingBox?.topLeft;
+        const br = p.bottomRight || p.boundingBox?.bottomRight;
+        if(!tl || !br) return;
+        const x = tl[0], y = tl[1], w = br[0]-tl[0], h = br[1]-tl[1];
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(0,209,255,0.95)';
+        ctx.fillStyle = 'rgba(0,209,255,0.08)';
+        roundedRect(x,y,w,h,12);
+        ctx.fill(); ctx.stroke();
+        drawLabel(x, y, 'Face', '#00d1ff', '#6b60ff');
+      });
+
+      // throttle history writes
+      if(preds.length && (now() - lastDetectLog.face) > 5000){
+        lastDetectLog.face = now();
+        historyAdd({ type:'detection', subtype:'face', count: preds.length });
+      }
+    }
+
+    if(objOn && cocoModel){
+      const dets = await cocoModel.detect(video);
+      dets.slice(0,8).forEach(d=>{
+        const [x,y,w,h] = d.bbox;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255,209,102,0.95)';
+        ctx.fillStyle = 'rgba(255,209,102,0.10)';
+        roundedRect(x,y,w,h,10);
+        ctx.fill(); ctx.stroke();
+        drawLabel(x, y, `${d.class} ${(d.score*100|0)}%`, '#ffd166', '#ff6b6b');
+      });
+
+      if(dets.length && (now() - lastDetectLog.object) > 7000){
+        lastDetectLog.object = now();
+        historyAdd({ type:'detection', subtype:'object', detections: dets.slice(0,8).map(d=>d.class) });
+      }
+    }
+
+    // Remote overlays (sentinel nodes / share / connectors)
+    drawRemoteOverlays();
+  }
+
+  function startLoop(){
+    if(running) return;
+    running = true;
+    toast('Detection', 'Loop started.', 'good');
+    const loop = async ()=>{
+      if(!running) return;
+      await runOnce();
+      const ms = Number($('freqSelect')?.value || 350);
+      setTimeout(loop, ms);
+    };
+    loop();
+  }
+
+  function stopLoop(){
+    running = false;
+    toast('Detection', 'Loop stopped.', 'warning');
+  }
+
+  function snapshot(){
+    if(!video.videoWidth) { alert('Video not ready'); return; }
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    const cc = c.getContext('2d');
+    cc.drawImage(video,0,0,c.width,c.height);
+    const url = c.toDataURL('image/png');
+    const a = document.createElement('a'); a.href=url; a.download=`ioncore-snapshot-${Date.now()}.png`; a.click();
+  }
+
+  function moveVideoToLive(){
+    // move the existing video+overlay into the Live view stage
+    const stage2 = $('videoStage2');
+    if(!stage2) return;
+    stage2.innerHTML = '';
+    stage2.appendChild(video);
+    stage2.appendChild(overlay);
+    resizeCanvasToVideo();
+  }
+
+  function moveVideoToDash(){
+    const stage1 = $('videoStage');
+    if(!stage1) return;
+    stage1.appendChild(video);
+    stage1.appendChild(overlay);
+    resizeCanvasToVideo();
+  }
+
+  function setLabels(v){ labelsOn = v; }
+  function setGrid(v){ gridOn = v; }
+
+  return { startCamera, startLoop, stopLoop, snapshot, moveVideoToLive, moveVideoToDash, setLabels, setGrid };
+})();
+
+/* -----------------------
+   Charts (EMG / EEG)
+----------------------- */
+function makeChart(ctx, colorA, colorB){
+  const grad = ctx.createLinearGradient(0,0,0,140);
+  grad.addColorStop(0, colorA);
+  grad.addColorStop(1, colorB);
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels:Array.from({length:40},(_,i)=>i), datasets:[{
+      data:Array.from({length:40},()=>0),
+      borderColor: colorA,
+      backgroundColor: grad,
+      fill:true,
+      tension:0.3,
+      radius:0
+    }]},
+    options:{
+      animation:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{display:false}, y:{display:false, min:0, max:1.6} },
+      elements:{ line:{ borderWidth:2 } }
+    }
+  });
+}
+const emgChart = makeChart($('emgChart').getContext('2d'), '#00d1ff', 'rgba(0,209,255,0.06)');
+const eegChart = makeChart($('eegChart').getContext('2d'), '#6b60ff', 'rgba(107,96,255,0.06)');
+
+function updateEMG(v){
+  $('emgVal').innerText = Number(v).toFixed(2);
+  emgChart.data.datasets[0].data.push(v);
+  emgChart.data.datasets[0].data.shift();
+  emgChart.update('none');
+}
+function updateEEG(v){
+  $('eegVal').innerText = Number(v).toFixed(2);
+  eegChart.data.datasets[0].data.push(v);
+  eegChart.data.datasets[0].data.shift();
+  eegChart.update('none');
+}
+
+/* Bus wiring for sensors */
+Bus.on('sensor', (msg)=>{
+  if(msg.sensor === 'emg') updateEMG(Number(msg.value));
+  if(msg.sensor === 'eeg') updateEEG(Number(msg.value));
+});
+
+/* Demo sensor simulation (still available, but now emits to bus) */
+setInterval(()=>{
+  const emg = Math.abs((Math.sin(Date.now()/500)+Math.random()*0.4)/1.8);
+  const eeg = Math.abs((Math.cos(Date.now()/700)+Math.random()*0.6)/2.2);
+  ingestMessage({ type:'sensor', sensor:'emg', value: emg, nodeId:'local' }, 'sim');
+  ingestMessage({ type:'sensor', sensor:'eeg', value: eeg, nodeId:'local' }, 'sim');
+}, 1200);
+
+/* -----------------------
+   Gesture simulation + Commands (queue-safe)
+----------------------- */
+const CommandQueue = (() => {
+  let queue = [];
+  function push(cmd){
+    queue.push(cmd);
+    queue = queue.slice(0, 500);
+    $('opsQueue').innerText = String(queue.length);
+  }
+  function popAll(){
+    const q = queue.slice();
+    queue = [];
+    $('opsQueue').innerText = '0';
+    return q;
+  }
+  function count(){ return queue.length; }
+  return { push, popAll, count };
+})();
+
+function sendCommand(cmd, params={}){
+  const msg = { type:'command', cmd, params, ts: nowISO(), nodeId:'local' };
+  // If any WS connectors are connected, send over them (as "command" messages)
+  const wsConns = Connectors.list().filter(c => c.type === 'ws' && c.status === 'connected' && c.ws && c.ws.readyState === WebSocket.OPEN);
+  if(wsConns.length){
+    wsConns.forEach(c=>{
+      try{
+        c.ws.send(JSON.stringify(msg));
+      }catch(e){}
+    });
+    logTo($('cmdLog'), `Sent via WS: ${JSON.stringify(msg)}`);
+  }else{
+    // queue it for later (field/offline)
+    CommandQueue.push(msg);
+    logTo($('cmdLog'), `Queued: ${JSON.stringify(msg)}`);
+    toast('Queued command', `${cmd} queued (no live command link).`, 'warning');
+  }
+  ingestMessage(msg, 'local');
+}
+
+function flushCommandQueue(){
+  const wsConns = Connectors.list().filter(c => c.type === 'ws' && c.status === 'connected' && c.ws && c.ws.readyState === WebSocket.OPEN);
+  if(!wsConns.length) return;
+  const q = CommandQueue.popAll();
+  q.forEach(msg=>{
+    wsConns.forEach(c=>{
+      try{ c.ws.send(JSON.stringify(msg)); }catch(e){}
+    });
+    logTo($('cmdLog'), `Flushed: ${JSON.stringify(msg)}`);
+  });
+  if(q.length) toast('Queue flushed', `${q.length} commands sent.`, 'good');
+}
+
+/* Sim gestures */
+const gestures = ['swipe_left','swipe_right','pinch','open_hand','double_tap','none'];
+function simulateGesture(){
+  const g = gestures[(Math.random()*gestures.length)|0];
+  $('gestureLabel').innerText = g;
+  ingestMessage({ type:'gesture', gesture:g, nodeId:'local' }, 'sim');
+}
+$('simGesture').addEventListener('click', simulateGesture);
+
+/* Robot buttons */
+$('btnArm').addEventListener('click', ()=>sendCommand('arm_robot'));
+$('btnDisarm').addEventListener('click', ()=>sendCommand('disarm_robot'));
+$('btnMove').addEventListener('click', ()=>sendCommand('move_robot', {vx:0.5, vy:0.0, duration:3000}));
+$('btnEnergySave').addEventListener('click', ()=>sendCommand('energy_save_mode'));
+
+/* Pulse + EEG spike */
+$('simPulse').addEventListener('click', ()=>{
+  const p = { pulse: 72 + Math.round(Math.random()*10) };
+  ingestMessage({ type:'vitals', vitals:p, nodeId:'local' }, 'sim');
+});
+$('simEEG').addEventListener('click', ()=>{
+  ingestMessage({ type:'sensor', sensor:'eeg', value: Math.random()*0.9 + 0.5, nodeId:'local' }, 'sim');
+});
+
+/* E-Stop */
+$('btnEStop').addEventListener('click', ()=> sendCommand('emergency_stop'));
+
+/* -----------------------
+   Timeline controls
+----------------------- */
+$('btnClearTimeline').addEventListener('click', ()=> $('timeline').innerText = '');
+$('btnExportHistory').addEventListener('click', exportHistoryCSV);
+$('btnHistoryExport').addEventListener('click', exportHistoryCSV);
+$('btnHistoryClear').addEventListener('click', ()=>{ localStorage.removeItem(KEYS.history); toast('History cleared', 'Field logs wiped.', 'warning'); });
+
+/* -----------------------
+   Video controls + sync with Live view
+----------------------- */
+$('btnStartDetect').addEventListener('click', ()=> Camera.startLoop());
+$('btnStopDetect').addEventListener('click', ()=> Camera.stopLoop());
+$('btnSnapshot').addEventListener('click', ()=> Camera.snapshot());
+
+$('btnLiveStart').addEventListener('click', ()=> Camera.startLoop());
+$('btnLiveStop').addEventListener('click', ()=> Camera.stopLoop());
+$('btnLiveSnapshot').addEventListener('click', ()=> Camera.snapshot());
+
+$('btnToggleGrid').addEventListener('click', ()=>{
+  OverlayStore.setShowGrid(!OverlayStore.getShowGrid());
+  toast('Grid', OverlayStore.getShowGrid() ? 'On' : 'Off', 'good');
+});
+$('btnToggleLabels').addEventListener('click', ()=>{
+  OverlayStore.setShowLabels(!OverlayStore.getShowLabels());
+  toast('Labels', OverlayStore.getShowLabels() ? 'On' : 'Off', 'good');
+});
+
+/* Keep toggles synced between dashboard and live */
+function syncToggles(){
+  $('faceToggle2').checked = $('faceToggle').checked;
+  $('objToggle2').checked = $('objToggle').checked;
+  $('remoteOverlayToggle2').checked = $('remoteOverlayToggle').checked;
+  $('freqSelect2').value = $('freqSelect').value;
+}
+function syncBack(){
+  $('faceToggle').checked = $('faceToggle2').checked;
+  $('objToggle').checked = $('objToggle2').checked;
+  $('remoteOverlayToggle').checked = $('remoteOverlayToggle2').checked;
+  $('freqSelect').value = $('freqSelect2').value;
+}
+['faceToggle','objToggle','remoteOverlayToggle','freqSelect'].forEach(id=> $(id).addEventListener('change', syncToggles));
+['faceToggle2','objToggle2','remoteOverlayToggle2','freqSelect2'].forEach(id=> $(id).addEventListener('change', syncBack));
+
+/* When switching to Live, move video canvas; when leaving, move back */
+const originalSetView = setView;
+setView = (name)=>{
+  originalSetView(name);
+  if(name === 'live'){
+    Camera.moveVideoToLive();
+  }else{
+    Camera.moveVideoToDash();
+  }
+  syncToggles();
+};
+
+/* -----------------------
+   Job context
+----------------------- */
+function setJobLabel(label){
+  localStorage.setItem(KEYS.job, label || '');
+  $('jobLabel').innerText = label || '—';
+  $('jobInput').value = label || '';
+}
+setJobLabel(localStorage.getItem(KEYS.job) || '');
+
+$('btnSetJob').addEventListener('click', ()=> setJobLabel($('jobInput').value.trim()));
+$('btnClearJob').addEventListener('click', ()=> setJobLabel(''));
+$('btnTagJob').addEventListener('click', ()=>{
+  const label = prompt('Job site label (optional):', localStorage.getItem(KEYS.job) || '');
+  if(label !== null){
+    setJobLabel(label.trim());
+    ingestMessage({ type:'job_tag', label: label.trim(), nodeId:'local' }, 'local');
+  }
+});
+
+/* -----------------------
+   Integrations UI
+----------------------- */
+function showConnFields(){
+  const type = $('connType').value;
+  $('mqttTopicsWrap').style.display = type === 'mqtt' ? 'block' : 'none';
+  $('restIntervalWrap').style.display = type === 'rest' ? 'block' : 'none';
+}
+$('connType').addEventListener('change', showConnFields);
+showConnFields();
+
+function renderConnectorList(){
+  const el = $('connectorList');
+  el.innerHTML = '';
+  const list = Connectors.list();
+
+  list.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'block';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="min-width:0">
+          <div style="font-weight:900">${escapeHtml(c.name)}</div>
+          <div style="color:var(--muted);font-size:12px;font-weight:800;margin-top:4px">${escapeHtml(c.type.toUpperCase())} · ${escapeHtml(c.url)}</div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="chip"><span class="dot" style="background:${statusColor(c.status)}"></span> ${escapeHtml(c.status)}</span>
+            ${c.type === 'mqtt' ? `<span class="chip">topics: ${(c.topics||[]).length}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <button class="btn small" data-act="start">Start</button>
+          <button class="btn secondary small" data-act="stop">Stop</button>
+          <button class="btn danger small" data-act="remove">Remove</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('[data-act="start"]').addEventListener('click', ()=> { Connectors.start(c.id); flushCommandQueue(); });
+    card.querySelector('[data-act="stop"]').addEventListener('click', ()=> Connectors.stop(c.id));
+    card.querySelector('[data-act="remove"]').addEventListener('click', ()=> Connectors.remove(c.id));
+    el.appendChild(card);
+  });
+
+  $('opsConnCount').innerText = String(Connectors.getStats().connected) + '/' + String(Connectors.getStats().total);
+  updateConnBadges();
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function statusColor(st){
+  if(st === 'connected') return 'var(--good)';
+  if(st === 'connecting') return 'var(--warn)';
+  if(st === 'error') return 'var(--bad)';
+  return 'rgba(255,255,255,0.08)';
+}
+
+$('btnAddConn').addEventListener('click', ()=>{
+  const type = $('connType').value;
+  const name = $('connName').value.trim() || (type.toUpperCase() + ' Connector');
+  const url = $('connUrl').value.trim();
+  const wrapMode = $('wrapMode').value;
+
+  if(!url){ alert('Enter a URL'); return; }
+
+  const cfg = { id: uid(), type, name, url, wrapMode };
+
+  if(type === 'mqtt'){
+    cfg.topics = $('mqttTopics').value.trim();
+  }
+  if(type === 'rest'){
+    cfg.interval = Number($('restInterval').value || 1000);
+  }
+
+  Connectors.add(cfg);
+  renderConnectorList();
+});
+
+$('btnStartAll').addEventListener('click', ()=> { Connectors.startAll(); flushCommandQueue(); renderConnectorList(); });
+$('btnStopAll').addEventListener('click', ()=> { Connectors.stopAll(); renderConnectorList(); });
+
+$('btnTestConn').addEventListener('click', ()=>{
+  toast('Connector test', 'This suite can only fully test when started (CORS/network dependent).', 'warning');
+});
+
+/* Presets */
+$('btnAddPreset').addEventListener('click', ()=>{
+  const presets = [
+    { type:'ws', name:'ROSBridge (ws)', url:'ws://localhost:9090', wrapMode:'wrap' },
+    { type:'ws', name:'IonCore Telemetry', url:'wss://telemetry.server.example/ws', wrapMode:'auto' },
+    { type:'mqtt', name:'MQTT Edge Broker', url:'wss://broker.example/mqtt', topics:'ioncore/telemetry, ioncore/overlay', wrapMode:'auto' },
+    { type:'rest', name:'REST Poll — Node Status', url:'https://api.example/nodes', interval:1500, wrapMode:'wrap' }
+  ];
+  presets.forEach(p=> Connectors.add({ ...p, id: uid() }));
+  renderConnectorList();
+});
+
+/* Quick open integrations */
+$('btnOpenIntegrations').addEventListener('click', ()=> setView('integrations'));
+
+/* -----------------------
+   Share UI init
+----------------------- */
+Share.initUI();
+
+/* -----------------------
+   Settings UI
+----------------------- */
+$('btnTheme').addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  $('setTheme').value = next;
+  toast('Theme', `Switched to ${next}.`, 'good');
+});
+
+$('accentPicker').addEventListener('input', (e)=> applyAccent(e.target.value));
+$('setTheme').addEventListener('change', ()=> applyTheme($('setTheme').value));
+$('setAccent').addEventListener('input', (e)=> applyAccent(e.target.value));
+
+$('btnToggleField').addEventListener('click', ()=> setFieldMode(!document.body.classList.contains('field-mode')));
+
+$('btnSaveBrand').addEventListener('click', ()=> saveBrand());
+$('btnResetBrand').addEventListener('click', ()=>{
+  localStorage.removeItem(KEYS.brand);
+  localStorage.removeItem(KEYS.accent);
+  localStorage.removeItem(KEYS.theme);
+  localStorage.removeItem(KEYS.field);
+  localStorage.removeItem(KEYS.job);
+  location.reload();
+});
+
+$('setLogo').addEventListener('change', async ()=>{
+  const f = $('setLogo').files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const dataUrl = reader.result;
+    saveBrand(dataUrl);
+  };
+  reader.readAsDataURL(f);
+});
+
+/* Quick sidebar pills */
+$('pillField').addEventListener('click', ()=> setFieldMode(!document.body.classList.contains('field-mode')));
+
+/* Toast test */
+$('btnToastTest').addEventListener('click', ()=> toast('IonCore Suite', 'This is a notification toast (demo).', 'good'));
+
+/* -----------------------
+   Recorder / Alerts init
+----------------------- */
+Recorder.initUI();
+Alerts.initUI();
+
+/* -----------------------
+   Sentinel Mesh rendering
+----------------------- */
+function renderNodes(){
+  const list = NodeRegistry.list();
+  $('nodeCount').innerText = String(list.length);
+  $('nodeCount2').innerText = String(list.length);
+
+  // node list UI
+  const nl = $('nodeList');
+  if(nl){
+    nl.innerHTML = '';
+    list.slice(0, 60).forEach(n=>{
+      const row = document.createElement('div');
+      row.className = 'node-row';
+      row.innerHTML = `
+        <div class="left">
+          <div class="id">${escapeHtml(n.name || n.nodeId)}</div>
+          <div class="meta">${escapeHtml(n.nodeId)} · ${n.lastSeen ? Math.round((now()-n.lastSeen)/1000)+'s ago' : '—'}</div>
+        </div>
+        <div class="chip"><span class="dot" style="background:${n.online ? 'var(--good)' : 'var(--bad)'}"></span>${n.online ? 'online' : 'silent'}</div>
+      `;
+      row.addEventListener('click', ()=>{
+        NodeRegistry.setFocused(n.nodeId);
+        renderOverlayLayerList();
+      });
+      nl.appendChild(row);
+    });
+  }
+
+  renderOverlayLayerList();
+}
+
+function renderOverlayLayerList(){
+  const host = $('overlayLayerList');
+  if(!host) return;
+  const list = NodeRegistry.list().slice(0, 40);
+  host.innerHTML = '';
+  list.forEach(n=>{
+    const r = document.createElement('div');
+    r.className = 'pill';
+    r.innerHTML = `
+      <span style="display:flex;gap:10px;align-items:center;min-width:0">
+        <span class="dot" style="background:${n.color}"></span>
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(n.name||n.nodeId)}</span>
+      </span>
+      <small>${n.overlayEnabled !== false ? 'ON' : 'OFF'}</small>
+    `;
+    r.addEventListener('click', ()=>{
+      n.overlayEnabled = !n.overlayEnabled;
+      toast('Overlay layer', `${n.nodeId}: ${n.overlayEnabled ? 'ON' : 'OFF'}`, 'good');
+      renderOverlayLayerList();
+    });
+    host.appendChild(r);
+  });
+}
+
+/* Mesh canvas simulation */
+const MeshSim = (() => {
+  const canvas = $('meshCanvas');
+  const ctx = canvas.getContext('2d');
+  let w=0,h=0;
+  let dragging = null;
+
+  // simulation state: nodeId -> {x,y,vx,vy}
+  const pos = new Map();
+
+  function resize(){
+    const r = canvas.getBoundingClientRect();
+    canvas.width = Math.floor(r.width * devicePixelRatio);
+    canvas.height = Math.floor(r.height * devicePixelRatio);
+    w = canvas.width; h = canvas.height;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function ensure(n){
+    if(!pos.has(n.nodeId)){
+      pos.set(n.nodeId, { x: Math.random()*w, y: Math.random()*h, vx: 0, vy: 0 });
+    }
+    return pos.get(n.nodeId);
+  }
+
+  function reset(){
+    pos.clear();
+    toast('Mesh', 'Layout reset.', 'warning');
+  }
+
+  function tick(){
+    resize();
+    ctx.clearRect(0,0,w,h);
+
+    const nodes = NodeRegistry.list();
+    const links = Topology.getLinks();
+
+    // ensure local node
+    NodeRegistry.upsert('local', { name: 'Local Console', color: getComputedStyle(document.documentElement).getPropertyValue('--accent1').trim() || '#00d1ff' });
+
+    // build positions
+    nodes.forEach(n=> ensure(n));
+
+    // physics
+    const centerX = w/2, centerY = h/2;
+    // attraction to center
+    for(const n of nodes){
+      const p = ensure(n);
+      const dx = centerX - p.x;
+      const dy = centerY - p.y;
+      p.vx += dx * 0.00012;
+      p.vy += dy * 0.00012;
+    }
+    // repulsion
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a = ensure(nodes[i]);
+        const b = ensure(nodes[j]);
+        const dx = a.x-b.x, dy=a.y-b.y;
+        const d2 = dx*dx+dy*dy + 0.01;
+        const f = 2200 / d2;
+        a.vx += (dx/Math.sqrt(d2))*f;
+        a.vy += (dy/Math.sqrt(d2))*f;
+        b.vx -= (dx/Math.sqrt(d2))*f;
+        b.vy -= (dy/Math.sqrt(d2))*f;
+      }
+    }
+    // link springs
+    links.forEach(l=>{
+      const aN = NodeRegistry.ensure(l.from);
+      const bN = NodeRegistry.ensure(l.to);
+      const a = ensure(aN), b = ensure(bN);
+      const dx = b.x-a.x, dy=b.y-a.y;
+      const dist = Math.sqrt(dx*dx+dy*dy) + 0.01;
+      const target = 210;
+      const k = (dist-target) * 0.002;
+      a.vx += dx/dist*k; a.vy += dy/dist*k;
+      b.vx -= dx/dist*k; b.vy -= dy/dist*k;
+    });
+
+    // integrate + damping
+    for(const n of nodes){
+      const p = ensure(n);
+      if(dragging && dragging.id === n.nodeId){
+        // locked by drag
+        p.vx = 0; p.vy = 0;
+      }else{
+        p.vx *= 0.85; p.vy *= 0.85;
+        p.x += p.vx; p.y += p.vy;
+        p.x = clamp(p.x, 40, w-40);
+        p.y = clamp(p.y, 40, h-40);
+      }
+    }
+
+    // draw edges
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 2;
+    links.forEach(l=>{
+      const a = ensure(NodeRegistry.ensure(l.from));
+      const b = ensure(NodeRegistry.ensure(l.to));
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // draw nodes
+    nodes.forEach(n=>{
+      const p = ensure(n);
+      const r = (n.nodeId === NodeRegistry.focused()) ? 22 : 16;
+      const col = n.color || '#00d1ff';
+
+      // halo
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = col + '22';
+      ctx.arc(p.x,p.y,r+10,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+
+      // core
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = col;
+      ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+
+      // label
+      ctx.save();
+      ctx.font = '700 14px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      const name = n.name || n.nodeId;
+      ctx.fillText(name, p.x + r + 10, p.y + 5);
+      ctx.restore();
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  // drag support
+  canvas.addEventListener('mousedown', (e)=>{
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * devicePixelRatio;
+    const my = (e.clientY - r.top) * devicePixelRatio;
+    const nodes = NodeRegistry.list();
+    for(const n of nodes){
+      const p = ensure(n);
+      const dx = mx - p.x, dy = my - p.y;
+      if(dx*dx+dy*dy < 26*26){
+        dragging = { id: n.nodeId, offsetX: dx, offsetY: dy };
+        NodeRegistry.setFocused(n.nodeId);
+        renderOverlayLayerList();
+        break;
+      }
+    }
+  });
+  window.addEventListener('mousemove', (e)=>{
+    if(!dragging) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * devicePixelRatio;
+    const my = (e.clientY - r.top) * devicePixelRatio;
+    const n = NodeRegistry.ensure(dragging.id);
+    const p = ensure(n);
+    p.x = mx - dragging.offsetX;
+    p.y = my - dragging.offsetY;
+  });
+  window.addEventListener('mouseup', ()=> dragging=null);
+
+  return { tick, reset };
+})();
+
+$('btnMeshReset').addEventListener('click', ()=> MeshSim.reset());
+$('btnMeshPing').addEventListener('click', ()=>{
+  // sends a ping command across the bus (your real nodes can respond)
+  ingestMessage({ type:'command', cmd:'ping_all', nodeId:'local' }, 'local');
+  toast('Ping', 'Broadcast ping issued to all nodes (bus).', 'good');
+});
+$('btnMeshShare').addEventListener('click', ()=> setView('integrations'));
+
+/* Focused node actions */
+$('btnFocusOverlay').addEventListener('click', ()=>{
+  const id = NodeRegistry.focused();
+  if(!id) return;
+  const n = NodeRegistry.ensure(id);
+  n.overlayEnabled = !n.overlayEnabled;
+  toast('Overlay layer', `${id}: ${n.overlayEnabled ? 'ON' : 'OFF'}`, 'good');
+  renderOverlayLayerList();
+});
+$('btnFocusRequest').addEventListener('click', ()=>{
+  const id = NodeRegistry.focused();
+  if(!id) return;
+  sendCommand('request_overlay_stream', { targetNodeId: id });
+});
+$('btnFocusCmd').addEventListener('click', ()=>{
+  const id = NodeRegistry.focused();
+  if(!id) return;
+  const cmd = prompt('Command to send to node:', 'calibrate');
+  if(!cmd) return;
+  sendCommand(cmd, { targetNodeId: id });
+});
+
+/* -----------------------
+   Global badges
+----------------------- */
+function updateConnBadges(){
+  const stats = Connectors.getStats();
+  $('connText').innerText = `Links: ${stats.connected}/${stats.total}${Share.isConnected() ? ' + share' : ''}`;
+  $('badgeConns').style.borderColor = stats.connected ? 'rgba(94,234,212,0.25)' : 'rgba(255,255,255,0.03)';
+  $('opsConnCount').innerText = `${stats.connected}/${stats.total}`;
+  $('opsShareState').innerText = Share.isConnected() ? 'on' : 'off';
+}
+updateConnBadges();
+
+/* -----------------------
+   Quick actions button
+----------------------- */
+$('btnSidebarQuick').addEventListener('click', ()=>{
+  toast('Quick Actions', 'Try: Integrations → Create Share, or Mesh → Request streams.', 'good');
+});
+
+/* -----------------------
+   Integrations shortcuts
+----------------------- */
+$('btnRequestOverlays').addEventListener('click', ()=> sendCommand('request_overlay_stream', { targetNodeId:'*' }));
+
+/* -----------------------
+   Recorder / history shortcuts
+----------------------- */
+$('btnHistoryOpen').addEventListener('click', ()=> setView('recorder'));
+
+/* -----------------------
+   Theme init from storage
+----------------------- */
+(function initTheme(){
+  const theme = localStorage.getItem(KEYS.theme) || 'dark';
+  const accent = localStorage.getItem(KEYS.accent) || '#00d1ff';
+  applyTheme(theme);
+  applyAccent(accent);
+  $('setTheme').value = theme;
+})();
+(function initField(){
+  const on = (localStorage.getItem(KEYS.field) === 'true');
+  setFieldMode(on);
+})();
+loadBrand();
+
+/* -----------------------
+   Settings save / reset
+----------------------- */
+$('btnSaveBrand').addEventListener('click', ()=>{
+  // brand save already handled; also save theme + accent chosen in settings
+  applyTheme($('setTheme').value);
+  applyAccent($('setAccent').value);
+  saveBrand();
+});
+$('btnResetBrand').addEventListener('click', ()=>{
+  if(!confirm('Reset brand/theme/field/job to defaults?')) return;
+  localStorage.removeItem(KEYS.brand);
+  localStorage.removeItem(KEYS.theme);
+  localStorage.removeItem(KEYS.accent);
+  localStorage.removeItem(KEYS.field);
+  localStorage.removeItem(KEYS.job);
+  location.reload();
+});
+
+/* -----------------------
+   Connectors init
+----------------------- */
+Connectors.init();
+renderConnectorList();
+
+/* -----------------------
+   Start camera immediately
+----------------------- */
+Camera.startCamera();
+
+/* -----------------------
+   Mesh animation
+----------------------- */
+MeshSim.tick();
+
+/* -----------------------
+   Flush queue when any connector connects
+----------------------- */
+setInterval(flushCommandQueue, 1500);
+
+/* -----------------------
+   Clear history button in ops (already)
+----------------------- */
+$('btnHistoryClear').addEventListener('click', ()=>{
+  if(!confirm('Clear local history?')) return;
+  localStorage.removeItem(KEYS.history);
+  toast('Cleared', 'History cleared.', 'warning');
+});
+
+/* -----------------------
+   Open integrations from dashboard action
+----------------------- */
+$('btnOpenIntegrations').addEventListener('click', ()=> setView('integrations'));
+
+/* -----------------------
+   Live HUD toggle (field focus)
+----------------------- */
+$('btnLiveFocus').addEventListener('click', ()=>{
+  setFieldMode(!document.body.classList.contains('field-mode'));
+  toast('Field HUD', document.body.classList.contains('field-mode') ? 'Enabled' : 'Disabled', 'good');
+});
+
+/* -----------------------
+   Detection start buttons on view live
+----------------------- */
+$('btnLiveStart').addEventListener('click', ()=> Camera.startLoop());
+$('btnLiveStop').addEventListener('click', ()=> Camera.stopLoop());
+
+/* -----------------------
+   Camera movement happens on setView override
+----------------------- */
+
+/* -----------------------
+   Escape hatch for unload
+----------------------- */
+window.addEventListener('beforeunload', ()=>{
+  // Stop connectors
+  Connectors.stopAll();
+  // Close share
+  Share.close?.();
+});
+
+/* -----------------------
+   Sanity: initial bus hello messages
+----------------------- */
+ingestMessage({ type:'node_status', nodeId:'local', name:'Local Console', online:true }, 'local');
+ingestMessage({ type:'topology', links:[{from:'local', to:'local', label:'self'}] }, 'local');
+
+console.info('IonCore AR Suite loaded.');
+</script>
+
+</body>
+</html>

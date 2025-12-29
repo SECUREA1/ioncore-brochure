@@ -1,0 +1,3149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>IonCore — Abyss Runner (Secure Gesture Controls)</title>
+  <meta name="description" content="Deep sea forward-motion drone runner/shooter with secure gesture login + tuners + pinch-hold scan."/>
+
+  <style>
+    :root{
+      --bg0:#050812;
+      --bg1:#071735;
+      --ink:#eaf2ff;
+      --muted:rgba(234,242,255,.74);
+
+      --glass:rgba(255,255,255,.08);
+      --glass2:rgba(255,255,255,.12);
+      --stroke:rgba(255,255,255,.18);
+
+      --good:#67ffb4;
+      --warn:#ffd27a;
+      --bad:#ff6b8e;
+      --cyan:#70e3ff;
+      --vio:#caa7ff;
+
+      --shadow: 0 22px 60px rgba(0,0,0,.55);
+      --shadow2: 0 14px 30px rgba(0,0,0,.35);
+    }
+    *{ box-sizing:border-box; }
+    html,body{
+      height:100%;
+      margin:0;
+      background:
+        radial-gradient(1200px 800px at 20% 20%, rgba(112,227,255,.10), transparent 55%),
+        radial-gradient(1000px 700px at 80% 20%, rgba(202,167,255,.10), transparent 55%),
+        radial-gradient(1000px 700px at 50% 95%, rgba(103,255,180,.10), transparent 55%),
+        linear-gradient(180deg,var(--bg0),var(--bg1));
+      color:var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      overflow:hidden;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:none;
+    }
+    canvas{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      display:block;
+      background: transparent;
+    }
+
+    /* HUD */
+    .hud{
+      position:fixed;
+      left:12px;
+      right:12px;
+      top:12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      z-index: 30;
+      pointer-events:none;
+    }
+    .hud .left, .hud .right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      max-width:72vw;
+    }
+
+    .pill{
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: 0 10px 26px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-weight: 900;
+      letter-spacing:.2px;
+      font-size: 13px;
+      line-height: 1;
+      white-space:nowrap;
+      pointer-events:none;
+    }
+    .pill small{ color:var(--muted); font-weight:800; }
+
+    .barWrap{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .bar{
+      width:170px;
+      height:12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.15);
+      overflow:hidden;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:50%;
+      background: linear-gradient(90deg, rgba(103,255,180,.95), rgba(112,227,255,.95));
+    }
+    .bar.bad > i{
+      background: linear-gradient(90deg, rgba(255,210,122,.95), rgba(255,107,142,.95));
+    }
+
+    .kbd{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 24px;
+      padding: 2px 7px;
+      border-radius: 8px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.9);
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing:.04em;
+    }
+
+    /* clickable pill button */
+    .pillBtn{
+      pointer-events:auto;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: var(--ink);
+      font-weight: 950;
+      letter-spacing:.2px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+      box-shadow: 0 10px 26px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 13px;
+    }
+    .pillBtn:hover{ background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.24); transform: translateY(-1px); }
+    .pillBtn:active{ transform: translateY(0px) scale(.99); }
+    .pillBtn.primary{
+      background: linear-gradient(90deg, rgba(112,227,255,.22), rgba(103,255,180,.18));
+      border-color: rgba(112,227,255,.28);
+    }
+    .pillBtn.danger{
+      background: rgba(255,107,142,.14);
+      border-color: rgba(255,107,142,.28);
+    }
+    .pillBtn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    /* Bridge toast */
+    .bridge{
+      position:fixed;
+      left:50%;
+      top:74px;
+      transform:translateX(-50%) translateY(-6px);
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.15);
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-weight:900;
+      letter-spacing:.2px;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .18s ease, transform .18s ease;
+      max-width:min(820px, calc(100vw - 24px));
+      text-align:center;
+      z-index: 40;
+    }
+    .bridge.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Overlays */
+    .overlay{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      background:
+        radial-gradient(900px 560px at 50% 0%, rgba(112,227,255,.10), transparent 60%),
+        radial-gradient(900px 560px at 50% 100%, rgba(202,167,255,.10), transparent 60%),
+        rgba(0,0,0,.44);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 60;
+      overflow:auto;
+      touch-action:auto;
+    }
+    .card{
+      width:min(980px, 100%);
+      border-radius: 22px;
+      padding: 18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.05));
+      box-shadow: 0 24px 70px rgba(0,0,0,.5);
+    }
+    .coverTop{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding: 10px 10px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      max-width: 72ch;
+    }
+    .brand .kicker{
+      color: rgba(112,227,255,.92);
+      font-weight:950;
+      letter-spacing:.22em;
+      font-size: 12px;
+      text-transform:uppercase;
+    }
+    .brand .title{
+      font-weight: 980;
+      font-size: clamp(26px, 4vw, 44px);
+      line-height: 1.02;
+      letter-spacing:-.02em;
+    }
+    .brand .sub{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 14px;
+      max-width: 72ch;
+      line-height: 1.45;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .hud .left, .hud .right{ max-width: 100%; }
+    }
+    .panel{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .panel h3{
+      margin:0 0 8px 0;
+      font-size: 13px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color: rgba(255,255,255,.85);
+    }
+    .panel p, .panel li{
+      margin:0;
+      color: rgba(234,242,255,.80);
+      font-weight:800;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .panel ul{
+      margin:8px 0 0 18px;
+      padding:0;
+    }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      padding-top: 12px;
+    }
+    .btn{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: var(--ink);
+      font-weight: 950;
+      letter-spacing:.2px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+    }
+    .btn:hover{ background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.26); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn.primary{
+      background: linear-gradient(90deg, rgba(112,227,255,.22), rgba(103,255,180,.18));
+      border-color: rgba(112,227,255,.28);
+    }
+    .btn.danger{
+      background: rgba(255,107,142,.14);
+      border-color: rgba(255,107,142,.28);
+    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      letter-spacing: .02em;
+    }
+
+    /* Gesture cursor overlay */
+    #gestureCursor{
+      position:fixed;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.88);
+      box-shadow: 0 0 22px rgba(140,220,255,.16);
+      transform: translate(-50%, -50%);
+      pointer-events:none;
+      z-index: 80;
+      display:none;
+    }
+    #gestureCursor:before{
+      content:"";
+      position:absolute; inset:5px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.42);
+      opacity:.65;
+    }
+    #gestureCursor:after{
+      content:"";
+      position:absolute;
+      left:50%; top:50%;
+      width:4px; height:4px;
+      border-radius:999px;
+      transform: translate(-50%, -50%);
+      background: rgba(140,220,255,.85);
+      box-shadow: 0 0 14px rgba(140,220,255,.40);
+    }
+    #gestureCursor.pinch{
+      border-color: rgba(90,255,160,.92);
+      box-shadow: 0 0 34px rgba(90,255,160,.32);
+    }
+    #gestureCursor.pinch:after{
+      background: rgba(90,255,160,.92);
+      box-shadow: 0 0 16px rgba(90,255,160,.44);
+    }
+
+    /* hidden webcam element */
+    #video{
+      position:fixed;
+      left:-9999px;
+      top:-9999px;
+      width: 640px;
+      height: 480px;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    /* Auth / tuner panels (RedNode-like) */
+    .authOverlay{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      background: radial-gradient(1200px 800px at 50% 25%, rgba(160,210,255,.12), rgba(0,0,0,.72));
+      backdrop-filter: blur(12px);
+      z-index: 90;
+      overflow:auto;
+      touch-action:auto;
+    }
+    .authCard{
+      width: min(980px, 96vw);
+      max-height: calc(100dvh - 28px);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 20px;
+      box-shadow: 0 34px 90px rgba(0,0,0,.48);
+      color: rgba(255,255,255,.92);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      position:relative;
+    }
+    .authCard:before{
+      content:"";
+      position:absolute; inset:-2px;
+      pointer-events:none;
+      background:
+        radial-gradient(900px 260px at 15% 0%, rgba(112,227,255,.12), transparent 60%),
+        radial-gradient(900px 260px at 85% 0%, rgba(103,255,180,.10), transparent 60%);
+      opacity:.9;
+    }
+    .authHeader, .authBody, .authFooter{ position:relative; z-index:1; }
+
+    .authHeader{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+    }
+    .authHeader h2{
+      margin: 0;
+      font: 950 18px/1.15 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: .2px;
+      color: #fff;
+    }
+    .authSub{
+      opacity:.86; margin-top: 6px; max-width: 92ch; font-size: 13px; line-height: 1.35;
+    }
+    .modeRow{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 12px; }
+    .modeBtn{
+      flex: 1 1 260px;
+      padding: 14px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+      text-align:left;
+      box-shadow: 0 16px 30px rgba(0,0,0,.20);
+      transition: transform .10s ease, border-color .14s ease, background .14s ease;
+    }
+    .modeBtn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.20); }
+    .modeBtn strong{ display:block; font-size: 14px; margin-bottom: 2px; letter-spacing:.2px; }
+    .modeBtn span{ opacity:.85; display:block; font-size: 12px; line-height: 1.35; }
+    .modeBtn.selected{
+      border-color: rgba(140,220,255,.42);
+      background: rgba(140,220,255,.12);
+      box-shadow: 0 16px 32px rgba(140,220,255,.08);
+    }
+
+    .pillRow{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .pillMini{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      font-variant-numeric: tabular-nums;
+      color: rgba(255,255,255,.90);
+      font-weight:950;
+    }
+    .pillMini.ok{ border-color: rgba(90,255,160,.30); background: rgba(90,255,160,.14); }
+    .pillMini.bad{ border-color: rgba(255,120,120,.25); background: rgba(255,120,120,.10); }
+
+    .authBody{
+      padding: 12px 14px 12px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+    }
+    .gridAuth{
+      display:grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+      gap: 12px;
+    }
+    @media (max-width: 980px){ .gridAuth{ grid-template-columns: 1fr; } }
+
+    .panelAuth{
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      padding: 10px 10px 8px;
+      min-width: 0;
+      box-shadow: 0 18px 34px rgba(0,0,0,.22);
+    }
+    .panelAuth h3{
+      margin: 2px 0 8px;
+      font: 950 13px/1.15 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing:.15px;
+      color: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin: 7px 0;
+      min-width: 0;
+    }
+    .row label{ flex: 0 0 240px; opacity:.95; min-width: 0; }
+    .row input[type="range"]{ width:100%; min-width: 0; }
+    .row .v{
+      width: 160px;
+      text-align:right;
+      opacity:.90;
+      font-variant-numeric: tabular-nums;
+      flex: 0 0 auto;
+      color: rgba(255,255,255,.90);
+    }
+    .row input[type="checkbox"]{ transform: scale(1.05); }
+
+    @media (max-width: 560px){
+      .row{ flex-direction:column; align-items:stretch; gap:6px; }
+      .row label{ flex: 0 0 auto; width:100%; }
+      .row .v{ width:100%; text-align:right; }
+      .modeBtn{ flex: 1 1 100%; }
+    }
+    .hint{ opacity:.84; font-size: 12px; margin-top: 6px; color: rgba(255,255,255,.86); line-height: 1.35; }
+
+    .authFooter{
+      padding: 12px 14px 14px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+    }
+    .actionsAuth{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+
+    .actionBtn{
+      padding: 12px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+      font: 950 13px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      box-shadow: 0 14px 26px rgba(0,0,0,.18);
+      transition: transform .08s ease, border-color .12s ease;
+    }
+    .actionBtn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.26); }
+    .actionBtn.primary{
+      background: rgba(90,255,160,.22);
+      border-color: rgba(90,255,160,.26);
+    }
+    .actionBtn:disabled{ opacity:.45; cursor:not-allowed; }
+
+    /* Cursor pattern pad */
+    #patternPad{
+      width: 100%;
+      height: 240px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: radial-gradient(700px 240px at 50% 50%, rgba(140,220,255,.08), rgba(0,0,0,.18));
+      position: relative;
+      overflow:hidden;
+      touch-action:none;
+    }
+    #patternPad canvas{ width:100%; height:100%; display:block; }
+
+    /* Startup scan overlay */
+    #startup{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      background: radial-gradient(1100px 700px at 50% 35%, rgba(255,140,140,.10), rgba(0,0,0,.78));
+      backdrop-filter: blur(12px);
+      z-index: 95;
+      color: rgba(255,255,255,.92);
+      overflow:auto;
+      touch-action:auto;
+    }
+    #startupCard{
+      width: min(820px, 96vw);
+      max-height: calc(100dvh - 28px);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 34px 90px rgba(0,0,0,.48);
+      padding: 14px 14px 12px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #startupTop{ display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; margin-bottom: 10px; }
+    #startupTop h3{ margin:0; font: 950 16px/1.15 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; letter-spacing:.2px; color:#fff; }
+    #startupMsg{ opacity:.86; margin-top: 6px; line-height: 1.35; }
+    #startupCount{ font: 950 56px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; opacity:.95; min-width: 80px; text-align:right; }
+    #startupBars{ display:flex; gap:10px; margin-top: 12px; align-items:center; flex-wrap:wrap; }
+    .pbar{
+      flex: 1 1 240px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .pbar > i{ display:block; height:100%; width:0%; background: rgba(140,220,255,.95); }
+
+    /* Live tuner panel */
+    #liveTuner{
+      position:fixed;
+      top: 82px;
+      right: 14px;
+      width: min(460px, 94vw);
+      max-height: calc(100dvh - 120px);
+      background: rgba(10,14,20,.80);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+      z-index: 70;
+      display:none;
+      overflow:hidden;
+      box-shadow: 0 28px 70px rgba(0,0,0,.52);
+      pointer-events:auto;
+    }
+    #liveTunerHeader{
+      padding: 10px 10px 8px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      color: rgba(255,255,255,.92);
+      font: 950 13px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    #liveTunerHeader small{ font-weight:800; opacity:.82; }
+    #liveTunerBody{
+      padding: 10px 10px 12px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      color: rgba(255,255,255,.90);
+      font: 13px/1.35 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .miniBtn{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+      font: 950 12px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .miniBtn:hover{ border-color: rgba(255,255,255,.26); }
+    #liveReadout{
+      margin-top: 8px;
+      opacity:.84;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="c"></canvas>
+
+  <!-- HUD -->
+  <div class="hud" id="hud" style="display:none;">
+    <div class="left">
+      <div class="pill" id="depthTxt">DEPTH 0m</div>
+      <div class="pill" id="scoreTxt">SCORE 0</div>
+      <div class="pill" id="killsTxt">KILLS 0</div>
+
+      <div class="pill barWrap">
+        <small>HULL</small>
+        <div class="bar bad"><i id="hullFill"></i></div>
+      </div>
+      <div class="pill barWrap">
+        <small>BAT</small>
+        <div class="bar"><i id="batFill"></i></div>
+      </div>
+
+      <div class="pill" id="scanTxt">SCAN READY</div>
+    </div>
+
+    <div class="right">
+      <div class="pill" id="ctrlTxt"><small>CTRL</small> <span id="ctrlMode">Locked</span></div>
+      <button class="pillBtn primary" id="btnScan">Scan</button>
+      <button class="pillBtn" id="btnTuner">Tuner</button>
+      <button class="pillBtn" id="btnPause">Pause</button>
+      <button class="pillBtn danger" id="btnQuit">Quit</button>
+    </div>
+  </div>
+
+  <div class="bridge" id="bridge"></div>
+
+  <!-- COVER -->
+  <div class="overlay" id="cover" style="display:none;">
+    <div class="card">
+      <div class="coverTop">
+        <div class="brand">
+          <div class="kicker">IONCORE ENERGY</div>
+          <div class="title">Abyss Runner — Forward Drone Shooter</div>
+          <div class="sub">
+            This build is <b>depth‑wise</b> (Z‑forward): enemies/rewards <b>expand as they approach</b> and pass by.
+            <br/>
+            <b>Gesture mode</b> uses your hand for flight + fire + scan. Camera requires <b>HTTPS</b> or <b>localhost</b>.
+          </div>
+        </div>
+        <div class="pill" style="pointer-events:none;">
+          <div style="font-weight:950;">Best Score</div>
+          <div id="bestTxt" style="color:rgba(255,210,122,.92);font-weight:950;margin-top:4px;">0</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <h3>Controls</h3>
+          <ul>
+            <li><b>Gesture</b>: Move hand <b>X/Y</b> to steer. Push hand <b>toward camera</b> to go faster (Z‑throttle).</li>
+            <li><b>Pinch</b> = fire (release). <b>Pinch‑hold</b> = <b>SONAR SCAN</b> (tunable hold time).</li>
+            <li><b>Keyboard fallback</b>: <b>WASD</b> steer, <b>W</b> adds speed, <b>Space</b> fire, <b>E</b> scan, <b>T</b> tuner, <b>P</b> pause.</li>
+          </ul>
+          <p style="margin-top:10px;">
+            Tip: If it jitters, run <b>Startup Scan</b> and raise <b>Smoothing</b>. If it feels slow, raise <b>Sensitivity</b> or <b>Z‑Forward Sens</b>.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h3>Mission</h3>
+          <ul>
+            <li>Fly forward through the abyss and <b>destroy enemies</b>.</li>
+            <li>Collect <b>rewards</b> for score + battery boosts.</li>
+            <li>Use <b>Scan</b> to reveal targets and pickups ahead.</li>
+          </ul>
+          <p style="margin-top:10px;">
+            Status: <span class="mono" id="coverStatus">Locked</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn" id="btnOpenAuth">Login</button>
+        <button class="btn" id="btnOpenStartup">Startup Scan</button>
+        <button class="btn" id="btnOpenTuner">Gesture Tuner</button>
+        <button class="btn primary" id="btnStart" disabled>Start Run</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE TUNER -->
+  <div id="liveTuner">
+    <div id="liveTunerHeader">
+      <div>
+        Gesture + Game Tuner <small id="liveTunerMode">(MICRO mapping)</small>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        <button id="recenterBtn" class="miniBtn">Recenter</button>
+        <button id="recalBtn" class="miniBtn">Startup Scan</button>
+        <button id="defaultsBtn" class="miniBtn">Defaults</button>
+        <button id="closeLiveBtn" class="miniBtn">Close</button>
+      </div>
+    </div>
+    <div id="liveTunerBody">
+      <div class="panelAuth">
+        <h3>Gesture Mapping</h3>
+
+        <div class="row">
+          <label>Full-screen mapping (absolute)</label>
+          <input id="absMapLive" type="checkbox">
+          <div class="v"></div>
+        </div>
+
+        <div class="row">
+          <label>Movement Range (inches)</label>
+          <input id="microInLive" type="range" min="0.25" max="3.00" step="0.05" value="2.00">
+          <div class="v" id="microInLiveV">2.00 in</div>
+        </div>
+
+        <div class="row">
+          <label>Movement Sensitivity (×)</label>
+          <input id="sensLive" type="range" min="0.05" max="2.50" step="0.01" value="0.35">
+          <div class="v" id="sensLiveV">0.35×</div>
+        </div>
+
+        <div class="row">
+          <label>Cursor Smoothing</label>
+          <input id="smoothLive" type="range" min="0.00" max="0.92" step="0.01" value="0.22">
+          <div class="v" id="smoothLiveV">0.22</div>
+        </div>
+
+        <div class="row">
+          <label>Startup Smoothing Boost (×)</label>
+          <input id="startupBoostLive" type="range" min="1" max="6" step="0.1" value="3.0">
+          <div class="v" id="startupBoostLiveV">3.0×</div>
+        </div>
+
+        <div class="row">
+          <label>Deadzone (px)</label>
+          <input id="deadLive" type="range" min="0" max="160" step="1" value="14">
+          <div class="v" id="deadLiveV">14</div>
+        </div>
+
+        <div class="row">
+          <label>Pinch Threshold (fire/scan)</label>
+          <input id="pinchTLive" type="range" min="0.18" max="0.52" step="0.01" value="0.30">
+          <div class="v" id="pinchTLiveV">0.30</div>
+        </div>
+
+        <div class="row">
+          <label>Mirror X (Selfie)</label>
+          <input id="mirrorXLive" type="checkbox" checked>
+          <div class="v"></div>
+        </div>
+
+        <div class="row">
+          <label>Invert X</label>
+          <input id="invXLive" type="checkbox">
+          <div class="v"></div>
+        </div>
+
+        <div class="row">
+          <label>Invert Y</label>
+          <input id="invYLive" type="checkbox">
+          <div class="v"></div>
+        </div>
+
+        <div class="row">
+          <label>Offset X (px)</label>
+          <input id="offXLive" type="range" min="-700" max="700" step="1" value="0">
+          <div class="v" id="offXLiveV">0</div>
+        </div>
+
+        <div class="row">
+          <label>Offset Y (px)</label>
+          <input id="offYLive" type="range" min="-700" max="700" step="1" value="0">
+          <div class="v" id="offYLiveV">0</div>
+        </div>
+
+        <div class="row">
+          <label>Gesture Match Strictness</label>
+          <input id="gStrictLive" type="range" min="0.80" max="0.98" step="0.01" value="0.92">
+          <div class="v" id="gStrictLiveV">0.92</div>
+        </div>
+      </div>
+
+      <div class="panelAuth" style="margin-top:10px;">
+        <h3>Game Tuners (Forward / Weapons / Scan)</h3>
+
+        <div class="row">
+          <label>Base Forward Speed</label>
+          <input id="gBaseSpeed" type="range" min="120" max="900" step="5" value="360">
+          <div class="v" id="gBaseSpeedV">360</div>
+        </div>
+
+        <div class="row">
+          <label>Boost Add (Z push)</label>
+          <input id="gBoost" type="range" min="0" max="1200" step="10" value="520">
+          <div class="v" id="gBoostV">520</div>
+        </div>
+
+        <div class="row">
+          <label>Z-Forward Sens (×)</label>
+          <input id="gZsens" type="range" min="1.0" max="14.0" step="0.1" value="6.0">
+          <div class="v" id="gZsensV">6.0×</div>
+        </div>
+
+        <div class="row">
+          <label>Steer Speed</label>
+          <input id="gStrafe" type="range" min="160" max="1600" step="10" value="720">
+          <div class="v" id="gStrafeV">720</div>
+        </div>
+
+        <div class="row">
+          <label>Fire Rate (shots/s)</label>
+          <input id="gFireRate" type="range" min="1" max="18" step="1" value="9">
+          <div class="v" id="gFireRateV">9</div>
+        </div>
+
+        <div class="row">
+          <label>Bullet Speed</label>
+          <input id="gBulletSpeed" type="range" min="600" max="5200" step="50" value="2600">
+          <div class="v" id="gBulletSpeedV">2600</div>
+        </div>
+
+        <div class="row">
+          <label>Scan Hold (sec)</label>
+          <input id="gScanHold" type="range" min="0.15" max="1.50" step="0.05" value="0.55">
+          <div class="v" id="gScanHoldV">0.55s</div>
+        </div>
+
+        <div class="row">
+          <label>Scan Cooldown (sec)</label>
+          <input id="gScanCool" type="range" min="0.5" max="6.0" step="0.1" value="2.4">
+          <div class="v" id="gScanCoolV">2.4s</div>
+        </div>
+
+        <div class="row">
+          <label>Scan Range</label>
+          <input id="gScanRange" type="range" min="300" max="2600" step="25" value="1400">
+          <div class="v" id="gScanRangeV">1400</div>
+        </div>
+
+        <div class="row">
+          <label>Show Gesture Cursor</label>
+          <input id="gShowCursor" type="checkbox">
+          <div class="v"></div>
+        </div>
+
+        <div class="hint">
+          <b>Gesture Scan Tuner:</b> pinch‑hold triggers scan at <span class="mono">Scan Hold</span>.
+          Quick pinch‑release fires. You can always click the HUD “Scan” button too.
+        </div>
+
+        <div id="liveReadout">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secure Login Overlay -->
+  <div class="authOverlay" id="authOverlay" aria-label="Secure Login">
+    <div class="authCard">
+      <div class="authHeader">
+        <h2>Secure Login — Abyss Runner</h2>
+        <div class="authSub">
+          Choose a mode and <b>Enroll</b> once. Then <b>Login</b> to unlock the run.
+          Gesture login needs camera access (<b>HTTPS</b> / <b>localhost</b>).
+        </div>
+
+        <div class="modeRow">
+          <button id="pickGesture" class="modeBtn">
+            <strong>Gesture Login</strong>
+            <span>Camera required. Hold steady → capture pose → verify. Gesture tuners control mapping + strictness.</span>
+          </button>
+          <button id="pickCursor" class="modeBtn">
+            <strong>Cursor Signature Login</strong>
+            <span>Draw a short signature pattern in the pad. Repeat to verify.</span>
+          </button>
+        </div>
+
+        <div class="pillRow">
+          <span class="pillMini" id="authSeenPill">Hand: —</span>
+          <span class="pillMini" id="authProfilePill">Profile: —</span>
+          <span class="pillMini" id="authStatusPill">Status: Locked</span>
+        </div>
+      </div>
+
+      <div class="authBody">
+        <div class="gridAuth">
+          <div class="panelAuth" id="gesturePanel">
+            <h3>
+              Gesture Tuners (mapping)
+              <span class="pillMini" id="gestureLivePill" style="padding:6px 9px; font-size:12px; opacity:.95;">Live: —</span>
+            </h3>
+
+            <div class="row">
+              <label>Full-screen mapping (absolute)</label>
+              <input id="absMap" type="checkbox">
+              <div class="v"></div>
+            </div>
+
+            <div class="row">
+              <label>Movement Range (inches)</label>
+              <input id="microIn" type="range" min="0.25" max="3.00" step="0.05" value="2.00">
+              <div class="v" id="microInV">2.00 in</div>
+            </div>
+
+            <div class="row">
+              <label>Movement Sensitivity (×)</label>
+              <input id="sens" type="range" min="0.05" max="2.50" step="0.01" value="0.35">
+              <div class="v" id="sensV">0.35×</div>
+            </div>
+
+            <div class="row">
+              <label>Cursor Smoothing</label>
+              <input id="smooth" type="range" min="0.00" max="0.92" step="0.01" value="0.22">
+              <div class="v" id="smoothV">0.22</div>
+            </div>
+
+            <div class="row">
+              <label>Startup Smoothing Boost (×)</label>
+              <input id="startupBoost" type="range" min="1" max="6" step="0.1" value="3.0">
+              <div class="v" id="startupBoostV">3.0×</div>
+            </div>
+
+            <div class="row">
+              <label>Deadzone (px)</label>
+              <input id="dead" type="range" min="0" max="160" step="1" value="14">
+              <div class="v" id="deadV">14</div>
+            </div>
+
+            <div class="row">
+              <label>Pinch Threshold</label>
+              <input id="pinchT" type="range" min="0.18" max="0.52" step="0.01" value="0.30">
+              <div class="v" id="pinchTV">0.30</div>
+            </div>
+
+            <div class="row">
+              <label>Mirror X (Selfie)</label>
+              <input id="mirrorX" type="checkbox" checked>
+              <div class="v"></div>
+            </div>
+            <div class="row">
+              <label>Invert X</label>
+              <input id="invX" type="checkbox">
+              <div class="v"></div>
+            </div>
+            <div class="row">
+              <label>Invert Y</label>
+              <input id="invY" type="checkbox">
+              <div class="v"></div>
+            </div>
+
+            <div class="row">
+              <label>Offset X (px)</label>
+              <input id="offX" type="range" min="-700" max="700" step="1" value="0">
+              <div class="v" id="offXV">0</div>
+            </div>
+            <div class="row">
+              <label>Offset Y (px)</label>
+              <input id="offY" type="range" min="-700" max="700" step="1" value="0">
+              <div class="v" id="offYV">0</div>
+            </div>
+
+            <div class="row">
+              <label>Gesture Match Strictness</label>
+              <input id="gStrict" type="range" min="0.80" max="0.98" step="0.01" value="0.92">
+              <div class="v" id="gStrictV">0.92</div>
+            </div>
+
+            <div class="hint">
+              If denied often: run <b>Startup Scan</b>, then slightly lower strictness (e.g. 0.92 → 0.90).
+              <div id="gestureLiveHint" style="margin-top:6px; opacity:.9;">—</div>
+            </div>
+          </div>
+
+          <div class="panelAuth" id="cursorPanel" style="display:none;">
+            <h3>Cursor Signature Pad</h3>
+            <div class="hint" style="margin-bottom:8px">
+              Hold click (or touch) and draw a short pattern in the pad. Enroll once; then repeat to login.
+            </div>
+
+            <div id="patternPad">
+              <canvas id="patternCanvas"></canvas>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <label>Pattern Strictness</label>
+              <input id="pStrict" type="range" min="0.05" max="0.30" step="0.01" value="0.12">
+              <div class="v" id="pStrictV">0.12</div>
+            </div>
+
+            <div class="hint">
+              Higher number = more forgiving. Recommended 0.10–0.16.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="authFooter">
+        <div class="actionsAuth">
+          <button id="resetAuth" class="actionBtn">Reset Profiles</button>
+          <button id="startupScanAuth" class="actionBtn">Startup Scan</button>
+          <button id="enrollBtn" class="actionBtn">Enroll</button>
+          <button id="loginBtn" class="actionBtn primary" disabled>Login</button>
+          <button id="closeAuth" class="actionBtn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STARTUP CALIBRATION -->
+  <div id="startup" aria-label="Startup Scan">
+    <div id="startupCard">
+      <div id="startupTop">
+        <div>
+          <h3>Startup Scan — Neutral + Steady Control</h3>
+          <div id="startupMsg">Raise your hand. Hold steady for 3-2-1.</div>
+        </div>
+        <div id="startupCount"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <div id="chipHand" class="pillMini bad">Hand: not seen</div>
+        <div id="chipZ" class="pillMini">Z: —</div>
+        <div id="chipMicro" class="pillMini">Micro: —</div>
+      </div>
+
+      <div id="startupBars">
+        <div class="pbar"><i id="bar1"></i></div>
+        <div class="pbar"><i id="bar2"></i></div>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        Step 1: hold steady to set neutral. <br/>
+        Step 2: optional micro move to validate mapping.
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap">
+        <button id="skipStartup" class="actionBtn">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gesture cursor + hidden camera -->
+  <div id="gestureCursor" aria-hidden="true"></div>
+  <video id="video" playsinline></video>
+
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+  <script>
+  (() => {
+    /* ==========================================================
+       IonCore — Abyss Runner (Forward Depth Shooter)
+       - Secure login: gesture OR cursor signature
+       - Gesture tuners: micro/abs mapping, smoothing, pinch, strictness
+       - Game: Z-forward motion (into the scene), enemies expand/pass by
+       - Gesture actions:
+          * Steer: hand X/Y
+          * Speed: hand Z push (toward camera => faster)
+          * Fire: pinch + release
+          * Scan: pinch-hold (tunable)
+       ========================================================== */
+
+    // ---------- DOM ----------
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d', { alpha:true });
+
+    const HUD = {
+      root: document.getElementById('hud'),
+      depthTxt: document.getElementById('depthTxt'),
+      scoreTxt: document.getElementById('scoreTxt'),
+      killsTxt: document.getElementById('killsTxt'),
+      hullFill: document.getElementById('hullFill'),
+      batFill: document.getElementById('batFill'),
+      scanTxt: document.getElementById('scanTxt'),
+      ctrlMode: document.getElementById('ctrlMode'),
+
+      btnScan: document.getElementById('btnScan'),
+      btnTuner: document.getElementById('btnTuner'),
+      btnPause: document.getElementById('btnPause'),
+      btnQuit: document.getElementById('btnQuit'),
+    };
+
+    const UI = {
+      bridge: document.getElementById('bridge'),
+
+      cover: document.getElementById('cover'),
+      bestTxt: document.getElementById('bestTxt'),
+      coverStatus: document.getElementById('coverStatus'),
+      btnStart: document.getElementById('btnStart'),
+      btnOpenAuth: document.getElementById('btnOpenAuth'),
+      btnOpenStartup: document.getElementById('btnOpenStartup'),
+      btnOpenTuner: document.getElementById('btnOpenTuner'),
+
+      liveTuner: document.getElementById('liveTuner'),
+      closeLiveBtn: document.getElementById('closeLiveBtn'),
+      recenterBtn: document.getElementById('recenterBtn'),
+      recalBtn: document.getElementById('recalBtn'),
+      defaultsBtn: document.getElementById('defaultsBtn'),
+      liveTunerMode: document.getElementById('liveTunerMode'),
+      liveReadout: document.getElementById('liveReadout'),
+
+      authOverlay: document.getElementById('authOverlay'),
+      closeAuth: document.getElementById('closeAuth'),
+      pickGesture: document.getElementById('pickGesture'),
+      pickCursor: document.getElementById('pickCursor'),
+      gesturePanel: document.getElementById('gesturePanel'),
+      cursorPanel: document.getElementById('cursorPanel'),
+      enrollBtn: document.getElementById('enrollBtn'),
+      loginBtn: document.getElementById('loginBtn'),
+      resetAuth: document.getElementById('resetAuth'),
+      startupScanAuth: document.getElementById('startupScanAuth'),
+
+      authSeenPill: document.getElementById('authSeenPill'),
+      authProfilePill: document.getElementById('authProfilePill'),
+      authStatusPill: document.getElementById('authStatusPill'),
+      gestureLivePill: document.getElementById('gestureLivePill'),
+      gestureLiveHint: document.getElementById('gestureLiveHint'),
+
+      startup: document.getElementById('startup'),
+      startupCount: document.getElementById('startupCount'),
+      startupMsg: document.getElementById('startupMsg'),
+      chipHand: document.getElementById('chipHand'),
+      chipZ: document.getElementById('chipZ'),
+      chipMicro: document.getElementById('chipMicro'),
+      bar1: document.getElementById('bar1'),
+      bar2: document.getElementById('bar2'),
+      skipStartup: document.getElementById('skipStartup'),
+    };
+
+    const gestureCursorEl = document.getElementById('gestureCursor');
+    const videoEl = document.getElementById('video');
+
+    // ---------- Utils ----------
+    const TAU = Math.PI * 2;
+    const clamp = (v,a,b)=> Math.max(a, Math.min(b,v));
+    const lerp = (a,b,t)=> a+(b-a)*t;
+    const rand = (a,b)=> a + Math.random()*(b-a);
+    const randi = (a,b)=> a + Math.floor(Math.random()*(b-a+1));
+    const wait = (ms)=> new Promise(r=>setTimeout(r, ms));
+
+    function setBridge(msg){
+      UI.bridge.textContent = msg;
+      UI.bridge.classList.add('show');
+      clearTimeout(setBridge._t);
+      setBridge._t = setTimeout(()=> UI.bridge.classList.remove('show'), 1300);
+    }
+
+    // ---------- Resize ----------
+    function resize(){
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width  = Math.floor(innerWidth * dpr);
+      canvas.height = Math.floor(innerHeight * dpr);
+      canvas.style.width = innerWidth + 'px';
+      canvas.style.height = innerHeight + 'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    addEventListener('resize', resize, { passive:true });
+    resize();
+
+    // ---------- Audio (simple) ----------
+    const AudioSys = (() => {
+      let ac=null, master=null;
+
+      function ensure(){
+        if(ac) return;
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain();
+        master.gain.value = 0.45;
+        master.connect(ac.destination);
+      }
+
+      function blip(freq=740, dur=0.05, type='square', gain=0.08){
+        if(!ac) return;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = type;
+        o.frequency.value = freq;
+        g.gain.value = gain;
+        o.connect(g);
+        g.connect(master);
+        const t = ac.currentTime;
+        g.gain.setValueAtTime(gain, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.start(t);
+        o.stop(t + dur + 0.03);
+      }
+
+      function ping(){
+        if(!ac) return;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = 'sine';
+        const t = ac.currentTime;
+        o.frequency.setValueAtTime(280, t);
+        o.frequency.exponentialRampToValueAtTime(1500, t + 0.16);
+        g.gain.setValueAtTime(0.13, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.connect(g); g.connect(master);
+        o.start(t);
+        o.stop(t + 0.24);
+      }
+
+      return { ensure, blip, ping };
+    })();
+
+    // ---------- Persistent best ----------
+    const LS_BEST = 'ioncore_abyssrunner_best_score_v1';
+    let bestScore = Number(localStorage.getItem(LS_BEST) || 0);
+    UI.bestTxt.textContent = bestScore;
+
+    // ---------- Login mode + profile keys ----------
+    const MODE_KEY = 'ioncore_runner_login_mode_v1';
+    const G_PROFILE_KEY = 'ioncore_runner_gesture_profile_v1';
+    const C_PROFILE_KEY = 'ioncore_runner_cursor_profile_v1';
+    const GCFG_KEY = 'ioncore_runner_gesture_cfg_v1';
+    const GAMECFG_KEY = 'ioncore_runner_game_cfg_v1';
+
+    let isLoggedIn = false;
+    let controllerMode = 'gesture'; // gesture | cursor
+
+    function hasProfileForMode(m){
+      if (m==='gesture') return !!localStorage.getItem(G_PROFILE_KEY);
+      if (m==='cursor') return !!localStorage.getItem(C_PROFILE_KEY);
+      return false;
+    }
+
+    function setAuthSeen(ok){
+      UI.authSeenPill.textContent = ok ? 'Hand: seen' : 'Hand: —';
+      UI.authSeenPill.className = 'pillMini ' + (ok ? 'ok' : '');
+    }
+    function updateAuthProfilePill(){
+      const exists = hasProfileForMode(controllerMode);
+      UI.authProfilePill.textContent = `Profile: ${exists ? 'Saved' : 'Not set'}`;
+      UI.authProfilePill.className = 'pillMini ' + (exists ? 'ok' : 'bad');
+      UI.loginBtn.disabled = !exists;
+      if (!exists){
+        UI.authStatusPill.textContent = 'Status: Enroll required';
+        UI.authStatusPill.className = 'pillMini bad';
+      } else {
+        UI.authStatusPill.textContent = 'Status: Locked';
+        UI.authStatusPill.className = 'pillMini';
+      }
+    }
+
+    function selectMode(m){
+      controllerMode = m;
+      localStorage.setItem(MODE_KEY, m);
+
+      UI.pickGesture.classList.toggle('selected', m==='gesture');
+      UI.pickCursor.classList.toggle('selected', m==='cursor');
+
+      UI.gesturePanel.style.display = (m==='gesture') ? 'block' : 'none';
+      UI.cursorPanel.style.display = (m==='cursor') ? 'block' : 'none';
+
+      updateAuthProfilePill();
+      setAuthSeen(false);
+    }
+
+    (function restoreMode(){
+      const saved = localStorage.getItem(MODE_KEY);
+      controllerMode = (saved==='cursor' || saved==='gesture') ? saved : 'gesture';
+      selectMode(controllerMode);
+    })();
+
+    // ---------- Gesture Config ----------
+    const cfgDefaults = {
+      absoluteMapping: false,
+
+      microRangeInches: 2.00,
+      sensitivity: 0.35,
+      smoothing: 0.22,
+      startupSmoothBoost: 3.0,
+      deadzonePx: 14,
+      pinchThresh: 0.30,
+      mirrorX: true,
+      invX: false,
+      invY: false,
+      offsetX: 0,
+      offsetY: 0,
+      gestureStrict: 0.92
+    };
+    const cfg = { ...cfgDefaults };
+
+    function loadCfg(){
+      try{
+        const raw = localStorage.getItem(GCFG_KEY);
+        if (!raw) return;
+        const o = JSON.parse(raw);
+        for (const k of Object.keys(cfgDefaults)){
+          if (typeof cfgDefaults[k] === 'boolean'){
+            if (typeof o[k] === 'boolean') cfg[k] = o[k];
+          } else if (typeof cfgDefaults[k] === 'number'){
+            if (typeof o[k] === 'number' && isFinite(o[k])) cfg[k] = o[k];
+          }
+        }
+      }catch{}
+    }
+    function saveCfg(){ try{ localStorage.setItem(GCFG_KEY, JSON.stringify(cfg)); }catch{} }
+
+    // ---------- Game Config (includes scan tuner) ----------
+    const gameDefaults = {
+      baseSpeed: 360,
+      boostAdd: 520,
+      zForwardSens: 6.0,
+      strafeSpeed: 720,
+      fireRate: 9,
+      bulletSpeed: 2600,
+      scanHoldSec: 0.55,
+      scanCooldownSec: 2.4,
+      scanRange: 1400,
+      showCursor: false
+    };
+    const gameCfg = { ...gameDefaults };
+
+    function loadGameCfg(){
+      try{
+        const raw = localStorage.getItem(GAMECFG_KEY);
+        if (!raw) return;
+        const o = JSON.parse(raw);
+        for (const k of Object.keys(gameDefaults)){
+          if (typeof gameDefaults[k] === 'boolean'){
+            if (typeof o[k] === 'boolean') gameCfg[k] = o[k];
+          } else if (typeof gameDefaults[k] === 'number'){
+            if (typeof o[k] === 'number' && isFinite(o[k])) gameCfg[k] = o[k];
+          }
+        }
+      }catch{}
+    }
+    function saveGameCfg(){ try{ localStorage.setItem(GAMECFG_KEY, JSON.stringify(gameCfg)); }catch{} }
+
+    // ---------- Bind helpers ----------
+    const bindings = [];
+    function bindRange(id, obj, key, fmt){
+      const el = document.getElementById(id);
+      const vEl = document.getElementById(id + "V");
+      if (!el) return;
+      bindings.push({ type:'range', el, vEl, obj, key, fmt });
+      el.addEventListener('input', ()=>{
+        obj[key] = +el.value;
+        if (obj===cfg) saveCfg(); else saveGameCfg();
+        syncControls();
+      }, { passive:true });
+    }
+    function bindCheck(id, obj, key){
+      const el = document.getElementById(id);
+      if (!el) return;
+      bindings.push({ type:'check', el, obj, key });
+      el.addEventListener('change', ()=>{
+        obj[key] = !!el.checked;
+        if (obj===cfg) saveCfg(); else saveGameCfg();
+        syncControls();
+      }, { passive:true });
+    }
+
+    function syncControls(){
+      for (const b of bindings){
+        if (b.type === 'range'){
+          b.el.value = b.obj[b.key];
+          if (b.vEl && b.fmt) b.vEl.textContent = b.fmt(b.obj[b.key]);
+        } else {
+          b.el.checked = !!b.obj[b.key];
+        }
+      }
+
+      const mode = cfg.absoluteMapping ? "ABS" : "MICRO";
+      UI.liveTunerMode.textContent = `(${mode} mapping)`;
+
+      UI.liveReadout.textContent =
+        `map=${mode} • micro=${cfg.microRangeInches.toFixed(2)}in • sens=${cfg.sensitivity.toFixed(2)}× • smooth=${cfg.smoothing.toFixed(2)} • ` +
+        `dead=${Math.round(cfg.deadzonePx)}px • pinch=${cfg.pinchThresh.toFixed(2)} • strict=${cfg.gestureStrict.toFixed(2)} • ` +
+        `speed=${Math.round(gameCfg.baseSpeed)}+${Math.round(gameCfg.boostAdd)} • zSens=${gameCfg.zForwardSens.toFixed(1)}× • scanHold=${gameCfg.scanHoldSec.toFixed(2)}s`;
+
+      // cursor visibility
+      gestureCursorEl.style.display = (isLoggedIn && controllerMode==='gesture' && gameCfg.showCursor) ? 'block' : 'none';
+    }
+
+    // Bind auth overlay gesture tuners
+    bindCheck("absMap", cfg, "absoluteMapping");
+    bindRange("microIn", cfg, "microRangeInches", (v)=>`${v.toFixed(2)} in`);
+    bindRange("sens", cfg, "sensitivity", (v)=>`${v.toFixed(2)}×`);
+    bindRange("smooth", cfg, "smoothing", (v)=>v.toFixed(2));
+    bindRange("startupBoost", cfg, "startupSmoothBoost", (v)=>`${Number(v).toFixed(1)}×`);
+    bindRange("dead", cfg, "deadzonePx", (v)=>String(Math.round(v)));
+    bindRange("pinchT", cfg, "pinchThresh", (v)=>v.toFixed(2));
+    bindRange("offX", cfg, "offsetX", (v)=>String(Math.round(v)));
+    bindRange("offY", cfg, "offsetY", (v)=>String(Math.round(v)));
+    bindRange("gStrict", cfg, "gestureStrict", (v)=>v.toFixed(2));
+    bindCheck("mirrorX", cfg, "mirrorX");
+    bindCheck("invX", cfg, "invX");
+    bindCheck("invY", cfg, "invY");
+
+    // Bind live tuner gesture tuners
+    bindCheck("absMapLive", cfg, "absoluteMapping");
+    bindRange("microInLive", cfg, "microRangeInches", (v)=>`${v.toFixed(2)} in`);
+    bindRange("sensLive", cfg, "sensitivity", (v)=>`${v.toFixed(2)}×`);
+    bindRange("smoothLive", cfg, "smoothing", (v)=>v.toFixed(2));
+    bindRange("startupBoostLive", cfg, "startupSmoothBoost", (v)=>`${Number(v).toFixed(1)}×`);
+    bindRange("deadLive", cfg, "deadzonePx", (v)=>String(Math.round(v)));
+    bindRange("pinchTLive", cfg, "pinchThresh", (v)=>v.toFixed(2));
+    bindRange("offXLive", cfg, "offsetX", (v)=>String(Math.round(v)));
+    bindRange("offYLive", cfg, "offsetY", (v)=>String(Math.round(v)));
+    bindRange("gStrictLive", cfg, "gestureStrict", (v)=>Number(v).toFixed(2));
+    bindCheck("mirrorXLive", cfg, "mirrorX");
+    bindCheck("invXLive", cfg, "invX");
+    bindCheck("invYLive", cfg, "invY");
+
+    // Bind game tuners (gesture scan tuner included)
+    bindRange("gBaseSpeed", gameCfg, "baseSpeed", (v)=>String(Math.round(v)));
+    bindRange("gBoost", gameCfg, "boostAdd", (v)=>String(Math.round(v)));
+    bindRange("gZsens", gameCfg, "zForwardSens", (v)=>`${Number(v).toFixed(1)}×`);
+    bindRange("gStrafe", gameCfg, "strafeSpeed", (v)=>String(Math.round(v)));
+    bindRange("gFireRate", gameCfg, "fireRate", (v)=>String(Math.round(v)));
+    bindRange("gBulletSpeed", gameCfg, "bulletSpeed", (v)=>String(Math.round(v)));
+    bindRange("gScanHold", gameCfg, "scanHoldSec", (v)=>`${Number(v).toFixed(2)}s`);
+    bindRange("gScanCool", gameCfg, "scanCooldownSec", (v)=>`${Number(v).toFixed(1)}s`);
+    bindRange("gScanRange", gameCfg, "scanRange", (v)=>String(Math.round(v)));
+    bindCheck("gShowCursor", gameCfg, "showCursor");
+
+    loadCfg();
+    loadGameCfg();
+    syncControls();
+
+    // Defaults button (both cfg + game)
+    UI.defaultsBtn.addEventListener('click', ()=>{
+      Object.assign(cfg, cfgDefaults);
+      Object.assign(gameCfg, gameDefaults);
+      saveCfg(); saveGameCfg();
+      syncControls();
+      setBridge('Defaults restored.');
+    });
+
+    // ---------- Cursor signature login (pattern pad) ----------
+    const pad = document.getElementById('patternPad');
+    const pCanvas = document.getElementById('patternCanvas');
+    const pStrict = document.getElementById('pStrict');
+    const pStrictV = document.getElementById('pStrictV');
+
+    function resizePattern(){
+      if (!pad) return;
+      const r = pad.getBoundingClientRect();
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      pCanvas.width = Math.floor(r.width * dpr);
+      pCanvas.height = Math.floor(r.height * dpr);
+      const c = pCanvas.getContext('2d');
+      c.setTransform(dpr,0,0,dpr,0,0);
+      drawPattern([]);
+    }
+    addEventListener('resize', resizePattern, {passive:true});
+
+    if (pStrict){
+      pStrict.addEventListener('input', ()=> pStrictV.textContent = Number(pStrict.value).toFixed(2));
+      pStrictV.textContent = Number(pStrict.value).toFixed(2);
+    }
+
+    let drawing = false;
+    let pathPts = [];
+
+    function drawPattern(pts){
+      if (!pad) return;
+      const c = pCanvas.getContext('2d');
+      const r = pad.getBoundingClientRect();
+      c.clearRect(0,0,r.width,r.height);
+
+      c.globalAlpha = 0.26;
+      c.strokeStyle = '#bfe6c9';
+      c.lineWidth = 1;
+      for (let i=1;i<6;i++){
+        const x = (r.width/6)*i;
+        c.beginPath(); c.moveTo(x,0); c.lineTo(x,r.height); c.stroke();
+      }
+      for (let i=1;i<4;i++){
+        const y = (r.height/4)*i;
+        c.beginPath(); c.moveTo(0,y); c.lineTo(r.width,y); c.stroke();
+      }
+      c.globalAlpha = 1;
+
+      if (!pts.length) return;
+      c.strokeStyle = '#fff';
+      c.lineWidth = 3;
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      c.beginPath();
+      c.moveTo(pts[0].x, pts[0].y);
+      for (let i=1;i<pts.length;i++) c.lineTo(pts[i].x, pts[i].y);
+      c.stroke();
+    }
+
+    function padPos(ev){
+      const r = pad.getBoundingClientRect();
+      const x = (ev.clientX - r.left);
+      const y = (ev.clientY - r.top);
+      return {x: clamp(x,0,r.width), y: clamp(y,0,r.height)};
+    }
+
+    if (pad){
+      pad.addEventListener('pointerdown', (e)=>{
+        if (controllerMode !== 'cursor') return;
+        pad.setPointerCapture(e.pointerId);
+        drawing = true;
+        pathPts = [];
+        const p = padPos(e);
+        pathPts.push(p);
+        drawPattern(pathPts);
+      });
+      pad.addEventListener('pointermove', (e)=>{
+        if (!drawing || controllerMode !== 'cursor') return;
+        const p = padPos(e);
+        const last = pathPts[pathPts.length-1];
+        const dx = p.x - last.x, dy = p.y - last.y;
+        if (dx*dx + dy*dy < 6) return;
+        pathPts.push(p);
+        drawPattern(pathPts);
+      });
+      pad.addEventListener('pointerup', ()=>{ if (controllerMode==='cursor') drawing=false; });
+      pad.addEventListener('pointercancel', ()=> drawing=false);
+      resizePattern();
+    }
+
+    function resamplePath(pts, n=64){
+      if (!pts || pts.length < 2) return null;
+
+      const d = [0];
+      let total = 0;
+      for (let i=1;i<pts.length;i++){
+        const dx = pts[i].x - pts[i-1].x, dy = pts[i].y - pts[i-1].y;
+        const dist = Math.hypot(dx,dy);
+        total += dist;
+        d.push(total);
+      }
+      if (total < 20) return null;
+
+      const out = [];
+      for (let k=0;k<n;k++){
+        const t = (total * k) / (n-1);
+        let i = 1;
+        while (i < d.length && d[i] < t) i++;
+        i = clamp(i,1,d.length-1);
+        const t0 = d[i-1], t1 = d[i];
+        const a = (t1 - t0) < 1e-9 ? 0 : (t - t0) / (t1 - t0);
+        out.push({
+          x: pts[i-1].x + (pts[i].x - pts[i-1].x) * a,
+          y: pts[i-1].y + (pts[i].y - pts[i-1].y) * a
+        });
+      }
+
+      // normalize
+      let mx=0,my=0;
+      for (const p of out){ mx += p.x; my += p.y; }
+      mx/=out.length; my/=out.length;
+      let maxR = 1e-9;
+      for (const p of out){
+        const dx = p.x - mx, dy = p.y - my;
+        maxR = Math.max(maxR, Math.hypot(dx,dy));
+      }
+      return out.map(p=>({ x:(p.x-mx)/maxR, y:(p.y-my)/maxR }));
+    }
+
+    function pathDistance(a,b){
+      if (!a || !b || a.length !== b.length) return 999;
+      let sum = 0;
+      for (let i=0;i<a.length;i++){
+        const dx = a[i].x - b[i].x;
+        const dy = a[i].y - b[i].y;
+        sum += Math.hypot(dx,dy);
+      }
+      return sum / a.length;
+    }
+
+    // ---------- Gesture Engine (MediaPipe Hands) ----------
+    let hands = null;
+    let cam = null;
+    let lastLoginLandmarks = null;
+
+    const gState = {
+      seen:false,
+      lastSeenAt:0,
+
+      rawX:0, rawY:0, rawZ:0,
+      rawFX: NaN, rawFY: NaN, rawFZ: NaN,
+
+      neutral: null,
+
+      cursorX: innerWidth * 0.5,
+      cursorY: innerHeight * 0.5,
+
+      pinchLatched:false,
+      pinchNorm: 1,
+
+      smoothBoostUntil: 0,
+      seenPrev: false
+    };
+
+    function pxPerInch(){
+      const d = document.createElement("div");
+      d.style.width = "1in";
+      d.style.position = "absolute";
+      d.style.left = "-200%";
+      d.style.top = "0";
+      document.body.appendChild(d);
+      const p = d.getBoundingClientRect().width || 96;
+      d.remove();
+      return p;
+    }
+    let PX_IN = pxPerInch();
+    addEventListener("resize", () => { PX_IN = pxPerInch(); }, { passive:true });
+
+    function distLm(a,b){
+      const dx = (a.x - b.x), dy = (a.y - b.y);
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+    function avgLm(points){
+      let x=0,y=0,z=0;
+      for (const p of points){ x += p.x; y += p.y; z += (p.z || 0); }
+      const n = Math.max(1, points.length);
+      return { x: x/n, y: y/n, z: z/n };
+    }
+
+    function armStartupSmoothing(ms=2200){
+      gState.smoothBoostUntil = Math.max(gState.smoothBoostUntil, performance.now() + ms);
+    }
+    function effectiveSmoothing(now){
+      const base = clamp(cfg.smoothing, 0, 0.98);
+      const boost = (now < gState.smoothBoostUntil) ? Math.max(1, cfg.startupSmoothBoost || 1) : 1;
+      const step = (1 - base) / boost;
+      return clamp(1 - step, 0, 0.98);
+    }
+    function smoothStep(oldV, newV, effSmooth){
+      return oldV + (newV - oldV) * (1 - effSmooth);
+    }
+
+    function updatePinchLatch(pinchNorm){
+      const downT = cfg.pinchThresh;
+      const upT   = cfg.pinchThresh + 0.05;
+      if (!gState.pinchLatched){
+        if (pinchNorm <= downT) gState.pinchLatched = true;
+      } else {
+        if (pinchNorm >= upT) gState.pinchLatched = false;
+      }
+    }
+
+    function mapMicro(rawX, rawY){
+      const w = innerWidth, h = innerHeight;
+      const microRangePx = Math.max(8, cfg.microRangeInches * PX_IN);
+
+      const center = { x: w*0.5 + cfg.offsetX, y: h*0.5 + cfg.offsetY };
+
+      const pad = 18;
+      const maxDX = Math.max(30, (w * 0.5) - pad);
+      const maxDY = Math.max(30, (h * 0.5) - pad);
+
+      const scaleX = (maxDX / microRangePx) * cfg.sensitivity;
+      const scaleY = (maxDY / microRangePx) * cfg.sensitivity;
+
+      const nx = (gState.neutral?.x ?? rawX);
+      const ny = (gState.neutral?.y ?? rawY);
+
+      let dx = rawX - nx;
+      let dy = rawY - ny;
+
+      const dz = Math.max(0, cfg.deadzonePx);
+      if (Math.abs(dx) < dz) dx = 0;
+      if (Math.abs(dy) < dz) dy = 0;
+
+      let sx = center.x + dx * scaleX;
+      let sy = center.y + dy * scaleY;
+
+      if (cfg.invX) sx = w - sx;
+      if (cfg.invY) sy = h - sy;
+
+      return { x: clamp(sx, 0, w), y: clamp(sy, 0, h) };
+    }
+
+    function mapAbsolute(rawX, rawY){
+      const w = innerWidth, h = innerHeight;
+      let sx = rawX + cfg.offsetX;
+      let sy = rawY + cfg.offsetY;
+      if (cfg.invX) sx = w - sx;
+      if (cfg.invY) sy = h - sy;
+      return { x: clamp(sx, 0, w), y: clamp(sy, 0, h) };
+    }
+
+    function handleHandsResults(results){
+      const w = innerWidth, h = innerHeight;
+      const now = performance.now();
+
+      const lms = results.multiHandLandmarks || [];
+      lastLoginLandmarks = lms.length ? lms[0] : null;
+
+      if (!lms.length){
+        gState.seen = false;
+        setAuthSeen(false);
+        return;
+      }
+
+      const landmarks = lms[0];
+
+      const idxTip   = landmarks[8];
+      const thumbTip = landmarks[4];
+      const wrist    = landmarks[0];
+      const idxMcp   = landmarks[5];
+      const midMcp   = landmarks[9];
+      const ringMcp  = landmarks[13];
+      const pinkMcp  = landmarks[17];
+
+      const palm = avgLm([wrist, idxMcp, midMcp, ringMcp, pinkMcp]);
+      const BLEND = 0.22;
+
+      let px = idxTip.x * (1-BLEND) + palm.x * BLEND;
+      let py = idxTip.y * (1-BLEND) + palm.y * BLEND;
+      let pz = (idxTip.z || 0) * (1-BLEND) + (palm.z || 0) * BLEND;
+
+      if (cfg.mirrorX) px = 1 - px;
+
+      const rawX = px * w;
+      const rawY = py * h;
+      const rawZ = pz;
+
+      gState.rawX = rawX; gState.rawY = rawY; gState.rawZ = rawZ;
+
+      const scaleA = distLm(wrist, midMcp);
+      const scaleB = distLm(idxMcp, pinkMcp);
+      const handScale = Math.max(0.0001, scaleA, scaleB);
+      const pinchNorm = distLm(thumbTip, idxTip) / handScale;
+
+      gState.pinchNorm = pinchNorm;
+      updatePinchLatch(pinchNorm);
+
+      const reacquired = !gState.seenPrev;
+      if (reacquired) armStartupSmoothing(1100);
+      gState.seenPrev = true;
+
+      if (!gState.neutral){
+        gState.neutral = { x: rawX, y: rawY, z: rawZ };
+        armStartupSmoothing(2400);
+      }
+
+      const effSmooth = effectiveSmoothing(now);
+
+      if (!isFinite(gState.rawFX)){ gState.rawFX = rawX; gState.rawFY = rawY; gState.rawFZ = rawZ; }
+      gState.rawFX = smoothStep(gState.rawFX, rawX, effSmooth);
+      gState.rawFY = smoothStep(gState.rawFY, rawY, effSmooth);
+      gState.rawFZ = smoothStep(gState.rawFZ, rawZ, effSmooth);
+
+      const mapped = cfg.absoluteMapping
+        ? mapAbsolute(gState.rawFX, gState.rawFY)
+        : mapMicro(gState.rawFX, gState.rawFY);
+
+      gState.cursorX = smoothStep(gState.cursorX, mapped.x, effSmooth);
+      gState.cursorY = smoothStep(gState.cursorY, mapped.y, effSmooth);
+
+      gState.seen = true;
+      gState.lastSeenAt = now;
+
+      if (UI.authOverlay.style.display !== 'none' && controllerMode === 'gesture'){
+        setAuthSeen(true);
+      } else {
+        setAuthSeen(gState.seen && (now - gState.lastSeenAt) < 420);
+      }
+    }
+
+    async function ensureGestureEngine(){
+      if (!window.Hands || !window.Camera) return false;
+      if (hands && cam) return true;
+
+      hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.55,
+        minTrackingConfidence: 0.55
+      });
+      hands.onResults(handleHandsResults);
+
+      cam = new Camera(videoEl, {
+        onFrame: async () => { try { await hands.send({ image: videoEl }); } catch {} },
+        width: 640,
+        height: 480
+      });
+
+      try{
+        await cam.start();
+        return true;
+      }catch(e){
+        hands = null; cam = null;
+        UI.authStatusPill.textContent = 'Status: Camera blocked';
+        UI.authStatusPill.className = 'pillMini bad';
+        setBridge('Camera blocked. Use HTTPS or localhost.');
+        return false;
+      }
+    }
+
+    // ---------- Gesture cursor + UI click injection (ONLY when overlays open) ----------
+    let pinchPrev = false;
+    let clickCooldownUntil = 0;
+
+    function uiModeActive(){
+      const authOpen = UI.authOverlay.style.display !== 'none';
+      const startupOpen = UI.startup.style.display !== 'none';
+      const coverOpen = UI.cover.style.display !== 'none';
+      const liveTunerOpen = UI.liveTuner.style.display !== 'none';
+      return authOpen || startupOpen || coverOpen || liveTunerOpen;
+    }
+
+    function gestureTick(){
+      requestAnimationFrame(gestureTick);
+
+      if (!isLoggedIn || controllerMode !== 'gesture'){
+        gestureCursorEl.style.display = 'none';
+        pinchPrev = gState.pinchLatched;
+        gState.seenPrev = false;
+        return;
+      }
+
+      const now = performance.now();
+      const seen = gState.seen && (now - gState.lastSeenAt) < 420;
+      if (!seen){
+        gestureCursorEl.style.display = 'none';
+        pinchPrev = gState.pinchLatched;
+        gState.seenPrev = false;
+        return;
+      }
+
+      // show cursor only if user enabled it (or if UI mode)
+      const show = gameCfg.showCursor || uiModeActive();
+      gestureCursorEl.style.display = show ? 'block' : 'none';
+
+      if (show){
+        gestureCursorEl.style.left = gState.cursorX + 'px';
+        gestureCursorEl.style.top = gState.cursorY + 'px';
+        gestureCursorEl.classList.toggle('pinch', gState.pinchLatched);
+      }
+
+      // UI click injection on pinch DOWN (edge) only while UI overlays are open
+      if (uiModeActive()){
+        if (!pinchPrev && gState.pinchLatched && now > clickCooldownUntil){
+          clickCooldownUntil = now + 260;
+          const el = document.elementFromPoint(gState.cursorX, gState.cursorY);
+          if (el){
+            const target = el.closest('button, input, label, a, [role="button"]') || el;
+            try { target.click(); } catch {}
+          }
+        }
+      }
+
+      pinchPrev = gState.pinchLatched;
+    }
+    gestureTick();
+
+    // ---------- Gesture login vector + similarity ----------
+    function gestureFeatureFromLandmarks(landmarks){
+      const wrist = landmarks[0];
+      const midMcp = landmarks[9];
+      const scale = Math.max(1e-6, Math.hypot(midMcp.x - wrist.x, midMcp.y - wrist.y));
+      const idxs = [0,5,9,13,17,4,8,12,16,20];
+      const v = [];
+      for (const i of idxs){
+        const p = landmarks[i];
+        v.push((p.x - wrist.x)/scale, (p.y - wrist.y)/scale, ((p.z||0) - (wrist.z||0))/scale);
+      }
+      return v;
+    }
+    function cosineSim(a,b){
+      if (!a || !b || a.length !== b.length) return -1;
+      let dot=0, na=0, nb=0;
+      for (let i=0;i<a.length;i++){
+        dot += a[i]*b[i];
+        na += a[i]*a[i];
+        nb += b[i]*b[i];
+      }
+      na = Math.sqrt(na); nb = Math.sqrt(nb);
+      if (na < 1e-9 || nb < 1e-9) return -1;
+      return dot/(na*nb);
+    }
+
+    async function captureGestureVector(ms=1100){
+      const start = performance.now();
+      const samples = [];
+      while (performance.now() - start < ms){
+        await wait(50);
+        if (lastLoginLandmarks){
+          samples.push(gestureFeatureFromLandmarks(lastLoginLandmarks));
+        }
+      }
+      if (samples.length < 6) return null;
+
+      const n = samples[0].length;
+      const mean = new Array(n).fill(0);
+      for (const s of samples){
+        for (let i=0;i<n;i++) mean[i] += s[i];
+      }
+      for (let i=0;i<n;i++) mean[i] /= samples.length;
+      return mean;
+    }
+
+    // ---------- Startup Scan ----------
+    let startupActive = false;
+    let countdownT = 0;
+    let stableT = 0;
+    let phase = 'idle';
+    let neutralSamples = [];
+    let lastStartupTick = performance.now();
+
+    function showStartup(show){
+      UI.startup.style.display = show ? 'flex' : 'none';
+      if (!show){
+        UI.startupCount.textContent = '';
+        UI.bar1.style.width = '0%';
+        UI.bar2.style.width = '0%';
+      }
+    }
+
+    function beginStartupScan(){
+      if (controllerMode !== 'gesture') return;
+      startupActive = true;
+      phase = 'wait';
+      stableT = 0;
+      countdownT = 3.0;
+      neutralSamples = [];
+
+      UI.chipMicro.textContent = `Micro: ${cfg.microRangeInches.toFixed(2)} in (${Math.round(cfg.microRangeInches*PX_IN)} px)`;
+      UI.startupMsg.innerHTML = 'Raise your hand. Hold steady for <b>3-2-1</b>.';
+      showStartup(true);
+      setBridge('Startup Scan: hold steady.');
+    }
+
+    UI.skipStartup.addEventListener('click', ()=>{
+      startupActive = false;
+      showStartup(false);
+    });
+
+    UI.startupScanAuth.addEventListener('click', async ()=>{
+      if (controllerMode !== 'gesture'){
+        setBridge('Startup Scan is for Gesture mode.');
+        return;
+      }
+      const ok = await ensureGestureEngine();
+      if (!ok) return;
+      beginStartupScan();
+    });
+
+    UI.recalBtn.addEventListener('click', async ()=>{
+      const ok = await ensureGestureEngine();
+      if (!ok) return;
+      beginStartupScan();
+    });
+
+    UI.recenterBtn.addEventListener('click', ()=>{
+      if (!cfg.absoluteMapping){
+        gState.neutral = { x: gState.rawX, y: gState.rawY, z: gState.rawZ };
+      } else {
+        cfg.offsetX = clamp(cfg.offsetX + ((innerWidth*0.5) - gState.rawFX), -700, 700);
+        cfg.offsetY = clamp(cfg.offsetY + ((innerHeight*0.5) - gState.rawFY), -700, 700);
+        saveCfg();
+        syncControls();
+      }
+      armStartupSmoothing(2200);
+      setBridge('Recentered. Smoothing applied.');
+    });
+
+    function startupTick(){
+      requestAnimationFrame(startupTick);
+      const now = performance.now();
+      const dt = (now - lastStartupTick) / 1000;
+      lastStartupTick = now;
+
+      if (!startupActive) return;
+
+      const seen = gState.seen && (now - gState.lastSeenAt) < 420;
+      UI.chipHand.className = 'pillMini ' + (seen ? 'ok' : 'bad');
+      UI.chipHand.textContent = `Hand: ${seen ? 'seen' : 'not seen'}`;
+      UI.chipZ.textContent = `Z: ${(gState.rawZ||0).toFixed(3)}`;
+      UI.chipMicro.textContent = `Micro: ${cfg.microRangeInches.toFixed(2)} in`;
+
+      if (phase === 'wait'){
+        if (!seen) return;
+        stableT += dt;
+        UI.bar1.style.width = `${Math.round(clamp(stableT / 0.5, 0, 1) * 100)}%`;
+        if (stableT >= 0.5){
+          phase = 'countdown';
+          countdownT = 3.0;
+          UI.startupCount.textContent = '3';
+        }
+        return;
+      }
+
+      if (phase === 'countdown'){
+        if (!seen) return;
+
+        countdownT -= dt;
+        const c = Math.max(1, Math.ceil(countdownT));
+        UI.startupCount.textContent = String(c);
+
+        neutralSamples.push({x:gState.rawFX, y:gState.rawFY, z:gState.rawFZ});
+        UI.bar1.style.width = `${Math.round(clamp((3.0 - countdownT)/3.0, 0, 1) * 100)}%`;
+
+        if (countdownT <= 0){
+          const n = Math.max(1, neutralSamples.length);
+          let sx=0, sy=0, sz=0;
+          for (const s of neutralSamples){ sx+=s.x; sy+=s.y; sz+=s.z; }
+          gState.neutral = { x: sx/n, y: sy/n, z: sz/n };
+          armStartupSmoothing(2400);
+          UI.bar2.style.width = '100%';
+          UI.startupCount.textContent = '✓';
+          UI.startupMsg.innerHTML = 'Neutral captured. Controls stabilized.';
+          phase = 'done';
+          setTimeout(()=>{ startupActive=false; showStartup(false); }, 650);
+        }
+      }
+    }
+    startupTick();
+
+    // ---------- Auth UI events ----------
+    UI.pickGesture.addEventListener('click', async ()=>{
+      selectMode('gesture');
+      await ensureGestureEngine();
+    });
+    UI.pickCursor.addEventListener('click', ()=>{
+      selectMode('cursor');
+    });
+
+    UI.closeAuth.addEventListener('click', ()=>{
+      UI.authOverlay.style.display = 'none';
+      // if not logged in, keep cover locked
+      updateCoverStatus();
+    });
+
+    UI.resetAuth.addEventListener('click', ()=>{
+      if (!confirm('Reset stored profiles + tuners?')) return;
+      localStorage.removeItem(G_PROFILE_KEY);
+      localStorage.removeItem(C_PROFILE_KEY);
+      localStorage.removeItem(GCFG_KEY);
+      localStorage.removeItem(GAMECFG_KEY);
+      Object.assign(cfg, cfgDefaults);
+      Object.assign(gameCfg, gameDefaults);
+      saveCfg(); saveGameCfg();
+      syncControls();
+      updateAuthProfilePill();
+      UI.loginBtn.disabled = true;
+      UI.authStatusPill.textContent = 'Status: Locked';
+      UI.authStatusPill.className = 'pillMini';
+      setBridge('Profiles reset.');
+    });
+
+    UI.enrollBtn.addEventListener('click', async ()=>{
+      UI.authStatusPill.textContent = 'Status: Enrolling…';
+      UI.authStatusPill.className = 'pillMini';
+
+      if (controllerMode === 'gesture'){
+        const ok = await ensureGestureEngine();
+        if (!ok){
+          UI.authStatusPill.textContent = 'Status: Camera blocked';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+
+        UI.authStatusPill.textContent = 'Status: Hold steady…';
+        UI.authStatusPill.className = 'pillMini';
+
+        const vec = await captureGestureVector(1100);
+        if (!vec){
+          UI.authStatusPill.textContent = 'Status: No hand captured';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+        localStorage.setItem(G_PROFILE_KEY, JSON.stringify(vec));
+        updateAuthProfilePill();
+        UI.loginBtn.disabled = false;
+
+        UI.authStatusPill.textContent = 'Status: Enrolled';
+        UI.authStatusPill.className = 'pillMini ok';
+        setBridge('Gesture profile enrolled.');
+      }
+
+      if (controllerMode === 'cursor'){
+        const pat = resamplePath(pathPts, 64);
+        if (!pat){
+          UI.authStatusPill.textContent = 'Status: Draw a pattern first';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+        localStorage.setItem(C_PROFILE_KEY, JSON.stringify(pat));
+        updateAuthProfilePill();
+        UI.loginBtn.disabled = false;
+
+        UI.authStatusPill.textContent = 'Status: Enrolled';
+        UI.authStatusPill.className = 'pillMini ok';
+        setBridge('Cursor profile enrolled.');
+      }
+    });
+
+    UI.loginBtn.addEventListener('click', async ()=>{
+      UI.authStatusPill.textContent = 'Status: Verifying…';
+      UI.authStatusPill.className = 'pillMini';
+
+      if (controllerMode === 'gesture'){
+        const ok = await ensureGestureEngine();
+        if (!ok){
+          UI.authStatusPill.textContent = 'Status: Camera blocked';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+        const savedRaw = localStorage.getItem(G_PROFILE_KEY);
+        if (!savedRaw){
+          UI.authStatusPill.textContent = 'Status: No profile';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+        const saved = JSON.parse(savedRaw);
+
+        const vec = await captureGestureVector(900);
+        if (!vec){
+          UI.authStatusPill.textContent = 'Status: No hand captured';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+
+        const sim = cosineSim(saved, vec);
+        const pass = sim >= cfg.gestureStrict;
+
+        if (!pass){
+          UI.authStatusPill.textContent = `Status: Denied (${sim.toFixed(3)})`;
+          UI.authStatusPill.className = 'pillMini bad';
+          setBridge('Denied. Try Startup Scan or lower strictness.');
+          return;
+        }
+
+        isLoggedIn = true;
+        UI.authOverlay.style.display = 'none';
+        UI.authStatusPill.textContent = 'Status: Verified';
+        UI.authStatusPill.className = 'pillMini ok';
+        armStartupSmoothing(2400);
+        setBridge(`Verified (sim=${sim.toFixed(3)}). Gesture control ready.`);
+      }
+
+      if (controllerMode === 'cursor'){
+        const savedRaw = localStorage.getItem(C_PROFILE_KEY);
+        if (!savedRaw){
+          UI.authStatusPill.textContent = 'Status: No profile';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+        const saved = JSON.parse(savedRaw);
+        const attempt = resamplePath(pathPts, 64);
+        if (!attempt){
+          UI.authStatusPill.textContent = 'Status: Draw your pattern';
+          UI.authStatusPill.className = 'pillMini bad';
+          return;
+        }
+
+        const dist = pathDistance(saved, attempt);
+        const thresh = Number(pStrict.value);
+        const pass = dist <= thresh;
+
+        if (!pass){
+          UI.authStatusPill.textContent = `Status: Denied (d=${dist.toFixed(3)})`;
+          UI.authStatusPill.className = 'pillMini bad';
+          setBridge('Denied. Draw again or raise strictness.');
+          return;
+        }
+
+        isLoggedIn = true;
+        UI.authOverlay.style.display = 'none';
+        UI.authStatusPill.textContent = 'Status: Verified';
+        UI.authStatusPill.className = 'pillMini ok';
+        setBridge(`Verified (d=${dist.toFixed(3)}).`);
+      }
+
+      updateCoverStatus();
+      syncControls();
+    });
+
+    function updateCoverStatus(){
+      UI.coverStatus.textContent = isLoggedIn
+        ? (controllerMode === 'gesture' ? 'Verified — Gesture' : 'Verified — Cursor')
+        : 'Locked';
+      UI.btnStart.disabled = !isLoggedIn;
+      HUD.ctrlMode.textContent = isLoggedIn
+        ? (controllerMode === 'gesture' ? 'Gesture' : 'Cursor')
+        : 'Locked';
+      HUD.ctrlMode.style.color = isLoggedIn ? 'rgba(103,255,180,.95)' : 'rgba(255,160,160,.95)';
+    }
+
+    // Open overlays from cover
+    UI.btnOpenAuth.addEventListener('click', ()=>{
+      UI.authOverlay.style.display = 'flex';
+      updateAuthProfilePill();
+      setAuthSeen(false);
+    });
+    UI.btnOpenStartup.addEventListener('click', async ()=>{
+      if (controllerMode !== 'gesture'){
+        setBridge('Startup Scan is for Gesture mode.');
+        return;
+      }
+      const ok = await ensureGestureEngine();
+      if (!ok) return;
+      beginStartupScan();
+    });
+    UI.btnOpenTuner.addEventListener('click', ()=>{
+      if (!isLoggedIn || controllerMode !== 'gesture'){
+        setBridge('Gesture Tuner requires Gesture Login.');
+        return;
+      }
+      UI.liveTuner.style.display = 'block';
+      syncControls();
+    });
+
+    // ---------- Live tuner open/close ----------
+    HUD.btnTuner.addEventListener('click', ()=>{
+      if (!isLoggedIn || controllerMode !== 'gesture'){
+        setBridge('Gesture Tuner requires Gesture Login.');
+        return;
+      }
+      UI.liveTuner.style.display = (UI.liveTuner.style.display === 'none' || !UI.liveTuner.style.display) ? 'block' : 'none';
+      syncControls();
+    });
+    UI.closeLiveBtn.addEventListener('click', ()=> UI.liveTuner.style.display = 'none');
+
+    // ---------- Live clarity pill updates ----------
+    setInterval(()=> {
+      const ok = gState.seen && (performance.now() - gState.lastSeenAt) < 420;
+
+      if (controllerMode === 'gesture'){
+        const pinch = gState.pinchNorm;
+        const seenTxt = ok ? "seen" : "—";
+        UI.gestureLivePill.textContent = `Live: ${seenTxt}`;
+        UI.gestureLivePill.className = 'pillMini ' + (ok ? 'ok' : '');
+        const mode = cfg.absoluteMapping ? "ABS (full-screen)" : "MICRO (relative)";
+        UI.gestureLiveHint.textContent =
+          ok
+            ? `mode=${mode} • pinch=${pinch.toFixed(3)} • thr=${cfg.pinchThresh.toFixed(2)} • strict=${cfg.gestureStrict.toFixed(2)} • Z=${(gState.rawZ||0).toFixed(3)}`
+            : `Show your hand to the camera to enable live readout.`;
+      } else {
+        UI.gestureLivePill.textContent = `Live: —`;
+        UI.gestureLivePill.className = 'pillMini';
+        UI.gestureLiveHint.textContent = `Switch to Gesture mode to view live hand + pinch diagnostics.`;
+      }
+    }, 450);
+
+    // ---------- Keyboard + pointer input (fallback) ----------
+    const keys = new Set();
+    const pointer = { x: innerWidth*0.5, y: innerHeight*0.5, down:false };
+
+    addEventListener('mousemove', (e)=>{ pointer.x=e.clientX; pointer.y=e.clientY; }, { passive:true });
+    addEventListener('pointerdown', (e)=>{ pointer.down=true; }, { passive:true });
+    addEventListener('pointerup', (e)=>{ pointer.down=false; }, { passive:true });
+
+    addEventListener('keydown', (e)=>{
+      keys.add(e.code);
+
+      if (e.code === 'KeyT') HUD.btnTuner.click();
+      if (e.code === 'KeyP') togglePause();
+      if (e.code === 'KeyE') requestScan('keyboard');
+      if (e.code === 'Escape'){
+        UI.liveTuner.style.display = 'none';
+        UI.authOverlay.style.display = 'none';
+        UI.startup.style.display = 'none';
+      }
+    }, { passive:true });
+    addEventListener('keyup', (e)=> keys.delete(e.code), { passive:true });
+
+    // ---------- Game state ----------
+    let state = 'boot'; // boot -> cover -> running -> paused
+    let paused = false;
+
+    const player = {
+      x: 0, y: 0,
+      vx: 0, vy: 0,
+
+      depth: 0,        // forward distance
+      hullMax: 100,
+      hull: 100,
+      batMax: 100,
+      bat: 100,
+
+      score: 0,
+      kills: 0,
+
+      fireCD: 0,
+      scanCD: 0,
+    };
+
+    const world = {
+      enemies: [],
+      rewards: [],
+      bullets: [],
+      silt: [],
+      pulses: [],
+      t: 0,
+      id: 1,
+    };
+
+    function resetRun(){
+      player.x = 0; player.y = 0;
+      player.vx = 0; player.vy = 0;
+      player.depth = 0;
+      player.hull = player.hullMax;
+      player.bat = player.batMax;
+      player.score = 0;
+      player.kills = 0;
+      player.fireCD = 0;
+      player.scanCD = 0;
+
+      world.enemies.length = 0;
+      world.rewards.length = 0;
+      world.bullets.length = 0;
+      world.silt.length = 0;
+      world.pulses.length = 0;
+      world.t = 0;
+      world.id = 1;
+
+      // seed silt particles (depth field)
+      for (let i=0;i<260;i++){
+        world.silt.push({
+          x: rand(-900, 900),
+          y: rand(-700, 700),
+          z: rand(120, 3400),
+          r: rand(0.8, 2.2)
+        });
+      }
+
+      // initial spawns
+      for (let i=0;i<10;i++) spawnEnemy(true);
+      for (let i=0;i<9;i++) spawnReward(true);
+
+      syncHUD();
+      setBridge('Run initialized.');
+    }
+
+    // ---------- Perspective projection ----------
+    function project(rx, ry, rz, fov, zOff){
+      const z = Math.max(40, rz + zOff);
+      const s = fov / z;
+      return {
+        x: innerWidth*0.5 + rx * s,
+        y: innerHeight*0.5 + ry * s,
+        s
+      };
+    }
+
+    // ---------- Spawning ----------
+    function spawnEnemy(initial=false){
+      const id = world.id++;
+      const z = initial ? rand(600, 3000) : rand(2000, 3400);
+      world.enemies.push({
+        id,
+        type: Math.random() < 0.5 ? 'mine' : 'skimmer',
+        x: rand(-720, 720),
+        y: rand(-520, 520),
+        z,
+        vx: rand(-30, 30),
+        vy: rand(-30, 30),
+        hp: (Math.random()<0.65) ? 1 : 2,
+        r: rand(26, 40),
+        revealUntil: 0
+      });
+    }
+
+    function spawnReward(initial=false){
+      const id = world.id++;
+      const z = initial ? rand(700, 3200) : rand(2200, 3600);
+      world.rewards.push({
+        id,
+        x: rand(-780, 780),
+        y: rand(-560, 560),
+        z,
+        vx: rand(-18, 18),
+        vy: rand(-18, 18),
+        r: rand(20, 28),
+        kind: Math.random() < 0.55 ? 'score' : 'battery',
+        revealUntil: 0
+      });
+    }
+
+    // ---------- Scan ----------
+    function requestScan(source='ui'){
+      if (state !== 'running' || paused) return;
+      if (player.scanCD > 0){
+        setBridge('Scan cooling down.');
+        return;
+      }
+      doScan(source);
+    }
+
+    function doScan(source){
+      player.scanCD = gameCfg.scanCooldownSec;
+      player.bat = Math.max(0, player.bat - 2.5);
+      AudioSys.ping();
+
+      const now = performance.now();
+      const range = gameCfg.scanRange;
+
+      world.pulses.push({ t:0, life:1.0, maxR: 0.95, source });
+
+      let found = 0;
+      for (const e of world.enemies){
+        if (e.z > 0 && e.z < range){
+          e.revealUntil = now + 1600;
+          found++;
+        }
+      }
+      for (const r of world.rewards){
+        if (r.z > 0 && r.z < range){
+          r.revealUntil = now + 1600;
+          found++;
+        }
+      }
+
+      player.score += Math.min(40, found*2);
+      setBridge(`Scan ping (${source}). Targets marked: ${found}.`);
+      syncHUD();
+    }
+
+    HUD.btnScan.addEventListener('click', ()=> requestScan('hud'));
+
+    // ---------- Shooting (forward) ----------
+    function shoot(){
+      if (state !== 'running' || paused) return;
+      if (player.fireCD > 0) return;
+      if (player.bat <= 0) return;
+
+      player.fireCD = 1 / clamp(gameCfg.fireRate, 1, 40);
+      player.bat = Math.max(0, player.bat - 0.35);
+
+      // bullet originates at player's position, travels forward (+z)
+      world.bullets.push({
+        x: player.x,
+        y: player.y,
+        z: 90,
+        vz: gameCfg.bulletSpeed,
+        r: 8,
+        life: 1.4
+      });
+
+      AudioSys.blip(860, 0.04, 'square', 0.07);
+    }
+
+    // Gesture fire/scan state machine (pinch-release = fire, pinch-hold = scan)
+    const pinchAction = {
+      armed:false,
+      hold:0,
+      scanFired:false,
+      prev:false
+    };
+
+    function updatePinchActions(dt){
+      if (!(isLoggedIn && controllerMode==='gesture')) return;
+      const now = performance.now();
+      const seen = gState.seen && (now - gState.lastSeenAt) < 420;
+      if (!seen) {
+        pinchAction.armed = false;
+        pinchAction.hold = 0;
+        pinchAction.scanFired = false;
+        pinchAction.prev = gState.pinchLatched;
+        return;
+      }
+
+      // In UI mode, we do not run game actions
+      if (uiModeActive() || state !== 'running' || paused){
+        pinchAction.prev = gState.pinchLatched;
+        return;
+      }
+
+      const down = gState.pinchLatched;
+
+      if (down && !pinchAction.prev){
+        // pinch started
+        pinchAction.armed = true;
+        pinchAction.hold = 0;
+        pinchAction.scanFired = false;
+      }
+
+      if (down){
+        pinchAction.hold += dt;
+        if (pinchAction.armed && !pinchAction.scanFired && pinchAction.hold >= gameCfg.scanHoldSec){
+          pinchAction.scanFired = true;
+          pinchAction.armed = false;
+          requestScan('pinch-hold');
+        }
+      }
+
+      if (!down && pinchAction.prev){
+        // pinch released
+        if (pinchAction.armed && !pinchAction.scanFired){
+          shoot();
+        }
+        pinchAction.armed = false;
+        pinchAction.hold = 0;
+        pinchAction.scanFired = false;
+      }
+
+      pinchAction.prev = down;
+    }
+
+    // ---------- Pause/Quit ----------
+    function togglePause(){
+      if (state !== 'running') return;
+      paused = !paused;
+      setBridge(paused ? 'Paused.' : 'Resumed.');
+    }
+    HUD.btnPause.addEventListener('click', ()=> togglePause());
+
+    HUD.btnQuit.addEventListener('click', ()=>{
+      endRun(true);
+    });
+
+    // ---------- Start/Quit flow ----------
+    UI.btnStart.addEventListener('click', ()=>{
+      if (!isLoggedIn) return;
+      AudioSys.ensure();
+      UI.cover.style.display = 'none';
+      HUD.root.style.display = 'flex';
+      state = 'running';
+      paused = false;
+      resetRun();
+      setBridge('Dive started — pushing forward.');
+    });
+
+    function endRun(toCover=true){
+      // update best score
+      bestScore = Math.max(bestScore, player.score);
+      localStorage.setItem(LS_BEST, String(bestScore));
+      UI.bestTxt.textContent = bestScore;
+
+      state = 'cover';
+      paused = false;
+      HUD.root.style.display = 'none';
+      UI.liveTuner.style.display = 'none';
+
+      if (toCover){
+        UI.cover.style.display = 'flex';
+        updateCoverStatus();
+        UI.bestTxt.textContent = bestScore;
+        setBridge('Run ended.');
+      }
+    }
+
+    // ---------- HUD sync ----------
+    function syncHUD(){
+      HUD.depthTxt.textContent = `DEPTH ${Math.round(player.depth)}m`;
+      HUD.scoreTxt.textContent = `SCORE ${Math.round(player.score)}`;
+      HUD.killsTxt.textContent = `KILLS ${player.kills}`;
+
+      HUD.hullFill.style.width = `${clamp(player.hull/player.hullMax,0,1)*100}%`;
+      HUD.batFill.style.width = `${clamp(player.bat/player.batMax,0,1)*100}%`;
+
+      if (player.scanCD > 0) HUD.scanTxt.textContent = `SCAN COOL ${player.scanCD.toFixed(1)}s`;
+      else HUD.scanTxt.textContent = `SCAN READY`;
+
+      HUD.ctrlMode.textContent = isLoggedIn ? (controllerMode==='gesture' ? 'Gesture' : 'Cursor') : 'Locked';
+    }
+
+    // ---------- Forward motion controls ----------
+    function computeControls(){
+      // returns { steerX, steerY, throttle01 }
+      let steerX = 0, steerY = 0;
+      let throttle = 0;
+
+      // gesture overrides keyboard when active & seen
+      const now = performance.now();
+      const gestureSeen = isLoggedIn && controllerMode==='gesture' && gState.seen && (now - gState.lastSeenAt) < 420;
+
+      if (gestureSeen){
+        // steer from cursor offset around center
+        const dx = (gState.cursorX - innerWidth*0.5) / (innerWidth*0.5);
+        const dy = (gState.cursorY - innerHeight*0.5) / (innerHeight*0.5);
+
+        // deadzone
+        const dz = 0.08;
+        steerX = (Math.abs(dx) < dz) ? 0 : clamp(dx, -1, 1);
+        steerY = (Math.abs(dy) < dz) ? 0 : clamp(dy, -1, 1);
+
+        // throttle from Z delta (push toward camera => faster)
+        const nz = gState.neutral?.z ?? gState.rawFZ ?? gState.rawZ ?? 0;
+        const z = (isFinite(gState.rawFZ) ? gState.rawFZ : gState.rawZ) || 0;
+        const dzZ = (nz - z); // positive => toward camera (usually)
+        throttle = clamp(dzZ * gameCfg.zForwardSens, 0, 1);
+
+      } else {
+        // cursor mode or no hand: keyboard/mouse
+        if (keys.has('KeyA')) steerX -= 1;
+        if (keys.has('KeyD')) steerX += 1;
+        if (keys.has('KeyW')) steerY -= 1;
+        if (keys.has('KeyS')) steerY += 1;
+
+        const m = Math.hypot(steerX, steerY) || 1;
+        steerX /= m; steerY /= m;
+
+        throttle = keys.has('KeyW') ? 1 : 0;
+      }
+
+      return { steerX, steerY, throttle01: clamp(throttle, 0, 1) };
+    }
+
+    // ---------- Update ----------
+    function update(dt){
+      world.t += dt;
+
+      // cooldowns
+      player.fireCD = Math.max(0, player.fireCD - dt);
+      player.scanCD = Math.max(0, player.scanCD - dt);
+
+      // keyboard fire/scan fallback
+      if (!(isLoggedIn && controllerMode==='gesture')){
+        if (keys.has('Space') && player.fireCD<=0) shoot();
+        if (keys.has('KeyE')) requestScan('keyboard');
+      }
+
+      // pinch actions for gesture
+      updatePinchActions(dt);
+
+      // forward speed
+      const ctl = computeControls();
+      const forwardSpeed = gameCfg.baseSpeed + gameCfg.boostAdd * ctl.throttle01;
+      player.depth += forwardSpeed * dt;
+
+      // steer (float/fly)
+      const targetVx = ctl.steerX * gameCfg.strafeSpeed;
+      const targetVy = ctl.steerY * gameCfg.strafeSpeed;
+      const follow = 1 - Math.pow(0.002, dt); // smoothing
+      player.vx = lerp(player.vx, targetVx, follow);
+      player.vy = lerp(player.vy, targetVy, follow);
+
+      player.x += player.vx * dt;
+      player.y += player.vy * dt;
+
+      // bounds (soft)
+      player.x = clamp(player.x, -1100, 1100);
+      player.y = clamp(player.y, -850, 850);
+
+      // battery drain depends on speed
+      const speed01 = clamp((forwardSpeed - gameCfg.baseSpeed) / Math.max(1, gameCfg.boostAdd), 0, 1);
+      player.bat = Math.max(0, player.bat - (0.10 + speed01*0.22) * dt * 10);
+
+      // update silt (moves toward camera => z decreases)
+      for (const p of world.silt){
+        p.z -= forwardSpeed * dt;
+        if (p.z < 70){
+          p.z = rand(2200, 3600);
+          p.x = rand(-900, 900);
+          p.y = rand(-700, 700);
+          p.r = rand(0.8, 2.2);
+        }
+      }
+
+      // spawn pacing
+      if (world.enemies.length < 14) spawnEnemy(false);
+      if (world.rewards.length < 12) spawnReward(false);
+
+      // update enemies/rewards (approach camera: z -= forwardSpeed*dt)
+      for (const e of world.enemies){
+        e.z -= forwardSpeed * dt;
+        e.x += e.vx * dt;
+        e.y += e.vy * dt;
+        // mild drift wobble
+        e.x += Math.sin(world.t*0.9 + e.id)*8*dt;
+        e.y += Math.cos(world.t*0.8 + e.id)*7*dt;
+      }
+      for (const r of world.rewards){
+        r.z -= forwardSpeed * dt;
+        r.x += r.vx * dt;
+        r.y += r.vy * dt;
+        r.x += Math.sin(world.t*0.6 + r.id)*6*dt;
+        r.y += Math.cos(world.t*0.7 + r.id)*6*dt;
+      }
+
+      // bullets move forward into scene: z += bulletSpeed*dt
+      for (let i=world.bullets.length-1;i>=0;i--){
+        const b = world.bullets[i];
+        b.life -= dt;
+        b.z += b.vz * dt;
+        if (b.life <= 0 || b.z > 5200) world.bullets.splice(i,1);
+      }
+
+      // scan pulses
+      for (let i=world.pulses.length-1;i>=0;i--){
+        const p = world.pulses[i];
+        p.t += dt;
+        p.life -= dt;
+        if (p.life <= 0) world.pulses.splice(i,1);
+      }
+
+      // collisions: bullets vs enemies
+      for (let bi=world.bullets.length-1; bi>=0; bi--){
+        const b = world.bullets[bi];
+        let hit = false;
+
+        for (let ei=world.enemies.length-1; ei>=0; ei--){
+          const e = world.enemies[ei];
+          // quick reject: z distance
+          const dz = e.z - b.z;
+          if (Math.abs(dz) > 120) continue;
+
+          const dx = e.x - b.x;
+          const dy = e.y - b.y;
+          const d = Math.hypot(dx,dy,dz);
+
+          const rad = e.r + b.r;
+          if (d < rad){
+            // hit
+            e.hp -= 1;
+            hit = true;
+            player.score += 12;
+
+            if (e.hp <= 0){
+              player.kills += 1;
+              player.score += 38;
+              // remove enemy
+              world.enemies.splice(ei,1);
+            }
+            break;
+          }
+        }
+
+        if (hit){
+          world.bullets.splice(bi,1);
+          AudioSys.blip(520, 0.04, 'sine', 0.08);
+        }
+      }
+
+      // collisions: player vs enemies/rewards (when close)
+      const nearZ = 120;
+
+      for (let ei=world.enemies.length-1; ei>=0; ei--){
+        const e = world.enemies[ei];
+        if (e.z > nearZ) continue;
+
+        const dx = e.x - player.x;
+        const dy = e.y - player.y;
+        const dxy = Math.hypot(dx,dy);
+
+        if (dxy < (e.r + 42)){
+          // hit
+          player.hull = Math.max(0, player.hull - (e.type==='mine' ? 34 : 22));
+          player.bat = Math.max(0, player.bat - 6);
+          world.enemies.splice(ei,1);
+          setBridge('Impact! Hull damaged.');
+        } else if (e.z < 20){
+          // passed by
+          world.enemies.splice(ei,1);
+        }
+      }
+
+      for (let ri=world.rewards.length-1; ri>=0; ri--){
+        const r = world.rewards[ri];
+        if (r.z > nearZ) continue;
+
+        const dx = r.x - player.x;
+        const dy = r.y - player.y;
+        const dxy = Math.hypot(dx,dy);
+
+        if (dxy < (r.r + 40)){
+          if (r.kind === 'battery'){
+            player.bat = Math.min(player.batMax, player.bat + 18);
+            player.score += 14;
+            setBridge('Battery recovered.');
+          } else {
+            player.score += 26;
+            setBridge('Reward collected.');
+          }
+          world.rewards.splice(ri,1);
+        } else if (r.z < 20){
+          world.rewards.splice(ri,1);
+        }
+      }
+
+      // fail states
+      if (player.hull <= 0){
+        setBridge('Hull breach. Run ended.');
+        endRun(true);
+      } else if (player.bat <= 0){
+        setBridge('Battery depleted. Run ended.');
+        endRun(true);
+      }
+
+      // keep score climbing slightly with distance
+      player.score += forwardSpeed * dt * 0.008;
+
+      syncHUD();
+    }
+
+    // ---------- Draw ----------
+    function drawBackground(){
+      const g = ctx.createLinearGradient(0,0,0,innerHeight);
+      g.addColorStop(0, 'rgba(3,6,16,0.92)');
+      g.addColorStop(0.55, 'rgba(6,18,40,0.88)');
+      g.addColorStop(1, 'rgba(2,6,16,0.92)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,innerWidth,innerHeight);
+
+      // subtle bloom
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = 'rgba(112,227,255,0.45)';
+      ctx.beginPath();
+      ctx.arc(innerWidth*0.3, innerHeight*0.25, 220, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawTunnel(forwardSpeed){
+      // rings to emphasize forward motion
+      const baseFov = 780;
+      const zOff = 180;
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.strokeStyle = 'rgba(112,227,255,0.55)';
+      ctx.lineWidth = 2;
+
+      const ringCount = 7;
+      for (let i=0;i<ringCount;i++){
+        const z = 260 + i*420 + ((world.t*forwardSpeed) % 420);
+        const pr = project(0,0,z, baseFov, zOff);
+        const rr = 180 * pr.s;
+        ctx.beginPath();
+        ctx.arc(innerWidth*0.5, innerHeight*0.5, rr, 0, TAU);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawSilt(forwardSpeed){
+      const baseFov = 740;
+      const zOff = 160;
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      for (const p of world.silt){
+        const rx = p.x - player.x;
+        const ry = p.y - player.y;
+        const pr = project(rx, ry, p.z, baseFov, zOff);
+        const a = clamp(1 - p.z/3600, 0, 1);
+        ctx.globalAlpha = 0.10 + a*0.55;
+        ctx.fillStyle = 'rgba(255,255,255,0.65)';
+        ctx.beginPath();
+        ctx.arc(pr.x, pr.y, p.r * pr.s, 0, TAU);
+        ctx.fill();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawEntities(forwardSpeed){
+      const baseFov = 820;
+      const zOff = 190;
+
+      // combine entities for depth sorting
+      const now = performance.now();
+      const list = [];
+
+      for (const e of world.enemies) list.push({ kind:'enemy', o:e, z:e.z });
+      for (const r of world.rewards) list.push({ kind:'reward', o:r, z:r.z });
+      for (const b of world.bullets) list.push({ kind:'bullet', o:b, z:b.z });
+
+      list.sort((a,b)=> b.z - a.z); // far->near
+
+      for (const item of list){
+        const o = item.o;
+
+        let rx, ry, rz;
+        if (item.kind==='bullet'){
+          rx = o.x - player.x;
+          ry = o.y - player.y;
+          rz = o.z;
+        } else {
+          rx = o.x - player.x;
+          ry = o.y - player.y;
+          rz = o.z;
+        }
+
+        if (rz <= 40) continue;
+
+        const pr = project(rx, ry, rz, baseFov, zOff);
+        const fade = clamp(1 - rz/4200, 0, 1);
+        const alpha = 0.12 + fade*0.92;
+
+        if (item.kind==='enemy'){
+          const size = o.r * pr.s;
+          const revealed = (now < (o.revealUntil||0)) || (rz < gameCfg.scanRange*0.55);
+
+          ctx.save();
+          ctx.globalAlpha = alpha;
+
+          if (o.type==='mine'){
+            // core
+            ctx.fillStyle = 'rgba(255,107,142,0.92)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+            ctx.lineWidth = Math.max(1.5, 2.0*pr.s);
+            ctx.beginPath();
+            ctx.arc(pr.x, pr.y, size, 0, TAU);
+            ctx.fill(); ctx.stroke();
+
+            // spikes
+            ctx.globalAlpha = alpha*0.65;
+            ctx.strokeStyle = 'rgba(255,107,142,0.75)';
+            ctx.lineWidth = Math.max(1.2, 1.8*pr.s);
+            for(let k=0;k<6;k++){
+              const a = (k/6)*TAU + world.t*0.35;
+              ctx.beginPath();
+              ctx.moveTo(pr.x, pr.y);
+              ctx.lineTo(pr.x + Math.cos(a)*size*1.7, pr.y + Math.sin(a)*size*1.7);
+              ctx.stroke();
+            }
+          } else {
+            // skimmer (cyan/violet)
+            ctx.fillStyle = 'rgba(112,227,255,0.90)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+            ctx.lineWidth = Math.max(1.5, 2.0*pr.s);
+            ctx.beginPath();
+            ctx.arc(pr.x, pr.y, size*0.92, 0, TAU);
+            ctx.fill(); ctx.stroke();
+
+            ctx.globalAlpha = alpha*0.55;
+            ctx.strokeStyle = 'rgba(202,167,255,0.65)';
+            ctx.beginPath();
+            ctx.arc(pr.x, pr.y, size*1.45, 0, TAU);
+            ctx.stroke();
+          }
+
+          // reveal outline
+          if (revealed){
+            ctx.globalAlpha = alpha*0.75;
+            ctx.strokeStyle = 'rgba(255,255,255,0.42)';
+            ctx.lineWidth = Math.max(1.1, 1.4*pr.s);
+            ctx.beginPath();
+            ctx.arc(pr.x, pr.y, size*1.85, 0, TAU);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+
+        if (item.kind==='reward'){
+          const size = o.r * pr.s;
+          const revealed = (now < (o.revealUntil||0));
+
+          ctx.save();
+          ctx.globalAlpha = alpha;
+
+          if (o.kind === 'battery'){
+            ctx.fillStyle = 'rgba(103,255,180,0.92)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+          } else {
+            ctx.fillStyle = 'rgba(255,210,122,0.92)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+          }
+          ctx.lineWidth = Math.max(1.4, 2.0*pr.s);
+
+          // diamond
+          ctx.beginPath();
+          ctx.moveTo(pr.x, pr.y - size);
+          ctx.lineTo(pr.x + size, pr.y);
+          ctx.lineTo(pr.x, pr.y + size);
+          ctx.lineTo(pr.x - size, pr.y);
+          ctx.closePath();
+          ctx.fill(); ctx.stroke();
+
+          if (revealed){
+            ctx.globalAlpha = alpha*0.75;
+            ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+            ctx.lineWidth = Math.max(1.1, 1.4*pr.s);
+            ctx.beginPath();
+            ctx.arc(pr.x, pr.y, size*2.0, 0, TAU);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+
+        if (item.kind==='bullet'){
+          const size = Math.max(1.8, 3.2*pr.s);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = 'rgba(255,255,255,0.92)';
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, size, 0, TAU);
+          ctx.fill();
+          ctx.globalAlpha = alpha*0.45;
+          ctx.fillStyle = 'rgba(112,227,255,0.85)';
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, size*2.2, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+    }
+
+    function drawPulses(){
+      // scan pulse overlay as expanding ring around center
+      for (const p of world.pulses){
+        const t = 1 - clamp(p.life/1.0, 0, 1);
+        const r = lerp(60, Math.max(innerWidth, innerHeight)*0.55, t);
+        ctx.save();
+        ctx.globalAlpha = 0.14*(1-t);
+        ctx.strokeStyle = 'rgba(112,227,255,0.95)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(innerWidth*0.5, innerHeight*0.5, r, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawReticle(forwardSpeed){
+      // center reticle with slight pulse from speed
+      const speedP = clamp((forwardSpeed - gameCfg.baseSpeed) / Math.max(1, gameCfg.boostAdd), 0, 1);
+      const pulse = 1 + Math.sin(world.t*4.0)*0.08*speedP;
+      const x = innerWidth*0.5;
+      const y = innerHeight*0.5;
+
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x,y, 14*pulse, 0, TAU);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x-22, y); ctx.lineTo(x-38, y);
+      ctx.moveTo(x+22, y); ctx.lineTo(x+38, y);
+      ctx.moveTo(x, y-22); ctx.lineTo(x, y-38);
+      ctx.moveTo(x, y+22); ctx.lineTo(x, y+38);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function draw(){
+      drawBackground();
+
+      let forwardSpeed = gameCfg.baseSpeed;
+      if (state === 'running'){
+        const ctl = computeControls();
+        forwardSpeed = gameCfg.baseSpeed + gameCfg.boostAdd * ctl.throttle01;
+      }
+
+      drawTunnel(forwardSpeed);
+      drawSilt(forwardSpeed);
+      drawPulses();
+      drawEntities(forwardSpeed);
+      drawReticle(forwardSpeed);
+
+      // vignette
+      ctx.save();
+      const v = ctx.createRadialGradient(innerWidth/2, innerHeight/2, 120, innerWidth/2, innerHeight/2, Math.max(innerWidth, innerHeight)*0.72);
+      v.addColorStop(0, 'rgba(0,0,0,0)');
+      v.addColorStop(1, 'rgba(0,0,0,0.45)');
+      ctx.fillStyle = v;
+      ctx.fillRect(0,0,innerWidth,innerHeight);
+      ctx.restore();
+    }
+
+    // ---------- Main loop ----------
+    let lastT = performance.now();
+    function step(t){
+      requestAnimationFrame(step);
+      const dt = clamp((t - lastT)/1000, 0, 0.033);
+      lastT = t;
+
+      if (state === 'running' && !paused){
+        update(dt);
+      } else {
+        world.t += dt*0.35;
+        // keep HUD consistent if paused
+        if (state === 'running') syncHUD();
+      }
+
+      draw();
+    }
+    requestAnimationFrame(step);
+
+    // ---------- HUD buttons ----------
+    HUD.btnQuit.addEventListener('click', ()=> endRun(true));
+
+    // ---------- Cover + boot ----------
+    function boot(){
+      updateCoverStatus();
+      UI.bestTxt.textContent = bestScore;
+
+      UI.cover.style.display = 'flex';
+      HUD.root.style.display = 'none';
+      UI.authOverlay.style.display = 'flex'; // require secure login first
+      state = 'cover';
+      paused = false;
+
+      // ensure pattern canvas is correct after auth overlay open
+      setTimeout(resizePattern, 50);
+
+      setBridge('Secure login required.');
+    }
+    boot();
+
+  })();
+  </script>
+</body>
+</html>

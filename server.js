@@ -2238,8 +2238,24 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  // Authentication is no longer required for any route to allow open exploration
-  return next();
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    return next();
+  }
+
+  clearSessionCookie(res);
+
+  const expectsHtml = req.method === 'GET' && req.accepts('html');
+  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
+  if (expectsHtml) {
+    return res.redirect(`/login?next=${nextPath}`);
+  }
+  res.status(401).json({ message: 'Authentication required' });
 }
 
 async function getHtmlFiles(dir) {
@@ -2824,4 +2840,3 @@ app.get('/metrics', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
-

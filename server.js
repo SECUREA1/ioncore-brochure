@@ -2198,7 +2198,9 @@ function isPublicRoute(req) {
       '/contact',
       '/gateway',
       '/api/marketplace/uploads',
-      '/api/marketplace/bids'
+      '/api/marketplace/bids',
+      '/metrics/view',
+      '/metrics/leave'
     ].includes(req.path)
   ) {
     return true;
@@ -2216,7 +2218,8 @@ function isPublicRoute(req) {
       '/IONCORECHAT',
       '/IONCORECHAT/',
       '/IONCORECHAT/index',
-      '/IONCORECHAT/index.html'
+      '/IONCORECHAT/index.html',
+      '/metrics'
     ]);
     if (publicHtml.has(req.path)) {
       return true;

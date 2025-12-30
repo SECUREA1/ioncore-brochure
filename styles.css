@@ -9,6 +9,11 @@
   --accent: #6aff3b;
   --accent-strong: #3cbf2a;
   --accent-soft: rgba(106, 255, 59, 0.14);
+  --rednode-red: #ff4d67;
+  --rednode-amber: #f6d365;
+  --rednode-surface: rgba(42, 9, 16, 0.9);
+  --rednode-glow: 0 0 0 1px rgba(255, 77, 103, 0.6), 0 18px 48px rgba(255, 77, 103, 0.32), 0 0 38px rgba(246, 211, 101, 0.34);
+  --rednode-glow-strong: 0 0 0 1px rgba(255, 77, 103, 0.7), 0 22px 64px rgba(255, 77, 103, 0.42), 0 0 46px rgba(246, 211, 101, 0.46);
   --text-high: #f5f8ff;
   --text-med: #b7c7e4;
   --text-muted: #7f8ba4;
@@ -253,6 +258,75 @@ main {
   font-weight: 700;
   letter-spacing: 0.12em;
   font-size: 0.9rem;
+}
+
+.btn-rednode {
+  background: radial-gradient(circle at 20% 22%, rgba(255, 77, 103, 0.16) 0%, rgba(38, 8, 16, 0.95) 64%);
+  border: 1px solid rgba(255, 77, 103, 0.65);
+  color: #ffeede;
+  box-shadow: var(--rednode-glow);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(255, 77, 103, 0.35);
+}
+
+.btn-rednode:hover {
+  border-color: rgba(246, 211, 101, 0.85);
+  box-shadow: var(--rednode-glow-strong);
+  background: radial-gradient(circle at 24% 26%, rgba(255, 77, 103, 0.24) 0%, rgba(40, 9, 16, 0.98) 70%);
+}
+
+.btn-rednode:focus-visible {
+  outline: 3px solid rgba(255, 77, 103, 0.4);
+  outline-offset: 3px;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255, 77, 103, 0.16), rgba(246, 211, 101, 0.12));
+  border: 1px solid rgba(255, 77, 103, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(255, 77, 103, 0.2), 0 12px 30px rgba(12, 8, 18, 0.5);
+  animation: rednodePulse 2.4s ease-in-out infinite;
+}
+
+.btn-icon img {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 0 8px rgba(255, 77, 103, 0.55)) drop-shadow(0 0 12px rgba(246, 211, 101, 0.4));
+  display: block;
+}
+
+.btn-rednode__label {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.btn-rednode__label small {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: rgba(255, 238, 222, 0.78);
+}
+
+@keyframes rednodePulse {
+  0% {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(255, 77, 103, 0.2), 0 14px 32px rgba(12, 8, 18, 0.56);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 77, 103, 0.28), 0 16px 38px rgba(12, 8, 18, 0.6);
+    transform: translateY(-1px);
+  }
+  100% {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(246, 211, 101, 0.32), 0 20px 44px rgba(12, 8, 18, 0.64);
+    transform: translateY(0);
+  }
 }
 
 .badge {

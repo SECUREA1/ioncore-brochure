@@ -320,6 +320,89 @@ function injectSnippetBeforeBodyClose(html, snippet, marker) {
   return `${html}${snippet}`;
 }
 
+function injectSnippetIntoHead(html, snippet, marker) {
+  if (!html || !snippet) {
+    return html;
+  }
+  if (marker && html.includes(marker)) {
+    return html;
+  }
+  const headOpen = html.match(/<head[^>]*>/i);
+  if (headOpen) {
+    return html.replace(headOpen[0], `${headOpen[0]}${snippet}`);
+  }
+  return `${snippet}${html}`;
+}
+
+const BRAND_HEAD_SNIPPET = `
+  <link id="ioncore-brand-icon" rel="icon" type="image/svg+xml" href="${BRAND.icon}">
+  <link rel="apple-touch-icon" href="${BRAND.icon}">
+  <meta name="theme-color" content="${BRAND.themeColor}">
+`;
+
+const BRAND_BADGE_SNIPPET = `
+  <style id="ioncore-branding-badge-styles">
+    .ioncore-branding-badge {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 9998;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(7, 12, 22, 0.86);
+      border: 1px solid rgba(106, 255, 59, 0.35);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+      color: #f5f8ff;
+      text-decoration: none;
+      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      backdrop-filter: blur(6px);
+    }
+    .ioncore-branding-badge__mark {
+      width: 28px;
+      height: 28px;
+      filter: drop-shadow(0 0 10px rgba(106, 255, 59, 0.55));
+    }
+    .ioncore-branding-badge__text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .ioncore-branding-badge__name {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .ioncore-branding-badge__tagline {
+      font-size: 0.78rem;
+      color: #b2c5df;
+      letter-spacing: 0.04em;
+    }
+    @media (max-width: 640px) {
+      .ioncore-branding-badge {
+        top: auto;
+        bottom: 16px;
+        right: 16px;
+      }
+    }
+  </style>
+  <a href="/" class="ioncore-branding-badge" id="ioncore-branding-badge" aria-label="Ioncore Energy homepage">
+    <img class="ioncore-branding-badge__mark" src="${BRAND.icon}" alt="Ioncore Energy">
+    <span class="ioncore-branding-badge__text">
+      <strong class="ioncore-branding-badge__name">Ioncore Energy</strong>
+      <small class="ioncore-branding-badge__tagline">Magnetic Inertia Systems</small>
+    </span>
+  </a>
+`;
+
+function applyIoncoreBranding(html) {
+  let output = html;
+  output = injectSnippetIntoHead(output, BRAND_HEAD_SNIPPET, 'ioncore-brand-icon');
+  output = injectSnippetBeforeBodyClose(output, BRAND_BADGE_SNIPPET, 'ioncore-branding-badge');
+  return output;
+}
+
 function formatFileSize(bytes) {
   if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) {
     return null;
@@ -1099,6 +1182,7 @@ function touchSession(sessionId) {
 async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
+    html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch {
     res.status(404).send('Not found');
@@ -2309,6 +2393,7 @@ app.get('/timepieces', async (req, res) => {
       }
     }
     html = injectSnippetBeforeBodyClose(html, TIMEPIECE_LOCK_OVERLAY, 'timepiece-lock-overlay');
+    html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch (err) {
     console.error('Failed to load timepieces brochure', err);
@@ -2343,7 +2428,7 @@ app.get('/admin', async (req, res) => {
       .map((i) => `<div class="card"><h2>${i.title}</h2><a class="btn" href="/view?f=${encodeURIComponent(i.rel)}">View</a></div>`)
       .join('');
     const html = `<!DOCTYPE html><html lang="en"><head>${buildHead('Brochures Dashboard')}</head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
-    res.send(html);
+    res.send(applyIoncoreBranding(html));
   } catch (err) {
     res.status(500).send('Failed to load index');
   }
@@ -2813,7 +2898,7 @@ app.get('/view', async (req, res) => {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
     const wrapped = `<!DOCTYPE html><html lang="en"><head>${buildHead(title)}</head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
-    res.send(wrapped);
+    res.send(applyIoncoreBranding(wrapped));
   } catch {
     res.status(404).send('Not found');
   }

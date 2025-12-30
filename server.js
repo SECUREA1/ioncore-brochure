@@ -2325,24 +2325,8 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  if (isPublicRoute(req)) {
-    return next();
-  }
-
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    return next();
-  }
-
-  clearSessionCookie(res);
-
-  const expectsHtml = req.method === 'GET' && req.accepts('html');
-  const nextPath = encodeURIComponent(req.originalUrl || req.url || '/');
-  if (expectsHtml) {
-    return res.redirect(`/login?next=${nextPath}`);
-  }
-  res.status(401).json({ message: 'Authentication required' });
+  // Authentication gate disabled: all routes are now publicly accessible.
+  return next();
 }
 
 async function getHtmlFiles(dir) {

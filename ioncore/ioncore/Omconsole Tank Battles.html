@@ -1,2859 +1,2463 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Tank Battle — Levels + Store + Inventory (Gesture or Keyboard)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root{
-      --panel: rgba(10,12,16,0.74);
-      --panel2: rgba(10,12,16,0.62);
-      --text: rgba(240,240,245,0.92);
-      --muted: rgba(220,220,235,0.70);
-      --y: rgba(255,210,60,0.95);
-      --g: rgba(80,220,120,0.95);
-      --r: rgba(255,60,60,0.90);
-      --b: rgba(120,200,255,0.90);
-    }
-    html,body{ margin:0; padding:0; height:100%; background:#000; color:var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    body{ display:flex; align-items:center; justify-content:center; }
-    #container{ width:min(1220px, calc(100vw - 24px)); margin:12px auto; display:flex; flex-direction:column; gap:10px; }
-    #wrap{
-      position:relative; width:100%; aspect-ratio: 960 / 640;
-      max-height: calc(100vh - 140px);
-      border-radius: 14px; overflow:hidden;
-      background: radial-gradient(1100px 700px at 50% 30%, #11131b 0%, #06060a 55%, #000 100%);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.65);
-      border: 1px solid rgba(255,210,60,0.12);
-    }
-    canvas{ width:100%; height:100%; display:block; background:#000; }
-    video{ display:none; }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Omconsole Tank Battle — Dual Hand + Live Tuner + Pickups</title>
 
-    /* HUD */
-    #hud{
-      position:absolute; left:10px; right:10px; top:10px;
-      display:flex; gap:10px; z-index: 8;
-      pointer-events:none;
-    }
-    .hudBlock{
-      flex:1 1 auto;
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      padding:10px 12px; border-radius: 12px;
-      background: var(--panel);
-      border: 1px solid rgba(255,210,60,0.14);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
-      min-width:0;
-    }
-    .hudStat{ display:flex; flex-direction:column; gap:2px; line-height:1.1; min-width:0; }
-    .hudLabel{ font-size: 11px; color:var(--muted); }
-    .hudValue{ font-size: 14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+<style>
+  :root{ --uiText: rgba(255,255,255,.92); }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    width:100%;
+    height:100%;
+    background:#0b0f14;
+    overflow:hidden;
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  body{ height:100dvh; }
 
-    #healthWrap{ display:flex; flex-direction:column; gap:6px; min-width: 240px; }
-    #healthBar{
-      height: 10px; border-radius:999px; overflow:hidden;
-      background: rgba(255,235,170,0.12);
-      border: 1px solid rgba(255,210,60,0.14);
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.18) inset;
-    }
-    #healthBar > div{
-      height:100%;
-      width:100%;
-      background: linear-gradient(90deg, rgba(80,220,120,0.95), rgba(255,210,60,0.95), rgba(255,60,60,0.90));
-    }
+  canvas{
+    display:block;
+    width:100vw;
+    height:100dvh;
+    background:#0b0f14;
+  }
 
-    /* Inventory HUD (clickable icons) */
-    #invHud{
-      position:absolute; left:10px; bottom:10px;
-      z-index: 9;
-      display:flex; gap:10px; align-items:center;
-      pointer-events:auto;
-      background: var(--panel);
-      border: 1px solid rgba(255,210,60,0.14);
-      border-radius: 12px;
-      padding: 8px 10px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
-      max-width: calc(100% - 20px);
-    }
-    .invSlot{
-      display:flex; align-items:center; gap:8px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,210,60,0.12);
-      background: rgba(0,0,0,0.20);
-      padding: 8px 10px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .invSlot:hover{ border-color: rgba(255,210,60,0.22); }
-    .invIcon{ width:22px; height:22px; display:block; }
-    .invTxt{ display:flex; flex-direction:column; gap:2px; }
-    .invName{ font-size: 11px; color: rgba(255,235,170,0.92); }
-    .invCount{ font-size: 11px; color: rgba(220,220,235,0.78); }
+  #video{
+    position:fixed;
+    left:-9999px;
+    top:-9999px;
+    width: 640px;
+    height: 480px;
+    opacity:0;
+    pointer-events:none;
+  }
 
-    /* Toast */
-    #toast{
-      position:absolute; left:50%; top:70px; transform:translateX(-50%);
-      z-index: 20; pointer-events:none;
-      min-width: 280px;
-      max-width: min(640px, calc(100vw - 40px));
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,210,60,0.18);
-      background: rgba(8,10,14,0.72);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.55);
-      backdrop-filter: blur(10px);
-      color: rgba(235,235,245,0.92);
-      font-size: 12px;
-      display:none;
-      text-align:center;
-    }
+  /* ===== HUD ===== */
+  #hud{
+    position:fixed;
+    top: calc(env(safe-area-inset-top) + 10px);
+    left: calc(env(safe-area-inset-left) + 10px);
+    right: calc(env(safe-area-inset-right) + 10px);
+    display:none;
+    gap:10px;
+    align-items:center;
+    pointer-events:none;
+    color:var(--uiText);
+    font: 14px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    text-shadow: 0 1px 0 rgba(0,0,0,.35);
+    flex-wrap:wrap;
+    z-index: 10;
+  }
+  .pill{
+    padding:10px 12px;
+    border-radius:999px;
+    background: rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.14);
+    backdrop-filter: blur(8px);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width: 88px;
+    max-width: 100%;
+  }
+  .pill .ico{
+    width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center;
+    opacity:.92;
+  }
+  .pill .ico svg{ width:18px; height:18px; display:block; }
+  .bar{
+    width: 160px; max-width: 38vw;
+    height: 10px;
+    background: rgba(255,255,255,.12);
+    border-radius: 999px;
+    overflow:hidden;
+    border: 1px solid rgba(255,255,255,.10);
+  }
+  .bar > i{ display:block; height:100%; width:100%; background: rgba(80,255,140,.95); }
+  #hud .spacer{ flex:1; min-width: 8px; }
 
-    /* Overlays */
-    .overlay{
-      position:absolute; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      padding: 18px;
-      background:
-        radial-gradient(1200px 800px at 30% 20%, rgba(255,200,60,0.10) 0%, transparent 55%),
-        radial-gradient(900px 700px at 75% 35%, rgba(80,220,120,0.08) 0%, transparent 55%),
-        linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.68) 100%);
-      z-index: 30;
-      pointer-events:auto;
-    }
-    .card{
-      width:min(1040px, 100%);
-      border-radius: 16px;
-      border: 1px solid rgba(255,210,60,0.16);
-      background: rgba(6,7,10,0.78);
-      box-shadow: 0 18px 60px rgba(0,0,0,0.72);
-      overflow:hidden;
-    }
-    .cardHead{
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255,210,60,0.12);
-      background: rgba(0,0,0,0.35);
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .cardHead b{ color: rgba(255,235,170,0.95); font-size: 14px; letter-spacing: 0.4px; }
-    .cardHead span{ display:block; margin-top: 6px; color: rgba(220,220,235,0.72); font-size: 12px; line-height: 1.3; }
-    .btn{
-      cursor:pointer;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,210,60,0.20);
-      background: rgba(0,0,0,0.35);
-      color: rgba(255,235,170,0.92);
-      font-size: 12px;
-      white-space:nowrap;
-      align-self:flex-start;
-    }
-    .btn[disabled]{ opacity:0.6; cursor:not-allowed; }
-    .cardBody{
-      padding: 14px 16px;
-      display:grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap:12px;
-    }
-    .tile{
-      border-radius: 14px;
-      border: 1px solid rgba(255,210,60,0.14);
-      background: rgba(10,12,18,0.55);
-      padding: 12px;
-      color: rgba(220,220,235,0.78);
-      font-size: 12px;
-      line-height: 1.35;
-      min-width:0;
-    }
-    .tile b{ color: rgba(255,235,170,0.92); }
-    .hint{ margin-top: 10px; font-size: 11px; color: rgba(220,220,235,0.70); line-height: 1.35; }
+  /* ===== Top buttons (MENU / PAUSE / LIVE TUNER) ===== */
+  .topBtn{
+    pointer-events:auto;
+    position:fixed;
+    top: calc(env(safe-area-inset-top) + 10px);
+    padding:10px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.14);
+    color: rgba(255,255,255,.92);
+    font: 14px/1 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    backdrop-filter: blur(8px);
+    z-index: 12;
+  }
+  #menuBtn{ right: calc(env(safe-area-inset-right) + 164px); display:none; }
+  #tunerBtn{ right: calc(env(safe-area-inset-right) + 86px); display:none; }
+  #pauseBtn{ right: calc(env(safe-area-inset-right) + 10px); display:none; }
 
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 230px;
-      gap:10px;
-      align-items:center;
-      margin:8px 0;
-    }
-    .row label{ font-size: 11px; color: rgba(220,220,235,0.75); }
-    .ctrl{ display:flex; align-items:center; gap:10px; justify-content:flex-end; }
-    input[type="range"]{ width:100%; }
-    .num{ width: 70px; text-align:right; font-size: 11px; color: rgba(220,220,235,0.85); }
-    select{
-      width: 240px; padding: 8px 10px; border-radius: 12px;
-      border: 1px solid rgba(255,210,60,0.18);
-      background: rgba(0,0,0,0.35);
-      color: rgba(220,220,235,0.90);
-      font-size: 12px; outline:none;
-    }
-    .check{
-      display:flex; align-items:center; gap:8px;
-      padding: 8px 10px; border-radius: 12px;
-      border: 1px solid rgba(255,210,60,0.12);
-      background: rgba(0,0,0,0.22);
-      color: rgba(220,220,235,0.80);
-      font-size: 12px; white-space:nowrap;
-      user-select:none;
-    }
-    .check input{ transform: translateY(1px); }
+  #bridge{
+    position:fixed;
+    left: calc(env(safe-area-inset-left) + 10px);
+    bottom: calc(env(safe-area-inset-bottom) + 10px);
+    padding:8px 10px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.25);
+    border:1px solid rgba(255,255,255,.10);
+    color: rgba(255,255,255,.70);
+    font: 12px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    pointer-events:none;
+    max-width: 92vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10;
+  }
 
-    /* Scan UI */
-    #scanUI{ display:flex; flex-direction:column; gap:10px; }
-    .scanBar{
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,235,170,0.12);
-      overflow:hidden;
-      border: 1px solid rgba(255,210,60,0.10);
-    }
-    .scanBar > div{
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, rgba(255,210,60,0.95), rgba(80,220,120,0.95));
-    }
-    #previewWrap{
-      margin-top: 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,210,60,0.14);
-      background: rgba(0,0,0,0.28);
-      overflow:hidden;
-      position:relative;
-    }
-    #preview{
-      width:100%;
-      display:block;
-      transform: scaleX(-1);
-      opacity: 0.92;
-    }
-    #countdown{
-      position:absolute; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      font-size: 64px;
-      color: rgba(255,235,170,0.92);
-      text-shadow: 0 10px 30px rgba(0,0,0,0.65);
-      pointer-events:none;
-      opacity:0;
-      transition: opacity .12s ease;
-    }
+  /* ===== LOGIN / MENU OVERLAY ===== */
+  #overlay{
+    position:fixed; inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 14px);
+    background: radial-gradient(1200px 800px at 50% 25%, rgba(160,210,255,.10), rgba(0,0,0,.55));
+    backdrop-filter: blur(8px);
+    z-index: 50;
+    overflow:hidden;
+  }
+  #card{
+    width: min(980px, 96vw);
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    color: rgba(255,255,255,.90);
+    font: 13px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  #cardHeader{
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+  }
+  #titleRow{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 12px;
+  }
+  #titleRow h1{
+    margin: 0;
+    font: 800 18px/1.15 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    letter-spacing: .2px;
+  }
+  #subtitle{ opacity:.8; margin-top: 6px; max-width: 90ch; }
 
-    /* Store */
-    #storeGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    .shopItem{
-      border-radius: 14px;
-      border: 1px solid rgba(255,210,60,0.14);
-      background: rgba(0,0,0,0.22);
-      padding: 12px;
-      display:flex;
-      gap:10px;
-      justify-content:space-between;
-      align-items:flex-start;
-      min-width:0;
-    }
-    .shopItem b{ color: rgba(255,235,170,0.92); font-size: 12px; display:block; }
-    .shopItem .desc{ color: rgba(220,220,235,0.72); font-size: 11px; margin-top:6px; line-height:1.3; }
-    .shopItem .price{ color: rgba(255,210,60,0.95); font-size: 12px; margin-top:8px; }
-    .shopItem .lock{ color: rgba(255,120,120,0.92); font-size: 11px; margin-top:8px; }
-    .shopActions{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
-    .miniBtn{
-      cursor:pointer; padding: 8px 10px; border-radius: 12px;
-      border: 1px solid rgba(255,210,60,0.18);
-      background: rgba(0,0,0,0.30);
-      color: rgba(220,220,235,0.90);
-      font-size: 12px;
-      white-space:nowrap;
-    }
-    .miniBtn[disabled]{ opacity:0.55; cursor:not-allowed; }
-    .miniBtn.primary{
-      border-color: rgba(80,220,120,0.30);
-      color: rgba(80,220,120,0.95);
-    }
+  .modeRow{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 12px; }
+  .modeBtn{
+    flex: 1 1 260px;
+    padding: 14px 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.14);
+    color: rgba(255,255,255,.92);
+    cursor:pointer;
+    text-align:left;
+    max-width: 100%;
+  }
+  .modeBtn strong{ display:block; font-size: 14px; margin-bottom: 2px; letter-spacing:.2px; }
+  .modeBtn span{ opacity:.8; display:block; font-size: 12px; }
+  .modeBtn.selected{
+    border-color: rgba(140,220,255,.40);
+    background: rgba(140,220,255,.12);
+  }
 
-    /* Small footer note */
-    #footer{
-      padding:10px 12px;border-radius:12px;background:rgba(10,12,18,0.55);
-      border:1px solid rgba(255,210,60,0.12);color:rgba(235,235,245,0.86);
-      font:12px ui-monospace,SFMono-Regular,Menlo,monospace;
-    }
+  #cardBody{
+    padding: 12px 14px 12px;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    gap: 12px;
+  }
+  @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
-    @media (max-width: 980px){
-      .cardBody{ grid-template-columns: 1fr; }
-      #storeGrid{ grid-template-columns: 1fr; }
-      select{ width: 100%; }
-      .row{ grid-template-columns: 1fr 240px; }
-      #invHud{ flex-wrap:wrap; }
-    }
-  </style>
+  .panel{
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 14px;
+    padding: 10px 10px 8px;
+    min-width: 0;
+  }
+  .panel h3{
+    margin: 2px 0 8px;
+    font: 800 13px/1.15 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    letter-spacing:.15px;
+  }
+
+  .row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin: 7px 0;
+    min-width: 0;
+  }
+  .row label{ flex: 0 0 240px; opacity:.95; min-width: 0; }
+  .row input[type="range"]{ width:100%; min-width: 0; }
+  .row .v{
+    width: 110px;
+    text-align:right;
+    opacity:.85;
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 auto;
+  }
+  .row input[type="checkbox"]{ transform: scale(1.05); }
+
+  @media (max-width: 560px){
+    #cardHeader{ padding: 12px 12px 10px; }
+    #cardBody{ padding: 10px 12px 12px; }
+    .row{ flex-direction:column; align-items:stretch; gap:6px; }
+    .row label{ flex: 0 0 auto; width:100%; }
+    .row .v{ width:100%; text-align:right; }
+    .modeBtn{ flex: 1 1 100%; }
+  }
+
+  .hint{ opacity:.78; font-size: 12px; margin-top: 6px; }
+
+  #cardFooter{
+    padding: 12px 14px 14px;
+    border-top: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+  }
+  .actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+  .actionBtn{
+    padding: 12px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.10);
+    color: rgba(255,255,255,.92);
+    cursor:pointer;
+    font: 700 13px/1 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .actionBtn.primary{
+    background: rgba(90,255,160,.22);
+    border-color: rgba(90,255,160,.26);
+  }
+  .actionBtn:disabled{ opacity:.45; cursor:not-allowed; }
+
+  /* ===== STARTUP CALIBRATION OVERLAY ===== */
+  #startup{
+    position:fixed; inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 14px);
+    background: radial-gradient(1100px 700px at 50% 35%, rgba(255,140,140,.08), rgba(0,0,0,.62));
+    backdrop-filter: blur(10px);
+    z-index: 60;
+    color: rgba(255,255,255,.92);
+    font: 14px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+    overflow:hidden;
+  }
+  #startupCard{
+    width: min(900px, 96vw);
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.08);
+    box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    padding: 14px 14px 12px;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #startupTop{ display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; margin-bottom: 10px; }
+  #startupTop h2{ margin:0; font: 900 16px/1.15 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif; letter-spacing:.2px; }
+  #startupMsg{ opacity:.85; margin-top: 6px; }
+  #startupCount{ font: 900 56px/1 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif; opacity:.95; min-width: 80px; text-align:right; }
+  #startupStatus{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
+  .chip{
+    padding:8px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.22);
+    opacity:.9;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+  }
+  .chip.ok{ border-color: rgba(90,255,160,.30); background: rgba(90,255,160,.14); }
+  .chip.bad{ border-color: rgba(255,120,120,.25); background: rgba(255,120,120,.10); }
+  #startupBars{ display:flex; gap:10px; margin-top: 12px; align-items:center; flex-wrap:wrap; }
+  .pbar{
+    flex: 1 1 260px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    overflow:hidden;
+    border: 1px solid rgba(255,255,255,.10);
+  }
+  .pbar > i{ display:block; height:100%; width:0%; background: rgba(140,220,255,.95); }
+  #startupNote{ margin-top: 10px; opacity:.78; font-size: 12px; }
+  #startupActions{ display:flex; gap:10px; justify-content:flex-end; margin-top: 12px; flex-wrap:wrap; }
+
+  /* ===== LIVE TUNER PANEL (IN-GAME) ===== */
+  #liveTuner{
+    position:fixed;
+    top: calc(env(safe-area-inset-top) + 58px);
+    right: calc(env(safe-area-inset-right) + 10px);
+    width: min(420px, 92vw);
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 80px);
+    background: rgba(10,14,20,.72);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    z-index: 20;
+    display:none;
+    overflow:hidden;
+  }
+  #liveTunerHeader{
+    padding: 10px 10px 8px;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+    color: rgba(255,255,255,.92);
+    font: 800 13px/1 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  #liveTunerHeader small{ font-weight:600; opacity:.8; }
+  #liveTunerBody{
+    padding: 10px 10px 12px;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+    color: rgba(255,255,255,.90);
+    font: 13px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  #liveReadout{
+    margin-top: 8px;
+    opacity:.82;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    word-break: break-word;
+  }
+  .miniBtn{
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.10);
+    color: rgba(255,255,255,.92);
+    cursor:pointer;
+    font: 800 12px/1 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;
+  }
+</style>
 </head>
 
 <body>
-  <div id="container">
-    <div id="wrap">
-      <canvas id="game" width="960" height="640"></canvas>
+<canvas id="c"></canvas>
+<video id="video" playsinline></video>
 
-      <!-- HUD -->
-      <div id="hud">
-        <div class="hudBlock">
-          <div class="hudStat">
-            <div class="hudLabel">MODE</div>
-            <div class="hudValue" id="hudMode">START</div>
-          </div>
-          <div class="hudStat">
-            <div class="hudLabel">LEVEL</div>
-            <div class="hudValue" id="hudLevel">1</div>
-          </div>
-          <div class="hudStat">
-            <div class="hudLabel">WEAPON</div>
-            <div class="hudValue" id="hudWeapon">CANNON</div>
-          </div>
-          <div class="hudStat">
-            <div class="hudLabel">AMMO</div>
-            <div class="hudValue" id="hudAmmo">0 / 0</div>
-          </div>
-          <div class="hudStat">
-            <div class="hudLabel">COINS</div>
-            <div class="hudValue" id="hudCoins">0</div>
-          </div>
-          <div id="healthWrap">
-            <div class="hudLabel">HEALTH</div>
-            <div id="healthBar"><div id="healthFill"></div></div>
+<div id="hud">
+  <div class="pill">
+    <span>HP</span>
+    <div class="bar"><i id="hpFill"></i></div>
+  </div>
+
+  <div class="pill" id="ammoPill">
+    <span class="ico" id="ammoIco"></span>
+    <span id="ammoTxt">Ammo 0/0</span>
+  </div>
+
+  <div class="pill" id="repairPill">
+    <span class="ico" id="repairIco"></span>
+    <span id="repairTxt">Repairs 0</span>
+  </div>
+
+  <div class="pill"><span id="scoreTxt">Score 0</span></div>
+  <div class="pill"><span id="waveTxt">Wave 1</span></div>
+  <div class="pill"><span id="modeTxt">—</span></div>
+  <div class="spacer"></div>
+  <div class="pill"><span id="hiTxt">Best 0</span></div>
+</div>
+
+<button id="menuBtn" class="topBtn">Menu</button>
+<button id="tunerBtn" class="topBtn">Tuner</button>
+<button id="pauseBtn" class="topBtn">Pause</button>
+<div id="bridge">Controller: not selected</div>
+
+<!-- LIVE TUNER (IN-GAME) -->
+<div id="liveTuner">
+  <div id="liveTunerHeader">
+    <div>
+      Live Tuner <small id="liveTunerMode">(—)</small>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button id="recenterBtn" class="miniBtn">Recenter</button>
+      <button id="recalBtn" class="miniBtn">Startup Scan</button>
+      <button id="closeLiveBtn" class="miniBtn">Close</button>
+    </div>
+  </div>
+  <div id="liveTunerBody">
+    <div class="panel">
+      <h3>Micro Mapping (tiny motion → full screen)</h3>
+
+      <div class="row">
+        <label>Movement Range (inches)</label>
+        <input id="microInLive" type="range" min="0.25" max="3.00" step="0.05" value="0.75">
+        <div class="v" id="microInLiveV">0.75 in</div>
+      </div>
+      <div class="row">
+        <label>Throttle Range (inches)</label>
+        <input id="thrInLive" type="range" min="0.25" max="4.00" step="0.05" value="0.75">
+        <div class="v" id="thrInLiveV">0.75 in</div>
+      </div>
+
+      <div class="row">
+        <label>Aim Sensitivity (×)</label>
+        <input id="aimSensLive" type="range" min="-10" max="10" step="0.1" value="1">
+        <div class="v" id="aimSensLiveV">1.0×</div>
+      </div>
+      <div class="row">
+        <label>Drive Sensitivity (×)</label>
+        <input id="drvSensLive" type="range" min="-10" max="10" step="0.1" value="1">
+        <div class="v" id="drvSensLiveV">1.0×</div>
+      </div>
+
+      <div class="row">
+        <label>Drive Speed Scale</label>
+        <input id="driveScaleLive" type="range" min="0.30" max="2.50" step="0.01" value="1.15">
+        <div class="v" id="driveScaleLiveV">1.15</div>
+      </div>
+
+      <div class="row">
+        <label>Cursor Smoothing</label>
+        <input id="smoothLive" type="range" min="0.00" max="0.92" step="0.01" value="0.22">
+        <div class="v" id="smoothLiveV">0.22</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:10px;">
+      <h3>Offsets / Deadzones / Pinch</h3>
+
+      <div class="row">
+        <label>Aim Deadzone (px)</label>
+        <input id="aimDeadLive" type="range" min="0" max="140" step="1" value="14">
+        <div class="v" id="aimDeadLiveV">14</div>
+      </div>
+      <div class="row">
+        <label>Drive Deadzone (px)</label>
+        <input id="drvDeadLive" type="range" min="0" max="140" step="1" value="18">
+        <div class="v" id="drvDeadLiveV">18</div>
+      </div>
+
+      <div class="row">
+        <label>Pinch Threshold</label>
+        <input id="pinchTLive" type="range" min="0.18" max="0.52" step="0.01" value="0.30">
+        <div class="v" id="pinchTLiveV">0.30</div>
+      </div>
+
+      <div class="row">
+        <label>Fire with Either Hand</label>
+        <input id="fireEitherLive" type="checkbox" checked>
+        <div class="v"></div>
+      </div>
+
+      <div class="row">
+        <label>Aim Offset X (px)</label>
+        <input id="aimOffXLive" type="range" min="-320" max="320" step="1" value="0">
+        <div class="v" id="aimOffXLiveV">0</div>
+      </div>
+      <div class="row">
+        <label>Aim Offset Y (px)</label>
+        <input id="aimOffYLive" type="range" min="-260" max="260" step="1" value="0">
+        <div class="v" id="aimOffYLiveV">0</div>
+      </div>
+      <div class="row">
+        <label>Drive Offset X (px)</label>
+        <input id="drvOffXLive" type="range" min="-320" max="320" step="1" value="0">
+        <div class="v" id="drvOffXLiveV">0</div>
+      </div>
+      <div class="row">
+        <label>Drive Offset Y (px)</label>
+        <input id="drvOffYLive" type="range" min="-260" max="260" step="1" value="0">
+        <div class="v" id="drvOffYLiveV">0</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:10px;">
+      <h3>Invert / Mirror / Tracking</h3>
+
+      <div class="row">
+        <label>Mirror X (Selfie)</label>
+        <input id="mirrorXLive" type="checkbox" checked>
+        <div class="v"></div>
+      </div>
+      <div class="row">
+        <label>Swap Hands</label>
+        <input id="swapHandsLive" type="checkbox">
+        <div class="v"></div>
+      </div>
+      <div class="row">
+        <label>Depth Compensation (XYZ)</label>
+        <input id="depthCompLive" type="checkbox" checked>
+        <div class="v"></div>
+      </div>
+
+      <div class="row">
+        <label>Invert Aim X</label>
+        <input id="invAimXLive" type="checkbox">
+        <div class="v"></div>
+      </div>
+      <div class="row">
+        <label>Invert Aim Y</label>
+        <input id="invAimYLive" type="checkbox">
+        <div class="v"></div>
+      </div>
+      <div class="row">
+        <label>Invert Drive X</label>
+        <input id="invDrvXLive" type="checkbox">
+        <div class="v"></div>
+      </div>
+      <div class="row">
+        <label>Invert Drive Y</label>
+        <input id="invDrvYLive" type="checkbox">
+        <div class="v"></div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end;">
+        <button id="defaultsLive" class="actionBtn">Defaults</button>
+      </div>
+
+      <div id="liveReadout">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN + TUNERS -->
+<div id="overlay">
+  <div id="card">
+    <div id="cardHeader">
+      <div id="titleRow">
+        <div>
+          <h1>Omconsole Tank Battle</h1>
+          <div id="subtitle">
+            Dual controller: <b>Left hand aims</b> (red target + pinch to shoot) • <b>Right hand drives</b> (arrow + throttle by distance).<br/>
+            Pickups: <b>Ammo Supply</b> + <b>Repair Wrench</b> (adds a repair kit). Use repairs to heal.
           </div>
         </div>
-
-        <div class="hudBlock">
-          <div class="hudStat">
-            <div class="hudLabel">HANDS</div>
-            <div class="hudValue" id="hudHands">L:—  R:—</div>
-          </div>
-          <div class="hudStat">
-            <div class="hudLabel">TIP</div>
-            <div class="hudValue" id="hudTip">Choose Gesture or Keyboard</div>
-          </div>
+        <div style="opacity:.75; font-size:12px; text-align:right;">
+          Best score saves locally
         </div>
       </div>
 
-      <!-- Inventory HUD -->
-      <div id="invHud">
-        <div class="invSlot" id="slotAmmoKit" title="Ammo Kit (key 1)">
-          <svg class="invIcon" viewBox="0 0 64 64" aria-hidden="true">
-            <path d="M12 26h40v26H12z" fill="rgba(255,210,60,0.20)" stroke="rgba(255,210,60,0.55)" stroke-width="3" />
-            <path d="M18 18h28v8H18z" fill="rgba(255,210,60,0.14)" stroke="rgba(255,210,60,0.35)" stroke-width="3" />
-            <path d="M22 34h20" stroke="rgba(255,235,170,0.75)" stroke-width="4" stroke-linecap="round"/>
-            <path d="M26 42h12" stroke="rgba(255,235,170,0.55)" stroke-width="4" stroke-linecap="round"/>
-          </svg>
-          <div class="invTxt">
-            <div class="invName">Ammo Kit</div>
-            <div class="invCount" id="invAmmoKit">x0</div>
-          </div>
-        </div>
-
-        <div class="invSlot" id="slotMedkit" title="Repair Kit (key 2)">
-          <svg class="invIcon" viewBox="0 0 64 64" aria-hidden="true">
-            <path d="M14 30h36v22H14z" fill="rgba(80,220,120,0.18)" stroke="rgba(80,220,120,0.55)" stroke-width="3"/>
-            <path d="M22 20h20v10H22z" fill="rgba(80,220,120,0.12)" stroke="rgba(80,220,120,0.35)" stroke-width="3"/>
-            <path d="M32 34v14" stroke="rgba(80,220,120,0.90)" stroke-width="5" stroke-linecap="round"/>
-            <path d="M25 41h14" stroke="rgba(80,220,120,0.90)" stroke-width="5" stroke-linecap="round"/>
-          </svg>
-          <div class="invTxt">
-            <div class="invName">Repair Kit</div>
-            <div class="invCount" id="invMedkit">x0</div>
-          </div>
-        </div>
-
-        <div class="invSlot" id="slotShield" title="Shield (key 3)">
-          <svg class="invIcon" viewBox="0 0 64 64" aria-hidden="true">
-            <path d="M32 8l18 8v16c0 14-8 22-18 26C22 54 14 46 14 32V16l18-8z"
-                  fill="rgba(120,200,255,0.16)" stroke="rgba(120,200,255,0.60)" stroke-width="3"/>
-            <path d="M22 30h20" stroke="rgba(120,200,255,0.70)" stroke-width="4" stroke-linecap="round"/>
-            <path d="M32 20v24" stroke="rgba(120,200,255,0.55)" stroke-width="4" stroke-linecap="round"/>
-          </svg>
-          <div class="invTxt">
-            <div class="invName">Shield</div>
-            <div class="invCount" id="invShield">x0</div>
-          </div>
-        </div>
-
-        <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
-          <button class="miniBtn" id="btnToggleTuner" title="Open/close tuner (T)">Tuner (T)</button>
-          <button class="miniBtn" id="btnPause" title="Pause (P)">Pause (P)</button>
-        </div>
+      <div class="modeRow">
+        <button id="pickGesture" class="modeBtn">
+          <strong>Gesture Controller</strong>
+          <span>Camera required (HTTPS/localhost). Startup scan + micro-range mapping.</span>
+        </button>
+        <button id="pickKeyboard" class="modeBtn">
+          <strong>Keyboard Controller</strong>
+          <span>Move: WASD/Arrows • Aim: IJKL • Fire: Space • Repair: R • Dash: Shift</span>
+        </button>
       </div>
+    </div>
 
-      <div id="toast"></div>
-
-      <!-- START / LOGIN OVERLAY -->
-      <div class="overlay" id="overlayStart">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <b>Tank Battle — Levels + Store + Inventory</b>
-              <span>
-                Choose <b>Gesture</b> (two hands) or <b>Keyboard</b>. Gesture uses a startup scan (auto-calibrates micro-movement).
-              </span>
-              <div class="hint" id="startWarn" style="margin-top:10px;"></div>
-            </div>
-            <button class="btn" id="btnStartGame">START</button>
-          </div>
-
-          <div class="cardBody">
-            <div class="tile">
-              <b>Controls</b>
-              <div class="row">
-                <label>Control mode</label>
-                <div class="ctrl">
-                  <select id="selMode">
-                    <option value="gesture">Gesture (2 hands + scan)</option>
-                    <option value="keyboard">Keyboard + Mouse</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="hint">
-                <b>Keyboard:</b> WASD move • Mouse aim • Click/Space shoot • 1/2/3 use items • T tuner • P pause<br/>
-                <b>Gesture:</b> Left hand = aim + pinch shoot • Right hand = drive arrow (distance = throttle)
-              </div>
-
-              <div style="margin-top:12px;border-top:1px solid rgba(255,210,60,0.10);padding-top:12px;">
-                <b>Gesture tuners (pre-scan)</b>
-              </div>
-
-              <div class="row">
-                <label>Mirror input (natural selfie controls)</label>
-                <div class="ctrl">
-                  <label class="check"><input id="chkMirror" type="checkbox" checked> enabled</label>
-                </div>
-              </div>
-
-              <div class="row">
-                <label>Swap left/right hand labels (if wrong)</label>
-                <div class="ctrl">
-                  <label class="check"><input id="chkSwapHands" type="checkbox"> swap</label>
-                </div>
-              </div>
-
-              <div class="row">
-                <label>Detection confidence</label>
-                <div class="ctrl">
-                  <input id="detConf" type="range" min="0.30" max="0.90" step="0.01" value="0.60">
-                  <div class="num" id="detConfV">0.60</div>
-                </div>
-              </div>
-              <div class="row">
-                <label>Tracking confidence</label>
-                <div class="ctrl">
-                  <input id="trkConf" type="range" min="0.30" max="0.90" step="0.01" value="0.60">
-                  <div class="num" id="trkConfV">0.60</div>
-                </div>
-              </div>
-
-              <div class="row">
-                <label>Pinch ON / OFF</label>
-                <div class="ctrl" style="gap:8px;">
-                  <input id="pinchOn" type="range" min="0.03" max="0.10" step="0.001" value="0.055" style="width:55%;">
-                  <div class="num" id="pinchOnV">0.055</div>
-                  <input id="pinchOff" type="range" min="0.04" max="0.12" step="0.001" value="0.075" style="width:55%;">
-                  <div class="num" id="pinchOffV">0.075</div>
-                </div>
-              </div>
-
-              <div class="hint">
-                After scan completes, you can still adjust tuners live (T).
-              </div>
-            </div>
-
-            <div class="tile">
-              <b>What’s new (depth)</b><br/>
-              • <b>Levels</b> with escalating enemy count + elites<br/>
-              • <b>Ammo</b> matters (different weapons use different ammo)<br/>
-              • <b>Health</b> + <b>inventory</b> (Ammo Kit / Repair Kit / Shield)<br/>
-              • <b>Store</b> between levels with upgrades + consumables + weapon unlocks<br/>
-              • <b>Textures</b>: procedural ground + metal tank shading + explosions<br/><br/>
-
-              <b>Camera note</b><br/>
-              Gesture mode requires <b>https</b> or <b>http://localhost</b> (not file://).<br/>
-              If camera is blocked, choose keyboard mode.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SCAN OVERLAY (Gesture only) -->
-      <div class="overlay" id="overlayScan" style="display:none;">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <b>Startup Scan — Raise both hands</b>
-              <span>Hold steady during the countdown. When scan completes, the game starts automatically.</span>
-              <div class="hint" id="scanStatus" style="margin-top:10px;">Waiting for hands…</div>
-            </div>
-            <button class="btn" id="btnCancelScan">Cancel</button>
-          </div>
-
-          <div class="cardBody">
-            <div class="tile">
-              <b>Scan progress</b>
-              <div id="scanUI">
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div style="color:rgba(220,220,235,0.75);font-size:12px;">Left hand lock</div>
-                    <div id="scanLTxt" style="color:rgba(220,220,235,0.85);font-size:12px;">0%</div>
-                  </div>
-                  <div class="scanBar"><div id="scanLBar"></div></div>
-                </div>
-
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div style="color:rgba(220,220,235,0.75);font-size:12px;">Right hand lock</div>
-                    <div id="scanRTxt" style="color:rgba(220,220,235,0.85);font-size:12px;">0%</div>
-                  </div>
-                  <div class="scanBar"><div id="scanRBar"></div></div>
-                </div>
-
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div style="color:rgba(220,220,235,0.75);font-size:12px;">Stability hold</div>
-                    <div id="scanSTxt" style="color:rgba(220,220,235,0.85);font-size:12px;">0%</div>
-                  </div>
-                  <div class="scanBar"><div id="scanSBar"></div></div>
-                </div>
-
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                  <button class="btn" id="btnRescan" style="padding:8px 10px;">Rescan</button>
-                </div>
-
-                <div class="hint">
-                  Tip: keep palms facing the camera, in good lighting. If left/right is wrong, enable “Swap hands” in tuner.
-                </div>
-              </div>
-
-              <div id="previewWrap">
-                <video id="preview" playsinline muted></video>
-                <div id="countdown">3</div>
-              </div>
-            </div>
-
-            <div class="tile">
-              <b>Micro-movement auto-tune</b><br/>
-              This scan measures your “natural” tiny hand movement and sets sensitivity so you only need small motions to:
-              <br/>• aim across the screen (left hand)
-              <br/>• drive with throttle (right hand)
-              <div class="hint" style="margin-top:10px;">
-                After the game starts, press <b>T</b> to fine-tune deadzones, offsets, and sensitivity live.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STORE OVERLAY -->
-      <div class="overlay" id="overlayStore" style="display:none;">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <b>Store — Spend coins, gear up</b>
-              <span id="storeSub">Level complete. Buy upgrades and consumables.</span>
-              <div class="hint" id="storeStats" style="margin-top:10px;"></div>
-            </div>
-            <button class="btn" id="btnNextLevel">NEXT LEVEL</button>
-          </div>
-
-          <div class="cardBody">
-            <div class="tile" style="overflow:auto;max-height:62vh;">
-              <b>Shop</b>
-              <div id="storeGrid" style="margin-top:10px;"></div>
-              <div class="hint">
-                Upgrades persist between levels. Consumables go to inventory (use keys 1/2/3).
-              </div>
-            </div>
-
-            <div class="tile">
-              <b>Weapons</b>
-              <div class="hint" id="weaponInfo" style="margin-top:8px;"></div>
-
-              <div style="margin-top:12px;border-top:1px solid rgba(255,210,60,0.10);padding-top:12px;">
-                <b>Quick buy</b>
-              </div>
-
-              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
-                <button class="miniBtn" id="buyAmmo30">+30 Ammo</button>
-                <button class="miniBtn" id="buyRepair30">+30 Health</button>
-                <button class="miniBtn" id="buyMedkit">Repair Kit</button>
-                <button class="miniBtn" id="buyAmmoKit">Ammo Kit</button>
-                <button class="miniBtn" id="buyShield">Shield</button>
-              </div>
-
-              <div class="hint">
-                You can also press <b>P</b> to pause during gameplay.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- GAME OVER OVERLAY -->
-      <div class="overlay" id="overlayGameOver" style="display:none;">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <b>Game Over</b>
-              <span id="goSub">You were destroyed. Try again with upgrades.</span>
-            </div>
-            <button class="btn" id="btnRestart">RESTART</button>
-          </div>
-          <div class="cardBody">
-            <div class="tile">
-              <b>Stats</b>
-              <div class="hint" id="goStats" style="white-space:pre-wrap;"></div>
-            </div>
-            <div class="tile">
-              <b>Tips</b><br/>
-              • Buy <b>Max Health</b> and <b>Shield</b> early<br/>
-              • Upgrade <b>Damage</b> and <b>Fire Rate</b> for faster clears<br/>
-              • Don’t waste ammo — use <b>Ammo Kits</b> in emergencies
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Live tuner (in-game) -->
-      <div id="tunerPanel" style="position:absolute; right:10px; bottom:10px; width: 420px; max-width: calc(100% - 20px);
-           background: var(--panel2); border:1px solid rgba(255,210,60,0.14); border-radius:12px; padding:10px; z-index:25;
-           box-shadow: 0 8px 18px rgba(0,0,0,0.35); backdrop-filter: blur(10px); display:none; pointer-events:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">
-          <b style="font-size:12px;color:rgba(255,235,170,0.92);">LIVE TUNER (Gesture)</b>
-          <button class="miniBtn" id="btnCloseTuner">Close</button>
-        </div>
-
-        <div style="max-height:55vh; overflow:auto; padding-right:4px;">
-          <div class="row">
-            <label>Aim sensitivity (×, -10..10)</label>
-            <div class="ctrl">
-              <input id="aimGain" type="range" min="-10" max="10" step="0.1" value="6.0">
-              <div class="num" id="aimGainV">6.0</div>
-            </div>
-          </div>
-          <div class="row">
-            <label>Drive sensitivity (×, -10..10)</label>
-            <div class="ctrl">
-              <input id="drvGain" type="range" min="-10" max="10" step="0.1" value="5.0">
-              <div class="num" id="drvGainV">5.0</div>
-            </div>
-          </div>
-          <div class="row">
-            <label>Drive deadzone</label>
-            <div class="ctrl">
-              <input id="drvDead" type="range" min="0.00" max="0.25" step="0.01" value="0.07">
-              <div class="num" id="drvDeadV">0.07</div>
-            </div>
-          </div>
-          <div class="row">
-            <label>Aim deadzone</label>
-            <div class="ctrl">
-              <input id="aimDead" type="range" min="0.00" max="0.25" step="0.01" value="0.04">
-              <div class="num" id="aimDeadV">0.04</div>
-            </div>
-          </div>
-
-          <div style="margin-top:10px;border-top:1px solid rgba(255,210,60,0.10);padding-top:10px;color:rgba(255,235,170,0.92);font-size:11px;">Offsets (hand → cursor)</div>
+    <div id="cardBody">
+      <div class="grid">
+        <div class="panel" id="gesturePanel">
+          <h3>Startup Tuners</h3>
 
           <div class="row">
-            <label>Left hand offset X/Y</label>
-            <div class="ctrl">
-              <input id="offLx" type="range" min="-0.40" max="0.40" step="0.01" value="0.00" style="width:50%;">
-              <input id="offLy" type="range" min="-0.40" max="0.40" step="0.01" value="0.00" style="width:50%;">
-            </div>
-          </div>
-          <div class="row">
-            <label>Right hand offset X/Y</label>
-            <div class="ctrl">
-              <input id="offRx" type="range" min="-0.40" max="0.40" step="0.01" value="0.00" style="width:50%;">
-              <input id="offRy" type="range" min="-0.40" max="0.40" step="0.01" value="0.00" style="width:50%;">
-            </div>
+            <label>Movement Range (inches → full travel)</label>
+            <input id="microIn" type="range" min="0.25" max="3.00" step="0.05" value="0.75">
+            <div class="v" id="microInV">0.75 in</div>
           </div>
 
           <div class="row">
-            <label>Mirror input</label>
-            <div class="ctrl">
-              <label class="check"><input id="chkMirror2" type="checkbox" checked> enabled</label>
-            </div>
+            <label>Throttle Range (inches)</label>
+            <input id="thrIn" type="range" min="0.25" max="4.00" step="0.05" value="0.75">
+            <div class="v" id="thrInV">0.75 in</div>
+          </div>
+
+          <div class="row">
+            <label>Aim Sensitivity (× extra gain)</label>
+            <input id="aimSens" type="range" min="-10" max="10" step="0.1" value="1">
+            <div class="v" id="aimSensV">1.0×</div>
           </div>
           <div class="row">
-            <label>Swap hands</label>
-            <div class="ctrl">
-              <label class="check"><input id="chkSwapHands2" type="checkbox"> swap</label>
-            </div>
+            <label>Drive Sensitivity (× extra gain)</label>
+            <input id="drvSens" type="range" min="-10" max="10" step="0.1" value="1">
+            <div class="v" id="drvSensV">1.0×</div>
+          </div>
+
+          <div class="row">
+            <label>Depth Compensation (XYZ)</label>
+            <input id="depthComp" type="checkbox" checked>
+            <div class="v"></div>
+          </div>
+
+          <div class="row">
+            <label>Drive Deadzone (raw px)</label>
+            <input id="drvDead" type="range" min="0" max="140" step="1" value="18">
+            <div class="v" id="drvDeadV">18</div>
+          </div>
+          <div class="row">
+            <label>Aim Deadzone (raw px)</label>
+            <input id="aimDead" type="range" min="0" max="140" step="1" value="14">
+            <div class="v" id="aimDeadV">14</div>
+          </div>
+
+          <div class="row">
+            <label>Drive Speed Scale</label>
+            <input id="driveScale" type="range" min="0.30" max="2.50" step="0.01" value="1.15">
+            <div class="v" id="driveScaleV">1.15</div>
+          </div>
+
+          <div class="row">
+            <label>Cursor Smoothing</label>
+            <input id="smooth" type="range" min="0.00" max="0.92" step="0.01" value="0.22">
+            <div class="v" id="smoothV">0.22</div>
+          </div>
+
+          <div class="row">
+            <label>Pinch Threshold</label>
+            <input id="pinchT" type="range" min="0.18" max="0.52" step="0.01" value="0.30">
+            <div class="v" id="pinchTV">0.30</div>
+          </div>
+
+          <div class="row">
+            <label>Fire with Either Hand Pinch</label>
+            <input id="fireEither" type="checkbox" checked>
+            <div class="v"></div>
+          </div>
+
+          <div class="row">
+            <label>Aim Offset X (px)</label>
+            <input id="aimOffX" type="range" min="-320" max="320" step="1" value="0">
+            <div class="v" id="aimOffXV">0</div>
+          </div>
+          <div class="row">
+            <label>Aim Offset Y (px)</label>
+            <input id="aimOffY" type="range" min="-260" max="260" step="1" value="0">
+            <div class="v" id="aimOffYV">0</div>
+          </div>
+
+          <div class="row">
+            <label>Drive Offset X (px)</label>
+            <input id="drvOffX" type="range" min="-320" max="320" step="1" value="0">
+            <div class="v" id="drvOffXV">0</div>
+          </div>
+          <div class="row">
+            <label>Drive Offset Y (px)</label>
+            <input id="drvOffY" type="range" min="-260" max="260" step="1" value="0">
+            <div class="v" id="drvOffYV">0</div>
+          </div>
+
+          <div class="row">
+            <label>Mirror X (Selfie)</label>
+            <input id="mirrorX" type="checkbox" checked>
+            <div class="v"></div>
+          </div>
+          <div class="row">
+            <label>Swap Hands</label>
+            <input id="swapHands" type="checkbox">
+            <div class="v"></div>
+          </div>
+
+          <div class="row">
+            <label>Invert Aim X</label>
+            <input id="invAimX" type="checkbox">
+            <div class="v"></div>
+          </div>
+          <div class="row">
+            <label>Invert Aim Y</label>
+            <input id="invAimY" type="checkbox">
+            <div class="v"></div>
+          </div>
+
+          <div class="row">
+            <label>Invert Drive X</label>
+            <input id="invDrvX" type="checkbox">
+            <div class="v"></div>
+          </div>
+          <div class="row">
+            <label>Invert Drive Y</label>
+            <input id="invDrvY" type="checkbox">
+            <div class="v"></div>
           </div>
 
           <div class="hint">
-            If left/right feels flipped, enable “Swap hands”. If movement is reversed, reduce or negative the sensitivity.
+            Repairs: in gesture mode, do a <b>two-hand pinch at the same time</b> to use 1 repair kit (if you have any).
+          </div>
+        </div>
+
+        <div class="panel" id="keyboardPanel">
+          <h3>Notes</h3>
+          <div class="hint">
+            <b>Move:</b> WASD / Arrows<br/>
+            <b>Aim:</b> IJKL<br/>
+            <b>Fire:</b> Space (uses ammo)<br/>
+            <b>Repair:</b> R (uses 1 repair kit)<br/>
+            <b>Dash:</b> Shift<br/><br/>
+            Pickups drop randomly from enemies.
           </div>
         </div>
       </div>
-
-      <video id="video" playsinline></video>
     </div>
 
-    <div id="footer">
-      <span style="color:rgba(220,220,235,0.64)">Note:</span>
-      Gesture mode requires <b>https</b> or <b>http://localhost</b>.
-      If you open from file:// your camera will likely be blocked.
+    <div id="cardFooter">
+      <div class="actions">
+        <button id="resetBtn" class="actionBtn">Reset Tuners</button>
+        <button id="startBtn" class="actionBtn primary" disabled>Start</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- MediaPipe Hands -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<!-- STARTUP CALIBRATION -->
+<div id="startup">
+  <div id="startupCard">
+    <div id="startupTop">
+      <div>
+        <h2>Startup Tuner — Micro Movement Scan (XYZ)</h2>
+        <div id="startupMsg">Raise both hands. Hold steady for 3-2-1.</div>
+      </div>
+      <div id="startupCount"></div>
+    </div>
 
-  <script>
-    // ============================================================
-    // Tank Battle: Levels + Store + Inventory + Gesture/Keyboard
-    // ============================================================
+    <div id="startupStatus">
+      <div id="chipAim" class="chip bad">Aim hand: not seen</div>
+      <div id="chipDrv" class="chip bad">Drive hand: not seen</div>
+      <div id="chipZ" class="chip">Z: —</div>
+      <div id="chipInch" class="chip">Micro: —</div>
+    </div>
 
-    // ---------- DOM ----------
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d", { alpha: false });
+    <div id="startupBars">
+      <div class="pbar"><i id="bar1"></i></div>
+      <div class="pbar"><i id="bar2"></i></div>
+    </div>
 
-    const hudMode = document.getElementById("hudMode");
-    const hudLevel = document.getElementById("hudLevel");
-    const hudWeapon = document.getElementById("hudWeapon");
-    const hudAmmo = document.getElementById("hudAmmo");
-    const hudCoins = document.getElementById("hudCoins");
-    const healthFill = document.getElementById("healthFill");
-    const hudHands = document.getElementById("hudHands");
-    const hudTip = document.getElementById("hudTip");
+    <div id="startupNote">
+      Step 1: steady hands for centering + jitter scan.<br/>
+      Step 2: move each hand only a little (~0.5–1 inch) to confirm the micro range.
+    </div>
 
-    const invAmmoKit = document.getElementById("invAmmoKit");
-    const invMedkit = document.getElementById("invMedkit");
-    const invShield = document.getElementById("invShield");
-    const slotAmmoKit = document.getElementById("slotAmmoKit");
-    const slotMedkit = document.getElementById("slotMedkit");
-    const slotShield = document.getElementById("slotShield");
+    <div id="startupActions">
+      <button id="skipStartup" class="actionBtn">Skip</button>
+    </div>
+  </div>
+</div>
 
-    const toast = document.getElementById("toast");
+<!-- MediaPipe Hands (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
-    const overlayStart = document.getElementById("overlayStart");
-    const btnStartGame = document.getElementById("btnStartGame");
-    const selMode = document.getElementById("selMode");
-    const startWarn = document.getElementById("startWarn");
+<script>
+(() => {
+  // ===== helpers =====
+  const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
+  const rand  = (a,b)=> a + Math.random()*(b-a);
+  const hypot = Math.hypot;
 
-    const detConf = document.getElementById("detConf");
-    const trkConf = document.getElementById("trkConf");
-    const detConfV = document.getElementById("detConfV");
-    const trkConfV = document.getElementById("trkConfV");
-    const pinchOn = document.getElementById("pinchOn");
-    const pinchOff = document.getElementById("pinchOff");
-    const pinchOnV = document.getElementById("pinchOnV");
-    const pinchOffV = document.getElementById("pinchOffV");
-    const chkMirror = document.getElementById("chkMirror");
-    const chkSwapHands = document.getElementById("chkSwapHands");
+  function normAngle(a){
+    while (a > Math.PI) a -= Math.PI*2;
+    while (a < -Math.PI) a += Math.PI*2;
+    return a;
+  }
+  function circleRectHit(cx,cy,cr, rx,ry,rw,rh){
+    const nx = clamp(cx, rx, rx+rw);
+    const ny = clamp(cy, ry, ry+rh);
+    const dx = cx - nx, dy = cy - ny;
+    return (dx*dx + dy*dy) <= cr*cr;
+  }
+  function pxPerInch(){
+    const d = document.createElement("div");
+    d.style.width = "1in";
+    d.style.position = "absolute";
+    d.style.left = "-200%";
+    d.style.top = "0";
+    document.body.appendChild(d);
+    const p = d.getBoundingClientRect().width || 96;
+    d.remove();
+    return p;
+  }
+  let PX_IN = pxPerInch();
+  window.addEventListener("resize", () => { PX_IN = pxPerInch(); }, { passive:true });
 
-    const overlayScan = document.getElementById("overlayScan");
-    const scanStatus = document.getElementById("scanStatus");
-    const scanLTxt = document.getElementById("scanLTxt");
-    const scanRTxt = document.getElementById("scanRTxt");
-    const scanSTxt = document.getElementById("scanSTxt");
-    const scanLBar = document.getElementById("scanLBar");
-    const scanRBar = document.getElementById("scanRBar");
-    const scanSBar = document.getElementById("scanSBar");
-    const btnCancelScan = document.getElementById("btnCancelScan");
-    const btnRescan = document.getElementById("btnRescan");
-    const preview = document.getElementById("preview");
-    const countdownEl = document.getElementById("countdown");
+  function getAimCenter(){ return { x: window.innerWidth * 0.25, y: window.innerHeight * 0.50 }; }  // left-middle
+  function getDriveCenter(){ return { x: window.innerWidth * 0.75, y: window.innerHeight * 0.50 }; } // right-center
 
-    const overlayStore = document.getElementById("overlayStore");
-    const btnNextLevel = document.getElementById("btnNextLevel");
-    const storeGrid = document.getElementById("storeGrid");
-    const storeStats = document.getElementById("storeStats");
-    const storeSub = document.getElementById("storeSub");
-    const weaponInfo = document.getElementById("weaponInfo");
-    const buyAmmo30 = document.getElementById("buyAmmo30");
-    const buyRepair30 = document.getElementById("buyRepair30");
-    const buyMedkit = document.getElementById("buyMedkit");
-    const buyAmmoKit = document.getElementById("buyAmmoKit");
-    const buyShield = document.getElementById("buyShield");
+  // ===== canvas =====
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d", { alpha: false });
+  function resize(){
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width  = Math.floor(window.innerWidth  * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener("resize", resize, { passive: true });
+  resize();
 
-    const overlayGameOver = document.getElementById("overlayGameOver");
-    const btnRestart = document.getElementById("btnRestart");
-    const goStats = document.getElementById("goStats");
+  // ===== audio =====
+  let audio = { ctx:null, unlocked:false };
+  function ensureAudio(){
+    if (audio.unlocked) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audio.ctx = new AC();
+    const osc = audio.ctx.createOscillator();
+    const gain = audio.ctx.createGain();
+    gain.gain.value = 0.0001;
+    osc.frequency.value = 220;
+    osc.connect(gain); gain.connect(audio.ctx.destination);
+    osc.start();
+    osc.stop(audio.ctx.currentTime + 0.01);
+    audio.unlocked = true;
+  }
+  function beep(type="shoot"){
+    if (!audio.unlocked || !audio.ctx) return;
+    const t0 = audio.ctx.currentTime;
+    const osc = audio.ctx.createOscillator();
+    const gain = audio.ctx.createGain();
+    const filter = audio.ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = type==="boom" ? 600 : (type==="pickup" ? 2400 : 1800);
 
-    const btnToggleTuner = document.getElementById("btnToggleTuner");
-    const btnPause = document.getElementById("btnPause");
-    const tunerPanel = document.getElementById("tunerPanel");
-    const btnCloseTuner = document.getElementById("btnCloseTuner");
+    osc.type = type==="boom" ? "sawtooth" : "square";
+    osc.frequency.setValueAtTime(type==="boom" ? 140 : (type==="pickup" ? 980 : 840), t0);
+    osc.frequency.exponentialRampToValueAtTime(type==="boom" ? 60 : (type==="pickup" ? 1480 : 420), t0 + (type==="boom"?0.22:0.07));
 
-    const aimGain = document.getElementById("aimGain");
-    const drvGain = document.getElementById("drvGain");
-    const drvDead = document.getElementById("drvDead");
-    const aimDead = document.getElementById("aimDead");
-    const aimGainV = document.getElementById("aimGainV");
-    const drvGainV = document.getElementById("drvGainV");
-    const drvDeadV = document.getElementById("drvDeadV");
-    const aimDeadV = document.getElementById("aimDeadV");
-    const offLx = document.getElementById("offLx");
-    const offLy = document.getElementById("offLy");
-    const offRx = document.getElementById("offRx");
-    const offRy = document.getElementById("offRy");
-    const chkMirror2 = document.getElementById("chkMirror2");
-    const chkSwapHands2 = document.getElementById("chkSwapHands2");
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(type==="boom" ? 0.22 : 0.10, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (type==="boom"?0.26:0.10));
 
-    const video = document.getElementById("video");
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audio.ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + (type==="boom"?0.28:0.12));
+  }
 
-    // ---------- Utilities ----------
-    const TAU = Math.PI * 2;
-    function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-    function lerp(a,b,t){ return a + (b-a)*t; }
-    function emaAlpha(dt, tau){ return (tau<=0) ? 1 : (1 - Math.exp(-dt / tau)); }
-    function len(x,y){ return Math.hypot(x,y); }
-    function norm(x,y){
-      const d = Math.hypot(x,y) || 1;
-      return {x:x/d, y:y/d, d};
-    }
-    function applyDeadzone(v, dz){
-      const a = Math.abs(v);
-      if (a < dz) return 0;
-      const s = (a - dz) / Math.max(1e-6, (1 - dz));
-      return Math.sign(v) * clamp(s, 0, 1);
-    }
-    function wrapAng(a){
-      while (a > Math.PI) a -= TAU;
-      while (a < -Math.PI) a += TAU;
-      return a;
-    }
-    function angTo(x0,y0,x1,y1){ return Math.atan2(y1-y0, x1-x0); }
-    function showToast(msg, sec=1.2){
-      toast.textContent = msg;
-      toast.style.display = "block";
-      toastT = sec;
-    }
+  // ===== SVG icons (DOM + Canvas pickups) =====
+  const AMMO_SVG = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+    <path d="M4 8.5h14.5a1.8 1.8 0 0 1 1.8 1.8v8.9a1.8 1.8 0 0 1-1.8 1.8H4A1.8 1.8 0 0 1 2.2 19.2V10.3A1.8 1.8 0 0 1 4 8.5Z" stroke="rgba(255,255,255,.92)" stroke-width="1.7" />
+    <path d="M6 8.5V6.4A2.4 2.4 0 0 1 8.4 4h5.2A2.4 2.4 0 0 1 16 6.4v2.1" stroke="rgba(255,255,255,.78)" stroke-width="1.7" />
+    <path d="M7.5 13h2.4M7.5 16h2.4M12.1 13h2.4M12.1 16h2.4" stroke="rgba(255,255,255,.78)" stroke-width="1.7" stroke-linecap="round"/>
+  </svg>`;
+  const WRENCH_SVG = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+    <path d="M20.5 7.5a5 5 0 0 1-7.2 4.5L8 17.3a2.2 2.2 0 0 1-3.1 0l-.2-.2a2.2 2.2 0 0 1 0-3.1l5.3-5.3A5 5 0 0 1 16.5 3.5l-2.6 2.6 2.9 2.9 3.7-1.5Z"
+      stroke="rgba(255,255,255,.92)" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M6.2 15.8l2 2" stroke="rgba(255,255,255,.78)" stroke-width="1.7" stroke-linecap="round"/>
+  </svg>`;
 
-    // ---------- Canvas / World ----------
-    const W = canvas.width, H = canvas.height;
+  function svgToImg(svg){
+    const img = new Image();
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    return img;
+  }
+  const ammoImg = svgToImg(AMMO_SVG);
+  const wrenchImg = svgToImg(WRENCH_SVG);
 
-    // ---------- Input ----------
-    const keys = {};
-    window.addEventListener("keydown", (e)=>{
-      keys[e.code] = true;
+  // put icons into HUD pills
+  document.getElementById("ammoIco").innerHTML = AMMO_SVG;
+  document.getElementById("repairIco").innerHTML = WRENCH_SVG;
 
-      if (e.code === "KeyT") toggleTuner();
-      if (e.code === "KeyP") togglePause();
+  // ===== UI refs =====
+  const ui = {
+    hud: document.getElementById("hud"),
+    hpFill: document.getElementById("hpFill"),
+    scoreTxt: document.getElementById("scoreTxt"),
+    waveTxt: document.getElementById("waveTxt"),
+    hiTxt: document.getElementById("hiTxt"),
+    modeTxt: document.getElementById("modeTxt"),
+    bridge: document.getElementById("bridge"),
 
-      if (e.code === "Digit1") useAmmoKit();
-      if (e.code === "Digit2") useMedkit();
-      if (e.code === "Digit3") useShield();
-    });
-    window.addEventListener("keyup", (e)=> keys[e.code] = false);
+    ammoTxt: document.getElementById("ammoTxt"),
+    repairTxt: document.getElementById("repairTxt"),
 
-    const mouse = { x: W*0.5, y: H*0.5, down:false };
-    canvas.addEventListener("pointermove", (e)=>{
-      const r = canvas.getBoundingClientRect();
-      const sx = (e.clientX - r.left) / r.width;
-      const sy = (e.clientY - r.top) / r.height;
-      mouse.x = clamp(sx * W, 0, W);
-      mouse.y = clamp(sy * H, 0, H);
-    });
-    canvas.addEventListener("pointerdown", ()=> mouse.down = true);
-    window.addEventListener("pointerup", ()=> mouse.down = false);
+    overlay: document.getElementById("overlay"),
+    pickGesture: document.getElementById("pickGesture"),
+    pickKeyboard: document.getElementById("pickKeyboard"),
+    startBtn: document.getElementById("startBtn"),
+    resetBtn: document.getElementById("resetBtn"),
 
-    slotAmmoKit.addEventListener("click", useAmmoKit);
-    slotMedkit.addEventListener("click", useMedkit);
-    slotShield.addEventListener("click", useShield);
+    menuBtn: document.getElementById("menuBtn"),
+    tunerBtn: document.getElementById("tunerBtn"),
+    pauseBtn: document.getElementById("pauseBtn"),
 
-    btnToggleTuner.addEventListener("click", toggleTuner);
-    btnCloseTuner.addEventListener("click", ()=> setTuner(false));
-    btnPause.addEventListener("click", togglePause);
+    liveTuner: document.getElementById("liveTuner"),
+    closeLiveBtn: document.getElementById("closeLiveBtn"),
+    liveTunerMode: document.getElementById("liveTunerMode"),
+    liveReadout: document.getElementById("liveReadout"),
+    recenterBtn: document.getElementById("recenterBtn"),
+    recalBtn: document.getElementById("recalBtn"),
+    defaultsLive: document.getElementById("defaultsLive"),
 
-    function togglePause(){
-      if (state !== "play") return;
-      paused = !paused;
-      showToast(paused ? "Paused" : "Unpaused", 0.8);
-      btnPause.textContent = paused ? "Resume (P)" : "Pause (P)";
-    }
+    startup: document.getElementById("startup"),
+    startupMsg: document.getElementById("startupMsg"),
+    startupCount: document.getElementById("startupCount"),
+    chipAim: document.getElementById("chipAim"),
+    chipDrv: document.getElementById("chipDrv"),
+    chipZ: document.getElementById("chipZ"),
+    chipInch: document.getElementById("chipInch"),
+    bar1: document.getElementById("bar1"),
+    bar2: document.getElementById("bar2"),
+    skipStartup: document.getElementById("skipStartup"),
+  };
 
-    function setTuner(on){
-      tunerPanel.style.display = on ? "block" : "none";
-      tunerOpen = on;
-    }
-    function toggleTuner(){
-      // Only meaningful in gesture mode; but safe to open anyway
-      setTuner(!tunerOpen);
-    }
+  function setModeTxt(t){ ui.modeTxt.textContent = t; }
+  function setBridge(t){ ui.bridge.textContent = t; }
 
-    // ---------- UI Label Sync ----------
-    function syncStartLabels(){
-      detConfV.textContent = (+detConf.value).toFixed(2);
-      trkConfV.textContent = (+trkConf.value).toFixed(2);
-      pinchOnV.textContent = (+pinchOn.value).toFixed(3);
-      pinchOffV.textContent = (+pinchOff.value).toFixed(3);
-    }
-    [detConf, trkConf, pinchOn, pinchOff].forEach(el => el.addEventListener("input", syncStartLabels));
-    syncStartLabels();
+  // ===== config =====
+  const cfgDefaults = {
+    microRangeInches: 0.75,
+    throttleRangeInches: 0.75,
 
-    function syncTunerLabels(){
-      aimGainV.textContent = (+aimGain.value).toFixed(1);
-      drvGainV.textContent = (+drvGain.value).toFixed(1);
-      drvDeadV.textContent = (+drvDead.value).toFixed(2);
-      aimDeadV.textContent = (+aimDead.value).toFixed(2);
-      // keep mirrors in sync
-      chkMirror2.checked = chkMirror.checked;
-      chkSwapHands2.checked = chkSwapHands.checked;
-    }
-    [aimGain, drvGain, drvDead, aimDead, chkMirror2, chkSwapHands2, offLx, offLy, offRx, offRy].forEach(el=>{
-      el.addEventListener("input", ()=>{
-        syncTunerLabels();
-        if (el === chkMirror2) chkMirror.checked = chkMirror2.checked;
-        if (el === chkSwapHands2) chkSwapHands.checked = chkSwapHands2.checked;
-      });
-      el.addEventListener("change", ()=>{
-        syncTunerLabels();
-        if (el === chkMirror2) chkMirror.checked = chkMirror2.checked;
-        if (el === chkSwapHands2) chkSwapHands.checked = chkSwapHands2.checked;
-      });
-    });
-    syncTunerLabels();
+    aimSensitivity: 1.0,      // -10..10
+    driveSensitivity: 1.0,    // -10..10
 
-    // ---------- Game State ----------
-    let state = "menu"; // menu | scan | play | store | gameover
-    let paused = false;
-    let toastT = 0;
-    let tunerOpen = false;
+    depthComp: true,
 
-    // Persistent progression
-    const progress = {
-      level: 1,
-      coins: 0,
-      kills: 0,
-      deaths: 0,
-      upgrades: {
-        damage: 1.0,
-        firerate: 1.0,
-        speed: 1.0,
-        maxHealth: 110,
-        maxAmmo: 60,
-        armor: 0.0, // damage reduction [0..0.35]
-      },
-      unlocks: {
-        scatter: false,
-        rocket: false
-      },
-      inv: {
-        ammoKit: 0,
-        medkit: 0,
-        shield: 0
+    driveDeadzonePx: 18,
+    aimDeadzonePx: 14,
+
+    driveScale: 1.15,
+    smoothing: 0.22,
+    pinchThresh: 0.30,
+
+    fireEither: true,
+
+    mirrorX: true,
+    swapHands: false,
+    invAimX: false,
+    invAimY: false,
+    invDrvX: false,
+    invDrvY: false,
+
+    aimOffsetX: 0,
+    aimOffsetY: 0,
+    drvOffsetX: 0,
+    drvOffsetY: 0,
+  };
+
+  const cfgKey  = "om_tank_cfg_live_v3_pickups";
+  const modeKey = "om_tank_mode_live_v3_pickups";
+  const cfg = { ...cfgDefaults };
+
+  function loadCfg(){
+    try{
+      const raw = localStorage.getItem(cfgKey);
+      if (!raw) return;
+      const o = JSON.parse(raw);
+      for (const k of Object.keys(cfgDefaults)){
+        if (typeof cfgDefaults[k] === "boolean"){
+          if (typeof o[k] === "boolean") cfg[k] = o[k];
+        } else if (typeof cfgDefaults[k] === "number"){
+          if (typeof o[k] === "number" && isFinite(o[k])) cfg[k] = o[k];
+        }
       }
+    } catch {}
+  }
+  function saveCfg(){ try{ localStorage.setItem(cfgKey, JSON.stringify(cfg)); } catch {} }
+
+  // ===== bind controls (overlay + live) with sync =====
+  const rangeBindings = [];
+  const checkBindings = [];
+
+  function bindRange(id, key, fmt){
+    const el = document.getElementById(id);
+    const vEl = document.getElementById(id + "V");
+    if (!el) return;
+
+    rangeBindings.push({ el, vEl, key, fmt });
+
+    const onInput = () => {
+      cfg[key] = +el.value;
+      saveCfg();
+      syncControls();
     };
+    el.addEventListener("input", onInput, { passive:true });
+  }
 
-    // Weapons
-    const WEAPONS = {
-      cannon: {
-        name: "CANNON",
-        ammoCost: 1,
-        baseDamage: 18,
-        baseFire: 0.28,
-        bulletSpeed: 700,
-        spread: 0,
-        pellets: 1,
-        splash: 0
-      },
-      scatter: {
-        name: "SCATTER",
-        ammoCost: 2,
-        baseDamage: 9,
-        baseFire: 0.45,
-        bulletSpeed: 640,
-        spread: 0.20,
-        pellets: 5,
-        splash: 0
-      },
-      rocket: {
-        name: "ROCKET",
-        ammoCost: 3,
-        baseDamage: 55,
-        baseFire: 0.70,
-        bulletSpeed: 480,
-        spread: 0.03,
-        pellets: 1,
-        splash: 70
-      }
+  function bindCheck(id, key){
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    checkBindings.push({ el, key });
+
+    const onChange = () => {
+      cfg[key] = !!el.checked;
+      saveCfg();
+      syncControls();
     };
+    el.addEventListener("change", onChange, { passive:true });
+  }
 
-    // World
-    const world = {
-      w: 2600, h: 2600,
-      biome: 0,
-      groundPattern: null,
-      metalPattern: null,
-      rockPattern: null
-    };
+  function syncControls(){
+    for (const b of rangeBindings){
+      b.el.value = cfg[b.key];
+      if (b.vEl && b.fmt) b.vEl.textContent = b.fmt(cfg[b.key]);
+    }
+    for (const b of checkBindings){
+      b.el.checked = !!cfg[b.key];
+    }
+  }
 
-    // Entities
-    let player = null;
-    let enemies = [];
-    let bullets = [];
-    let particles = [];
-    let pickups = [];
-    let obstacles = [];
+  // Overlay controls
+  bindRange("microIn","microRangeInches",(v)=>`${v.toFixed(2)} in`);
+  bindRange("thrIn","throttleRangeInches",(v)=>`${v.toFixed(2)} in`);
+  bindRange("aimSens","aimSensitivity",(v)=>`${v.toFixed(1)}×`);
+  bindRange("drvSens","driveSensitivity",(v)=>`${v.toFixed(1)}×`);
+  bindRange("drvDead","driveDeadzonePx",(v)=>String(Math.round(v)));
+  bindRange("aimDead","aimDeadzonePx",(v)=>String(Math.round(v)));
+  bindRange("driveScale","driveScale",(v)=>v.toFixed(2));
+  bindRange("smooth","smoothing",(v)=>v.toFixed(2));
+  bindRange("pinchT","pinchThresh",(v)=>v.toFixed(2));
+  bindRange("aimOffX","aimOffsetX",(v)=>String(Math.round(v)));
+  bindRange("aimOffY","aimOffsetY",(v)=>String(Math.round(v)));
+  bindRange("drvOffX","drvOffsetX",(v)=>String(Math.round(v)));
+  bindRange("drvOffY","drvOffsetY",(v)=>String(Math.round(v)));
 
-    // Camera
-    let camX = 0, camY = 0;
-    let shakeT = 0, shakeMag = 0;
+  bindCheck("mirrorX","mirrorX");
+  bindCheck("swapHands","swapHands");
+  bindCheck("invAimX","invAimX");
+  bindCheck("invAimY","invAimY");
+  bindCheck("invDrvX","invDrvX");
+  bindCheck("invDrvY","invDrvY");
+  bindCheck("depthComp","depthComp");
+  bindCheck("fireEither","fireEither");
 
-    // Gesture control output
-    let aimScreen = { x: W*0.5, y: H*0.5 };
-    let driveVec = { x:0, y:0, throttle:0 };
-    let gestureShooting = false;
+  // Live tuner controls
+  bindRange("microInLive","microRangeInches",(v)=>`${v.toFixed(2)} in`);
+  bindRange("thrInLive","throttleRangeInches",(v)=>`${v.toFixed(2)} in`);
+  bindRange("aimSensLive","aimSensitivity",(v)=>`${v.toFixed(1)}×`);
+  bindRange("drvSensLive","driveSensitivity",(v)=>`${v.toFixed(1)}×`);
+  bindRange("driveScaleLive","driveScale",(v)=>v.toFixed(2));
+  bindRange("smoothLive","smoothing",(v)=>v.toFixed(2));
 
-    // ============================================================
-    // Procedural textures
-    // ============================================================
-    function makePattern(kind, biome){
-      const c = document.createElement("canvas");
-      c.width = 256; c.height = 256;
-      const g = c.getContext("2d");
+  bindRange("aimDeadLive","aimDeadzonePx",(v)=>String(Math.round(v)));
+  bindRange("drvDeadLive","driveDeadzonePx",(v)=>String(Math.round(v)));
+  bindRange("pinchTLive","pinchThresh",(v)=>v.toFixed(2));
 
-      // Biomes: 0 grass, 1 sand, 2 ash
-      const biomes = [
-        { base:"#102015", tint:"#274d2e", grid:"rgba(255,235,170,0.04)", dot:"rgba(0,0,0,0.12)" },
-        { base:"#1f1a10", tint:"#6a4f2a", grid:"rgba(255,235,170,0.03)", dot:"rgba(0,0,0,0.12)" },
-        { base:"#101015", tint:"#2d2d36", grid:"rgba(255,235,170,0.03)", dot:"rgba(0,0,0,0.14)" }
-      ];
-      const B = biomes[biome % biomes.length];
+  bindRange("aimOffXLive","aimOffsetX",(v)=>String(Math.round(v)));
+  bindRange("aimOffYLive","aimOffsetY",(v)=>String(Math.round(v)));
+  bindRange("drvOffXLive","drvOffsetX",(v)=>String(Math.round(v)));
+  bindRange("drvOffYLive","drvOffsetY",(v)=>String(Math.round(v)));
 
-      if (kind === "ground"){
-        g.fillStyle = B.base;
-        g.fillRect(0,0,c.width,c.height);
+  bindCheck("fireEitherLive","fireEither");
+  bindCheck("mirrorXLive","mirrorX");
+  bindCheck("swapHandsLive","swapHands");
+  bindCheck("depthCompLive","depthComp");
+  bindCheck("invAimXLive","invAimX");
+  bindCheck("invAimYLive","invAimY");
+  bindCheck("invDrvXLive","invDrvX");
+  bindCheck("invDrvYLive","invDrvY");
 
-        // noise specks
-        for (let i=0;i<1600;i++){
-          const x = Math.random()*c.width;
-          const y = Math.random()*c.height;
-          const a = 0.04 + Math.random()*0.10;
-          g.fillStyle = `rgba(0,0,0,${a})`;
-          g.fillRect(x,y,1,1);
+  loadCfg();
+  syncControls();
+
+  ui.resetBtn.addEventListener("pointerdown", (e)=> {
+    e.preventDefault();
+    ensureAudio();
+    Object.assign(cfg, cfgDefaults);
+    saveCfg();
+    syncControls();
+    setBridge("Tuners reset to defaults.");
+  }, { passive:false });
+
+  ui.defaultsLive.addEventListener("pointerdown", (e)=> {
+    e.preventDefault();
+    ensureAudio();
+    Object.assign(cfg, cfgDefaults);
+    saveCfg();
+    syncControls();
+    setBridge("Tuners reset to defaults.");
+  }, { passive:false });
+
+  // ===== controller selection =====
+  let controllerMode = null; // "gesture" | "keyboard"
+  function selectMode(m){
+    controllerMode = m;
+    ui.pickGesture.classList.toggle("selected", m==="gesture");
+    ui.pickKeyboard.classList.toggle("selected", m==="keyboard");
+    ui.startBtn.disabled = !controllerMode;
+    setBridge(m ? `Controller selected: ${m}` : "Controller: not selected");
+  }
+
+  const savedMode = localStorage.getItem(modeKey);
+  if (savedMode === "gesture" || savedMode === "keyboard") selectMode(savedMode);
+
+  // ===== input state =====
+  const input = {
+    moveX:0, moveY:0,
+    fire:false, dash:false,
+
+    aimCursor:  { x: window.innerWidth*0.25, y: window.innerHeight*0.5, seen:false },
+    driveCursor:{ x: window.innerWidth*0.75, y: window.innerHeight*0.5, seen:false },
+
+    pinchLeft:false,
+    pinchRight:false,
+    pinchLeftNorm:  1,
+    pinchRightNorm: 1,
+
+    _gestureThrottle: 0,
+    _bothPinchPrev: false
+  };
+
+  // ===== keyboard =====
+  const key = {};
+  const keyPrev = {};
+  window.addEventListener("keydown", (e) => { key[e.code] = true; }, { passive:true });
+  window.addEventListener("keyup",   (e) => { key[e.code] = false; }, { passive:true });
+
+  function pollKeyboard(){
+    let mx=0,my=0;
+    if (key["ArrowLeft"] || key["KeyA"]) mx -= 1;
+    if (key["ArrowRight"]|| key["KeyD"]) mx += 1;
+    if (key["ArrowUp"]   || key["KeyW"]) my -= 1;
+    if (key["ArrowDown"] || key["KeyS"]) my += 1;
+    const m = hypot(mx,my) || 1;
+    input.moveX = mx / m;
+    input.moveY = my / m;
+    input.dash = !!key["ShiftLeft"] || !!key["ShiftRight"];
+    input.fire = !!key["Space"];
+  }
+
+  // ===== MediaPipe Hands =====
+  const videoEl = document.getElementById("video");
+  let hands = null;
+  let cam = null;
+
+  const g = {
+    aimX: window.innerWidth*0.25, aimY: window.innerHeight*0.5,
+    drvX: window.innerWidth*0.75, drvY: window.innerHeight*0.5,
+
+    rawAimX: 0, rawAimY: 0, rawAimZ: 0,
+    rawDrvX: 0, rawDrvY: 0, rawDrvZ: 0,
+
+    neutralAim: null, // {x,y,z}
+    neutralDrv: null,
+
+    aimSeen:false, drvSeen:false,
+    lastAimAt:0, lastDrvAt:0, lastAnyAt:0,
+
+    pinchLeftLatched:false,
+    pinchRightLatched:false
+  };
+
+  function distLm(a,b){
+    const dx = (a.x - b.x), dy = (a.y - b.y);
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+  function avgLm(points){
+    let x=0,y=0,z=0;
+    for (const p of points){ x += p.x; y += p.y; z += (p.z || 0); }
+    const n = Math.max(1, points.length);
+    return { x: x/n, y: y/n, z: z/n };
+  }
+  function depthFactor(refZ, curZ){
+    const rz = Math.max(0.0001, Math.abs(refZ || 0.12));
+    const cz = Math.max(0.0001, Math.abs(curZ || rz));
+    return clamp(rz / cz, 0.75, 1.35);
+  }
+  function slerpPos(oldV, newV){
+    const a = clamp(cfg.smoothing, 0, 0.98);
+    return oldV + (newV - oldV) * (1 - a);
+  }
+  function invertInRegionX(sx, x0, x1){ return x0 + (x1 - x0) - (sx - x0); }
+
+  function updatePinchLatch(isLeft, pinchNorm){
+    const downT = cfg.pinchThresh;
+    const upT   = cfg.pinchThresh + 0.05;
+    if (isLeft){
+      if (!g.pinchLeftLatched){
+        if (pinchNorm <= downT) g.pinchLeftLatched = true;
+      } else {
+        if (pinchNorm >= upT) g.pinchLeftLatched = false;
+      }
+    } else {
+      if (!g.pinchRightLatched){
+        if (pinchNorm <= downT) g.pinchRightLatched = true;
+      } else {
+        if (pinchNorm >= upT) g.pinchRightLatched = false;
+      }
+    }
+  }
+
+  function mapMicro(rawX, rawY, neutral, center, regionX0, regionX1, regionY0, regionY1, baseSens, depthMul){
+    const microRangePx = Math.max(8, cfg.microRangeInches * PX_IN);
+    const regionW = (regionX1 - regionX0);
+    const regionH = (regionY1 - regionY0);
+
+    const pad = 16;
+    const maxDX = Math.max(20, (regionW * 0.5) - pad);
+    const maxDY = Math.max(20, (regionH * 0.5) - pad);
+
+    const scaleX = (maxDX / microRangePx) * baseSens * depthMul;
+    const scaleY = (maxDY / microRangePx) * baseSens * depthMul;
+
+    const dx = rawX - neutral.x;
+    const dy = rawY - neutral.y;
+
+    let sx = center.x + dx * scaleX;
+    let sy = center.y + dy * scaleY;
+
+    sx = clamp(sx, regionX0, regionX1);
+    sy = clamp(sy, regionY0, regionY1);
+    return { x:sx, y:sy };
+  }
+
+  function onHandsResults(results){
+    const w = window.innerWidth, h = window.innerHeight;
+    const half = w * 0.5;
+    const now = performance.now();
+
+    const lms = results.multiHandLandmarks || [];
+    const handed = results.multiHandedness || [];
+
+    let sawAny = false;
+
+    for (let i=0;i<lms.length;i++){
+      const landmarks = lms[i];
+      const label = handed[i] && handed[i].label ? handed[i].label : "Right";
+      const handLabel = cfg.swapHands ? (label==="Left"?"Right":"Left") : label;
+
+      const idxTip   = landmarks[8];
+      const thumbTip = landmarks[4];
+      const wrist    = landmarks[0];
+      const idxMcp   = landmarks[5];
+      const midMcp   = landmarks[9];
+      const ringMcp  = landmarks[13];
+      const pinkMcp  = landmarks[17];
+
+      const palm = avgLm([wrist, idxMcp, midMcp, ringMcp, pinkMcp]);
+
+      const BLEND = 0.22;
+      let px = idxTip.x * (1-BLEND) + palm.x * BLEND;
+      let py = idxTip.y * (1-BLEND) + palm.y * BLEND;
+      let pz = (idxTip.z || 0) * (1-BLEND) + (palm.z || 0) * BLEND;
+
+      if (cfg.mirrorX) px = 1 - px;
+
+      const scaleA = distLm(wrist, midMcp);
+      const scaleB = distLm(idxMcp, pinkMcp);
+      const handScale = Math.max(0.0001, scaleA, scaleB);
+      const pinchNorm = distLm(thumbTip, idxTip) / handScale;
+
+      updatePinchLatch(handLabel === "Left", pinchNorm);
+
+      if (handLabel === "Left"){
+        let rawX = px * half;
+        let rawY = py * h;
+        let rawZ = pz;
+
+        if (cfg.invAimX) rawX = invertInRegionX(rawX, 0, half);
+        if (cfg.invAimY) rawY = h - rawY;
+
+        g.rawAimX = rawX; g.rawAimY = rawY; g.rawAimZ = rawZ;
+
+        if (!g.neutralAim && isFinite(rawX) && isFinite(rawY)){
+          g.neutralAim = { x: rawX, y: rawY, z: rawZ };
         }
-        // subtle tint blobs
-        for (let i=0;i<45;i++){
-          const x = Math.random()*c.width;
-          const y = Math.random()*c.height;
-          const r = 12 + Math.random()*50;
-          const gg = g.createRadialGradient(x,y,0,x,y,r);
-          gg.addColorStop(0, "rgba(255,210,60,0.04)");
-          gg.addColorStop(1, "rgba(0,0,0,0)");
-          g.fillStyle = gg;
-          g.beginPath(); g.arc(x,y,r,0,TAU); g.fill();
+
+        let depthMul = 1;
+        if (cfg.depthComp && g.neutralAim) depthMul = depthFactor(g.neutralAim.z, rawZ);
+
+        const aimC = getAimCenter();
+        const mapped = mapMicro(
+          rawX, rawY,
+          g.neutralAim,
+          { x: aimC.x + cfg.aimOffsetX, y: aimC.y + cfg.aimOffsetY },
+          0, half,
+          0, h,
+          cfg.aimSensitivity,
+          depthMul
+        );
+
+        g.aimX = slerpPos(g.aimX, mapped.x);
+        g.aimY = slerpPos(g.aimY, mapped.y);
+        g.aimSeen = true;
+        g.lastAimAt = now;
+
+        input.pinchLeft = g.pinchLeftLatched;
+        input.pinchLeftNorm = pinchNorm;
+
+        sawAny = true;
+      } else {
+        let rawX = half + px * half;
+        let rawY = py * h;
+        let rawZ = pz;
+
+        if (cfg.invDrvX) rawX = invertInRegionX(rawX, half, w);
+        if (cfg.invDrvY) rawY = h - rawY;
+
+        g.rawDrvX = rawX; g.rawDrvY = rawY; g.rawDrvZ = rawZ;
+
+        if (!g.neutralDrv && isFinite(rawX) && isFinite(rawY)){
+          g.neutralDrv = { x: rawX, y: rawY, z: rawZ };
         }
-        // grid
-        g.strokeStyle = B.grid;
-        g.lineWidth = 1;
-        for (let x=0;x<=c.width;x+=32){ g.beginPath(); g.moveTo(x+0.5,0); g.lineTo(x+0.5,c.height); g.stroke(); }
-        for (let y=0;y<=c.height;y+=32){ g.beginPath(); g.moveTo(0,y+0.5); g.lineTo(c.width,y+0.5); g.stroke(); }
-      }
 
-      if (kind === "metal"){
-        g.fillStyle = "rgba(20,22,28,1)";
-        g.fillRect(0,0,c.width,c.height);
-        // brushed stripes
-        for (let y=0;y<c.height;y+=6){
-          const a = 0.05 + Math.random()*0.08;
-          g.fillStyle = `rgba(255,235,170,${a})`;
-          g.fillRect(0,y,c.width,1);
+        let depthMul = 1;
+        if (cfg.depthComp && g.neutralDrv) depthMul = depthFactor(g.neutralDrv.z, rawZ);
+
+        const drvC = getDriveCenter();
+        const mapped = mapMicro(
+          rawX, rawY,
+          g.neutralDrv,
+          { x: drvC.x + cfg.drvOffsetX, y: drvC.y + cfg.drvOffsetY },
+          half, w,
+          0, h,
+          cfg.driveSensitivity,
+          depthMul
+        );
+
+        g.drvX = slerpPos(g.drvX, mapped.x);
+        g.drvY = slerpPos(g.drvY, mapped.y);
+        g.drvSeen = true;
+        g.lastDrvAt = now;
+
+        input.pinchRight = g.pinchRightLatched;
+        input.pinchRightNorm = pinchNorm;
+
+        sawAny = true;
+      }
+    }
+
+    if (sawAny) g.lastAnyAt = now;
+
+    const HOLD_MS = 320;
+    g.aimSeen = (now - g.lastAimAt) <= HOLD_MS;
+    g.drvSeen = (now - g.lastDrvAt) <= HOLD_MS;
+
+    input.aimCursor.x = g.aimX; input.aimCursor.y = g.aimY; input.aimCursor.seen = g.aimSeen;
+    input.driveCursor.x = g.drvX; input.driveCursor.y = g.drvY; input.driveCursor.seen = g.drvSeen;
+  }
+
+  async function startGesture(){
+    if (!window.Hands || !window.Camera) return false;
+    if (hands && cam) return true;
+
+    hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.55,
+      minTrackingConfidence: 0.55
+    });
+    hands.onResults(onHandsResults);
+
+    cam = new Camera(videoEl, {
+      onFrame: async () => { try { await hands.send({ image: videoEl }); } catch {} },
+      width: 640,
+      height: 480
+    });
+
+    try{ await cam.start(); return true; }
+    catch { hands = null; cam = null; return false; }
+  }
+  function stopGesture(){
+    try{ if (cam && cam.stop) cam.stop(); } catch {}
+    cam = null;
+    hands = null;
+  }
+
+  // ===== startup tuner =====
+  const startup = {
+    active: false,
+    phase: "idle",
+    stableT: 0,
+    countdownT: 0,
+    rangeT: 0,
+    rawAim: [],
+    rawDrv: [],
+    neutralAim: null,
+    neutralDrv: null,
+    jitterAim: 0,
+    jitterDrv: 0,
+    maxAim: 0,
+    maxDrv: 0
+  };
+
+  function showStartup(show){
+    ui.startup.style.display = show ? "flex" : "none";
+    if (!show){
+      ui.startupCount.textContent = "";
+      ui.bar1.style.width = "0%";
+      ui.bar2.style.width = "0%";
+    }
+  }
+
+  function statsStd(points){
+    if (!points || points.length < 3) return { sx: 0, sy: 0 };
+    let mx=0,my=0;
+    for (const p of points){ mx += p.x; my += p.y; }
+    mx /= points.length; my /= points.length;
+    let vx=0, vy=0;
+    for (const p of points){
+      const dx = p.x - mx, dy = p.y - my;
+      vx += dx*dx; vy += dy*dy;
+    }
+    vx /= points.length; vy /= points.length;
+    return { sx: Math.sqrt(vx), sy: Math.sqrt(vy) };
+  }
+
+  function beginStartupTuner(){
+    startup.active = true;
+    startup.phase = "waitHands";
+    startup.stableT = 0;
+    startup.countdownT = 0;
+    startup.rangeT = 0;
+    startup.rawAim.length = 0;
+    startup.rawDrv.length = 0;
+    startup.neutralAim = null;
+    startup.neutralDrv = null;
+    startup.jitterAim = 0;
+    startup.jitterDrv = 0;
+    startup.maxAim = 0;
+    startup.maxDrv = 0;
+
+    ui.chipInch.textContent = `Micro: ${cfg.microRangeInches.toFixed(2)} in (${Math.round(cfg.microRangeInches*PX_IN)} px)`;
+    ui.startupMsg.innerHTML = `Raise both hands. Hold steady for <b>3-2-1</b>.`;
+    ui.startupCount.textContent = "";
+    ui.bar1.style.width = "0%";
+    ui.bar2.style.width = "0%";
+
+    showStartup(true);
+  }
+
+  function updateStartup(dt){
+    if (!startup.active) return;
+
+    const bothSeen = input.aimCursor.seen && input.driveCursor.seen;
+
+    ui.chipAim.className = "chip " + (input.aimCursor.seen ? "ok" : "bad");
+    ui.chipDrv.className = "chip " + (input.driveCursor.seen ? "ok" : "bad");
+    ui.chipAim.textContent = `Aim hand: ${input.aimCursor.seen ? "seen" : "not seen"}`;
+    ui.chipDrv.textContent = `Drive hand: ${input.driveCursor.seen ? "seen" : "not seen"}`;
+    ui.chipZ.textContent = `Z(L:${(g.rawAimZ||0).toFixed(3)} R:${(g.rawDrvZ||0).toFixed(3)})`;
+    ui.chipInch.textContent = `Micro: ${cfg.microRangeInches.toFixed(2)} in`;
+
+    if (startup.phase === "waitHands"){
+      if (bothSeen){
+        startup.stableT += dt;
+        const pct = clamp(startup.stableT / 0.40, 0, 1);
+        ui.bar1.style.width = `${(pct*100).toFixed(0)}%`;
+        if (startup.stableT >= 0.40){
+          startup.phase = "countdown";
+          startup.countdownT = 3.0;
+          startup.rawAim.length = 0;
+          startup.rawDrv.length = 0;
+          ui.startupMsg.innerHTML = `Hold steady. Capturing neutral + jitter…`;
         }
-        for (let i=0;i<90;i++){
-          const x = Math.random()*c.width;
-          const y = Math.random()*c.height;
-          g.fillStyle = "rgba(0,0,0,0.18)";
-          g.fillRect(x,y,2,2);
+      } else {
+        startup.stableT = 0;
+        ui.bar1.style.width = "0%";
+        ui.startupMsg.innerHTML = `Raise both hands in view. Hold steady.`;
+      }
+      return;
+    }
+
+    if (startup.phase === "countdown"){
+      if (!bothSeen){
+        startup.phase = "waitHands";
+        startup.stableT = 0;
+        ui.startupMsg.innerHTML = `Hands lost—raise both hands again.`;
+        return;
+      }
+
+      startup.countdownT -= dt;
+      const secondsLeft = Math.max(0, startup.countdownT);
+      ui.startupCount.textContent = String(Math.max(1, Math.ceil(secondsLeft)));
+
+      const pct = clamp((3.0 - secondsLeft) / 3.0, 0, 1);
+      ui.bar1.style.width = `${(pct*100).toFixed(0)}%`;
+
+      startup.rawAim.push({ x: g.rawAimX, y: g.rawAimY, z: g.rawAimZ });
+      startup.rawDrv.push({ x: g.rawDrvX, y: g.rawDrvY, z: g.rawDrvZ });
+
+      if (startup.countdownT <= 0){
+        const mean = (arr) => {
+          let x=0,y=0,z=0;
+          for (const p of arr){ x+=p.x; y+=p.y; z+=p.z; }
+          const n = Math.max(1, arr.length);
+          return { x:x/n, y:y/n, z:z/n };
+        };
+        startup.neutralAim = mean(startup.rawAim);
+        startup.neutralDrv = mean(startup.rawDrv);
+
+        const sA = statsStd(startup.rawAim);
+        const sD = statsStd(startup.rawDrv);
+        startup.jitterAim = Math.sqrt(sA.sx*sA.sx + sA.sy*sA.sy);
+        startup.jitterDrv = Math.sqrt(sD.sx*sD.sx + sD.sy*sD.sy);
+
+        g.neutralAim = { ...startup.neutralAim };
+        g.neutralDrv = { ...startup.neutralDrv };
+
+        startup.phase = "range";
+        startup.rangeT = 1.6;
+        startup.maxAim = 0;
+        startup.maxDrv = 0;
+
+        ui.startupMsg.innerHTML =
+          `Now move each hand only a little (<b>~0.5–1 inch</b>) for 1.6s.<br/>This confirms micro-range & sets deadzones.`;
+        ui.startupCount.textContent = "";
+        ui.bar2.style.width = "0%";
+      }
+      return;
+    }
+
+    if (startup.phase === "range"){
+      startup.rangeT -= dt;
+
+      if (bothSeen && startup.neutralAim && startup.neutralDrv){
+        const dA = hypot(g.rawAimX - startup.neutralAim.x, g.rawAimY - startup.neutralAim.y);
+        const dD = hypot(g.rawDrvX - startup.neutralDrv.x, g.rawDrvY - startup.neutralDrv.y);
+        startup.maxAim = Math.max(startup.maxAim, dA);
+        startup.maxDrv = Math.max(startup.maxDrv, dD);
+      }
+
+      const pct = clamp((1.6 - Math.max(0, startup.rangeT)) / 1.6, 0, 1);
+      ui.bar2.style.width = `${(pct*100).toFixed(0)}%`;
+
+      if (startup.rangeT <= 0){
+        cfg.aimDeadzonePx   = Math.round(clamp(startup.jitterAim * 3.0 + 8, 0, 140));
+        cfg.driveDeadzonePx = Math.round(clamp(startup.jitterDrv * 3.0 + 9, 0, 140));
+
+        const moved = Math.max(startup.maxAim || 0, startup.maxDrv || 0);
+        if (moved > 0){
+          const inferredIn = clamp(moved / PX_IN, 0.25, 2.0);
+          cfg.microRangeInches = Math.min(cfg.microRangeInches, inferredIn);
+          cfg.throttleRangeInches = Math.min(cfg.throttleRangeInches, cfg.microRangeInches);
+        }
+
+        saveCfg();
+        syncControls();
+
+        startup.phase = "done";
+        ui.startupMsg.innerHTML = `Calibrated ✔ — neutral locked, micro-range set, deadzones saved.`;
+        ui.startupCount.textContent = "";
+        ui.bar1.style.width = "100%";
+        ui.bar2.style.width = "100%";
+
+        setTimeout(() => {
+          startup.active = false;
+          showStartup(false);
+          paused = false;
+          ui.pauseBtn.textContent = "Pause";
+          setBridge(`Gesture Micro ON • range ${cfg.microRangeInches.toFixed(2)}in • dead(A:${cfg.aimDeadzonePx}px D:${cfg.driveDeadzonePx}px)`);
+        }, 650);
+      }
+      return;
+    }
+  }
+
+  ui.skipStartup.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    ensureAudio();
+    startup.active = false;
+    showStartup(false);
+    paused = false;
+    ui.pauseBtn.textContent = "Pause";
+    setBridge("Gesture ON — Startup skipped (neutral auto-seeds).");
+  }, { passive:false });
+
+  // ===== game =====
+  const WORLD = { w: 2200, h: 2200 };
+
+  const bestKey = "omconsole_tank_best_live_v3_pickups";
+  let bestScore = Number(localStorage.getItem(bestKey) || "0") || 0;
+  ui.hiTxt.textContent = `Best ${bestScore}`;
+
+  const state = {
+    time: 0,
+    score: 0,
+    wave: 1,
+    shake: 0,
+    gameOver: false,
+    enemies: [],
+    bullets: [],
+    particles: [],
+    obstacles: [],
+    pickups: []
+  };
+
+  function addScore(n){
+    state.score += n;
+    ui.scoreTxt.textContent = `Score ${state.score}`;
+    if (state.score > bestScore){
+      bestScore = state.score;
+      localStorage.setItem(bestKey, String(bestScore));
+      ui.hiTxt.textContent = `Best ${bestScore}`;
+    }
+  }
+
+  function makeObstacles(seedFactor=1){
+    state.obstacles.length = 0;
+    const count = 14 + Math.floor(seedFactor*2);
+    for (let i=0;i<count;i++){
+      const w = rand(90, 220);
+      const h = rand(90, 220);
+      const x = rand(120, WORLD.w - w - 120);
+      const y = rand(120, WORLD.h - h - 120);
+      const dx = (x+w/2) - WORLD.w/2;
+      const dy = (y+h/2) - WORLD.h/2;
+      if (hypot(dx,dy) < 300) { i--; continue; }
+      state.obstacles.push({x,y,w,h});
+    }
+  }
+
+  const player = {
+    x: WORLD.w/2, y: WORLD.h/2,
+    turret: 0,
+    r: 18,
+    hp: 100, hpMax: 100,
+    speed: 250,
+    fireCD: 0,
+    dashCD: 0,
+    invuln: 0,
+
+    ammo: 80,
+    ammoMax: 180,
+    repairKits: 1,
+    repairCD: 0
+  };
+
+  function updateInvUI(){
+    ui.ammoTxt.textContent = `Ammo ${player.ammo}/${player.ammoMax}`;
+    ui.repairTxt.textContent = `Repairs ${player.repairKits}`;
+  }
+  updateInvUI();
+
+  function spawnEnemy(){
+    const side = Math.floor(rand(0,4));
+    let x,y;
+    if (side===0){ x = rand(60, WORLD.w-60); y = 60; }
+    if (side===1){ x = WORLD.w-60; y = rand(60, WORLD.h-60); }
+    if (side===2){ x = rand(60, WORLD.w-60); y = WORLD.h-60; }
+    if (side===3){ x = 60; y = rand(60, WORLD.h-60); }
+    state.enemies.push({
+      x,y,
+      turret: rand(-Math.PI, Math.PI),
+      r: 18,
+      hp: 40 + state.wave*8,
+      speed: 160 + state.wave*6,
+      fireCD: rand(0.1, 0.9),
+      think: rand(0.1, 0.3),
+      strafe: rand(-1, 1),
+      alive: true
+    });
+  }
+
+  function tryPlaceFree(x,y, r){
+    // push away from obstacles if needed
+    for (let k=0;k<8;k++){
+      let hit = false;
+      for (const o of state.obstacles){
+        if (circleRectHit(x,y,r, o.x,o.y,o.w,o.h)){
+          hit = true;
+          // nudge in a random direction
+          const a = rand(0, Math.PI*2);
+          x += Math.cos(a) * 26;
+          y += Math.sin(a) * 26;
+          x = clamp(x, 70, WORLD.w-70);
+          y = clamp(y, 70, WORLD.h-70);
+          break;
         }
       }
-
-      if (kind === "rock"){
-        g.fillStyle = "rgba(26,28,34,1)";
-        g.fillRect(0,0,c.width,c.height);
-        for (let i=0;i<180;i++){
-          const x = Math.random()*c.width;
-          const y = Math.random()*c.height;
-          const r = 8 + Math.random()*26;
-          const gg = g.createRadialGradient(x,y,0,x,y,r);
-          gg.addColorStop(0, "rgba(255,235,170,0.06)");
-          gg.addColorStop(1, "rgba(0,0,0,0)");
-          g.fillStyle = gg;
-          g.beginPath(); g.arc(x,y,r,0,TAU); g.fill();
-        }
-        // cracks
-        g.strokeStyle = "rgba(0,0,0,0.20)";
-        g.lineWidth = 2;
-        for (let i=0;i<18;i++){
-          const x0 = Math.random()*c.width;
-          const y0 = Math.random()*c.height;
-          const x1 = x0 + (Math.random()-0.5)*90;
-          const y1 = y0 + (Math.random()-0.5)*90;
-          g.beginPath(); g.moveTo(x0,y0); g.lineTo(x1,y1); g.stroke();
-        }
-      }
-
-      return ctx.createPattern(c, "repeat");
+      if (!hit) break;
     }
+    return {x,y};
+  }
 
-    function rebuildPatterns(){
-      world.groundPattern = makePattern("ground", world.biome);
-      world.metalPattern = makePattern("metal", world.biome);
-      world.rockPattern  = makePattern("rock",  world.biome);
-    }
+  function spawnPickup(type, x, y){
+    const r = type === "ammo" ? 14 : 14;
+    const p = tryPlaceFree(x,y,r);
+    state.pickups.push({
+      type,
+      x: p.x, y: p.y,
+      r,
+      spin: rand(0, Math.PI*2),
+      bob: rand(0, 10),
+      life: 18 + rand(0, 10)
+    });
+  }
 
-    // ============================================================
-    // Level generation
-    // ============================================================
-    function resetArrays(){
-      enemies = [];
-      bullets = [];
-      particles = [];
-      pickups = [];
-      obstacles = [];
-    }
+  function maybeDropPickup(x,y){
+    // drop chances
+    const roll = Math.random();
+    // slightly more ammo than repairs
+    if (roll < 0.18) spawnPickup("ammo", x, y);
+    else if (roll < 0.26) spawnPickup("repair", x, y);
+  }
 
-    function spawnPlayer(){
-      const maxH = Math.round(progress.upgrades.maxHealth);
-      const maxA = Math.round(progress.upgrades.maxAmmo);
-      player = {
-        x: world.w*0.5,
-        y: world.h*0.5,
-        r: 18,
-        ang: 0,
-        turret: 0,
-        vx: 0, vy: 0,
-        maxHealth: maxH,
-        health: maxH,
-        maxAmmo: maxA,
-        ammo: maxA,
-        weapon: "cannon",
-        fireCd: 0,
-        shieldT: 0,
-        invulT: 0
-      };
-      camX = player.x; camY = player.y;
-    }
+  function startWave(n){
+    state.wave = n;
+    ui.waveTxt.textContent = `Wave ${state.wave}`;
+    makeObstacles(state.wave*0.6);
+    state.enemies.length = 0;
+    state.bullets.length = 0;
+    state.pickups.length = 0;
 
-    function randSpawnFar(minDist){
-      for (let tries=0; tries<200; tries++){
-        const x = 80 + Math.random()*(world.w-160);
-        const y = 80 + Math.random()*(world.h-160);
-        if (len(x-player.x, y-player.y) >= minDist) return {x,y};
-      }
-      return {x: 120, y: 120};
-    }
+    const count = 4 + Math.floor(state.wave*1.4);
+    for (let i=0;i<count;i++) spawnEnemy();
 
-    function addObstacle(x,y,r,type){
-      obstacles.push({ x,y,r, type:type||"rock" });
-    }
+    // guaranteed starting supplies near center-ish
+    spawnPickup("ammo", WORLD.w/2 + rand(-220,220), WORLD.h/2 + rand(-220,220));
+    spawnPickup("repair", WORLD.w/2 + rand(-220,220), WORLD.h/2 + rand(-220,220));
 
-    function genObstacles(level){
-      const n = 12 + level*3;
-      for (let i=0;i<n;i++){
-        const o = randSpawnFar(260);
-        const r = 18 + Math.random()*42;
-        addObstacle(o.x, o.y, r, (Math.random()<0.35)?"crate":"rock");
-      }
-      // perimeter big rocks
-      for (let i=0;i<10;i++){
-        addObstacle(60 + Math.random()*(world.w-120), 60 + Math.random()*40, 40+Math.random()*30, "rock");
-        addObstacle(60 + Math.random()*(world.w-120), world.h-60 - Math.random()*40, 40+Math.random()*30, "rock");
-      }
-    }
+    updateInvUI();
+  }
+  startWave(1);
 
-    function spawnEnemy(level, elite=false){
-      const pos = randSpawnFar(elite? 760 : 520);
-      const baseH = elite ? (70 + level*10) : (45 + level*7);
-      const e = {
-        x: pos.x,
-        y: pos.y,
-        r: elite ? 22 : 18,
-        ang: Math.random()*TAU,
-        turret: 0,
-        vx: 0, vy: 0,
-        health: baseH,
-        maxHealth: baseH,
-        fireCd: 0,
-        elite,
-        // AI
-        thinkT: Math.random()*0.6,
-        goal: {x:pos.x, y:pos.y},
-        reward: elite ? (38 + level*10) : (18 + level*6)
-      };
-      enemies.push(e);
-    }
-
-    function genEnemies(level){
-      const count = 3 + level*2;
-      const eliteCount = (level>=3) ? Math.floor((level-1)/3) : 0;
-      for (let i=0;i<count;i++) spawnEnemy(level,false);
-      for (let i=0;i<eliteCount;i++) spawnEnemy(level,true);
-    }
-
-    function spawnPickup(x,y,type){
-      pickups.push({ x,y, type, r: 14, vy:0, t:0 });
-    }
-    function genPickups(level){
-      const n = 3 + Math.floor(level/2);
-      for (let i=0;i<n;i++){
-        const p = randSpawnFar(260);
-        const roll = Math.random();
-        if (roll < 0.50) spawnPickup(p.x,p.y,"coin");
-        else if (roll < 0.78) spawnPickup(p.x,p.y,"ammo");
-        else spawnPickup(p.x,p.y,"repair");
-      }
-      if (level % 4 === 0){
-        const p = randSpawnFar(500);
-        spawnPickup(p.x,p.y,"shield");
-      }
-    }
-
-    function buildLevel(level){
-      progress.level = level;
-      hudLevel.textContent = String(level);
-
-      // Scale world + biome
-      world.w = 2400 + level*120;
-      world.h = 2400 + level*120;
-      world.biome = (level-1) % 3;
-      rebuildPatterns();
-
-      resetArrays();
-      spawnPlayer();
-
-      // Keep persistent inventory and coins
-      // (player stats already incorporate upgrades; keep current weapon if unlocked)
-      if (player.weapon === "scatter" && !progress.unlocks.scatter) player.weapon = "cannon";
-      if (player.weapon === "rocket" && !progress.unlocks.rocket) player.weapon = "cannon";
-
-      // Enemies/obstacles/pickups
-      genObstacles(level);
-      genEnemies(level);
-      genPickups(level);
-
-      // small starting drops
-      if (level === 1){
-        spawnPickup(player.x+160, player.y+60, "ammo");
-        spawnPickup(player.x-180, player.y-20, "coin");
-        spawnPickup(player.x+40, player.y-200, "repair");
-      }
-
-      hudMode.textContent = "PLAY";
-      hudTip.textContent = controlMode === "gesture"
-        ? "Left hand aim + pinch shoot • Right hand drive"
-        : "WASD move • Mouse aim • Click/Space shoot";
-
-      paused = false;
-      btnPause.textContent = "Pause (P)";
-    }
-
-    // ============================================================
-    // Collisions + Helpers
-    // ============================================================
-    function circleCollide(ax,ay,ar, bx,by,br){
-      const dx = ax-bx, dy = ay-by;
-      const d = Math.hypot(dx,dy);
-      return d < (ar+br);
-    }
-
-    function pushOutCircle(a, b){
-      const dx = a.x - b.x;
-      const dy = a.y - b.y;
-      const d = Math.hypot(dx,dy) || 1;
-      const minD = a.r + b.r;
-      if (d >= minD) return;
-      const push = (minD - d) + 0.1;
-      a.x += (dx/d) * push;
-      a.y += (dy/d) * push;
-    }
-
-    function keepInWorld(obj){
-      obj.x = clamp(obj.x, obj.r+10, world.w - obj.r - 10);
-      obj.y = clamp(obj.y, obj.r+10, world.h - obj.r - 10);
-    }
-
-    function worldToScreen(x,y){
-      const sx = (x - camX) + W*0.5;
-      const sy = (y - camY) + H*0.5;
-      return {x:sx, y:sy};
-    }
-    function screenToWorld(x,y){
-      const wx = (x - W*0.5) + camX;
-      const wy = (y - H*0.5) + camY;
-      return {x:wx, y:wy};
-    }
-
-    // ============================================================
-    // Bullets + Particles
-    // ============================================================
-    function spawnExplosion(x,y, power=1.0){
-      shakeT = Math.max(shakeT, 0.25 + power*0.10);
-      shakeMag = Math.max(shakeMag, 6 + power*6);
-
-      const n = Math.round(16 + power*18);
-      for (let i=0;i<n;i++){
-        const a = Math.random()*TAU;
-        const sp = 90 + Math.random()*220*(0.8+power*0.5);
-        particles.push({
-          x,y,
-          vx: Math.cos(a)*sp,
-          vy: Math.sin(a)*sp,
-          t: 0,
-          life: 0.55 + Math.random()*0.55,
-          r: 2 + Math.random()*3,
-          kind: (Math.random()<0.5) ? "spark" : "smoke"
-        });
-      }
-    }
-
-    function spawnBullet(owner, x,y, ang, type){
-      const w = WEAPONS[type];
-      const dmg = w.baseDamage * progress.upgrades.damage;
-      const speed = w.bulletSpeed;
-      const b = {
+  function explode(x,y, power=1){
+    state.shake = Math.min(18, state.shake + 9*power);
+    beep("boom");
+    for (let i=0;i<32*power;i++){
+      const a = rand(0, Math.PI*2);
+      const s = rand(80, 380) * power;
+      state.particles.push({
         x,y,
-        vx: Math.cos(ang)*speed,
-        vy: Math.sin(ang)*speed,
-        r: (type==="rocket") ? 6 : 3,
-        t: 0,
-        life: (type==="rocket") ? 1.35 : 1.10,
-        dmg,
-        owner,
-        type
-      };
-      bullets.push(b);
+        vx: Math.cos(a)*s,
+        vy: Math.sin(a)*s,
+        life: rand(0.25, 0.9),
+        size: rand(1.5, 4.5)*power
+      });
     }
+  }
 
-    function fireWeapon(from, targetX, targetY){
-      const w = WEAPONS[player.weapon];
-      const ammoCost = w.ammoCost;
-      if (player.ammo < ammoCost){
-        showToast("Out of ammo!", 0.9);
+  function shoot(from, aimAngle, speed, dmg, owner){
+    const mx = from.x + Math.cos(aimAngle) * (from.r + 14);
+    const my = from.y + Math.sin(aimAngle) * (from.r + 14);
+    state.bullets.push({
+      x: mx, y: my,
+      vx: Math.cos(aimAngle)*speed,
+      vy: Math.sin(aimAngle)*speed,
+      life: 1.4,
+      r: 4.2,
+      dmg,
+      owner
+    });
+    beep("shoot");
+  }
+
+  function resolveTankObstacles(t){
+    for (const o of state.obstacles){
+      const nx = clamp(t.x, o.x, o.x+o.w);
+      const ny = clamp(t.y, o.y, o.y+o.h);
+      const dx = t.x - nx, dy = t.y - ny;
+      const d = hypot(dx,dy);
+      if (d < t.r){
+        const push = (t.r - d) + 0.01;
+        const px = (d === 0) ? 1 : dx/d;
+        const py = (d === 0) ? 0 : dy/d;
+        t.x += px * push;
+        t.y += py * push;
+      }
+    }
+    t.x = clamp(t.x, 40, WORLD.w-40);
+    t.y = clamp(t.y, 40, WORLD.h-40);
+  }
+  function bulletHitsObstacles(b){
+    for (const o of state.obstacles){
+      if (circleRectHit(b.x, b.y, b.r, o.x, o.y, o.w, o.h)) return true;
+    }
+    return false;
+  }
+
+  function useRepair(reason=""){
+    if (player.repairCD > 0) return false;
+    if (player.repairKits <= 0) return false;
+    if (player.hp >= player.hpMax) return false;
+
+    player.repairKits -= 1;
+    player.hp = Math.min(player.hpMax, player.hp + 36);
+    player.invuln = Math.max(player.invuln, 0.22);
+    player.repairCD = 0.65;
+    state.shake = Math.min(12, state.shake + 2.5);
+    beep("pickup");
+    updateInvUI();
+    setBridge(`Repair used${reason ? " ("+reason+")" : ""}: +HP • Repairs left ${player.repairKits}`);
+    return true;
+  }
+
+  // ===== buttons + overlays (FIXED) =====
+  let started = false;
+  let paused = true;
+
+  function showOverlay(show){
+    ui.overlay.style.display = show ? "flex" : "none";
+    if (show){
+      paused = true;
+      ui.pauseBtn.textContent = "Resume";
+      ui.liveTuner.style.display = "none";
+    }
+  }
+  function togglePause(){
+    paused = !paused;
+    ui.pauseBtn.textContent = paused ? "Resume" : "Pause";
+  }
+  function toggleLiveTuner(force){
+    const show = (typeof force === "boolean") ? force : (ui.liveTuner.style.display === "none");
+    ui.liveTuner.style.display = show ? "block" : "none";
+  }
+
+  ui.menuBtn.addEventListener("pointerdown", (e)=>{ e.preventDefault(); ensureAudio(); showOverlay(true); }, { passive:false });
+  ui.pauseBtn.addEventListener("pointerdown",(e)=>{ e.preventDefault(); ensureAudio(); togglePause(); }, { passive:false });
+  ui.tunerBtn.addEventListener("pointerdown",(e)=>{ e.preventDefault(); ensureAudio(); toggleLiveTuner(); }, { passive:false });
+  ui.closeLiveBtn.addEventListener("pointerdown",(e)=>{ e.preventDefault(); ensureAudio(); toggleLiveTuner(false); }, { passive:false });
+
+  // Live tuner actions
+  ui.recenterBtn.addEventListener("pointerdown",(e)=>{
+    e.preventDefault();
+    ensureAudio();
+    if (controllerMode !== "gesture") return;
+    if (isFinite(g.rawAimX) && isFinite(g.rawAimY)) g.neutralAim = { x:g.rawAimX, y:g.rawAimY, z:g.rawAimZ };
+    if (isFinite(g.rawDrvX) && isFinite(g.rawDrvY)) g.neutralDrv = { x:g.rawDrvX, y:g.rawDrvY, z:g.rawDrvZ };
+    setBridge("Recentered neutrals (aim + drive).");
+  }, { passive:false });
+
+  ui.recalBtn.addEventListener("pointerdown",(e)=>{
+    e.preventDefault();
+    ensureAudio();
+    if (controllerMode !== "gesture") return;
+    paused = true;
+    ui.pauseBtn.textContent = "Pause";
+    toggleLiveTuner(false);
+    beginStartupTuner();
+  }, { passive:false });
+
+  // ===== controller selection buttons =====
+  ui.pickGesture.addEventListener("pointerdown", async (e) => {
+    e.preventDefault();
+    ensureAudio();
+    selectMode("gesture");
+    const ok = await startGesture();
+    setBridge(ok ? "Gesture preview ON — adjust tuners, then Start." : "Gesture preview ERROR — need camera permission + HTTPS/localhost");
+    setModeTxt("Gesture (preview)");
+  }, { passive:false });
+
+  ui.pickKeyboard.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    ensureAudio();
+    selectMode("keyboard");
+    stopGesture();
+    setModeTxt("Keyboard (preview)");
+    setBridge("Keyboard selected — press Start");
+  }, { passive:false });
+
+  // ===== start =====
+  ui.startBtn.addEventListener("pointerdown", async (e) => {
+    e.preventDefault();
+    ensureAudio();
+    if (!controllerMode) return;
+
+    try{ localStorage.setItem(modeKey, controllerMode); } catch {}
+
+    if (controllerMode === "gesture"){
+      const ok = await startGesture();
+      if (!ok){
+        setBridge("Gesture ERROR — camera denied or not HTTPS/localhost.");
         return;
       }
-      if (player.fireCd > 0) return;
-
-      player.ammo -= ammoCost;
-
-      const baseAng = angTo(from.x, from.y, targetX, targetY);
-      const spread = w.spread;
-      const pellets = w.pellets;
-
-      for (let i=0;i<pellets;i++){
-        const off = (pellets===1) ? 0 : lerp(-spread, spread, i/(pellets-1));
-        const jitter = (Math.random()-0.5) * spread * 0.25;
-        spawnBullet("player", from.x + Math.cos(baseAng)*24, from.y + Math.sin(baseAng)*24, baseAng + off + jitter, player.weapon);
-      }
-
-      player.fireCd = w.baseFire / progress.upgrades.firerate;
-      showToast(`${w.name} fired (-${ammoCost})`, 0.35);
+      setModeTxt("Gesture");
+      setBridge("Gesture: starting startup tuner…");
+    } else {
+      stopGesture();
+      setModeTxt("Keyboard");
+      setBridge("Keyboard: WASD/Arrows move • IJKL aim • Space fire • R repair");
     }
 
-    // ============================================================
-    // Inventory usage
-    // ============================================================
-    function useAmmoKit(){
-      if (state !== "play") return;
-      if (progress.inv.ammoKit <= 0) { showToast("No Ammo Kits.", 0.8); return; }
-      progress.inv.ammoKit -= 1;
-      player.ammo = player.maxAmmo;
-      showToast("Ammo Kit used: ammo refilled.", 1.0);
-      syncInvHud();
+    ui.hud.style.display = "flex";
+    ui.pauseBtn.style.display = "block";
+    ui.menuBtn.style.display = "block";
+    ui.tunerBtn.style.display = "block";
+
+    ui.liveTunerMode.textContent = `(${controllerMode})`;
+
+    started = true;
+    showOverlay(false);
+
+    if (controllerMode === "gesture"){
+      paused = true;
+      ui.pauseBtn.textContent = "Pause";
+      beginStartupTuner();
+    } else {
+      paused = false;
+      ui.pauseBtn.textContent = "Pause";
     }
-    function useMedkit(){
-      if (state !== "play") return;
-      if (progress.inv.medkit <= 0) { showToast("No Repair Kits.", 0.8); return; }
-      progress.inv.medkit -= 1;
-      player.health = Math.min(player.maxHealth, player.health + 45);
-      player.invulT = Math.max(player.invulT, 0.35);
-      showToast("Repair Kit used: +45 HP.", 1.0);
-      syncInvHud();
+  }, { passive:false });
+
+  // ESC opens menu
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Escape" && started){ showOverlay(true); }
+  }, { passive:true });
+
+  // ===== draw cursors =====
+  function drawAimTarget(x,y, pinched=false){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.globalAlpha = pinched ? 1 : 0.85;
+    ctx.strokeStyle = pinched ? "rgba(255,80,80,.98)" : "rgba(255,110,110,.92)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-14,0); ctx.lineTo(14,0);
+    ctx.moveTo(0,-14); ctx.lineTo(0,14);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,.20)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0,0, 18, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawDriveArrow(x,y){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = "rgba(120,210,255,.92)";
+    ctx.strokeStyle = "rgba(255,255,255,.18)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0,-18);
+    ctx.lineTo(14,12);
+    ctx.lineTo(0,6);
+    ctx.lineTo(-14,12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPickup(p, camX, camY){
+    const x = p.x - camX;
+    const y = p.y - camY;
+
+    const bob = Math.sin(state.time*3 + p.bob) * 3;
+    const img = (p.type === "ammo") ? ammoImg : wrenchImg;
+
+    ctx.save();
+    ctx.translate(x, y + bob);
+    ctx.rotate(p.spin + state.time*0.8);
+    ctx.globalAlpha = 0.95;
+
+    // glow
+    ctx.beginPath();
+    ctx.fillStyle = p.type === "ammo" ? "rgba(120,210,255,.10)" : "rgba(90,255,160,.10)";
+    ctx.arc(0,0, 18, 0, Math.PI*2);
+    ctx.fill();
+
+    // draw svg sprite
+    const s = 22;
+    ctx.drawImage(img, -s/2, -s/2, s, s);
+
+    // ring
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255,255,255,.14)";
+    ctx.lineWidth = 1;
+    ctx.arc(0,0, 20, 0, Math.PI*2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ===== game loop =====
+  function drawGrid(camX, camY){
+    const w = window.innerWidth, h = window.innerHeight;
+    ctx.fillStyle = "#0b0f14";
+    ctx.fillRect(0,0,w,h);
+
+    const spacing = 60;
+    const ox = (-camX) % spacing;
+    const oy = (-camY) % spacing;
+
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = "#d7e7ff";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = ox; x < w; x += spacing){ ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+    for (let y = oy; y < h; y += spacing){ ctx.moveTo(0, y); ctx.lineTo(w, y); }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  function drawObstacle(o, camX, camY){
+    const x = o.x - camX, y = o.y - camY;
+    ctx.fillStyle = "rgba(255,255,255,.08)";
+    ctx.fillRect(x,y,o.w,o.h);
+    ctx.strokeStyle = "rgba(255,255,255,.10)";
+    ctx.strokeRect(x+0.5,y+0.5,o.w-1,o.h-1);
+  }
+  function drawTank(t, camX, camY, baseCol, turretCol){
+    const x = t.x - camX, y = t.y - camY;
+    ctx.save();
+    ctx.translate(x,y);
+
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.ellipse(0, 10, t.r*1.25, t.r*0.9, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = baseCol;
+    roundRect(ctx, -t.r*1.1, -t.r*0.72, t.r*2.2, t.r*1.44, 10);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.fillRect(-t.r*1.2, -t.r*0.9, t.r*2.4, 6);
+    ctx.fillRect(-t.r*1.2,  t.r*0.9-6, t.r*2.4, 6);
+
+    ctx.rotate(t.turret || 0);
+    ctx.fillStyle = turretCol;
+    roundRect(ctx, -t.r*0.55, -t.r*0.45, t.r*1.1, t.r*0.9, 10);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.fillRect(t.r*0.2, -5, t.r*1.25, 10);
+    ctx.fillStyle = turretCol;
+    ctx.fillRect(t.r*0.25, -4, t.r*1.18, 8);
+
+    ctx.restore();
+
+    if (t !== player){
+      const denom = (40 + state.wave*8);
+      const hp = clamp(t.hp / denom, 0, 1);
+      const bw = 44, bh = 6;
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = "rgba(0,0,0,.35)";
+      ctx.fillRect(x - bw/2, y - t.r - 18, bw, bh);
+      ctx.fillStyle = hp > 0.4 ? "rgba(255,120,120,.95)" : "rgba(255,80,80,.95)";
+      ctx.fillRect(x - bw/2, y - t.r - 18, bw*hp, bh);
+      ctx.globalAlpha = 1;
     }
-    function useShield(){
-      if (state !== "play") return;
-      if (progress.inv.shield <= 0) { showToast("No Shields.", 0.8); return; }
-      progress.inv.shield -= 1;
-      player.shieldT = Math.max(player.shieldT, 3.0);
-      showToast("Shield active (3s).", 1.0);
-      syncInvHud();
-    }
+  }
+  function roundRect(c,x,y,w,h,r){
+    r = Math.min(r, w/2, h/2);
+    c.beginPath();
+    c.moveTo(x+r,y);
+    c.arcTo(x+w,y,x+w,y+h,r);
+    c.arcTo(x+w,y+h,x,y+h,r);
+    c.arcTo(x,y+h,x,y,r);
+    c.arcTo(x,y,x+w,y,r);
+    c.closePath();
+  }
 
-    function syncInvHud(){
-      invAmmoKit.textContent = "x" + progress.inv.ammoKit;
-      invMedkit.textContent = "x" + progress.inv.medkit;
-      invShield.textContent = "x" + progress.inv.shield;
-    }
+  // ===== main update =====
+  function update(dt){
+    state.time += dt;
+    if (!started || state.gameOver) return;
 
-    // ============================================================
-    // Store logic
-    // ============================================================
-    const STORE = [
-      { id:"ammo30",   name:"+30 Ammo",         desc:"Refill ammo immediately (+30).", cost: 20, kind:"consumable" },
-      { id:"repair30", name:"+30 Health",       desc:"Repair hull immediately (+30).", cost: 25, kind:"consumable" },
-      { id:"ammoKit",  name:"Ammo Kit",         desc:"Inventory item: refill ammo to max (use key 1).", cost: 45, kind:"inv" },
-      { id:"medkit",   name:"Repair Kit",       desc:"Inventory item: +45 HP + brief invul (use key 2).", cost: 55, kind:"inv" },
-      { id:"shield",   name:"Shield",           desc:"Inventory item: 3s invulnerability (use key 3).", cost: 70, kind:"inv" },
-
-      { id:"upMaxHealth", name:"Upgrade: Max Health +20", desc:"Permanent max HP increase.", cost: 120, kind:"upgrade" },
-      { id:"upMaxAmmo",   name:"Upgrade: Max Ammo +20",   desc:"Permanent max ammo increase.", cost: 110, kind:"upgrade" },
-      { id:"upDamage",    name:"Upgrade: Damage +12%",    desc:"Permanent weapon damage increase.", cost: 140, kind:"upgrade" },
-      { id:"upFire",      name:"Upgrade: Fire Rate +12%", desc:"Permanent faster firing.", cost: 140, kind:"upgrade" },
-      { id:"upSpeed",     name:"Upgrade: Speed +12%",     desc:"Permanent faster movement.", cost: 135, kind:"upgrade" },
-      { id:"upArmor",     name:"Upgrade: Armor +6%",      desc:"Permanent damage reduction (max 35%).", cost: 150, kind:"upgrade" },
-
-      { id:"unlockScatter", name:"Unlock: Scatter Gun", desc:"Wider spread, clears groups. Uses 2 ammo/shot.", cost: 180, kind:"unlock" },
-      { id:"unlockRocket",  name:"Unlock: Rocket",      desc:"Splash damage, great vs elites. Uses 3 ammo/shot.", cost: 230, kind:"unlock" },
-    ];
-
-    function canBuy(cost){ return progress.coins >= cost; }
-
-    function buy(id){
-      const it = STORE.find(x=>x.id===id);
-      if (!it) return;
-
-      // locks
-      if (id === "unlockScatter" && progress.unlocks.scatter) { showToast("Already unlocked.", 0.9); return; }
-      if (id === "unlockRocket"  && progress.unlocks.rocket)  { showToast("Already unlocked.", 0.9); return; }
-      if (id === "upArmor" && progress.upgrades.armor >= 0.35) { showToast("Armor at max.", 0.9); return; }
-
-      if (!canBuy(it.cost)){
-        showToast("Not enough coins.", 0.9);
-        return;
-      }
-      progress.coins -= it.cost;
-
-      if (id === "ammo30"){
-        player.ammo = Math.min(player.maxAmmo, player.ammo + 30);
-        showToast("+30 ammo purchased.", 1.0);
-      }
-      if (id === "repair30"){
-        player.health = Math.min(player.maxHealth, player.health + 30);
-        showToast("+30 health repaired.", 1.0);
-      }
-      if (id === "ammoKit"){ progress.inv.ammoKit++; showToast("Ammo Kit added to inventory.", 1.0); }
-      if (id === "medkit"){ progress.inv.medkit++; showToast("Repair Kit added to inventory.", 1.0); }
-      if (id === "shield"){ progress.inv.shield++; showToast("Shield added to inventory.", 1.0); }
-
-      if (id === "upMaxHealth"){ progress.upgrades.maxHealth += 20; player.maxHealth = Math.round(progress.upgrades.maxHealth); player.health = Math.min(player.maxHealth, player.health + 20); showToast("Max health upgraded.", 1.0); }
-      if (id === "upMaxAmmo"){ progress.upgrades.maxAmmo += 20; player.maxAmmo = Math.round(progress.upgrades.maxAmmo); player.ammo = Math.min(player.maxAmmo, player.ammo + 20); showToast("Max ammo upgraded.", 1.0); }
-      if (id === "upDamage"){ progress.upgrades.damage *= 1.12; showToast("Damage upgraded.", 1.0); }
-      if (id === "upFire"){ progress.upgrades.firerate *= 1.12; showToast("Fire rate upgraded.", 1.0); }
-      if (id === "upSpeed"){ progress.upgrades.speed *= 1.12; showToast("Speed upgraded.", 1.0); }
-      if (id === "upArmor"){
-        progress.upgrades.armor = clamp(progress.upgrades.armor + 0.06, 0, 0.35);
-        showToast("Armor upgraded.", 1.0);
-      }
-
-      if (id === "unlockScatter"){ progress.unlocks.scatter = true; showToast("Scatter unlocked!", 1.2); }
-      if (id === "unlockRocket"){ progress.unlocks.rocket = true; showToast("Rocket unlocked!", 1.2); }
-
-      syncInvHud();
-      renderStore();
-    }
-
-    function renderStore(){
-      storeGrid.innerHTML = "";
-
-      const stats =
-        `Coins: ${progress.coins}\n` +
-        `Upgrades: dmg×${progress.upgrades.damage.toFixed(2)}, fire×${progress.upgrades.firerate.toFixed(2)}, speed×${progress.upgrades.speed.toFixed(2)}, armor ${(progress.upgrades.armor*100).toFixed(0)}%\n` +
-        `Max HP ${Math.round(progress.upgrades.maxHealth)} • Max Ammo ${Math.round(progress.upgrades.maxAmmo)}\n` +
-        `Inventory: AmmoKit x${progress.inv.ammoKit}, RepairKit x${progress.inv.medkit}, Shield x${progress.inv.shield}`;
-      storeStats.textContent = stats;
-
-      // weapon info
-      const unlocked = ["cannon"].concat(progress.unlocks.scatter?["scatter"]:[], progress.unlocks.rocket?["rocket"]:[]);
-      weaponInfo.innerHTML =
-        `Unlocked: <b>${unlocked.map(id=>WEAPONS[id].name).join(", ")}</b><br/>` +
-        `Current: <b>${WEAPONS[player.weapon].name}</b> (ammo cost ${WEAPONS[player.weapon].ammoCost})<br/>` +
-        `Click a weapon: ` +
-        `<span style="color:rgba(255,235,170,0.92)">CANNON</span>` +
-        (progress.unlocks.scatter? ` • <span style="color:rgba(255,235,170,0.92);cursor:pointer;text-decoration:underline" id="wScatter">SCATTER</span>` : ` • <span style="color:rgba(220,220,235,0.55)">SCATTER (locked)</span>`) +
-        (progress.unlocks.rocket?  ` • <span style="color:rgba(255,235,170,0.92);cursor:pointer;text-decoration:underline" id="wRocket">ROCKET</span>` :  ` • <span style="color:rgba(220,220,235,0.55)">ROCKET (locked)</span>`);
-
-      setTimeout(()=>{
-        const ws = document.getElementById("wScatter");
-        const wr = document.getElementById("wRocket");
-        if (ws) ws.addEventListener("click", ()=>{ player.weapon="scatter"; showToast("Weapon set: SCATTER", 1.0); renderStore(); });
-        if (wr) wr.addEventListener("click", ()=>{ player.weapon="rocket"; showToast("Weapon set: ROCKET", 1.0); renderStore(); });
-      }, 0);
-
-      for (const it of STORE){
-        const div = document.createElement("div");
-        div.className = "shopItem";
-
-        const left = document.createElement("div");
-        left.style.minWidth = "0";
-        const title = document.createElement("b");
-        title.textContent = it.name;
-        const desc = document.createElement("div");
-        desc.className = "desc";
-        desc.textContent = it.desc;
-        const price = document.createElement("div");
-        price.className = "price";
-        price.textContent = `Cost: ${it.cost} coins`;
-
-        left.appendChild(title);
-        left.appendChild(desc);
-        left.appendChild(price);
-
-        const right = document.createElement("div");
-        right.className = "shopActions";
-
-        const btn = document.createElement("button");
-        btn.className = "miniBtn";
-        btn.textContent = "Buy";
-
-        // lock / max states
-        let disabled = false;
-        let lockText = "";
-
-        if (it.id === "unlockScatter" && progress.unlocks.scatter){ disabled=true; lockText="Unlocked"; }
-        if (it.id === "unlockRocket"  && progress.unlocks.rocket){  disabled=true; lockText="Unlocked"; }
-        if (it.id === "upArmor" && progress.upgrades.armor >= 0.35){ disabled=true; lockText="Maxed"; }
-
-        if (!canBuy(it.cost)) { /* still clickable to show toast? */ }
-
-        if (disabled){
-          btn.disabled = true;
-          btn.textContent = lockText;
-        } else {
-          btn.addEventListener("click", ()=> buy(it.id));
-        }
-
-        right.appendChild(btn);
-
-        if (!disabled && !canBuy(it.cost)){
-          const lock = document.createElement("div");
-          lock.className = "lock";
-          lock.textContent = "Need more coins";
-          right.appendChild(lock);
-        }
-
-        div.appendChild(left);
-        div.appendChild(right);
-        storeGrid.appendChild(div);
-      }
-
-      // quick buy buttons
-      buyAmmo30.onclick = ()=> buy("ammo30");
-      buyRepair30.onclick = ()=> buy("repair30");
-      buyMedkit.onclick = ()=> buy("medkit");
-      buyAmmoKit.onclick = ()=> buy("ammoKit");
-      buyShield.onclick = ()=> buy("shield");
+    if (controllerMode === "gesture" && startup.active){
+      updateStartup(dt);
+      return;
     }
 
-    function openStore(){
-      state = "store";
-      overlayStore.style.display = "flex";
-      hudMode.textContent = "STORE";
-      storeSub.textContent = `Level ${progress.level} cleared. Spend coins and gear up.`;
-      renderStore();
-      showToast("Store open.", 0.8);
-    }
+    input.dash = false;
+    let turretDesired = player.turret;
 
-    function closeStoreAndNext(){
-      overlayStore.style.display = "none";
-      state = "play";
-      const next = progress.level + 1;
-      buildLevel(next);
-      showToast(`Level ${next} started.`, 1.0);
-    }
+    if (controllerMode === "keyboard"){
+      pollKeyboard();
 
-    btnNextLevel.addEventListener("click", closeStoreAndNext);
+      // keyboard repair (R press edge)
+      const rDown = !!key["KeyR"];
+      const rPrev = !!keyPrev["KeyR"];
+      if (rDown && !rPrev) useRepair("R");
+      keyPrev["KeyR"] = rDown;
 
-    // ============================================================
-    // MediaPipe Hands (Gesture mode)
-    // ============================================================
-    let controlMode = "gesture"; // set from menu
-    let hands = null;
-    let stream = null;
-    let startedCamera = false;
-
-    const handState = {
-      left:  { ok:false, label:"—", palm:null, lm:null, pinch:false },
-      right: { ok:false, label:"—", palm:null, lm:null, pinch:false }
-    };
-
-    function palmCenter(lm){
-      // wrist + MCP points
-      const pts = [lm[0], lm[5], lm[9], lm[13], lm[17]];
-      let x=0,y=0;
-      for (const p of pts){ x+=p.x; y+=p.y; }
-      return { x:x/pts.length, y:y/pts.length };
-    }
-
-    function pinchDist(lm){
-      if (!lm) return null;
-      const t = lm[4], i = lm[8];
-      return Math.hypot(t.x - i.x, t.y - i.y);
-    }
-    function updatePinch(lm, prevDown){
-      const d = pinchDist(lm);
-      if (d == null) return false;
-      const on  = +pinchOn.value;
-      const off = +pinchOff.value;
-      if (!prevDown) return d < on;
-      return d < off;
-    }
-
-    function clearHandState(){
-      handState.left.ok = false; handState.left.palm=null; handState.left.lm=null; handState.left.label="—"; handState.left.pinch=false;
-      handState.right.ok = false; handState.right.palm=null; handState.right.lm=null; handState.right.label="—"; handState.right.pinch=false;
-    }
-
-    function onHandsResults(res){
-      clearHandState();
-
-      const lms = res.multiHandLandmarks || [];
-      const hnd = res.multiHandedness || [];
-
-      // Build list with label
-      const list = [];
-      for (let i=0;i<lms.length;i++){
-        const label = hnd[i]?.label || "Unknown";
-        list.push({ lm:lms[i], label });
-      }
-
-      // Assign by label
-      for (const item of list){
-        const side = (item.label.toLowerCase() === "left") ? "left" : (item.label.toLowerCase() === "right") ? "right" : null;
-        if (!side) continue;
-        handState[side].ok = true;
-        handState[side].lm = item.lm;
-        handState[side].label = item.label;
-        let p = palmCenter(item.lm);
-
-        // mirror x for natural selfie controls (this matches preview transform)
-        if (chkMirror.checked) p = { x: 1 - p.x, y: p.y };
-
-        handState[side].palm = p;
-      }
-
-      // Optional swap left/right if user reports mismatch
-      if (chkSwapHands.checked){
-        const tmp = JSON.parse(JSON.stringify(handState.left));
-        handState.left = JSON.parse(JSON.stringify(handState.right));
-        handState.right = tmp;
-      }
-
-      // Pinch states
-      handState.left.pinch = updatePinch(handState.left.lm, handState.left.pinch);
-      handState.right.pinch = updatePinch(handState.right.lm, handState.right.pinch);
-    }
-
-    function mkHands(){
-      const HandsCtor =
-        (window.Hands && window.Hands.Hands) ? window.Hands.Hands :
-        window.Hands;
-
-      if (typeof HandsCtor !== "function"){
-        throw new Error("MediaPipe Hands not loaded.");
-      }
-
-      if (hands){
-        try{ hands.close(); }catch(e){}
-        hands = null;
-      }
-
-      hands = new HandsCtor({
-        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
-      });
-
-      hands.setOptions({
-        maxNumHands: 2,
-        modelComplexity: 1,
-        selfieMode: false, // we mirror ourselves for controls; selfieMode changes handedness behavior
-        minDetectionConfidence: +detConf.value,
-        minTrackingConfidence: +trkConf.value
-      });
-
-      hands.onResults(onHandsResults);
-    }
-
-    async function startCamera(){
-      const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-      const isSecure = window.isSecureContext || location.protocol === "https:" || isLocalhost;
-      if (!isSecure){
-        throw new Error("Camera requires https or http://localhost (not file://).");
-      }
-
-      if (!navigator.mediaDevices?.getUserMedia){
-        throw new Error("getUserMedia not supported in this browser.");
-      }
-
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: {ideal: 640}, height: {ideal: 480}, facingMode: "user" },
-        audio: false
-      });
-
-      video.srcObject = stream;
-      preview.srcObject = stream;
-
-      await video.play();
-      await preview.play();
-
-      startedCamera = true;
-    }
-
-    function stopCamera(){
-      if (stream){
-        for (const t of stream.getTracks()) t.stop();
-        stream = null;
-      }
-      video.srcObject = null;
-      preview.srcObject = null;
-      startedCamera = false;
-    }
-
-    // Non-overlapping, throttled send (prevents freeze)
-    let sending = false;
-    let lastSend = 0;
-    const SEND_MS = 33; // ~30fps
-    function trySend(nowMs){
-      if (!hands || !startedCamera) return;
-      if (sending) return;
-      if (video.readyState < 2) return;
-      if ((nowMs - lastSend) < SEND_MS) return;
-
-      lastSend = nowMs;
-      sending = true;
-      hands.send({ image: video })
-        .catch(e=>{
-          console.error(e);
-          showToast("Tracker error. Switch to keyboard mode if needed.", 2.0);
-        })
-        .finally(()=> sending = false);
-    }
-
-    // ============================================================
-    // Startup Scan + Auto micro tuning
-    // ============================================================
-    const scan = {
-      phase: "idle", // idle | waiting | countdown | capture | complete
-      lLock: 0,
-      rLock: 0,
-      stable: 0,
-      stableScore: 0,
-      prevL: null,
-      prevR: null,
-      cd: 0,
-      capT: 0,
-      lBuf: [],
-      rBuf: [],
-      lSpan: {minX: 999, maxX:-999, minY:999, maxY:-999},
-      rSpan: {minX: 999, maxX:-999, minY:999, maxY:-999},
-      centers: { left:{x:0.5,y:0.5}, right:{x:0.5,y:0.5}, ok:false }
-    };
-
-    const LOCK_FRAMES = 20;
-    const STABLE_HOLD = 0.75;
-    const JITTER_REF = 0.070;
-    const STABLE_MIN = 0.80;
-    const CAPTURE_SEC = 0.90;
-
-    function resetScan(){
-      scan.phase = "waiting";
-      scan.lLock = 0;
-      scan.rLock = 0;
-      scan.stable = 0;
-      scan.stableScore = 0;
-      scan.prevL = null;
-      scan.prevR = null;
-      scan.cd = 0;
-      scan.capT = 0;
-      scan.lBuf.length = 0;
-      scan.rBuf.length = 0;
-      scan.lSpan = {minX: 999, maxX:-999, minY:999, maxY:-999};
-      scan.rSpan = {minX: 999, maxX:-999, minY:999, maxY:-999};
-      scan.centers.ok = false;
-
-      countdownEl.style.opacity = 0;
-      scanStatus.textContent = "Waiting for hands…";
-      updateScanUI();
-    }
-
-    function updateScanUI(){
-      const lp = Math.round(100 * clamp(scan.lLock/LOCK_FRAMES, 0, 1));
-      const rp = Math.round(100 * clamp(scan.rLock/LOCK_FRAMES, 0, 1));
-      const sp = Math.round(100 * clamp(scan.stable/STABLE_HOLD, 0, 1));
-
-      scanLTxt.textContent = lp + "%";
-      scanRTxt.textContent = rp + "%";
-      scanSTxt.textContent = sp + "%";
-      scanLBar.style.width = lp + "%";
-      scanRBar.style.width = rp + "%";
-      scanSBar.style.width = sp + "%";
-    }
-
-    function mean(buf){
-      if (!buf.length) return {x:0.5,y:0.5};
-      let x=0,y=0;
-      for (const p of buf){ x+=p.x; y+=p.y; }
-      return {x:x/buf.length, y:y/buf.length};
-    }
-
-    function autoTuneFromCapture(){
-      const Lm = mean(scan.lBuf);
-      const Rm = mean(scan.rBuf);
-
-      scan.centers.left = Lm;
-      scan.centers.right = Rm;
-      scan.centers.ok = true;
-
-      // Estimate typical span during capture
-      const lDx = Math.max(0.01, Math.max(Math.abs(scan.lSpan.maxX - Lm.x), Math.abs(Lm.x - scan.lSpan.minX)));
-      const lDy = Math.max(0.01, Math.max(Math.abs(scan.lSpan.maxY - Lm.y), Math.abs(Lm.y - scan.lSpan.minY)));
-      const rDx = Math.max(0.01, Math.max(Math.abs(scan.rSpan.maxX - Rm.x), Math.abs(Rm.x - scan.rSpan.minX)));
-      const rDy = Math.max(0.01, Math.max(Math.abs(scan.rSpan.maxY - Rm.y), Math.abs(Rm.y - scan.rSpan.minY)));
-
-      const lSpan = Math.max(lDx, lDy);
-      const rSpan = Math.max(rDx, rDy);
-
-      // Convert "small span" into higher gain.
-      // 0.06 span -> about 6 gain, 0.10 span -> about 3.6, etc.
-      const aimG = clamp(0.36 / lSpan, 1.2, 10.0);
-      const drvG = clamp(0.32 / rSpan, 1.2, 10.0);
-
-      // Preserve sign of existing sliders (so user can invert by negative)
-      const aimSign = (+aimGain.value >= 0) ? 1 : -1;
-      const drvSign = (+drvGain.value >= 0) ? 1 : -1;
-
-      aimGain.value = (aimG * aimSign).toFixed(1);
-      drvGain.value = (drvG * drvSign).toFixed(1);
-
-      // deadzones: small but safe
-      aimDead.value = clamp(+aimDead.value, 0.02, 0.12).toFixed(2);
-      drvDead.value = clamp(+drvDead.value, 0.04, 0.16).toFixed(2);
-
-      syncTunerLabels();
-      showToast("Scan complete ✅ Sensitivity auto-tuned.", 1.4);
-    }
-
-    function scanStep(dt){
-      if (state !== "scan") return;
-
-      const L = handState.left.ok ? handState.left.palm : null;
-      const R = handState.right.ok ? handState.right.palm : null;
-
-      // lock frames
-      if (L) scan.lLock = Math.min(LOCK_FRAMES, scan.lLock + 1);
-      else scan.lLock = Math.max(0, scan.lLock - 2);
-
-      if (R) scan.rLock = Math.min(LOCK_FRAMES, scan.rLock + 1);
-      else scan.rLock = Math.max(0, scan.rLock - 2);
-
-      const haveBoth = (scan.lLock >= LOCK_FRAMES) && (scan.rLock >= LOCK_FRAMES);
-
-      // stability based on jitter
-      let jitter = 0;
-      if (L && scan.prevL) jitter = Math.max(jitter, Math.hypot(L.x - scan.prevL.x, L.y - scan.prevL.y));
-      if (R && scan.prevR) jitter = Math.max(jitter, Math.hypot(R.x - scan.prevR.x, R.y - scan.prevR.y));
-      if (L) scan.prevL = {x:L.x, y:L.y};
-      if (R) scan.prevR = {x:R.x, y:R.y};
-
-      const rawStable = clamp(1 - (jitter / JITTER_REF), 0, 1);
-      scan.stableScore = lerp(scan.stableScore, rawStable, emaAlpha(dt, 0.12));
-
-      if (haveBoth && scan.stableScore >= STABLE_MIN){
-        scan.stable = Math.min(STABLE_HOLD, scan.stable + dt);
+      let ax=0, ay=0;
+      if (key["KeyJ"]) ax -= 1;
+      if (key["KeyL"]) ax += 1;
+      if (key["KeyI"]) ay -= 1;
+      if (key["KeyK"]) ay += 1;
+      const aLen = hypot(ax,ay);
+      if (aLen > 0.2){
+        ax /= aLen; ay /= aLen;
+        turretDesired = Math.atan2(ay, ax);
       } else {
-        scan.stable = Math.max(0, scan.stable - dt*1.6);
+        const mvLen = hypot(input.moveX, input.moveY);
+        if (mvLen > 0.3) turretDesired = Math.atan2(input.moveY, input.moveX);
       }
+    } else {
+      const fresh = (performance.now() - g.lastAnyAt) < 450;
+      const microRangePx = Math.max(8, cfg.microRangeInches * PX_IN);
+      const throttleRangePx = Math.max(8, cfg.throttleRangeInches * PX_IN);
 
-      // phase transitions
-      if (scan.phase === "waiting"){
-        scanStatus.textContent = haveBoth ? "Hands locked. Hold steady…" : "Waiting for hands…";
-        if (haveBoth && scan.stable >= STABLE_HOLD){
-          scan.phase = "countdown";
-          scan.cd = 3.0;
-          countdownEl.textContent = "3";
-          countdownEl.style.opacity = 1;
-          scanStatus.textContent = "Countdown… hold steady!";
-        }
-      } else if (scan.phase === "countdown"){
-        scan.cd -= dt;
-        const n = Math.ceil(scan.cd);
-        countdownEl.textContent = String(Math.max(1, n));
-        if (scan.cd <= 0){
-          countdownEl.textContent = "GO";
-          scan.phase = "capture";
-          scan.capT = 0;
-          scanStatus.textContent = "Capturing baseline…";
-        }
-      } else if (scan.phase === "capture"){
-        scan.capT += dt;
-
-        if (L){
-          scan.lBuf.push({x:L.x, y:L.y});
-          scan.lSpan.minX = Math.min(scan.lSpan.minX, L.x);
-          scan.lSpan.maxX = Math.max(scan.lSpan.maxX, L.x);
-          scan.lSpan.minY = Math.min(scan.lSpan.minY, L.y);
-          scan.lSpan.maxY = Math.max(scan.lSpan.maxY, L.y);
-        }
-        if (R){
-          scan.rBuf.push({x:R.x, y:R.y});
-          scan.rSpan.minX = Math.min(scan.rSpan.minX, R.x);
-          scan.rSpan.maxX = Math.max(scan.rSpan.maxX, R.x);
-          scan.rSpan.minY = Math.min(scan.rSpan.minY, R.y);
-          scan.rSpan.maxY = Math.max(scan.rSpan.maxY, R.y);
-        }
-
-        // keep buffers bounded
-        if (scan.lBuf.length > 80) scan.lBuf.shift();
-        if (scan.rBuf.length > 80) scan.rBuf.shift();
-
-        // progress bar uses "stability bar" as capture progress now
-        scan.stable = clamp(scan.capT / CAPTURE_SEC, 0, 1) * STABLE_HOLD;
-
-        if (scan.capT >= CAPTURE_SEC && scan.lBuf.length >= 10 && scan.rBuf.length >= 10){
-          scan.phase = "complete";
-          countdownEl.style.opacity = 0;
-          scanStatus.textContent = "Scan complete ✅ Starting game…";
-          autoTuneFromCapture();
-
-          // Start game automatically
-          overlayScan.style.display = "none";
-          state = "play";
-          hudMode.textContent = "PLAY";
-          overlayStart.style.display = "none";
-          // hide tuner on startup; user can open with T
-          setTuner(false);
-          buildLevel(progress.level);
+      if (fresh && input.aimCursor.seen && g.neutralAim){
+        const dx = g.rawAimX - g.neutralAim.x;
+        const dy = g.rawAimY - g.neutralAim.y;
+        const len = hypot(dx,dy);
+        if (len > (cfg.aimDeadzonePx + 2)){
+          turretDesired = Math.atan2(dy, dx);
         }
       }
 
-      updateScanUI();
-    }
+      if (fresh && input.driveCursor.seen && g.neutralDrv){
+        const dx = g.rawDrvX - g.neutralDrv.x;
+        const dy = g.rawDrvY - g.neutralDrv.y;
+        const len = hypot(dx,dy);
+        const dead = cfg.driveDeadzonePx;
 
-    btnRescan.addEventListener("click", resetScan);
-
-    // ============================================================
-    // Gesture mapping
-    // ============================================================
-    function gestureToControls(){
-      // Defaults if hands missing
-      gestureShooting = false;
-      driveVec = {x:0,y:0, throttle:0};
-
-      // Aim defaults to current mouse/center
-      // We'll compute aimScreen if left hand OK
-      const leftOk = handState.left.ok && handState.left.palm;
-      const rightOk = handState.right.ok && handState.right.palm;
-
-      hudHands.textContent =
-        `L:${leftOk ? "OK" : "—"}  R:${rightOk ? "OK" : "—"}`;
-
-      if (!scan.centers.ok){
-        // Before scan complete, don't apply
-        return;
-      }
-
-      // Left = aim + pinch shoot
-      if (leftOk){
-        const p = handState.left.palm;
-        let dx = (p.x - scan.centers.left.x) + (+offLx.value);
-        let dy = (scan.centers.left.y - p.y) + (+offLy.value); // dy positive up
-
-        // apply gain (can be negative)
-        const g = +aimGain.value;
-        dx *= g; dy *= g;
-
-        dx = applyDeadzone(clamp(dx, -1, 1), +aimDead.value);
-        dy = applyDeadzone(clamp(dy, -1, 1), +aimDead.value);
-
-        // Map to screen: "left-middle center" default
-        const centerX = W * 0.25;
-        const centerY = H * 0.50;
-        const rangeX = W * 0.70; // bigger range -> full screen w tiny movement
-        const rangeY = H * 0.70;
-
-        aimScreen.x = clamp(centerX + dx * rangeX, 0, W);
-        aimScreen.y = clamp(centerY - dy * rangeY, 0, H);
-
-        gestureShooting = !!handState.left.pinch;
-      }
-
-      // Right = drive arrow (direction + throttle)
-      if (rightOk){
-        const p = handState.right.palm;
-        let dx = (p.x - scan.centers.right.x) + (+offRx.value);
-        let dy = (scan.centers.right.y - p.y) + (+offRy.value); // dy positive up
-
-        const g = +drvGain.value;
-        dx *= g; dy *= g;
-
-        // apply deadzone to vector magnitude
-        const mag = Math.hypot(dx, dy);
-        let m = clamp(mag, 0, 1);
-        m = applyDeadzone(m, +drvDead.value);
-
-        const n = norm(dx, dy);
-        const vx = (mag < 1e-6) ? 0 : n.x;
-        const vy = (mag < 1e-6) ? 0 : n.y;
-
-        driveVec = { x: vx, y: vy, throttle: m };
-      }
-    }
-
-    // ============================================================
-    // Gameplay update
-    // ============================================================
-    function updatePlayer(dt){
-      const baseSpeed = 240 * progress.upgrades.speed;
-      let mvx=0, mvy=0;
-
-      if (controlMode === "keyboard"){
-        const up = keys.KeyW || keys.ArrowUp;
-        const dn = keys.KeyS || keys.ArrowDown;
-        const lf = keys.KeyA || keys.ArrowLeft;
-        const rt = keys.KeyD || keys.ArrowRight;
-        mvx = (rt?1:0) - (lf?1:0);
-        mvy = (dn?1:0) - (up?1:0);
-
-        const m = norm(mvx,mvy);
-        player.vx = m.x * baseSpeed;
-        player.vy = m.y * baseSpeed;
-
-        // aim at mouse
-        const aimW = screenToWorld(mouse.x, mouse.y);
-        player.turret = angTo(player.x, player.y, aimW.x, aimW.y);
-
-        // shoot
-        const wantShoot = mouse.down || keys.Space;
-        if (wantShoot) fireWeapon(player, aimW.x, aimW.y);
-      } else {
-        // gesture mode
-        gestureToControls();
-
-        // movement: driveVec uses dy positive up; world y increases down, so invert y
-        const dir = norm(driveVec.x, -driveVec.y);
-        const sp = baseSpeed * driveVec.throttle;
-        player.vx = dir.x * sp;
-        player.vy = dir.y * sp;
-
-        // body angle turns toward movement direction if moving
-        if (driveVec.throttle > 0.08){
-          const targetAng = Math.atan2(player.vy, player.vx);
-          const da = wrapAng(targetAng - player.ang);
-          player.ang = wrapAng(player.ang + da * clamp(dt*7.0, 0, 1));
-        }
-
-        // turret aims at aimScreen (mapped by left hand)
-        const aimW = screenToWorld(aimScreen.x, aimScreen.y);
-        player.turret = angTo(player.x, player.y, aimW.x, aimW.y);
-
-        if (gestureShooting){
-          fireWeapon(player, aimW.x, aimW.y);
-        }
-      }
-
-      // integrate movement
-      player.x += player.vx * dt;
-      player.y += player.vy * dt;
-
-      // obstacles collision
-      for (const o of obstacles){
-        const tmp = { x: player.x, y: player.y, r: player.r };
-        pushOutCircle(tmp, o);
-        player.x = tmp.x; player.y = tmp.y;
-      }
-
-      keepInWorld(player);
-
-      // cooldowns
-      player.fireCd = Math.max(0, player.fireCd - dt);
-      player.shieldT = Math.max(0, player.shieldT - dt);
-      player.invulT = Math.max(0, player.invulT - dt);
-
-      // camera follow
-      camX = lerp(camX, player.x, emaAlpha(dt, 0.12));
-      camY = lerp(camY, player.y, emaAlpha(dt, 0.12));
-    }
-
-    function enemyAI(e, dt){
-      e.thinkT -= dt;
-      const toP = norm(player.x - e.x, player.y - e.y);
-
-      const prefer = e.elite ? 260 : 220;
-      const d = toP.d;
-
-      if (e.thinkT <= 0){
-        e.thinkT = 0.35 + Math.random()*0.55;
-        if (d > prefer){
-          e.goal.x = player.x + (Math.random()-0.5)*160;
-          e.goal.y = player.y + (Math.random()-0.5)*160;
+        if (len > (dead + 2)){
+          const dirx = dx / (len || 1);
+          const diry = dy / (len || 1);
+          const effLen = Math.max(0, len - dead);
+          let throttle = clamp(effLen / throttleRangePx, 0, 1);
+          throttle = throttle * throttle;
+          input.moveX = dirx;
+          input.moveY = diry;
+          input._gestureThrottle = throttle;
         } else {
-          // strafe around player
-          const a = Math.atan2(player.y - e.y, player.x - e.x) + (Math.random()<0.5 ? 1 : -1) * (0.85 + Math.random()*0.45);
-          e.goal.x = player.x + Math.cos(a)*prefer;
-          e.goal.y = player.y + Math.sin(a)*prefer;
+          input.moveX = 0;
+          input.moveY = 0;
+          input._gestureThrottle = 0;
         }
+      } else {
+        input.moveX = 0;
+        input.moveY = 0;
+        input._gestureThrottle = 0;
       }
 
-      const toG = norm(e.goal.x - e.x, e.goal.y - e.y);
-      const sp = (e.elite ? 160 : 140) * (0.90 + progress.level*0.02);
-      e.vx = toG.x * sp;
-      e.vy = toG.y * sp;
-
-      e.x += e.vx * dt;
-      e.y += e.vy * dt;
-
-      // obstacle collision
-      for (const o of obstacles){
-        const tmp = { x:e.x, y:e.y, r:e.r };
-        pushOutCircle(tmp, o);
-        e.x = tmp.x; e.y = tmp.y;
+      // gesture repair = two-hand pinch edge
+      const bothPinch = !!(input.pinchLeft && input.pinchRight);
+      if (bothPinch && !input._bothPinchPrev){
+        // try repair first; if cannot repair, fall through to normal fire
+        useRepair("two-hand pinch");
       }
-      keepInWorld(e);
+      input._bothPinchPrev = bothPinch;
 
-      // aim turret at player
-      e.turret = angTo(e.x, e.y, player.x, player.y);
+      const fireNow = cfg.fireEither ? (input.pinchLeft || input.pinchRight) : input.pinchLeft;
+      // if both pinched, we still allow firing unless you want to reserve it; keep as-is:
+      input.fire = fresh ? fireNow : false;
 
-      // body follows velocity
-      if (len(e.vx,e.vy) > 20){
-        const target = Math.atan2(e.vy, e.vx);
-        const da = wrapAng(target - e.ang);
-        e.ang = wrapAng(e.ang + da * clamp(dt*5.0, 0, 1));
-      }
+      ui.liveReadout.textContent =
+        `Aim seen=${input.aimCursor.seen}  Drive seen=${input.driveCursor.seen}  `+
+        `Pinch(L:${input.pinchLeft?"Y":"n"}:${input.pinchLeftNorm.toFixed(2)} R:${input.pinchRight?"Y":"n"}:${input.pinchRightNorm.toFixed(2)})  `+
+        `Throttle=${(input._gestureThrottle||0).toFixed(2)}  `+
+        `Ammo=${player.ammo}/${player.ammoMax}  Repairs=${player.repairKits}  `+
+        `MicroPx=${Math.round(microRangePx)} ThrPx=${Math.round(throttleRangePx)}`;
 
-      // shoot
-      e.fireCd = Math.max(0, e.fireCd - dt);
-      const fireRate = (e.elite ? 0.85 : 1.05) / (1 + progress.level*0.06);
-      const wantShoot = (d < 720) && (e.fireCd <= 0);
+      setBridge(
+        `Ammo ${player.ammo}/${player.ammoMax} • Repairs ${player.repairKits} • `+
+        `Micro ${cfg.microRangeInches.toFixed(2)}in • Dead A:${cfg.aimDeadzonePx}px D:${cfg.driveDeadzonePx}px`
+      );
+    }
 
-      if (wantShoot){
-        // enemy bullets are cannon style
-        const ang = e.turret + (Math.random()-0.5)*0.05;
-        bullets.push({
-          x: e.x + Math.cos(ang)*24,
-          y: e.y + Math.sin(ang)*24,
-          vx: Math.cos(ang)*560,
-          vy: Math.sin(ang)*560,
-          r: 3,
-          t: 0,
-          life: 1.20,
-          dmg: e.elite ? 16 + progress.level*1.4 : 12 + progress.level*1.1,
-          owner: "enemy",
-          type: "cannon"
-        });
-        e.fireCd = fireRate;
+    // turret smoothing
+    {
+      const da = normAngle(turretDesired - player.turret);
+      player.turret = normAngle(player.turret + da * Math.min(1, dt*14));
+    }
+
+    player.fireCD = Math.max(0, player.fireCD - dt);
+    player.dashCD = Math.max(0, player.dashCD - dt);
+    player.invuln = Math.max(0, player.invuln - dt);
+    player.repairCD = Math.max(0, player.repairCD - dt);
+
+    let mvx = input.moveX, mvy = input.moveY;
+    const mLen = hypot(mvx, mvy);
+    if (mLen > 1) { mvx /= mLen; mvy /= mLen; }
+
+    let speedScale = 1.0;
+    if (controllerMode === "gesture"){
+      const t = clamp(input._gestureThrottle ?? 0, 0, 1);
+      speedScale = cfg.driveScale * (0.06 + 0.94 * t);
+    }
+
+    // keyboard dash
+    if (controllerMode === "keyboard" && input.dash && player.dashCD <= 0 && mLen > 0.25){
+      player.x += mvx * 160;
+      player.y += mvy * 160;
+      player.dashCD = 1.15;
+      player.invuln = 0.18;
+      state.shake = Math.min(16, state.shake + 6);
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+
+    player.x += mvx * player.speed * speedScale * dt;
+    player.y += mvy * player.speed * speedScale * dt;
+    resolveTankObstacles(player);
+
+    // FIRE (ammo required)
+    if (input.fire && player.fireCD <= 0){
+      if (player.ammo > 0){
+        player.ammo -= 1;
+        shoot(player, player.turret, 760, 18, "player");
+        player.fireCD = 0.14;
+        updateInvUI();
+      } else {
+        // clicky "empty" feedback
+        player.fireCD = 0.22;
+        setBridge("Out of ammo — find an Ammo Supply pickup!");
       }
     }
 
-    function updateBullets(dt){
-      for (let i=bullets.length-1; i>=0; i--){
-        const b = bullets[i];
-        b.t += dt;
-        b.life -= dt;
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
+    // enemies
+    for (const e of state.enemies){
+      if (!e.alive) continue;
+      e.fireCD = Math.max(0, e.fireCD - dt);
+      e.think  = Math.max(0, e.think  - dt);
 
-        // world bounds
-        if (b.x < -50 || b.y < -50 || b.x > world.w+50 || b.y > world.h+50 || b.life <= 0){
-          bullets.splice(i,1);
-          continue;
+      const tx = player.x - e.x;
+      const ty = player.y - e.y;
+      const dist = hypot(tx,ty) || 1;
+      const dirx = tx/dist, diry = ty/dist;
+
+      if (e.think <= 0){
+        e.think = rand(0.12, 0.32);
+        if (Math.random() < 0.25) e.strafe *= -1;
+      }
+
+      const sx = -diry * e.strafe;
+      const sy =  dirx * e.strafe;
+      let evx = dirx * (dist > 260 ? 1 : 0.35) + sx * 0.65;
+      let evy = diry * (dist > 260 ? 1 : 0.35) + sy * 0.65;
+      const ml = hypot(evx,evy) || 1;
+      evx /= ml; evy /= ml;
+
+      e.x += evx * e.speed * dt;
+      e.y += evy * e.speed * dt;
+      resolveTankObstacles(e);
+
+      const desired = Math.atan2(ty, tx);
+      const da = normAngle(desired - e.turret);
+      e.turret = normAngle(e.turret + da * Math.min(1, dt*8));
+
+      const inRange = dist < 820;
+      if (inRange && e.fireCD <= 0 && !state.gameOver){
+        let blocked = false;
+        const steps = 6;
+        for (let i=1;i<=steps;i++){
+          const px = e.x + dirx * (dist*(i/steps));
+          const py = e.y + diry * (dist*(i/steps));
+          for (const o of state.obstacles){
+            if (px>=o.x && px<=o.x+o.w && py>=o.y && py<=o.y+o.h){ blocked = true; break; }
+          }
+          if (blocked) break;
         }
+        if (!blocked){
+          shoot(e, e.turret, 640, 12 + state.wave*1.2, "enemy");
+          e.fireCD = rand(0.55, 0.95) * Math.max(0.55, 1.2 - state.wave*0.05);
+        }
+      }
+    }
 
-        // obstacle hit
-        let hitObs = false;
-        for (const o of obstacles){
-          if (circleCollide(b.x,b.y,b.r, o.x,o.y,o.r)){
-            hitObs = true;
+    // bullets
+    for (let i=state.bullets.length-1;i>=0;i--){
+      const b = state.bullets[i];
+      b.life -= dt;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+
+      if (b.life <= 0 || b.x<0 || b.y<0 || b.x>WORLD.w || b.y>WORLD.h){
+        state.bullets.splice(i,1);
+        continue;
+      }
+      if (bulletHitsObstacles(b)){
+        explode(b.x, b.y, 0.45);
+        state.bullets.splice(i,1);
+        continue;
+      }
+
+      if (b.owner === "player"){
+        for (const e of state.enemies){
+          if (!e.alive) continue;
+          const d = hypot(b.x - e.x, b.y - e.y);
+          if (d < e.r + b.r){
+            e.hp -= b.dmg;
+            state.bullets.splice(i,1);
+            state.shake = Math.min(14, state.shake + 2.5);
+            if (navigator.vibrate) navigator.vibrate(8);
+            if (e.hp <= 0){
+              e.alive = false;
+              explode(e.x, e.y, 1.1);
+              addScore(50 + state.wave*10);
+              maybeDropPickup(e.x, e.y);
+            } else {
+              explode(b.x, b.y, 0.35);
+              addScore(5);
+            }
             break;
           }
         }
-        if (hitObs){
-          if (b.type === "rocket") spawnExplosion(b.x,b.y,1.1);
-          bullets.splice(i,1);
-          continue;
-        }
-
-        // tank hit
-        if (b.owner === "enemy"){
-          if (circleCollide(b.x,b.y,b.r, player.x, player.y, player.r)){
-            // damage with armor + shield
-            if (player.shieldT <= 0 && player.invulT <= 0){
-              const dmg = b.dmg * (1 - progress.upgrades.armor);
-              player.health -= dmg;
-              player.invulT = 0.10;
-              spawnExplosion(b.x,b.y,0.7);
-              showToast(`Hit! -${Math.round(dmg)} HP`, 0.55);
-            }
-            bullets.splice(i,1);
-            continue;
-          }
-        } else {
-          // player bullet hits enemies
-          let hitIndex = -1;
-          for (let j=0;j<enemies.length;j++){
-            const e = enemies[j];
-            if (circleCollide(b.x,b.y,b.r, e.x,e.y,e.r)){
-              hitIndex = j;
-              break;
-            }
-          }
-          if (hitIndex >= 0){
-            const e = enemies[hitIndex];
-            e.health -= b.dmg;
-
-            // rocket splash
-            if (b.type === "rocket"){
-              spawnExplosion(b.x,b.y,1.3);
-              const splash = WEAPONS.rocket.splash;
-              for (const ee of enemies){
-                const d = len(ee.x-b.x, ee.y-b.y);
-                if (d < splash){
-                  const sDmg = b.dmg * (1 - d/splash) * 0.55;
-                  ee.health -= sDmg;
-                }
-              }
-            } else {
-              spawnExplosion(b.x,b.y,0.65);
-            }
-
-            bullets.splice(i,1);
-            continue;
-          }
-        }
-      }
-    }
-
-    function updateParticles(dt){
-      for (let i=particles.length-1;i>=0;i--){
-        const p = particles[i];
-        p.t += dt;
-        p.life -= dt;
-        p.vx *= Math.pow(0.88, dt*60);
-        p.vy *= Math.pow(0.88, dt*60);
-        p.x += p.vx*dt;
-        p.y += p.vy*dt;
-
-        if (p.life <= 0) particles.splice(i,1);
-      }
-      // cap
-      if (particles.length > 800) particles.splice(0, particles.length-800);
-    }
-
-    function updatePickups(dt){
-      for (const p of pickups){
-        p.t += dt;
-        p.vy = Math.sin(p.t*3.0) * 10;
-      }
-
-      for (let i=pickups.length-1;i>=0;i--){
-        const p = pickups[i];
-        if (circleCollide(player.x, player.y, player.r+4, p.x, p.y, p.r)){
-          if (p.type === "coin"){
-            const gain = 8 + Math.floor(Math.random()*8) + progress.level*1;
-            progress.coins += gain;
-            showToast(`+${gain} coins`, 0.7);
-          }
-          if (p.type === "ammo"){
-            const gain = 12 + Math.floor(Math.random()*14);
-            player.ammo = Math.min(player.maxAmmo, player.ammo + gain);
-            showToast(`+${gain} ammo`, 0.7);
-          }
-          if (p.type === "repair"){
-            const gain = 18 + Math.floor(Math.random()*16);
-            player.health = Math.min(player.maxHealth, player.health + gain);
-            showToast(`+${gain} health`, 0.7);
-          }
-          if (p.type === "shield"){
-            progress.inv.shield += 1;
-            showToast("Shield pickup (+1). Use key 3.", 1.0);
-            syncInvHud();
-          }
-          pickups.splice(i,1);
-        }
-      }
-    }
-
-    function updateEnemies(dt){
-      for (const e of enemies) enemyAI(e, dt);
-
-      // resolve enemy collisions lightly
-      for (let i=0;i<enemies.length;i++){
-        for (let j=i+1;j<enemies.length;j++){
-          const a = enemies[i], b = enemies[j];
-          const tmp = {x:a.x,y:a.y,r:a.r};
-          pushOutCircle(tmp, b);
-          a.x=tmp.x; a.y=tmp.y;
-        }
-      }
-
-      // remove dead
-      for (let i=enemies.length-1;i>=0;i--){
-        const e = enemies[i];
-        if (e.health <= 0){
-          enemies.splice(i,1);
-          progress.kills += 1;
-
-          // reward
-          progress.coins += e.reward;
-
-          // drop
-          const roll = Math.random();
-          if (roll < 0.45) spawnPickup(e.x, e.y, "coin");
-          else if (roll < 0.70) spawnPickup(e.x, e.y, "ammo");
-          else if (roll < 0.90) spawnPickup(e.x, e.y, "repair");
-          else spawnPickup(e.x, e.y, "shield");
-
-          spawnExplosion(e.x,e.y,1.4);
-          showToast(`Enemy destroyed (+${e.reward} coins)`, 1.0);
-        }
-      }
-
-      // level clear
-      if (enemies.length === 0 && state === "play"){
-        openStore();
-      }
-    }
-
-    function updateHUD(){
-      hudWeapon.textContent = WEAPONS[player.weapon].name;
-      hudAmmo.textContent = `${Math.round(player.ammo)} / ${Math.round(player.maxAmmo)}`;
-      hudCoins.textContent = `${progress.coins}`;
-
-      const hp = clamp(player.health / player.maxHealth, 0, 1);
-      healthFill.style.width = (hp*100).toFixed(0) + "%";
-
-      syncInvHud();
-    }
-
-    function gameOver(){
-      state = "gameover";
-      overlayGameOver.style.display = "flex";
-      progress.deaths += 1;
-      const stats =
-        `Level reached: ${progress.level}\n` +
-        `Kills: ${progress.kills}\n` +
-        `Coins: ${progress.coins}\n` +
-        `Upgrades: dmg×${progress.upgrades.damage.toFixed(2)}, fire×${progress.upgrades.firerate.toFixed(2)}, speed×${progress.upgrades.speed.toFixed(2)}, armor ${(progress.upgrades.armor*100).toFixed(0)}%\n` +
-        `Max HP ${Math.round(progress.upgrades.maxHealth)} • Max Ammo ${Math.round(progress.upgrades.maxAmmo)}\n` +
-        `Inventory: AmmoKit x${progress.inv.ammoKit}, RepairKit x${progress.inv.medkit}, Shield x${progress.inv.shield}`;
-      goStats.textContent = stats;
-      showToast("Game Over.", 1.2);
-    }
-
-    // ============================================================
-    // Rendering
-    // ============================================================
-    function drawGround(){
-      ctx.fillStyle = "rgb(10,12,18)";
-      ctx.fillRect(0,0,W,H);
-
-      // big pattern anchored in world
-      ctx.save();
-      // subtle shake
-      let sx=0, sy=0;
-      if (shakeT > 0){
-        sx = (Math.random()-0.5)*shakeMag;
-        sy = (Math.random()-0.5)*shakeMag;
-      }
-
-      ctx.translate(sx, sy);
-      ctx.translate(-(camX % 256), -(camY % 256));
-      ctx.fillStyle = world.groundPattern;
-      ctx.fillRect((camX%256)-256, (camY%256)-256, W+512, H+512);
-      ctx.restore();
-    }
-
-    function drawObstacle(o){
-      const s = worldToScreen(o.x,o.y);
-      const r = o.r;
-
-      // shadow
-      ctx.fillStyle = "rgba(0,0,0,0.30)";
-      ctx.beginPath(); ctx.ellipse(s.x, s.y+r*0.30, r*1.05, r*0.70, 0, 0, TAU); ctx.fill();
-
-      if (o.type === "rock"){
-        ctx.fillStyle = world.rockPattern;
-        ctx.strokeStyle = "rgba(255,210,60,0.10)";
       } else {
-        // crate
-        ctx.fillStyle = "rgba(255,210,60,0.10)";
-        ctx.strokeStyle = "rgba(255,210,60,0.22)";
-      }
-
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(s.x,s.y,r,0,TAU); ctx.fill(); ctx.stroke();
-
-      // details
-      if (o.type === "crate"){
-        ctx.strokeStyle = "rgba(255,235,170,0.20)";
-        ctx.beginPath();
-        ctx.moveTo(s.x-r*0.6, s.y-r*0.2); ctx.lineTo(s.x+r*0.6, s.y-r*0.2);
-        ctx.moveTo(s.x-r*0.6, s.y+r*0.2); ctx.lineTo(s.x+r*0.6, s.y+r*0.2);
-        ctx.stroke();
-      }
-    }
-
-    function drawTankBody(x,y,r, ang, tintA, isPlayer){
-      const s = worldToScreen(x,y);
-
-      ctx.save();
-      ctx.translate(s.x,s.y);
-      ctx.rotate(ang);
-
-      // shadow
-      ctx.fillStyle = "rgba(0,0,0,0.30)";
-      ctx.beginPath(); ctx.ellipse(0, r*0.35, r*1.2, r*0.8, 0, 0, TAU); ctx.fill();
-
-      // tracks
-      ctx.fillStyle = "rgba(0,0,0,0.40)";
-      ctx.strokeStyle = "rgba(255,210,60,0.12)";
-      ctx.lineWidth = 2;
-      const tw = r*0.55, th = r*2.0;
-      const gap = r*1.05;
-      roundRect(-gap/2 - tw, -th/2, tw, th, r*0.25);
-      ctx.fill(); ctx.stroke();
-      roundRect(gap/2, -th/2, tw, th, r*0.25);
-      ctx.fill(); ctx.stroke();
-
-      // chassis
-      ctx.fillStyle = world.metalPattern;
-      ctx.strokeStyle = `rgba(255,210,60,${tintA})`;
-      ctx.lineWidth = 2.5;
-      roundRect(-r*1.05, -r*0.75, r*2.1, r*1.5, r*0.45);
-      ctx.fill(); ctx.stroke();
-
-      // highlights
-      ctx.strokeStyle = "rgba(255,235,170,0.10)";
-      ctx.lineWidth = 2;
-      roundRect(-r*0.75, -r*0.45, r*1.5, r*0.9, r*0.35);
-      ctx.stroke();
-
-      // front marker
-      ctx.strokeStyle = isPlayer ? "rgba(80,220,120,0.65)" : "rgba(255,60,60,0.55)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(r*0.2, 0);
-      ctx.lineTo(r*1.3, 0);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function drawTurret(x,y, turretAng, isPlayer){
-      const s = worldToScreen(x,y);
-      ctx.save();
-      ctx.translate(s.x,s.y);
-      ctx.rotate(turretAng);
-
-      // turret base
-      ctx.fillStyle = "rgba(0,0,0,0.40)";
-      ctx.strokeStyle = isPlayer ? "rgba(80,220,120,0.30)" : "rgba(255,60,60,0.22)";
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0,0, 12, 0, TAU); ctx.fill(); ctx.stroke();
-
-      // barrel
-      ctx.fillStyle = "rgba(255,210,60,0.16)";
-      ctx.strokeStyle = "rgba(255,210,60,0.22)";
-      ctx.lineWidth = 2;
-      roundRect(10, -4, 26, 8, 4);
-      ctx.fill(); ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function roundRect(x,y,w,h,r){
-      const rr = Math.max(0, Math.min(r, Math.min(w,h)/2));
-      ctx.beginPath();
-      ctx.moveTo(x+rr, y);
-      ctx.arcTo(x+w, y, x+w, y+h, rr);
-      ctx.arcTo(x+w, y+h, x, y+h, rr);
-      ctx.arcTo(x, y+h, x, y, rr);
-      ctx.arcTo(x, y, x+w, y, rr);
-      ctx.closePath();
-    }
-
-    function drawHealthRing(x,y,r, hp, maxHp, elite){
-      const s = worldToScreen(x,y);
-      const pct = clamp(hp/maxHp, 0, 1);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = elite ? "rgba(255,210,60,0.30)" : "rgba(255,60,60,0.20)";
-      ctx.beginPath(); ctx.arc(s.x,s.y, r+10, 0, TAU); ctx.stroke();
-      ctx.strokeStyle = elite ? "rgba(255,210,60,0.75)" : "rgba(255,60,60,0.70)";
-      ctx.beginPath(); ctx.arc(s.x,s.y, r+10, -Math.PI/2, -Math.PI/2 + TAU*pct); ctx.stroke();
-    }
-
-    function drawBullets(){
-      for (const b of bullets){
-        const s = worldToScreen(b.x,b.y);
-        const a = Math.atan2(b.vy, b.vx);
-
-        ctx.save();
-        ctx.translate(s.x,s.y);
-        ctx.rotate(a);
-
-        if (b.owner === "player"){
-          ctx.fillStyle = (b.type === "rocket") ? "rgba(255,210,60,0.70)" : "rgba(255,235,170,0.70)";
-        } else {
-          ctx.fillStyle = "rgba(255,60,60,0.70)";
-        }
-
-        ctx.beginPath();
-        ctx.ellipse(0,0, b.r*2.2, b.r*1.2, 0, 0, TAU);
-        ctx.fill();
-
-        // trail
-        ctx.fillStyle = "rgba(0,0,0,0.15)";
-        ctx.fillRect(-18, -1, 14, 2);
-
-        ctx.restore();
-      }
-    }
-
-    function drawParticles(){
-      for (const p of particles){
-        const s = worldToScreen(p.x,p.y);
-        const t = clamp(p.life / 1.2, 0, 1);
-
-        if (p.kind === "spark"){
-          ctx.fillStyle = `rgba(255,210,60,${0.15 + 0.65*t})`;
-          ctx.beginPath(); ctx.arc(s.x,s.y, p.r, 0, TAU); ctx.fill();
-        } else {
-          ctx.fillStyle = `rgba(0,0,0,${0.10 + 0.20*t})`;
-          ctx.beginPath(); ctx.arc(s.x,s.y, p.r*1.6, 0, TAU); ctx.fill();
+        const d = hypot(b.x - player.x, b.y - player.y);
+        if (d < player.r + b.r){
+          if (player.invuln <= 0){
+            player.hp -= b.dmg;
+            player.invuln = 0.12;
+            state.shake = Math.min(18, state.shake + 5);
+            explode(b.x, b.y, 0.55);
+            if (navigator.vibrate) navigator.vibrate(20);
+            if (player.hp <= 0){
+              player.hp = 0;
+              state.gameOver = true;
+              explode(player.x, player.y, 1.8);
+              setBridge("GAME OVER — refresh to restart. (Best is saved.)");
+              showOverlay(true);
+            }
+          }
+          state.bullets.splice(i,1);
         }
       }
     }
 
-    function drawPickups(){
-      for (const p of pickups){
-        const s = worldToScreen(p.x, p.y + p.vy);
-        // glow
-        let col = "rgba(255,210,60,0.25)";
-        if (p.type === "repair") col = "rgba(80,220,120,0.22)";
-        if (p.type === "ammo") col = "rgba(255,210,60,0.22)";
-        if (p.type === "coin") col = "rgba(255,235,170,0.22)";
-        if (p.type === "shield") col = "rgba(120,200,255,0.22)";
+    // pickups update + collect
+    for (let i=state.pickups.length-1;i>=0;i--){
+      const p = state.pickups[i];
+      p.life -= dt;
+      p.spin += dt * 0.8;
 
-        ctx.fillStyle = col;
-        ctx.beginPath(); ctx.arc(s.x,s.y, p.r+6, 0, TAU); ctx.fill();
-
-        // icon-ish drawing
-        if (p.type === "coin"){
-          ctx.fillStyle = "rgba(255,210,60,0.60)";
-          ctx.strokeStyle = "rgba(255,235,170,0.55)";
-          ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.arc(s.x,s.y, p.r-2, 0, TAU); ctx.fill(); ctx.stroke();
-          ctx.fillStyle = "rgba(255,235,170,0.60)";
-          ctx.font = "12px ui-monospace, Menlo, monospace";
-          ctx.fillText("$", s.x-4, s.y+4);
-        }
+      const d = hypot(player.x - p.x, player.y - p.y);
+      if (d < player.r + p.r + 6){
         if (p.type === "ammo"){
-          ctx.fillStyle = "rgba(255,210,60,0.28)";
-          ctx.strokeStyle = "rgba(255,210,60,0.60)";
-          ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.rect(s.x-10, s.y-8, 20, 16); ctx.fill(); ctx.stroke();
-          ctx.strokeStyle = "rgba(255,235,170,0.70)";
-          ctx.beginPath(); ctx.moveTo(s.x-6, s.y); ctx.lineTo(s.x+6, s.y); ctx.stroke();
+          const add = 32;
+          const before = player.ammo;
+          player.ammo = Math.min(player.ammoMax, player.ammo + add);
+          beep("pickup");
+          setBridge(`Ammo Supply +${player.ammo-before} (Ammo ${player.ammo}/${player.ammoMax})`);
+          updateInvUI();
+        } else {
+          player.repairKits += 1;
+          beep("pickup");
+          setBridge(`Repair Wrench +1 (Repairs ${player.repairKits})`);
+          updateInvUI();
         }
-        if (p.type === "repair"){
-          ctx.fillStyle = "rgba(80,220,120,0.22)";
-          ctx.strokeStyle = "rgba(80,220,120,0.70)";
-          ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.rect(s.x-10, s.y-8, 20, 16); ctx.fill(); ctx.stroke();
-          ctx.strokeStyle = "rgba(80,220,120,0.90)";
-          ctx.beginPath(); ctx.moveTo(s.x, s.y-6); ctx.lineTo(s.x, s.y+6); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(s.x-6, s.y); ctx.lineTo(s.x+6, s.y); ctx.stroke();
-        }
-        if (p.type === "shield"){
-          ctx.fillStyle = "rgba(120,200,255,0.20)";
-          ctx.strokeStyle = "rgba(120,200,255,0.70)";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(s.x, s.y-12);
-          ctx.lineTo(s.x+12, s.y-6);
-          ctx.lineTo(s.x+9, s.y+10);
-          ctx.lineTo(s.x, s.y+14);
-          ctx.lineTo(s.x-9, s.y+10);
-          ctx.lineTo(s.x-12, s.y-6);
-          ctx.closePath();
-          ctx.fill(); ctx.stroke();
-        }
+        state.pickups.splice(i,1);
+        continue;
       }
+
+      if (p.life <= 0) state.pickups.splice(i,1);
     }
 
-    function drawGestureOverlays(){
-      if (controlMode !== "gesture" || state !== "play") return;
-      if (!scan.centers.ok) return;
+    // particles
+    for (let i=state.particles.length-1;i>=0;i--){
+      const p = state.particles[i];
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= Math.pow(0.06, dt);
+      p.vy *= Math.pow(0.06, dt);
+      if (p.life <= 0) state.particles.splice(i,1);
+    }
 
-      // Aim crosshair (left hand)
-      ctx.save();
-      ctx.strokeStyle = "rgba(255,60,60,0.90)";
-      ctx.lineWidth = 2;
-      const x = aimScreen.x, y = aimScreen.y;
+    state.shake = Math.max(0, state.shake - dt*22);
+
+    // wave
+    const alive = state.enemies.some(e => e.alive);
+    if (!alive && !state.gameOver){
+      startWave(state.wave + 1);
+      // reward: small ammo + a chance for repair
+      player.ammo = Math.min(player.ammoMax, player.ammo + 24);
+      if (Math.random() < 0.5) player.repairKits += 1;
+      updateInvUI();
+
+      player.hp = Math.min(player.hpMax, player.hp + 18);
+      addScore(200);
+    }
+
+    // HUD
+    ui.hpFill.style.width = `${(player.hp/player.hpMax)*100}%`;
+    const hpPct = player.hp / player.hpMax;
+    ui.hpFill.style.background =
+      hpPct > 0.45 ? "rgba(80,255,140,.95)" :
+      (hpPct > 0.2 ? "rgba(255,210,80,.95)" : "rgba(255,80,80,.95)");
+  }
+
+  function draw(){
+    const w = window.innerWidth, h = window.innerHeight;
+
+    let camX = clamp(player.x - w/2, 0, WORLD.w - w);
+    let camY = clamp(player.y - h/2, 0, WORLD.h - h);
+
+    if (state.shake > 0){
+      const s = state.shake;
+      camX += rand(-s, s);
+      camY += rand(-s, s);
+    }
+
+    drawGrid(camX, camY);
+    for (const o of state.obstacles) drawObstacle(o, camX, camY);
+
+    // pickups
+    for (const p of state.pickups){
+      drawPickup(p, camX, camY);
+    }
+
+    for (const b of state.bullets){
+      const x = b.x - camX, y = b.y - camY;
+      ctx.fillStyle = b.owner === "player" ? "rgba(255,240,140,.95)" : "rgba(255,140,210,.95)";
       ctx.beginPath();
-      ctx.arc(x,y, 14, 0, TAU);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x-22,y); ctx.lineTo(x-6,y);
-      ctx.moveTo(x+6,y);  ctx.lineTo(x+22,y);
-      ctx.moveTo(x,y-22); ctx.lineTo(x,y-6);
-      ctx.moveTo(x,y+6);  ctx.lineTo(x,y+22);
-      ctx.stroke();
-
-      // Drive arrow (right hand)
-      const cx = W*0.75, cy = H*0.50;
-      const dx = driveVec.x, dy = -driveVec.y; // screen y down
-      const mag = driveVec.throttle;
-      const ax = cx + dx * (120 * mag);
-      const ay = cy + dy * (120 * mag);
-
-      ctx.strokeStyle = "rgba(255,235,170,0.65)";
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(cx,cy, 36, 0, TAU); ctx.stroke();
-
-      ctx.strokeStyle = "rgba(255,210,60,0.85)";
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ax,ay); ctx.stroke();
-
-      // arrow head
-      const a = Math.atan2(ay-cy, ax-cx);
-      ctx.fillStyle = "rgba(255,210,60,0.85)";
-      ctx.beginPath();
-      ctx.moveTo(ax,ay);
-      ctx.lineTo(ax - Math.cos(a-0.45)*10, ay - Math.sin(a-0.45)*10);
-      ctx.lineTo(ax - Math.cos(a+0.45)*10, ay - Math.sin(a+0.45)*10);
-      ctx.closePath();
+      ctx.arc(x,y,b.r,0,Math.PI*2);
       ctx.fill();
-
-      // throttle text
-      ctx.fillStyle = "rgba(220,220,235,0.75)";
-      ctx.font = "12px ui-monospace, Menlo, monospace";
-      ctx.fillText(`Throttle ${(mag*100).toFixed(0)}%`, cx-44, cy+58);
-
-      ctx.restore();
     }
 
-    function drawPlayerShield(){
-      if (player.shieldT <= 0) return;
-      const s = worldToScreen(player.x, player.y);
-      const a = clamp(player.shieldT/3, 0, 1);
-      ctx.strokeStyle = `rgba(120,200,255,${0.25 + 0.35*a})`;
-      ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.arc(s.x,s.y, player.r+16, 0, TAU); ctx.stroke();
-      ctx.strokeStyle = `rgba(120,200,255,${0.10 + 0.20*a})`;
-      ctx.lineWidth = 10;
-      ctx.beginPath(); ctx.arc(s.x,s.y, player.r+18, 0, TAU); ctx.stroke();
+    for (const p of state.particles){
+      const x = p.x - camX, y = p.y - camY;
+      ctx.globalAlpha = clamp(p.life, 0, 1);
+      ctx.fillStyle = "rgba(255,210,140,.85)";
+      ctx.beginPath();
+      ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
     }
 
-    function draw(){
-      drawGround();
-
-      // shake
-      let sx=0, sy=0;
-      if (shakeT > 0){
-        sx = (Math.random()-0.5)*shakeMag;
-        sy = (Math.random()-0.5)*shakeMag;
-      }
-      ctx.save();
-      ctx.translate(sx, sy);
-
-      // obstacles
-      for (const o of obstacles) drawObstacle(o);
-
-      // pickups
-      drawPickups();
-
-      // bullets + particles
-      drawBullets();
-      drawParticles();
-
-      // enemies
-      for (const e of enemies){
-        drawTankBody(e.x,e.y,e.r, e.ang, e.elite ? 0.26 : 0.18, false);
-        drawTurret(e.x,e.y,e.turret,false);
-        drawHealthRing(e.x,e.y,e.r, e.health, e.maxHealth, e.elite);
-      }
-
-      // player
-      if (player){
-        drawTankBody(player.x,player.y,player.r, player.ang, 0.28, true);
-        drawTurret(player.x,player.y,player.turret,true);
-        drawPlayerShield();
-      }
-
-      ctx.restore();
-
-      // overlays (screen-space)
-      drawGestureOverlays();
-
-      // border vignette
-      const g = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)/1.15);
-      g.addColorStop(0,"rgba(0,0,0,0)");
-      g.addColorStop(1,"rgba(0,0,0,0.55)");
-      ctx.fillStyle=g;
-      ctx.fillRect(0,0,W,H);
+    for (const e of state.enemies){
+      if (!e.alive) continue;
+      drawTank(e, camX, camY, "rgba(255,80,80,.92)", "rgba(255,145,145,.92)");
     }
 
-    // ============================================================
-    // Main Loop
-    // ============================================================
-    let prevT = performance.now();
-    function loop(){
-      requestAnimationFrame(loop);
+    const inv = player.invuln > 0 ? (Math.sin(state.time*60)*0.5+0.5) : 0;
+    const baseCol = player.invuln > 0 ? `rgba(120,255,180,${0.65+inv*0.25})` : "rgba(80,255,140,.95)";
+    drawTank(player, camX, camY, baseCol, "rgba(190,255,220,.92)");
 
-      const now = performance.now();
-      const dt = Math.min(0.05, (now - prevT)/1000);
-      prevT = now;
+    if (controllerMode === "gesture"){
+      const pinched = cfg.fireEither ? (input.pinchLeft || input.pinchRight) : input.pinchLeft;
+      if (input.aimCursor.seen) drawAimTarget(input.aimCursor.x, input.aimCursor.y, pinched);
+      if (input.driveCursor.seen) drawDriveArrow(input.driveCursor.x, input.driveCursor.y);
+    }
 
-      // toast timer
-      if (toastT > 0){
-        toastT -= dt;
-        if (toastT <= 0) toast.style.display = "none";
-      }
+    ctx.strokeStyle = "rgba(255,255,255,.10)";
+    ctx.strokeRect(-camX+20, -camY+20, WORLD.w-40, WORLD.h-40);
+  }
 
-      // vision processing
-      trySend(now);
+  // ===== main loop =====
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.033, Math.max(0.001, (now - last)/1000));
+    last = now;
 
-      // scan step
-      if (state === "scan"){
-        scanStep(dt);
-        // still render background + a simple idle view
-        draw();
-        return;
-      }
-
-      if (state !== "play"){
-        draw();
-        return;
-      }
-
-      if (paused){
-        draw();
-        return;
-      }
-
-      // update
-      updatePlayer(dt);
-      updateEnemies(dt);
-      updateBullets(dt);
-      updateParticles(dt);
-      updatePickups(dt);
-
-      // shake decay
-      shakeT = Math.max(0, shakeT - dt);
-      shakeMag = lerp(shakeMag, 0, emaAlpha(dt, 0.18));
-
-      updateHUD();
-      draw();
-
-      // death
-      if (player.health <= 0){
-        gameOver();
+    if (!paused){
+      update(dt);
+    } else {
+      if (controllerMode === "gesture" && startup.active){
+        updateStartup(dt);
       }
     }
 
-    // ============================================================
-    // Start / Mode Selection
-    // ============================================================
-    function preflightCameraWarning(){
-      const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-      const isSecure = window.isSecureContext || location.protocol === "https:" || isLocalhost;
-      if (!isSecure){
-        startWarn.textContent = "⚠ Gesture mode camera requires https or http://localhost. file:// will likely block camera.";
-      } else {
-        startWarn.textContent = "";
-      }
-    }
-    preflightCameraWarning();
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 
-    btnStartGame.addEventListener("click", async ()=>{
-      controlMode = selMode.value;
+  // ===== initial UI =====
+  setModeTxt("—");
+  showOverlay(true);
+  setBridge("Controller: not selected • Choose Gesture or Keyboard");
+  ui.startBtn.disabled = !controllerMode;
 
-      overlayStart.style.display = "none";
+  ui.liveTunerMode.textContent = `(${controllerMode || "—"})`;
 
-      // hide tuner by default (as requested: toggles hidden on startup)
-      setTuner(false);
-
-      if (controlMode === "keyboard"){
-        hudMode.textContent = "PLAY";
-        hudHands.textContent = "L:—  R:—";
-        hudTip.textContent = "WASD move • Mouse aim • Click/Space shoot";
-        state = "play";
-        buildLevel(1);
-        showToast("Keyboard mode started.", 1.0);
-        return;
-      }
-
-      // gesture mode
-      try{
-        hudMode.textContent = "SCAN";
-        hudTip.textContent = "Scanning hands…";
-        overlayScan.style.display = "flex";
-        state = "scan";
-
-        await startCamera();
-        mkHands();
-
-        resetScan();
-        scan.phase = "waiting";
-
-      }catch(e){
-        console.error(e);
-        overlayScan.style.display = "none";
-        overlayStart.style.display = "flex";
-        state = "menu";
-        stopCamera();
-        showToast("Camera failed. Choose keyboard mode.", 2.0);
-        startWarn.textContent = "Camera error: " + (e?.message ?? String(e));
-      }
-    });
-
-    btnCancelScan.addEventListener("click", ()=>{
-      overlayScan.style.display = "none";
-      state = "menu";
-      stopCamera();
-      overlayStart.style.display = "flex";
-      hudMode.textContent = "START";
-      showToast("Scan cancelled.", 0.9);
-    });
-
-    btnRestart.addEventListener("click", ()=>{
-      overlayGameOver.style.display = "none";
-      progress.level = 1;
-      // Keep upgrades and inventory (store-driven progression). If you want a true reset, zero these here.
-      state = "play";
-      buildLevel(1);
-      showToast("Restarted.", 1.0);
-    });
-
-    // ============================================================
-    // Store entry points
-    // ============================================================
-    // quick buy buttons already wired in renderStore()
-    // next level button wired
-
-    // ============================================================
-    // Tuner sync on start
-    // ============================================================
-    function tickTunerSync(){
-      // keep mirror/swap in sync between panels
-      chkMirror2.checked = chkMirror.checked;
-      chkSwapHands2.checked = chkSwapHands.checked;
-      requestAnimationFrame(tickTunerSync);
-    }
-    tickTunerSync();
-
-    // ============================================================
-    // Init
-    // ============================================================
-    (function init(){
-      rebuildPatterns();
-      syncInvHud();
-      hudMode.textContent = "START";
-      hudAmmo.textContent = "0 / 0";
-      hudCoins.textContent = "0";
-      healthFill.style.width = "100%";
-      showToast("Choose mode and press START.", 1.2);
-      loop();
-    })();
-  </script>
+})();
+</script>
 </body>
 </html>

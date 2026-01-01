@@ -2211,9 +2211,13 @@
       display: grid;
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
       gap: clamp(1.5rem, 4vw, 3rem);
-      align-items: start;
+      align-items: stretch;
+      grid-auto-rows: 1fr;
       margin-top: clamp(0.75rem, 3vw, 1.75rem);
       margin-bottom: clamp(1.5rem, 4vw, 2.75rem);
+      width: min(1200px, 95vw);
+      margin-inline: auto;
+      aspect-ratio: 1 / 1;
     }
 
     .login-overview {
@@ -2226,6 +2230,7 @@
       padding: clamp(1.75rem, 4vw, 2.6rem);
       box-shadow: 0 34px 88px rgba(4, 8, 20, 0.45);
       backdrop-filter: blur(18px);
+      height: 100%;
     }
 
     .login-overview h1 {
@@ -2304,6 +2309,10 @@
       border: 1px solid rgba(106, 255, 59, 0.24);
       box-shadow: 0 34px 90px rgba(2, 8, 20, 0.48);
       backdrop-filter: blur(18px);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.35rem;
     }
 
     .vault-credential-card {
@@ -2472,6 +2481,8 @@
     @media (max-width: 1080px) {
       .login-shell {
         grid-template-columns: 1fr;
+        aspect-ratio: auto;
+        width: 100%;
       }
 
       .login-overview {
@@ -2575,23 +2586,23 @@
     </div>
     <div class="login-shell container">
       <section class="login-overview" aria-labelledby="login-overview-title">
-        <h1 id="login-overview-title">Ioncore Network Access Panel for vault members.</h1>
-        <p>Access restricted vault data, live telemetry, and confidential dossiers through a single, unified experience. Align your membership credential—physical access card or verified token—to enter the Ioncore Network and retrieve the intelligence reserved for cleared members.</p>
+        <h1 id="login-overview-title">Ioncore Network Access — Square Gate.</h1>
+        <p>Access restricted vault data, live telemetry, and confidential dossiers through a perfectly balanced gate. Both panels lock to the same height, and entry now requires either a verified MEKNX token on Ethereum, a validated Solana access token, or a vetted password—no placeholder mints or faux tokens are accepted.</p>
         <ul class="login-highlights">
           <li>
-            <span class="login-highlights__label">24/7 monitored</span>
-            <span class="login-highlights__value">Dedicated vault operations and intel desk</span>
+            <span class="login-highlights__label">Unified frame</span>
+            <span class="login-highlights__value">Square-aligned panels keep left and right columns level</span>
           </li>
           <li>
-            <span class="login-highlights__label">Multi-rail authentication</span>
-            <span class="login-highlights__value">Membership card, token verification, and contract-gated clearance</span>
+            <span class="login-highlights__label">Verified-only</span>
+            <span class="login-highlights__value">Ethereum MEKNX contract checks or Solana token proof—no faux mints</span>
           </li>
           <li>
             <span class="login-highlights__label">Direct support</span>
-            <span class="login-highlights__value">Ioncore network advisors on call</span>
+            <span class="login-highlights__value">Ioncore network advisors on call for hard verification</span>
           </li>
         </ul>
-        <p class="login-overview__badge">Vault Membership Credentials: Card or Token</p>
+        <p class="login-overview__badge">Vault Entry: Verified MEKNX (Ethereum) • Verified SOL Token • Password</p>
       </section>
       <main class="vault-card" role="main">
       <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
@@ -2602,10 +2613,10 @@
         Restricted intel corridor. Vault telemetry monitored 24/7.
       </div>
       <h1>Vault Membership Protocol</h1>
-      <p class="tagline">Authenticate with your Ioncore membership card or verified token to unlock restricted intelligence and synchronize with the Ioncore Network. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <p class="tagline">Authenticate with a verified MEKNX token on Ethereum, a cleared Solana access token, or a password to unlock restricted intelligence. Mint receipts, placeholders, and faux tokens are rejected before countermeasures trigger.</p>
       <figure class="vault-credential-card" aria-labelledby="vault-card-caption">
         <img src="IMG_3143.jpeg" alt="Ioncore Energy secure client access card with QR credential" class="vault-credential-card__image" loading="lazy">
-        <figcaption id="vault-card-caption" class="vault-credential-card__caption">Vault membership card or token required for Ioncore Network access.</figcaption>
+        <figcaption id="vault-card-caption" class="vault-credential-card__caption">Vault membership card backed by verified MEKNX or Solana token proof—no placeholder passes.</figcaption>
       </figure>
       <form class="access-form" id="login-form" autocomplete="off">
         <div class="auth-mode-group">
@@ -2617,11 +2628,11 @@
           <a class="auth-mode auth-mode--chat" id="tab-chat" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html" target="_blank" rel="noopener">Live Chat</a>
         </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet" hidden>
-          <p class="wallet-intro">Link a secure wallet session to purchase a vault membership card or verify an existing token. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. Select the contract you are authenticating against—Ethereum, Solana, or Cardano placeholders are listed below while production agreements finalize.</p>
+          <p class="wallet-intro">Link a secure wallet session to verify a real access token. Choose MetaMask for the Ethereum MEKNX contract or Phantom for Solana token proof. Select the matching contract placeholder before continuing—mint receipts, test mints, and placeholder tokens are rejected.</p>
           <div class="contract-guard" role="region" aria-labelledby="contract-guard-title">
             <div class="contract-guard__header">
               <h3 id="contract-guard-title">Access contracts required</h3>
-              <p>Present the contract tied to your chain before requesting clearance. Addresses are placeholders while on-chain agreements finalize.</p>
+              <p>Present the contract tied to your chain before requesting clearance. Only verified MEKNX on Ethereum or IONC on Solana counts—placeholder or freshly minted test passes are denied.</p>
             </div>
             <div class="contract-guard__options" role="group" aria-describedby="contract-guard-hint">
               <label class="contract-option">
@@ -2641,11 +2652,11 @@
                 </span>
               </label>
               <label class="contract-option">
-                <input type="radio" name="contract-network" value="cardano" data-contract-address="addr1qionccontractplaceholder000000000000000000000">
+                <input type="radio" name="contract-network" value="cardano" data-contract-address="addr1qionccontractplaceholder000000000000000000000" disabled>
                 <span class="contract-option__body">
-                  <span class="contract-option__network">Cardano access contract</span>
+                  <span class="contract-option__network">Cardano access contract (paused)</span>
                   <span class="contract-option__address">addr1qionccontractplaceholder000000000000000000000</span>
-                  <span class="contract-option__hint">Select when verifying with a supported Cardano wallet.</span>
+                  <span class="contract-option__hint">Cardano onboarding is paused—use Ethereum (MEKNX) or Solana.</span>
                 </span>
               </label>
             </div>
@@ -2804,7 +2815,7 @@
             </div>
           </div>
           <div class="wallet-connect-row wallet-connect-row--tight">
-            <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
+            <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano" disabled aria-disabled="true">
               <span class="wallet-connect-button__icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" role="img" aria-label="Cardano wallet emblem">
                   <circle cx="16" cy="16" r="10.5" fill="#0c2d57" />
@@ -2816,33 +2827,32 @@
                   <circle cx="16" cy="16" r="1.9" fill="#6bd5ff" />
                 </svg>
               </span>
-              <span class="wallet-connect-button__label">Connect Cardano Wallet</span>
+              <span class="wallet-connect-button__label">Cardano Access Paused</span>
               <span class="wallet-connect-button__crest">
                 <img src="battery.svg" alt="Ioncore Energy emblem">
               </span>
             </button>
-            <div id="cardano-status" class="wallet-status">Not connected.</div>
+            <div id="cardano-status" class="wallet-status">Use Ethereum (MEKNX) or Solana tokens for entry.</div>
           </div>
           <div class="access-module" id="meknx-module" hidden aria-hidden="true">
             <div class="module-header">
-              <h3>Legacy MEKNX Support</h3>
-              <span class="module-tag">Optional</span>
+              <h3>MEKNX Ethereum Verification</h3>
+              <span class="module-tag">Required</span>
             </div>
             <div id="meknx-session-details" class="wallet-session-details" hidden aria-hidden="true">
               <span class="wallet-session-details__label">Connected wallet</span>
               <code id="meknx-session-address" class="wallet-session-details__value"></code>
             </div>
-            <p class="module-copy">Contract-backed login is now primary. Legacy MEKNX passes can still be verified or minted here when required.</p>
+            <p class="module-copy">Ethereum access requires a verified MEKNX token from the contract. Mint receipts and placeholders are blocked—run verification only.</p>
             <div class="field">
               <label for="meknx-action">Clearance Action</label>
               <select id="meknx-action" name="meknx-action">
-                <option value="verify">Verify Existing Pass</option>
-                <option value="mint">Mint New Pass</option>
+                <option value="verify">Verify MEKNX Token (Ethereum)</option>
               </select>
             </div>
             <div class="module-actions">
               <button type="button" id="meknx-action-button" class="action-button">Start Clearance</button>
-              <div id="meknx-inline-status" class="inline-status">MEKNX clearance optional—contract selection takes priority.</div>
+              <div id="meknx-inline-status" class="inline-status">MEKNX verification required for Ethereum wallets. Minted receipts are not accepted.</div>
             </div>
           </div>
           <div class="access-module" id="cardano-module" hidden>
@@ -2879,12 +2889,12 @@
         <div class="mode-panel" id="meknx-panel" data-mode="meknx" role="tabpanel" aria-labelledby="tab-meknx" hidden>
           <div class="meknx-access-grid">
             <h2>Live Chat Clearance</h2>
-            <p class="meknx-description">MEKNX gatekeeping has been retired in favor of contract-backed access. Tap the live chat to coordinate clearance with an advisor while your Ethereum, Solana, or Cardano contract is validated.</p>
+            <p class="meknx-description">MEKNX gatekeeping is mandatory for Ethereum wallets. Tap the live chat to coordinate verification of your on-chain MEKNX token while Solana or password fallbacks are confirmed.</p>
             <div class="meknx-actions">
               <a class="auth-mode auth-mode--chat" id="meknx-live-chat" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html" target="_blank" rel="noopener">Open Live Chat</a>
               <div class="wallet-status">Chat team will confirm your contract placeholder before granting entry.</div>
             </div>
-            <input type="hidden" name="meknxPassId" id="meknx-pass-id" value="LIVE-CHAT-CLEARANCE">
+            <input type="hidden" name="meknxPassId" id="meknx-pass-id" value="">
           </div>
         </div>
         <button type="submit">Enter the Vault</button>
@@ -3271,7 +3281,7 @@
       }
       const provider = walletProviderInput ? walletProviderInput.value || '' : '';
       const address = walletAddressInput ? walletAddressInput.value || '' : '';
-      const shouldShow = Boolean(provider && address);
+      const shouldShow = provider === 'evm' && Boolean(address);
 
       meknxModule.hidden = !shouldShow;
       meknxModule.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
@@ -3281,7 +3291,7 @@
         if (meknxState.status === 'pending') {
           setInlineStatus(
             meknxInlineStatus,
-            'Connect a wallet to access optional MEKNX legacy support alongside contract checks.'
+            'MEKNX verification only applies to the Ethereum contract. Connect MetaMask to continue.'
           );
         }
         meknxModuleStateTracker.visible = false;
@@ -3299,7 +3309,7 @@
         const providerLabel = getWalletProviderLabel(provider);
         setInlineStatus(
           meknxInlineStatus,
-          `${providerLabel} wallet connected. Use MEKNX legacy clearance only if requested.`
+          `${providerLabel} wallet connected. Verify the MEKNX token from the Ethereum contract to continue.`
         );
       }
 
@@ -3721,7 +3731,7 @@
       if (!options.silent) {
         setInlineStatus(
           meknxInlineStatus,
-          'MEKNX clearance available for legacy users. Contract selection remains required.',
+          'MEKNX verification is required for Ethereum wallets. Minted or placeholder tokens are rejected.',
           'notice'
         );
         if (meknxStatus) {
@@ -3774,7 +3784,10 @@
           `Detected ${formattedTotal} IONC access ${tokenLabel}. Verify to continue.`
         );
       } else {
-        setInlineStatus(ioncInlineStatus, 'Phantom session detected. Verify IONC token to continue.');
+        setInlineStatus(
+          ioncInlineStatus,
+          'Phantom session detected. Verify an on-chain IONC token to continue—placeholder mints are rejected.'
+        );
       }
 
       renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
@@ -3841,21 +3854,31 @@
 
     const applyMeknxResponse = (data) => {
       if (!data) return;
-      const normalizedStatus = data.status === 'verified' ? 'verified' : 'minted';
+      const normalizedStatus = data.status === 'verified' ? 'verified' : 'rejected';
+      if (normalizedStatus !== 'verified') {
+        setInlineStatus(
+          meknxInlineStatus,
+          'MEKNX mint receipts are not valid. Verify the on-chain Ethereum token to continue.',
+          'error'
+        );
+        updateStatus('MEKNX mint receipts are not valid. Verify the on-chain Ethereum token to continue.', 'error');
+        triggerFailureAnimation();
+        resetMeknxState({ keepPassId: false, silent: true });
+        return;
+      }
+
       meknxState.status = normalizedStatus;
       meknxState.passId = data.passId || '';
       meknxState.mintedAt = data.mintedAt || '';
       meknxState.walletProvider = data.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
       meknxState.ioncTokens = typeof data.ioncTokens === 'number' ? data.ioncTokens : meknxState.ioncTokens;
+      if (meknxPassIdInput && meknxState.passId) {
+        meknxPassIdInput.value = meknxState.passId;
+      }
 
-      const statusDetail =
-        normalizedStatus === 'verified' ? 'MEKNX verification confirmed.' : 'MEKNX pass minted successfully.';
+      const statusDetail = 'MEKNX verification confirmed.';
       const passSuffix = meknxState.passId ? ` Pass ID: ${meknxState.passId}.` : '';
-      setInlineStatus(
-        meknxInlineStatus,
-        `Access granted. Opening vault… ${statusDetail}${passSuffix}`.trim(),
-        'success'
-      );
+      setInlineStatus(meknxInlineStatus, `Access granted. Opening vault… ${statusDetail}${passSuffix}`.trim(), 'success');
 
       if (meknxStatus) {
         const shortId = meknxState.passId ? shortenIdentifier(meknxState.passId) : '';
@@ -5367,11 +5390,11 @@
 
         if (!status.textContent || (!hasFeedbackTone && !force)) {
           if (activeMode === 'wallet') {
-            updateStatus('Link MetaMask, Phantom, or a Cardano wallet and lock the matching contract placeholder.');
+            updateStatus('Link MetaMask (MEKNX on Ethereum) or Phantom (Solana token) and lock the matching contract placeholder. No faux mints are accepted.');
           } else if (activeMode === 'credentials') {
             updateStatus('Authenticate with your assigned access key.');
           } else if (activeMode === 'meknx') {
-            updateStatus('Use live chat to coordinate contract validation with an advisor.');
+            updateStatus('Use live chat to confirm your MEKNX verification with an advisor.');
           }
         }
       };
@@ -5600,7 +5623,7 @@
               ? ' Unable to automatically detect IONC holdings. Use Verify IONC Token to continue.'
               : hasIoncTokens
               ? ` Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}.`
-              : ' No IONC tokens detected yet. Use Verify IONC Token after minting to continue.';
+              : ' No IONC tokens detected yet. Use Verify IONC Token after securing a real mint to continue.';
             updateStatus(
               `Phantom channel ready.${solanaValueMessage}${ioncHoldingsMessage}${depositMessage} Lock the Solana contract placeholder and run Verify IONC Token to continue.`,
               'success'
@@ -5618,7 +5641,7 @@
             } else if (ioncBalanceError) {
               inlineStatusMessage = 'Phantom session active. Unable to auto-detect IONC tokens. Select Verify IONC Token to continue.';
             } else {
-              inlineStatusMessage = 'Phantom session active. Verify IONC token after minting to continue.';
+              inlineStatusMessage = 'Phantom session active. Verify the IONC token to continue—placeholder or faux mints are rejected.';
             }
             setInlineStatus(ioncInlineStatus, inlineStatusMessage, inlineStatusTone);
           } catch (error) {
@@ -5647,25 +5670,43 @@
         });
       }
 
-      connectCardanoWallet(cardanoButton, cardanoStatus);
+      if (cardanoButton && !cardanoButton.disabled) {
+        connectCardanoWallet(cardanoButton, cardanoStatus);
+      } else if (cardanoStatus) {
+        cardanoStatus.textContent = 'Cardano access is paused. Use Ethereum MEKNX or Solana.';
+      }
 
       if (meknxActionButton) {
         meknxActionButton.addEventListener('click', async () => {
           const action = (meknxActionSelect && meknxActionSelect.value) || 'verify';
           const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (action !== 'verify') {
+            setInlineStatus(
+              meknxInlineStatus,
+              'Only MEKNX verification is allowed. Minted receipts are not accepted for access.',
+              'error'
+            );
+            updateStatus('Only MEKNX verification is allowed. Minted receipts are not accepted for access.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
           if (!walletAddressInput || !walletAddressInput.value) {
             setInlineStatus(
               meknxInlineStatus,
-              'Connect MetaMask, Phantom, or a Cardano wallet before requesting MEKNX clearance.',
+              'Connect MetaMask before requesting MEKNX clearance.',
               'error'
             );
-            updateStatus('Connect a wallet before starting MEKNX clearance.', 'error');
+            updateStatus('Connect MetaMask before starting MEKNX clearance.', 'error');
             triggerFailureAnimation();
             return;
           }
 
-          const progressLabel =
-            action === 'mint' ? 'Minting MEKNX clearance…' : 'Verifying MEKNX pass…';
+          if (!contractSelectionMatchesProvider('evm')) {
+            meknxActionButton.disabled = false;
+            return;
+          }
+
+          const progressLabel = 'Verifying MEKNX pass…';
           setInlineStatus(meknxInlineStatus, progressLabel);
           meknxActionButton.disabled = true;
 
@@ -5684,10 +5725,7 @@
             });
 
             if (!response.ok) {
-              let errorMessage =
-                action === 'mint'
-                  ? 'MEKNX minting request denied. Review requirements and try again.'
-                  : 'MEKNX verification failed. Mint a pass or retry.';
+              let errorMessage = 'MEKNX verification failed. Confirm the Ethereum contract selection and try again.';
               try {
                 const data = await response.json();
                 if (data && data.message) {
@@ -5708,15 +5746,8 @@
             const successMessage = `${successMessageBase}Access granted. Opening vault…`.trim();
             const normalizedProvider =
               provider || meknxState.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
-            const needsIonc =
-              normalizedProvider === 'solana' && !ioncState.verified;
-            const needsCardanoPolicy =
-              normalizedProvider.startsWith && normalizedProvider.startsWith('cardano') && !cardanoState.verified;
-            const continuation = needsIonc
-              ? ' Continue with IONC verification.'
-              : needsCardanoPolicy
-              ? ' Continue with Cardano policy verification.'
-              : ' Submit to enter the vault.';
+            const needsIonc = normalizedProvider === 'solana' && !ioncState.verified;
+            const continuation = needsIonc ? ' Continue with IONC verification.' : ' Submit to enter the vault.';
             updateStatus(`${successMessage}${continuation}`, 'success');
           } catch (error) {
             const fallbackMessage = 'MEKNX clearance request failed. Try again shortly.';
@@ -5922,7 +5953,7 @@
 
         if (activeMode === 'wallet') {
           if (!walletAddressInput || !walletAddressInput.value) {
-            updateStatus('Connect MetaMask, Phantom, or a Cardano wallet before requesting access.', 'error');
+            updateStatus('Connect MetaMask (Ethereum) or Phantom (Solana) before requesting access.', 'error');
             submitButton.disabled = false;
             submitButton.textContent = 'Enter the Vault';
             triggerFailureAnimation();
@@ -5936,23 +5967,32 @@
             triggerFailureAnimation();
             return;
           }
-          if (provider === 'solana' && !ioncState.verified) {
-            updateStatus('Verify your IONC access token before requesting entry.', 'error');
+          if (provider === 'evm') {
+            const hasVerifiedMeknx = meknxState.status === 'verified' && Boolean(meknxState.passId);
+            if (!hasVerifiedMeknx) {
+              updateStatus('Ethereum access requires a verified MEKNX token—mint receipts are not accepted.', 'error');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+          } else if (provider === 'solana') {
+            if (!ioncState.verified) {
+              updateStatus('Verify your IONC access token before requesting entry.', 'error');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+          } else {
+            updateStatus('Only verified MEKNX (Ethereum) or Solana tokens can unlock the vault. Use credentials if needed.', 'error');
             submitButton.disabled = false;
             submitButton.textContent = 'Enter the Vault';
             triggerFailureAnimation();
             return;
           }
 
-          if (provider && provider.startsWith('cardano') && !cardanoState.verified) {
-            updateStatus('Verify the required Cardano policy before requesting entry.', 'error');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Enter the Vault';
-            triggerFailureAnimation();
-            return;
-          }
-
-          if (provider === 'solana' || (provider && provider.startsWith('cardano'))) {
+          if (provider === 'solana') {
             if (walletValueState.provider !== provider) {
               updateStatus('Reconnect your wallet to refresh the on-chain balance check.', 'error');
               submitButton.disabled = false;

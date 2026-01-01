@@ -723,81 +723,6 @@
       color: rgba(203, 213, 225, 0.9);
     }
 
-    .contract-guard {
-      border: 1px solid rgba(72, 255, 226, 0.22);
-      border-radius: 18px;
-      background: rgba(9, 17, 38, 0.7);
-      padding: 1rem 1.15rem;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    .contract-guard__header h3 {
-      margin: 0;
-      font-size: 1.05rem;
-      letter-spacing: 0.08em;
-    }
-
-    .contract-guard__header p {
-      margin: 0.35rem 0 0;
-      color: rgba(203, 213, 225, 0.9);
-      line-height: 1.55;
-      font-size: 0.92rem;
-    }
-
-    .contract-guard__options {
-      display: grid;
-      gap: 0.65rem;
-    }
-
-    .contract-option {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.65rem;
-      align-items: flex-start;
-      padding: 0.75rem 0.85rem;
-      border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      background: rgba(15, 23, 42, 0.55);
-      box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.12);
-    }
-
-    .contract-option input {
-      margin-top: 0.2rem;
-    }
-
-    .contract-option__body {
-      display: grid;
-      gap: 0.2rem;
-    }
-
-    .contract-option__network {
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .contract-option__address {
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.9rem;
-      color: rgba(148, 227, 255, 0.92);
-      word-break: break-all;
-    }
-
-    .contract-option__hint {
-      font-size: 0.85rem;
-      color: rgba(203, 213, 225, 0.8);
-    }
-
-    .contract-guard__hint {
-      margin: 0;
-      font-size: 0.85rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.82);
-    }
-
     .wallet-connect-row {
       display: flex;
       flex-wrap: wrap;
@@ -2211,13 +2136,9 @@
       display: grid;
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
       gap: clamp(1.5rem, 4vw, 3rem);
-      align-items: stretch;
-      grid-auto-rows: 1fr;
+      align-items: start;
       margin-top: clamp(0.75rem, 3vw, 1.75rem);
       margin-bottom: clamp(1.5rem, 4vw, 2.75rem);
-      width: min(1200px, 95vw);
-      margin-inline: auto;
-      aspect-ratio: 1 / 1;
     }
 
     .login-overview {
@@ -2230,7 +2151,6 @@
       padding: clamp(1.75rem, 4vw, 2.6rem);
       box-shadow: 0 34px 88px rgba(4, 8, 20, 0.45);
       backdrop-filter: blur(18px);
-      height: 100%;
     }
 
     .login-overview h1 {
@@ -2309,10 +2229,6 @@
       border: 1px solid rgba(106, 255, 59, 0.24);
       box-shadow: 0 34px 90px rgba(2, 8, 20, 0.48);
       backdrop-filter: blur(18px);
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 1.35rem;
     }
 
     .vault-credential-card {
@@ -2481,8 +2397,6 @@
     @media (max-width: 1080px) {
       .login-shell {
         grid-template-columns: 1fr;
-        aspect-ratio: auto;
-        width: 100%;
       }
 
       .login-overview {
@@ -2572,35 +2486,317 @@
         <p class="intro-subtext" aria-hidden="true">Secure Access Division // Clearance Gate</p>
       </div>
     </div>
+    <div class="health-bar" role="status" aria-live="polite">
+      <span class="health-label">Security Hearts</span>
+      <div class="health-hearts" aria-hidden="true">
+        <span class="health-heart" data-heart-index="1"></span>
+        <span class="health-heart" data-heart-index="2"></span>
+        <span class="health-heart" data-heart-index="3"></span>
+        <span class="health-heart" data-heart-index="4"></span>
+        <span class="health-heart" data-heart-index="5"></span>
+      </div>
+      <span class="health-count" aria-hidden="true">5/5</span>
+      <span id="health-status" class="sr-only">Security hearts remaining: 5 of 5.</span>
+    </div>
     <div class="login-shell container">
       <section class="login-overview" aria-labelledby="login-overview-title">
-        <h1 id="login-overview-title">Ioncore Customer Access</h1>
-        <p>Sign in to the Ioncore customer portal to review proposals, contracts, and protected launch materials. Use the access key provided by your advisor and the clearance code from your welcome packet to continue.</p>
+        <h1 id="login-overview-title">A refined portal for strategic energy partners.</h1>
+        <p>Ioncore&apos;s clearance gate mirrors the premium experience of our flagship launch site. Align credentials, confirm custody, and step into the full portfolio of magnetic inertia intelligence curated for enterprise deployments.</p>
+        <ul class="login-highlights">
+          <li>
+            <span class="login-highlights__label">24/7 monitored</span>
+            <span class="login-highlights__value">Dedicated security operations center</span>
+          </li>
+          <li>
+            <span class="login-highlights__label">Multi-rail authentication</span>
+            <span class="login-highlights__value">Wallet, access keys, and MEKNX continuum</span>
+          </li>
+          <li>
+            <span class="login-highlights__label">Direct support</span>
+            <span class="login-highlights__value">Ioncore integration advisors on call</span>
+          </li>
+        </ul>
+        <p class="login-overview__badge">Ioncore Secure Client Access Card</p>
       </section>
       <main class="vault-card" role="main">
       <div class="logo-lockup" aria-label="Ioncore Energy Secure Systems">
-        <span>Ioncore</span> Network // Access Panel
+        <span>Ioncore</span> Energy // Clearance Gate
       </div>
       <div class="intel-banner" role="status">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 4.47L19.53 19H4.47L12 6.47zM11 10h2v5h-2v-5zm0 6h2v2h-2v-2z"/></svg>
-        Customer-only channel. Sessions are monitored for security.
+        Confidential schematics. Quantum vault monitored 24/7.
       </div>
-      <h1>Secure Client Login</h1>
-      <p class="tagline">Enter your access key and clearance code to continue. Wallet-based verification is paused—standard credentials are required for entry.</p>
+      <h1>Vault Access Protocol</h1>
+      <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
+      <section class="vault-analytics-link" aria-labelledby="vault-analytics-title">
+        <span class="vault-analytics-link__badge">New</span>
+        <div class="vault-analytics-link__content">
+          <h2 class="vault-analytics-link__title" id="vault-analytics-title">IONC Token Intelligence Snapshot</h2>
+          <p class="vault-analytics-link__copy">
+            Review live treasury reserves, unlock cadence, and demand pressure before submitting your access request. Insights update hourly from validator attestations.
+          </p>
+          <div class="vault-analytics-link__actions">
+            <button type="button" id="ionc-chart-button" class="vault-analytics-link__button">Open Token Console</button>
+            <p class="vault-analytics-link__hint">Launches in a secure tab.</p>
+          </div>
+        </div>
+      </section>
       <figure class="vault-credential-card" aria-labelledby="vault-card-caption">
         <img src="IMG_3143.jpeg" alt="Ioncore Energy secure client access card with QR credential" class="vault-credential-card__image" loading="lazy">
-        <figcaption id="vault-card-caption" class="vault-credential-card__caption">Your personalized access card pairs with the credentials issued by your Ioncore representative.</figcaption>
+        <figcaption id="vault-card-caption" class="vault-credential-card__caption">Ioncore currency credential required for vault and continuum access.</figcaption>
       </figure>
       <form class="access-form" id="login-form" autocomplete="off">
+        <div class="auth-mode-group">
+          <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
+            <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
+            <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
+            <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Meknx Access</button>
+          </div>
+          <a class="auth-mode auth-mode--chat" id="tab-chat" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html" target="_blank" rel="noopener">Live Chat</a>
+        </div>
+        <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet" hidden>
+          <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="MetaMask fox mark">
+                  <path fill="#f5841f" d="M4.4 2.5 14.6 10l.9 2.6-7.9-2.1z" />
+                  <path fill="#e2761b" d="m27.6 2.5-10.2 7.5-.9 2.6 7.9-2.1z" />
+                  <path fill="#c0ad9e" d="M12.3 17.4 11.4 24l4.6-2.4-.5-3z" />
+                  <path fill="#c0ad9e" d="m19.7 17.4.9 6.6-4.6-2.4.5-3z" />
+                  <path fill="#f5841f" d="M14.9 14.5 10 13.2 8.6 18l3.7-.2z" />
+                  <path fill="#f5841f" d="m17.1 14.5 4.9-1.3 1.4 4.8-3.7-.2z" />
+                  <path fill="#161616" d="m8.6 18 3.6 2.6-.3 1.4L8.6 18z" />
+                  <path fill="#161616" d="m23.4 18-3.6 2.6.3 1.4 3.3-4z" />
+                  <path fill="#763d16" d="m12.2 20.6 2.9 2.1-.3 1.7z" />
+                  <path fill="#763d16" d="m19.8 20.6-2.9 2.1.3 1.7z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect MetaMask</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="metamask-status" class="wallet-status">Not connected.</div>
+          </div>
+          <div class="wallet-connect-row">
+            <button type="button" id="connect-phantom" class="wallet-connect-button wallet-connect-button--phantom">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Solana triad">
+                  <defs>
+                    <linearGradient id="solana-a" x1="6" y1="9" x2="26" y2="9" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#14f195" />
+                      <stop offset="1" stop-color="#9945ff" />
+                    </linearGradient>
+                    <linearGradient id="solana-b" x1="6" y1="16" x2="26" y2="16" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#00ffa3" />
+                      <stop offset="1" stop-color="#dc1fff" />
+                    </linearGradient>
+                    <linearGradient id="solana-c" x1="6" y1="23" x2="26" y2="23" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#19fb9b" />
+                      <stop offset="1" stop-color="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#solana-a)" d="M6 8.2 10.8 4H26l-4.8 4.2H6Z" />
+                  <path fill="url(#solana-b)" d="M6 15.1 10.8 11h15.2l-4.8 4.1H6Z" />
+                  <path fill="url(#solana-c)" d="M6 22 10.8 17.8H26l-4.8 4.2H6Z" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect Phantom</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="phantom-status" class="wallet-status">Not connected.</div>
+          </div>
+          <div id="solana-open-status" class="wallet-status wallet-status--notice" hidden></div>
+          <div id="solana-ionc-popup" class="wallet-popup" hidden aria-hidden="true">
+            <div class="wallet-popup__dialog" role="region" aria-labelledby="solana-ionc-popup-title">
+              <header class="wallet-popup__header">
+                <h3 id="solana-ionc-popup-title" class="wallet-popup__title">Ioncore Secure Client Access Card</h3>
+                <p class="wallet-popup__subtitle">Phantom purchase panel</p>
+              </header>
+              <p class="wallet-popup__intro">
+                Purchase the Ioncore Secure Client Access Card directly from this page once your Phantom wallet is connected. Each 5&nbsp;SOL order ships a physical access card loaded with twice the IONC the purchase mints.
+              </p>
+              <div class="wallet-popup__body">
+                <div class="wallet-popup__section">
+                  <div id="solana-session-details" class="wallet-session-details" hidden aria-hidden="true">
+                    <span class="wallet-session-details__label">Connected wallet</span>
+                    <code id="solana-session-address" class="wallet-session-details__value"></code>
+                  </div>
+                  <div class="wallet-connect-row wallet-connect-row--input">
+                    <label class="wallet-input-label" for="solana-action-select">
+                      Access Card Action
+                      <span>Choose how you want to continue</span>
+                    </label>
+                    <div class="wallet-input-control">
+                      <select id="solana-action-select" data-popup-focus>
+                        <option value="">Select an action</option>
+                        <option value="purchase">Purchase Ioncore Secure Client Access Card</option>
+                        <option value="verify">Verify IONC Token</option>
+                      </select>
+                      <div class="wallet-input-actions">
+                        <button type="button" id="solana-action-submit" class="action-button">Continue</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="wallet-connect-row wallet-connect-row--status">
+                    <div id="solana-action-status" class="wallet-status wallet-status--notice">Select an access card action to continue.</div>
+                  </div>
+                </div>
+                <div class="wallet-popup__section">
+                  <div class="wallet-connect-row wallet-connect-row--input" id="solana-deposit-config">
+                    <label class="wallet-input-label" for="solana-deposit-amount">
+                      Access Card Order (SOL)
+                      <span>5 – 1000 SOL</span>
+                    </label>
+                    <div class="wallet-input-control">
+                      <input
+                        type="number"
+                        id="solana-deposit-amount"
+                        min="5"
+                        max="1000"
+                        step="1"
+                        value="5"
+                        inputmode="decimal"
+                        aria-describedby="solana-deposit-help"
+                        data-popup-focus
+                      >
+                      <div id="solana-deposit-help" class="wallet-input-sublabel">
+                        Every 5 SOL order prepares one physical access card and encodes 2,000 IONC onto the chip for delivery. Approved purchases log to the Ioncore admin vault in real time.
+                      </div>
+                      <div class="wallet-input-actions">
+                        <button type="button" id="solana-deposit-send" class="action-button">Purchase Access Card</button>
+                        <button
+                          type="button"
+                          id="solana-deposit-verify"
+                          class="action-button action-button--outline"
+                          disabled
+                        >
+                          Verify Purchase
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="wallet-popup__section">
+                  <div class="wallet-connect-row wallet-connect-row--status" id="solana-deposit-row" hidden>
+                    <div id="solana-deposit-status" class="wallet-status wallet-status--notice">
+                      Access card purchase pending. Select your SOL amount, connect Phantom, then click Purchase to authorize the transaction.
+                    </div>
+                  </div>
+                </div>
+                <div class="wallet-popup__section">
+                  <div class="access-module" id="ionc-module" hidden>
+                    <div class="module-header">
+                      <h3>IONC Token Gate</h3>
+                      <span class="module-tag module-tag--solana">Solana</span>
+                    </div>
+                    <p class="module-copy">Phantom sessions must confirm the IONC allocation linked to your Secure Client Access Card before entry.</p>
+                    <div class="module-actions">
+                      <button type="button" id="ionc-verify-button" class="action-button action-button--outline">Verify IONC Token</button>
+                      <div id="ionc-inline-status" class="inline-status">Awaiting verification.</div>
+                    </div>
+                    <div id="ionc-token-list-container" class="ionc-token-list" hidden>
+                      <h4 class="ionc-token-list__title">Detected IONC Holdings</h4>
+                      <ul id="ionc-token-list" class="ionc-token-list__items"></ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="wallet-connect-row wallet-connect-row--tight">
+            <button type="button" id="connect-cardano" class="wallet-connect-button wallet-connect-button--cardano">
+              <span class="wallet-connect-button__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" aria-label="Cardano wallet emblem">
+                  <circle cx="16" cy="16" r="10.5" fill="#0c2d57" />
+                  <path
+                    d="M16 5.5c-5.8 0-10.5 4.7-10.5 10.5S10.2 26.5 16 26.5 26.5 21.8 26.5 16 21.8 5.5 16 5.5Zm0 17.2a6.7 6.7 0 1 1 0-13.4 6.7 6.7 0 0 1 0 13.4Z"
+                    fill="#0d3f7d"
+                  />
+                  <circle cx="16" cy="16" r="3.8" fill="#2a9dff" />
+                  <circle cx="16" cy="16" r="1.9" fill="#6bd5ff" />
+                </svg>
+              </span>
+              <span class="wallet-connect-button__label">Connect Cardano Wallet</span>
+              <span class="wallet-connect-button__crest">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </span>
+            </button>
+            <div id="cardano-status" class="wallet-status">Not connected.</div>
+          </div>
+          <div class="access-module" id="meknx-module" hidden aria-hidden="true">
+            <div class="module-header">
+              <h3>MEKNX Clearance</h3>
+              <span class="module-tag">Required</span>
+            </div>
+            <div id="meknx-session-details" class="wallet-session-details" hidden aria-hidden="true">
+              <span class="wallet-session-details__label">Connected wallet</span>
+              <code id="meknx-session-address" class="wallet-session-details__value"></code>
+            </div>
+            <p class="module-copy">Verify an existing MEKNX pass or mint a fresh credential to unlock the professional portal.</p>
+            <div class="field">
+              <label for="meknx-action">Clearance Action</label>
+              <select id="meknx-action" name="meknx-action">
+                <option value="verify">Verify Existing Pass</option>
+                <option value="mint">Mint New Pass</option>
+              </select>
+            </div>
+            <div class="module-actions">
+              <button type="button" id="meknx-action-button" class="action-button">Start Clearance</button>
+              <div id="meknx-inline-status" class="inline-status">MEKNX clearance pending.</div>
+            </div>
+          </div>
+          <div class="access-module" id="cardano-module" hidden>
+            <div class="module-header">
+              <h3>Cardano Policy Gate</h3>
+              <span class="module-tag module-tag--cardano">Cardano</span>
+            </div>
+            <p class="module-copy">Cardano sessions must confirm holdings under the Ioncore policy ID before requesting entry.</p>
+            <div class="module-actions">
+              <button type="button" id="cardano-verify-button" class="action-button action-button--outline">Verify Cardano Policy</button>
+              <div id="cardano-inline-status" class="inline-status">Awaiting policy verification.</div>
+            </div>
+          </div>
+          <input type="hidden" name="walletAddress" id="wallet-address">
+          <input type="hidden" name="walletProvider" id="wallet-provider">
+          <input type="hidden" name="solanaDepositSignature" id="solana-deposit-signature">
+          <input type="hidden" name="solanaDepositAmount" id="solana-deposit-amount-hidden">
+          <input type="hidden" name="ioncVerified" id="ionc-verified">
+          <input type="hidden" name="cardanoVerified" id="cardano-verified">
+          <input type="hidden" name="cardanoPolicyId" id="cardano-policy-id">
+        </div>
         <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials">
           <div class="field">
             <label for="username">Access Key</label>
-            <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" autocomplete="username" required>
+            <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" value="guest">
           </div>
           <div class="field">
             <label for="password">Clearance Code</label>
-            <input id="password" name="password" type="password" placeholder="Enter your hidden code" autocomplete="current-password" required>
-            <p class="login-highlights__value">Your clearance code stays hidden while typing and is never shared.</p>
+            <input id="password" name="password" type="password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="mode-panel" id="meknx-panel" data-mode="meknx" role="tabpanel" aria-labelledby="tab-meknx" hidden>
+          <div class="meknx-access-grid">
+            <h2>MEKNX Gatekeeper</h2>
+            <p class="meknx-description">Validate your MEKNX access credential or mint a fresh professional pass to enter the portal.</p>
+            <div class="meknx-token-inputs">
+              <label for="meknx-passcode">Access Token</label>
+              <input id="meknx-passcode" name="meknxPasscode" type="text" placeholder="MEKNX-ACCESS-0001" autocomplete="off">
+            </div>
+            <div class="meknx-actions">
+              <div class="wallet-connect-row">
+                <button type="button" id="meknx-verify" class="wallet-connect-button">Verify Token</button>
+                <div id="meknx-status" class="wallet-status">Awaiting verification.</div>
+              </div>
+              <div class="wallet-connect-row">
+                <button type="button" id="meknx-mint" class="wallet-connect-button wallet-connect-button--phantom">Mint Professional Pass</button>
+                <div class="wallet-status">Issue a new MEKNX pass instantly.</div>
+              </div>
+            </div>
+            <input type="hidden" name="meknxPassId" id="meknx-pass-id">
           </div>
         </div>
         <button type="submit">Enter the Vault</button>
@@ -2609,6 +2805,7 @@
       <p class="footnote">Classified Transmission. <strong>Ioncore Eyes Only.</strong> Proceed with discretion—sessions are logged for security, while wallet fingerprints remain off-chain.</p>
     </main>
     </div>
+  <script src="/scripts/solana-deposit.js"></script>
   <script>
     const bodyElement = document.body;
     const introScreen = document.querySelector('.intro-screen');
@@ -2641,72 +2838,2885 @@
 
     const form = document.getElementById('login-form');
     const status = document.getElementById('status');
+    const ioncChartButton = document.getElementById('ionc-chart-button');
     const failureOverlay = document.querySelector('.failure-overlay');
+    const query = new URLSearchParams(window.location.search);
+    const nextPath = query.get('next') || '/';
+    const modeButtons = Array.from(document.querySelectorAll('.auth-mode[role="tab"]'));
+    const panels = Array.from(document.querySelectorAll('.mode-panel'));
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
-    const nextPath = new URLSearchParams(window.location.search).get('next') || '/';
+    const walletAddressInput = document.getElementById('wallet-address');
+    const walletProviderInput = document.getElementById('wallet-provider');
+    const ioncVerifiedInput = document.getElementById('ionc-verified');
+    const cardanoVerifiedInput = document.getElementById('cardano-verified');
+    const cardanoPolicyInput = document.getElementById('cardano-policy-id');
+    const metamaskButton = document.getElementById('connect-metamask');
+    const phantomButton = document.getElementById('connect-phantom');
+    const cardanoButton = document.getElementById('connect-cardano');
+    const metamaskStatus = document.getElementById('metamask-status');
+    const phantomStatus = document.getElementById('phantom-status');
+    const openSolanaActionsButton = document.getElementById('open-solana-actions');
+    const solanaOpenStatus = document.getElementById('solana-open-status');
+    const solanaActionsRow =
+      openSolanaActionsButton && typeof openSolanaActionsButton.closest === 'function'
+        ? openSolanaActionsButton.closest('.wallet-connect-row')
+        : null;
+    const cardanoStatus = document.getElementById('cardano-status');
+    const solanaDepositRow = document.getElementById('solana-deposit-row');
+    const solanaDepositStatus = document.getElementById('solana-deposit-status');
+    const solanaDepositSignatureInput = document.getElementById('solana-deposit-signature');
+    const solanaDepositAmountInput = document.getElementById('solana-deposit-amount');
+    const solanaDepositAmountHiddenInput = document.getElementById('solana-deposit-amount-hidden');
+    const solanaDepositSendButton = document.getElementById('solana-deposit-send');
+    const solanaDepositVerifyButton = document.getElementById('solana-deposit-verify');
+    const solanaIoncPopup = document.getElementById('solana-ionc-popup');
+    const solanaIoncCloseButton = document.getElementById('solana-ionc-close');
+    const solanaSessionDetailsElement = document.getElementById('solana-session-details');
+    const solanaSessionAddressElement = document.getElementById('solana-session-address');
+    const solanaActionSelect = document.getElementById('solana-action-select');
+    const solanaActionStatus = document.getElementById('solana-action-status');
+    const solanaActionSubmitButton = document.getElementById('solana-action-submit');
+    const ioncTokenListContainer = document.getElementById('ionc-token-list-container');
+    const ioncTokenListElement = document.getElementById('ionc-token-list');
+    const meknxActionSelect = document.getElementById('meknx-action');
+    const meknxActionButton = document.getElementById('meknx-action-button');
+    const meknxInlineStatus = document.getElementById('meknx-inline-status');
+    const meknxModule = document.getElementById('meknx-module');
+    const meknxSessionDetailsElement = document.getElementById('meknx-session-details');
+    const meknxSessionAddressElement = document.getElementById('meknx-session-address');
+    const ioncModule = document.getElementById('ionc-module');
+    const cardanoModule = document.getElementById('cardano-module');
+    const ioncVerifyButton = document.getElementById('ionc-verify-button');
+    const ioncInlineStatus = document.getElementById('ionc-inline-status');
+    const cardanoVerifyButton = document.getElementById('cardano-verify-button');
+    const cardanoInlineStatus = document.getElementById('cardano-inline-status');
+    const meknxVerifyButton = document.getElementById('meknx-verify');
+    const meknxMintButton = document.getElementById('meknx-mint');
+    const meknxStatus = document.getElementById('meknx-status');
+    const meknxPasscodeInput = document.getElementById('meknx-passcode');
+    const meknxPassIdInput = document.getElementById('meknx-pass-id');
+
+    if (ioncChartButton) {
+      ioncChartButton.addEventListener('click', () => {
+        const chartWindow = window.open('ionc-token-chart.html', '_blank');
+        if (chartWindow) {
+          chartWindow.opener = null;
+        } else {
+          window.location.href = 'ionc-token-chart.html';
+        }
+      });
+    }
+
+    const IoncoreSolanaModule = window.IoncoreSolana || null;
+    const SOLANA_RPC_ENDPOINT =
+      (typeof window !== 'undefined' && typeof window.IONCORE_SOL_RPC === 'string' && window.IONCORE_SOL_RPC.trim()) ||
+      (IoncoreSolanaModule && typeof IoncoreSolanaModule.getDefaultRpc === 'function'
+        ? IoncoreSolanaModule.getDefaultRpc()
+        : 'https://api.mainnet-beta.solana.com');
+    const SOLANA_DEFAULT_TREASURY =
+      IoncoreSolanaModule && typeof IoncoreSolanaModule.getDefaultTreasury === 'function'
+        ? IoncoreSolanaModule.getDefaultTreasury()
+        : '9U7yidFgkYrzNRMx8BsXB14F6gttxyPjdvVSdGJySLvT';
+    const SOLANA_TREASURY_ADDRESS =
+      (typeof window !== 'undefined' && typeof window.IONCORE_SOL_TREASURY === 'string' &&
+        window.IONCORE_SOL_TREASURY.trim()) ||
+      SOLANA_DEFAULT_TREASURY;
+    const IONC_TOKEN_MINT = 'IONCzmM7GdZCdv3yZMfgHgVhXJg5uVhSbk1XvoQH2Y1';
+    const CARDANO_POLICY_ID = 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
+    const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
+    const MIN_WALLET_VALUE_USD = 10;
+    const MIN_LOGIN_VALUE_USD = 15;
+    const ACCESS_CARD_PRICE_SOL = 5;
+    const MIN_SOL_DEPOSIT_SOL = ACCESS_CARD_PRICE_SOL;
+    const MAX_SOL_DEPOSIT_SOL = 1000;
+    const MIN_SOL_DEPOSIT_LAMPORTS =
+      IoncoreSolanaModule && typeof IoncoreSolanaModule.LAMPORTS_PER_SOL === 'number'
+        ? IoncoreSolanaModule.LAMPORTS_PER_SOL * MIN_SOL_DEPOSIT_SOL
+        : 1_000_000_000;
 
     const inlineStatusToneClasses = ['inline-status--error', 'inline-status--success'];
+    let solanaIoncLastFocus = null;
+    let solanaIntentActive = false;
+    const meknxModuleStateTracker = {
+      visible: false,
+      provider: '',
+      address: ''
+    };
+    const cardanoModuleStateTracker = {
+      visible: false,
+      provider: '',
+      address: '',
+      clearanceStatus: ''
+    };
 
-    const setInlineStatus = (element, message, tone = 'notice') => {
+    function formatTokenAmount(amount) {
+      if (!Number.isFinite(amount)) {
+        return '0';
+      }
+      if (amount >= 100) {
+        return amount.toFixed(2);
+      }
+      if (amount >= 1) {
+        return amount.toFixed(4);
+      }
+      return amount.toFixed(6);
+    }
+
+    function formatUsd(value) {
+      if (!Number.isFinite(value)) {
+        return '$0.00';
+      }
+      return value.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function shortenIdentifier(value) {
+      if (!value || value.length <= 10) {
+        return value || '';
+      }
+      return `${value.slice(0, 6)}…${value.slice(-4)}`;
+    }
+
+    const formatWalletName = (value) =>
+      value.replace(/[-_]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+
+    const getWalletProviderLabel = (provider) => {
+      if (!provider) {
+        return 'Wallet';
+      }
+      if (provider === 'evm') {
+        return 'MetaMask';
+      }
+      if (provider === 'solana') {
+        return 'Phantom';
+      }
+      if (provider.startsWith('cardano')) {
+        const [, walletName = 'Cardano'] = provider.split('-', 2);
+        if (!walletName) {
+          return 'Cardano';
+        }
+        const formattedName = formatWalletName(walletName);
+        return formattedName.toLowerCase().includes('cardano') ? formattedName : `Cardano ${formattedName}`;
+      }
+      return 'Wallet';
+    };
+
+    const meknxState = {
+      status: 'pending',
+      passId: '',
+      mintedAt: '',
+      walletProvider: '',
+      ioncTokens: 0
+    };
+
+    const ioncState = {
+      verified: false,
+      tokens: 0,
+      holdings: [],
+      detectionError: false
+    };
+
+    const cardanoState = {
+      verified: false,
+      policyId: '',
+      walletType: '',
+      api: null
+    };
+
+    function renderIoncTokenHoldings(accounts = ioncState.holdings, { showEmpty = true } = {}) {
+      if (!ioncTokenListElement || !ioncTokenListContainer) {
+        return;
+      }
+
+      ioncTokenListElement.innerHTML = '';
+
+      const normalized = Array.isArray(accounts)
+        ? accounts.filter((entry) => Number.isFinite(entry?.amount) && entry.amount > 0)
+        : [];
+
+      if (normalized.length === 0) {
+        if (showEmpty) {
+          ioncTokenListContainer.hidden = false;
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'ionc-token-list__item ionc-token-list__item--empty';
+          emptyItem.textContent = 'No IONC holdings detected for this wallet.';
+          ioncTokenListElement.appendChild(emptyItem);
+        } else {
+          ioncTokenListContainer.hidden = true;
+        }
+        return;
+      }
+
+      ioncTokenListContainer.hidden = false;
+
+      normalized.forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = 'ionc-token-list__item';
+
+        const amountElement = document.createElement('span');
+        amountElement.className = 'ionc-token-list__amount';
+        amountElement.textContent = `${formatTokenAmount(entry.amount)} IONC`;
+
+        const detailElement = document.createElement('span');
+        detailElement.className = 'ionc-token-list__account';
+        const source = entry.accountAddress || entry.address || entry.owner || '';
+        const detailParts = [];
+        if (source) {
+          detailParts.push(shortenIdentifier(source));
+        }
+        if (entry.mint && entry.mint !== IONC_TOKEN_MINT) {
+          detailParts.push(`Mint ${shortenIdentifier(entry.mint)}`);
+        }
+        detailElement.textContent = detailParts.length ? detailParts.join(' • ') : 'IONC clearance vault';
+
+        item.appendChild(amountElement);
+        item.appendChild(detailElement);
+        ioncTokenListElement.appendChild(item);
+      });
+    }
+
+    renderIoncTokenHoldings([], { showEmpty: false });
+
+    const solanaDepositState = {
+      signature: '',
+      lamports: MIN_SOL_DEPOSIT_LAMPORTS,
+      completed: false,
+      amountSol: MIN_SOL_DEPOSIT_SOL
+    };
+
+    const solanaSessionState = {
+      provider: null,
+      publicKey: ''
+    };
+
+    const setWalletStatusTone = (element, tone = 'notice') => {
       if (!element) return;
-      element.textContent = message;
-      inlineStatusToneClasses.forEach((cls) => element.classList.remove(cls));
+      element.classList.remove('wallet-status--notice', 'wallet-status--connected', 'wallet-status--error');
       if (tone === 'success') {
-        element.classList.add('inline-status--success');
+        element.classList.add('wallet-status--connected');
       } else if (tone === 'error') {
-        element.classList.add('inline-status--error');
+        element.classList.add('wallet-status--error');
+      } else {
+        element.classList.add('wallet-status--notice');
       }
     };
 
-    const restartAnimation = (element) => {
-      if (!element) return;
-      element.classList.remove('animate');
-      void element.offsetWidth;
-      element.classList.add('animate');
+    const updateSolanaOpenStatus = (message = '', tone = 'notice') => {
+      if (!solanaOpenStatus) return;
+
+      const normalizedMessage = typeof message === 'string' ? message.trim() : '';
+
+      if (!normalizedMessage) {
+        solanaOpenStatus.textContent = '';
+        solanaOpenStatus.hidden = true;
+        solanaOpenStatus.setAttribute('aria-hidden', 'true');
+        solanaOpenStatus.classList.remove('wallet-status--notice', 'wallet-status--connected', 'wallet-status--error');
+        return;
+      }
+
+      solanaOpenStatus.hidden = false;
+      solanaOpenStatus.setAttribute('aria-hidden', 'false');
+      solanaOpenStatus.textContent = message;
+      setWalletStatusTone(solanaOpenStatus, tone);
     };
 
-    const triggerFailureAnimation = () => {
-      if (!failureOverlay) return;
-      const selectors = [
-        '.face-piece',
-        '.face-feature',
-        '.face-shatter-ring',
-        '.comic-text',
-        '.bomb',
-        '.bomb-spark',
-        '.bomb-shadow'
-      ];
-      selectors.forEach((selector) => {
-        failureOverlay.querySelectorAll(selector).forEach(restartAnimation);
+    const setSolanaActionsVisibility = (visible) => {
+      if (!solanaActionsRow) {
+        return;
+      }
+      if (visible) {
+        solanaActionsRow.hidden = false;
+        solanaActionsRow.removeAttribute('aria-hidden');
+      } else {
+        solanaActionsRow.hidden = true;
+        solanaActionsRow.setAttribute('aria-hidden', 'true');
+      }
+    };
+
+    const updateSolanaActionStatus = (message, tone = 'notice') => {
+      if (!solanaActionStatus) return;
+      solanaActionStatus.textContent = message;
+      setWalletStatusTone(solanaActionStatus, tone);
+    };
+
+    const updateSolanaSessionDetails = () => {
+      if (!solanaSessionDetailsElement || !solanaSessionAddressElement) {
+        return;
+      }
+      if (solanaSessionState.publicKey) {
+        solanaSessionDetailsElement.hidden = false;
+        solanaSessionDetailsElement.setAttribute('aria-hidden', 'false');
+        solanaSessionAddressElement.textContent = solanaSessionState.publicKey;
+      } else {
+        solanaSessionDetailsElement.hidden = true;
+        solanaSessionDetailsElement.setAttribute('aria-hidden', 'true');
+        solanaSessionAddressElement.textContent = '';
+      }
+    };
+
+    const updateMeknxSessionDetails = () => {
+      if (!meknxSessionDetailsElement || !meknxSessionAddressElement) {
+        return;
+      }
+      const address = walletAddressInput ? walletAddressInput.value || '' : '';
+      if (meknxModule && !meknxModule.hidden && address) {
+        meknxSessionDetailsElement.hidden = false;
+        meknxSessionDetailsElement.setAttribute('aria-hidden', 'false');
+        meknxSessionAddressElement.textContent = address;
+      } else {
+        meknxSessionDetailsElement.hidden = true;
+        meknxSessionDetailsElement.setAttribute('aria-hidden', 'true');
+        meknxSessionAddressElement.textContent = '';
+      }
+    };
+
+    const syncMeknxModuleVisibility = () => {
+      if (!meknxModule) {
+        return;
+      }
+      const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+      const address = walletAddressInput ? walletAddressInput.value || '' : '';
+      const shouldShow = Boolean(provider && address);
+
+      meknxModule.hidden = !shouldShow;
+      meknxModule.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+
+      if (!shouldShow) {
+        updateMeknxSessionDetails();
+        if (meknxState.status === 'pending') {
+          setInlineStatus(meknxInlineStatus, 'Connect a wallet to start MEKNX clearance.');
+        }
+        meknxModuleStateTracker.visible = false;
+        meknxModuleStateTracker.provider = '';
+        meknxModuleStateTracker.address = '';
+        return;
+      }
+
+      const providerChanged =
+        !meknxModuleStateTracker.visible ||
+        meknxModuleStateTracker.provider !== provider ||
+        meknxModuleStateTracker.address !== address;
+
+      if (providerChanged && meknxState.status === 'pending') {
+        const providerLabel = getWalletProviderLabel(provider);
+        setInlineStatus(meknxInlineStatus, `${providerLabel} wallet connected. Start MEKNX clearance to continue.`);
+      }
+
+      meknxModuleStateTracker.visible = true;
+      meknxModuleStateTracker.provider = provider;
+      meknxModuleStateTracker.address = address;
+
+      updateMeknxSessionDetails();
+    };
+
+    const resetSolanaActionState = () => {
+      if (solanaActionSelect) {
+        solanaActionSelect.value = '';
+      }
+      updateSolanaActionStatus('Select an access card action to continue.');
+    };
+
+    resetSolanaActionState();
+    updateSolanaSessionDetails();
+    updateSolanaOpenStatus('');
+    setSolanaActionsVisibility(false);
+
+    const isSolanaIoncPopupOpen = () =>
+      Boolean(solanaIoncPopup && !solanaIoncPopup.hidden && solanaIoncPopup.classList.contains('is-visible'));
+
+    const openSolanaIoncPopup = () => {
+      if (!solanaIoncPopup || isSolanaIoncPopupOpen()) {
+        return;
+      }
+      solanaIntentActive = true;
+      setSolanaActionsVisibility(true);
+      solanaIoncLastFocus = document.activeElement;
+      solanaIoncPopup.hidden = false;
+      solanaIoncPopup.setAttribute('aria-hidden', 'false');
+      renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = false;
+      }
+      syncIoncModuleVisibility();
+      updateSolanaSessionDetails();
+      if (solanaSessionState.publicKey) {
+        updateSolanaActionStatus('Phantom session active. Select an access card action to continue.');
+        updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
+      } else {
+        updateSolanaActionStatus('Connect Phantom to continue your access card purchase.', 'notice');
+        updateSolanaOpenStatus('Access card panel open. Approve Phantom to continue.', 'notice');
+      }
+      requestAnimationFrame(() => {
+        solanaIoncPopup.classList.add('is-visible');
+        if (typeof solanaIoncPopup.scrollIntoView === 'function') {
+          solanaIoncPopup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const focusTarget =
+          solanaIoncPopup.querySelector('[data-popup-focus]') ||
+          solanaIoncPopup.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusTarget && typeof focusTarget.focus === 'function') {
+          focusTarget.focus({ preventScroll: true });
+        }
       });
-      failureOverlay.classList.remove('is-visible');
-      void failureOverlay.offsetWidth;
-      failureOverlay.classList.add('is-visible');
-      failureOverlay.addEventListener(
-        'animationend',
-        () => {
-          failureOverlay.classList.remove('is-visible');
+    };
+
+    const closeSolanaIoncPopup = ({ restoreFocus = true } = {}) => {
+      if (!solanaIoncPopup || solanaIoncPopup.hidden) {
+        return;
+      }
+
+      solanaIoncPopup.classList.remove('is-visible');
+      solanaIoncPopup.setAttribute('aria-hidden', 'true');
+
+      const finalize = () => {
+        solanaIoncPopup.hidden = true;
+        if (solanaDepositRow) {
+          solanaDepositRow.hidden = true;
+        }
+        const hasSession = Boolean(solanaSessionState.publicKey);
+        if (hasSession) {
+          updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
+        } else {
+          setSolanaActionsVisibility(false);
+          updateSolanaOpenStatus('');
+          solanaIntentActive = false;
+          syncIoncModuleVisibility();
+        }
+        if (restoreFocus && solanaIoncLastFocus && typeof solanaIoncLastFocus.focus === 'function') {
+          solanaIoncLastFocus.focus({ preventScroll: true });
+        }
+        solanaIoncLastFocus = null;
+      };
+
+      const computedStyle = window.getComputedStyle(solanaIoncPopup);
+      const duration = Number.parseFloat(computedStyle.transitionDuration) || 0;
+      const delay = Number.parseFloat(computedStyle.transitionDelay) || 0;
+
+      if (duration + delay > 0) {
+        const handleTransitionEnd = (event) => {
+          if (event.target === solanaIoncPopup) {
+            solanaIoncPopup.removeEventListener('transitionend', handleTransitionEnd);
+            finalize();
+          }
+        };
+        solanaIoncPopup.addEventListener('transitionend', handleTransitionEnd);
+      } else {
+        finalize();
+      }
+    };
+
+    if (solanaIoncCloseButton) {
+      solanaIoncCloseButton.addEventListener('click', () => {
+        closeSolanaIoncPopup();
+      });
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isSolanaIoncPopupOpen()) {
+        closeSolanaIoncPopup();
+      }
+    });
+
+    if (openSolanaActionsButton) {
+      openSolanaActionsButton.addEventListener('click', () => {
+        solanaIntentActive = true;
+        setSolanaActionsVisibility(true);
+        openSolanaIoncPopup();
+        if (solanaSessionState.publicKey) {
+          updateSolanaActionStatus('Phantom session active. Select an access card action to continue.', 'success');
+          updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
+          return;
+        }
+
+        if (phantomButton && phantomButton.disabled) {
+          updateSolanaActionStatus('Awaiting Phantom approval…', 'notice');
+          updateSolanaOpenStatus('Awaiting Phantom approval…', 'notice');
+          return;
+        }
+
+        updateSolanaActionStatus('Requesting Phantom approval…', 'notice');
+        updateSolanaOpenStatus('Requesting Phantom connection…', 'notice');
+        if (phantomButton) {
+          phantomButton.click();
+        }
+      });
+    }
+
+    if (solanaActionSelect) {
+      solanaActionSelect.addEventListener('change', () => {
+        const action = solanaActionSelect.value;
+        if (!action) {
+          updateSolanaActionStatus('Select an access card action to continue.');
+          return;
+        }
+        const selectedOption = solanaActionSelect.options[solanaActionSelect.selectedIndex];
+        const label = selectedOption && selectedOption.textContent ? selectedOption.textContent.trim() : 'action';
+        updateSolanaActionStatus(`Selected: ${label}. Click Continue to proceed.`);
+      });
+    }
+
+    if (solanaActionSubmitButton) {
+      solanaActionSubmitButton.addEventListener('click', () => {
+        const action = solanaActionSelect ? solanaActionSelect.value : '';
+        if (!action) {
+          updateSolanaActionStatus('Select an access card action to continue.', 'error');
+          return;
+        }
+
+        if (!solanaSessionState.publicKey) {
+          updateSolanaActionStatus('Connect Phantom to continue your access card purchase.', 'error');
+          if (phantomButton && !phantomButton.disabled) {
+            updateSolanaOpenStatus('Requesting Phantom connection…', 'notice');
+            phantomButton.click();
+          }
+          return;
+        }
+
+        if (action === 'verify') {
+          if (ioncState.verified) {
+            updateSolanaActionStatus('IONC tokens already verified. Submit to enter the vault.', 'success');
+            return;
+          }
+          if (ioncState.tokens <= 0 && !ioncState.detectionError) {
+            updateSolanaActionStatus(
+              'No IONC tokens detected for this wallet. Mint or deposit IONC before verifying.',
+              'error'
+            );
+            return;
+          }
+          updateSolanaActionStatus('Verifying IONC token with the connected wallet…');
+          if (ioncVerifyButton) {
+            ioncVerifyButton.click();
+          }
+          return;
+        }
+
+        const normalizedAmount = formatSolDepositLabel(syncSolanaAmountSelection());
+        if (solanaDepositRow) {
+          solanaDepositRow.hidden = false;
+        }
+        if (solanaDepositAmountInput && typeof solanaDepositAmountInput.focus === 'function') {
+          solanaDepositAmountInput.focus();
+        }
+
+        if (action === 'purchase') {
+          updateSolanaActionStatus(
+            `Use Purchase ${normalizedAmount} to order your Ioncore Secure Client Access Card. Each order ships a physical card encoded with double IONC.`,
+            'success'
+          );
+        } else {
+          updateSolanaActionStatus('Select an access card action to continue.');
+        }
+      });
+    }
+
+    const CARDANO_WALLET_CANDIDATES = [
+      { key: 'lace', label: 'Lace' },
+      { key: 'daedalus', label: 'Daedalus' },
+      { key: 'eternl', label: 'Eternl' },
+      { key: 'nami', label: 'Nami' },
+      { key: 'flint', label: 'Flint' },
+      { key: 'yoroi', label: 'Yoroi' },
+      { key: 'gerowallet', label: 'GeroWallet' },
+      { key: 'nufi', label: 'NuFi' },
+      { key: 'typhoncip30', label: 'Typhon' }
+    ];
+
+    const detectCardanoWallet = () => {
+      const cardano = window.cardano;
+      if (!cardano) {
+        return null;
+      }
+
+      const orderedCandidates = CARDANO_WALLET_CANDIDATES.slice();
+      if (cardanoState.walletType) {
+        const preferredIndex = orderedCandidates.findIndex((candidate) => candidate.key === cardanoState.walletType);
+        if (preferredIndex > 0) {
+          const [preferred] = orderedCandidates.splice(preferredIndex, 1);
+          orderedCandidates.unshift(preferred);
+        }
+      }
+
+      for (const candidate of orderedCandidates) {
+        const provider = cardano[candidate.key];
+        if (provider && typeof provider.enable === 'function') {
+          return { ...candidate, provider };
+        }
+      }
+
+      return null;
+    };
+
+    const walletValueState = {
+      provider: '',
+      tokenSymbol: '',
+      tokenBalance: 0,
+      usdValue: 0,
+      checkedAt: 0
+    };
+
+    const tokenPriceCache = new Map();
+
+    if (cardanoPolicyInput && !cardanoPolicyInput.value) {
+      cardanoPolicyInput.value = CARDANO_POLICY_ID;
+    }
+
+    let cameraFlashOverlay = document.querySelector('.camera-flash-overlay');
+    if (!cameraFlashOverlay) {
+      cameraFlashOverlay = document.createElement('div');
+      cameraFlashOverlay.className = 'camera-flash-overlay';
+      cameraFlashOverlay.setAttribute('aria-hidden', 'true');
+      if (bodyElement) {
+        bodyElement.appendChild(cameraFlashOverlay);
+      }
+    }
+
+    const triggerCameraFlashEffect = () => {
+      if (!cameraFlashOverlay) {
+        return;
+      }
+      cameraFlashOverlay.classList.add('is-active');
+      window.setTimeout(() => {
+        cameraFlashOverlay.classList.remove('is-active');
+      }, 220);
+    };
+
+    const setInlineStatus = (element, message, tone = 'neutral') => {
+      if (!element) return;
+      element.textContent = message;
+      element.classList.remove(...inlineStatusToneClasses);
+      if (tone === 'error') {
+        element.classList.add('inline-status--error');
+      } else if (tone === 'success') {
+        element.classList.add('inline-status--success');
+      }
+    };
+
+    const resetIoncState = (options = {}) => {
+      ioncState.verified = false;
+      ioncState.tokens = 0;
+      ioncState.holdings = [];
+      ioncState.detectionError = false;
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = '';
+      }
+      renderIoncTokenHoldings([], { showEmpty: false });
+      if (!options.silent) {
+        setInlineStatus(ioncInlineStatus, 'Awaiting verification.');
+      }
+      resetSolanaActionState();
+    };
+
+    const resetCardanoState = (options = {}) => {
+      cardanoState.verified = false;
+      cardanoState.policyId = CARDANO_POLICY_ID;
+      if (!options.keepWalletType) {
+        cardanoState.walletType = '';
+      }
+      if (!options.keepApi) {
+        cardanoState.api = null;
+      }
+      if (cardanoVerifiedInput) {
+        cardanoVerifiedInput.value = '';
+      }
+      if (cardanoPolicyInput && !options.preservePolicyInput) {
+        cardanoPolicyInput.value = CARDANO_POLICY_ID;
+      }
+      if (!options.silent) {
+        setInlineStatus(cardanoInlineStatus, 'Awaiting policy verification.');
+      }
+    };
+
+    const resetMeknxState = (options = {}) => {
+      meknxState.status = 'pending';
+      meknxState.passId = '';
+      meknxState.mintedAt = '';
+      meknxState.walletProvider = walletProviderInput ? walletProviderInput.value : '';
+      meknxState.ioncTokens = 0;
+      if (!options.keepPassId && meknxPassIdInput) {
+        meknxPassIdInput.value = '';
+      }
+      if (!options.silent) {
+        setInlineStatus(meknxInlineStatus, 'MEKNX clearance pending.');
+        if (meknxStatus) {
+          meknxStatus.textContent = 'Awaiting verification.';
+          meknxStatus.classList.remove('wallet-status--connected');
+        }
+      }
+      resetIoncState({ silent: options.silent });
+    };
+
+    const syncIoncModuleVisibility = () => {
+      if (!ioncModule) return;
+      const provider = walletProviderInput ? walletProviderInput.value : '';
+      const shouldShow = provider === 'solana' || solanaIntentActive;
+      ioncModule.hidden = !shouldShow;
+      if (!shouldShow) {
+        resetIoncState();
+        return;
+      }
+
+      if (provider !== 'solana') {
+        setInlineStatus(
+          ioncInlineStatus,
+          'Phantom session pending. Connect your Solana wallet to continue.',
+          'error'
+        );
+        renderIoncTokenHoldings([], { showEmpty: true });
+        return;
+      }
+
+      const tokenTotal = Number.isFinite(ioncState.tokens) ? ioncState.tokens : 0;
+      const formattedTotal = formatTokenAmount(tokenTotal);
+      const tokenLabel = tokenTotal === 1 ? 'token' : 'tokens';
+
+      if (ioncState.verified) {
+        setInlineStatus(
+          ioncInlineStatus,
+          `IONC verification complete. Tokens detected: ${formattedTotal}.`,
+          'success'
+        );
+      } else if (ioncState.detectionError) {
+        setInlineStatus(
+          ioncInlineStatus,
+          'Phantom session active. Unable to auto-detect IONC tokens. Use Verify IONC Token to continue.',
+          'error'
+        );
+      } else if (tokenTotal > 0) {
+        setInlineStatus(
+          ioncInlineStatus,
+          `Detected ${formattedTotal} IONC access ${tokenLabel}. Verify to continue.`
+        );
+      } else {
+        setInlineStatus(ioncInlineStatus, 'Phantom session detected. Verify IONC token to continue.');
+      }
+
+      renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
+    };
+
+    const syncCardanoModuleVisibility = () => {
+      if (!cardanoModule) return;
+
+      const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+      const address = walletAddressInput ? walletAddressInput.value || '' : '';
+      const hasCardanoSession = provider.startsWith('cardano') && Boolean(address);
+      const clearanceStatus = meknxState.status;
+      const clearanceComplete = clearanceStatus === 'verified' || clearanceStatus === 'minted';
+      const shouldShow = hasCardanoSession && clearanceComplete;
+
+      cardanoModule.hidden = !shouldShow;
+      cardanoModule.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+
+      if (!shouldShow) {
+        if (!hasCardanoSession) {
+          resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+          setInlineStatus(cardanoInlineStatus, 'Connect a Cardano wallet to unlock policy verification.');
+        } else if (!clearanceComplete) {
+          setInlineStatus(
+            cardanoInlineStatus,
+            'Complete MEKNX clearance to unlock Cardano policy verification.',
+            'error'
+          );
+        }
+
+        cardanoModuleStateTracker.visible = false;
+        cardanoModuleStateTracker.provider = '';
+        cardanoModuleStateTracker.address = '';
+        cardanoModuleStateTracker.clearanceStatus = clearanceStatus;
+        return;
+      }
+
+      const policyLabel = cardanoState.policyId ? shortenIdentifier(cardanoState.policyId) : 'Ioncore policy';
+
+      if (cardanoState.verified) {
+        setInlineStatus(
+          cardanoInlineStatus,
+          `Cardano policy ${policyLabel} verified. Submit to enter the vault.`,
+          'success'
+        );
+      } else {
+        setInlineStatus(
+          cardanoInlineStatus,
+          `Confirm holdings under policy ${policyLabel} to continue.`
+        );
+      }
+
+      const becameVisible =
+        !cardanoModuleStateTracker.visible ||
+        cardanoModuleStateTracker.provider !== provider ||
+        cardanoModuleStateTracker.address !== address ||
+        cardanoModuleStateTracker.clearanceStatus !== clearanceStatus;
+
+      cardanoModuleStateTracker.visible = true;
+      cardanoModuleStateTracker.provider = provider;
+      cardanoModuleStateTracker.address = address;
+      cardanoModuleStateTracker.clearanceStatus = clearanceStatus;
+
+      if (becameVisible) {
+        if (typeof cardanoModule.scrollIntoView === 'function') {
+          cardanoModule.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (cardanoVerifyButton && typeof cardanoVerifyButton.focus === 'function') {
+          cardanoVerifyButton.focus();
+        }
+      }
+    };
+
+    syncCardanoModuleVisibility();
+
+    const applyMeknxResponse = (data) => {
+      if (!data) return;
+      const normalizedStatus = data.status === 'verified' ? 'verified' : 'minted';
+      meknxState.status = normalizedStatus;
+      meknxState.passId = data.passId || '';
+      meknxState.mintedAt = data.mintedAt || '';
+      meknxState.walletProvider = data.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
+      meknxState.ioncTokens = typeof data.ioncTokens === 'number' ? data.ioncTokens : meknxState.ioncTokens;
+
+      const statusDetail =
+        normalizedStatus === 'verified' ? 'MEKNX verification confirmed.' : 'MEKNX pass minted successfully.';
+      const passSuffix = meknxState.passId ? ` Pass ID: ${meknxState.passId}.` : '';
+      setInlineStatus(
+        meknxInlineStatus,
+        `Access granted. Opening vault… ${statusDetail}${passSuffix}`.trim(),
+        'success'
+      );
+
+      if (meknxStatus) {
+        const shortId = meknxState.passId ? shortenIdentifier(meknxState.passId) : '';
+        const vaultMessage = shortId
+          ? `Access granted. Opening vault… (${shortId})`
+          : 'Access granted. Opening vault…';
+        meknxStatus.textContent = vaultMessage;
+        meknxStatus.classList.add('wallet-status--connected');
+      }
+
+      const isSolanaSession =
+        meknxState.walletProvider === 'solana' || (walletProviderInput && walletProviderInput.value === 'solana');
+
+      const isCardanoSession =
+        (typeof meknxState.walletProvider === 'string' && meknxState.walletProvider.startsWith('cardano')) ||
+        (walletProviderInput && (walletProviderInput.value || '').startsWith('cardano'));
+
+      ioncState.tokens = meknxState.ioncTokens;
+
+      if (isSolanaSession || !ioncState.verified) {
+        syncIoncModuleVisibility();
+      }
+
+      if (typeof data.cardanoPolicyId === 'string' && data.cardanoPolicyId) {
+        cardanoState.policyId = data.cardanoPolicyId;
+        if (cardanoPolicyInput) {
+          cardanoPolicyInput.value = data.cardanoPolicyId;
+        }
+      }
+
+      if (typeof data.cardanoPolicyVerified === 'boolean') {
+        cardanoState.verified = data.cardanoPolicyVerified;
+        if (cardanoVerifiedInput) {
+          cardanoVerifiedInput.value = data.cardanoPolicyVerified ? 'true' : '';
+        }
+      }
+
+      if (isCardanoSession || !cardanoState.verified) {
+        syncCardanoModuleVisibility();
+      }
+    };
+
+    const markIoncVerified = (tokens, holdings = ioncState.holdings) => {
+      ioncState.verified = true;
+      if (Number.isFinite(tokens)) {
+        ioncState.tokens = tokens;
+      }
+      if (Array.isArray(holdings) && holdings.length > 0) {
+        ioncState.holdings = holdings;
+      }
+      ioncState.detectionError = false;
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = 'true';
+      }
+      setInlineStatus(
+        ioncInlineStatus,
+        `IONC verification complete. Tokens detected: ${formatTokenAmount(ioncState.tokens)}.`,
+        'success'
+      );
+      updateSolanaActionStatus('IONC tokens verified. Submit to enter the vault.', 'success');
+      renderIoncTokenHoldings(ioncState.holdings, { showEmpty: true });
+    };
+
+    let audioContext;
+
+    const getAudioContext = () => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        return null;
+      }
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+      }
+      return audioContext;
+    };
+
+    const playFailureBoomSound = (startOffset = 0) => {
+      const context = getAudioContext();
+      if (!context) {
+        return;
+      }
+
+      const now = context.currentTime + Math.max(0, startOffset);
+      const boomDuration = 0.85;
+
+      const masterGain = context.createGain();
+      masterGain.gain.setValueAtTime(0.0001, now);
+      masterGain.gain.exponentialRampToValueAtTime(1.1, now + 0.018);
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
+      masterGain.connect(context.destination);
+
+      const noiseBuffer = context.createBuffer(1, context.sampleRate * boomDuration, context.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i += 1) {
+        noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length);
+      }
+
+      const noiseSource = context.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      const noiseFilter = context.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.setValueAtTime(1000, now);
+      noiseFilter.Q.setValueAtTime(0.8, now);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(masterGain);
+
+      const thumpOscillator = context.createOscillator();
+      thumpOscillator.type = 'sine';
+      thumpOscillator.frequency.setValueAtTime(90, now);
+      thumpOscillator.frequency.exponentialRampToValueAtTime(32, now + boomDuration);
+      const thumpGain = context.createGain();
+      thumpGain.gain.setValueAtTime(0.0001, now);
+      thumpGain.gain.exponentialRampToValueAtTime(0.9, now + 0.02);
+      thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + boomDuration);
+      thumpOscillator.connect(thumpGain);
+      thumpGain.connect(masterGain);
+
+      const snapOscillator = context.createOscillator();
+      snapOscillator.type = 'triangle';
+      snapOscillator.frequency.setValueAtTime(1800, now);
+      snapOscillator.frequency.exponentialRampToValueAtTime(220, now + 0.18);
+      const snapGain = context.createGain();
+      snapGain.gain.setValueAtTime(0.0001, now);
+      snapGain.gain.exponentialRampToValueAtTime(0.7, now + 0.012);
+      snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      snapOscillator.connect(snapGain);
+      snapGain.connect(masterGain);
+
+      noiseSource.start(now);
+      noiseSource.stop(now + boomDuration);
+      thumpOscillator.start(now);
+      thumpOscillator.stop(now + boomDuration);
+      snapOscillator.start(now);
+      snapOscillator.stop(now + 0.25);
+    };
+
+    const playShotgunBlastSound = () => {
+      const context = getAudioContext();
+      if (!context) {
+        playFailureBoomSound();
+        return;
+      }
+
+      const now = context.currentTime;
+      const pumpDuration = 0.32;
+
+      const pumpBuffer = context.createBuffer(1, context.sampleRate * pumpDuration, context.sampleRate);
+      const pumpData = pumpBuffer.getChannelData(0);
+      for (let i = 0; i < pumpData.length; i += 1) {
+        const progress = i / pumpData.length;
+        pumpData[i] = (Math.random() * 2 - 1) * (1 - progress) * (0.55 + 0.45 * Math.sin(progress * Math.PI));
+      }
+
+      const pumpSource = context.createBufferSource();
+      pumpSource.buffer = pumpBuffer;
+      const pumpFilter = context.createBiquadFilter();
+      pumpFilter.type = 'bandpass';
+      pumpFilter.frequency.setValueAtTime(220, now);
+      pumpFilter.frequency.exponentialRampToValueAtTime(140, now + pumpDuration);
+      pumpFilter.Q.setValueAtTime(3, now);
+
+      const pumpGain = context.createGain();
+      pumpGain.gain.setValueAtTime(0.0001, now);
+      pumpGain.gain.exponentialRampToValueAtTime(0.8, now + 0.05);
+      pumpGain.gain.exponentialRampToValueAtTime(0.0001, now + pumpDuration);
+
+      pumpSource.connect(pumpFilter);
+      pumpFilter.connect(pumpGain);
+      pumpGain.connect(context.destination);
+
+      pumpSource.start(now);
+      pumpSource.stop(now + pumpDuration);
+
+      const clackOscillator = context.createOscillator();
+      clackOscillator.type = 'triangle';
+      clackOscillator.frequency.setValueAtTime(2600, now + 0.12);
+      clackOscillator.frequency.exponentialRampToValueAtTime(520, now + 0.26);
+
+      const clackGain = context.createGain();
+      clackGain.gain.setValueAtTime(0.0001, now + 0.12);
+      clackGain.gain.exponentialRampToValueAtTime(0.5, now + 0.16);
+      clackGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+      clackOscillator.connect(clackGain);
+      clackGain.connect(context.destination);
+
+      clackOscillator.start(now + 0.12);
+      clackOscillator.stop(now + 0.34);
+
+      const shellSource = context.createBufferSource();
+      shellSource.buffer = pumpBuffer;
+      shellSource.playbackRate.setValueAtTime(2.2, now + 0.24);
+
+      const shellGain = context.createGain();
+      shellGain.gain.setValueAtTime(0.0001, now + 0.24);
+      shellGain.gain.exponentialRampToValueAtTime(0.35, now + 0.27);
+      shellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+      shellSource.connect(shellGain);
+      shellGain.connect(context.destination);
+
+      shellSource.start(now + 0.24);
+      shellSource.stop(now + 0.44);
+
+      playFailureBoomSound(0.24);
+    };
+
+    const normaliseMeknxToken = (value) => {
+      if (!value) return '';
+      return value.toUpperCase().replace(/[^A-Z0-9-]/g, '').replace(/-{2,}/g, '-');
+    };
+
+    const clearWalletValueState = () => {
+      walletValueState.provider = '';
+      walletValueState.tokenSymbol = '';
+      walletValueState.tokenBalance = 0;
+      walletValueState.usdValue = 0;
+      walletValueState.checkedAt = 0;
+    };
+
+    const sanitizeSolanaAmount = (value = MIN_SOL_DEPOSIT_SOL) => {
+      const numeric =
+        typeof value === 'number'
+          ? value
+          : Number.parseFloat(String(value).replace(/[^0-9.]/g, ''));
+      if (!Number.isFinite(numeric)) {
+        return MIN_SOL_DEPOSIT_SOL;
+      }
+      const clamped = Math.min(Math.max(numeric, MIN_SOL_DEPOSIT_SOL), MAX_SOL_DEPOSIT_SOL);
+      return Number.parseFloat(clamped.toFixed(3));
+    };
+
+    const formatSolDepositLabel = (amount) => {
+      const safeAmount = sanitizeSolanaAmount(amount);
+      return `${safeAmount.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3
+      })} SOL`;
+    };
+
+    const updateSolanaActionButtons = () => {
+      const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
+      if (solanaDepositSendButton) {
+        if (solanaDepositSendButton.dataset.loading !== 'true') {
+          solanaDepositSendButton.textContent = `Purchase ${amountLabel}`;
+        }
+        const hasSession = Boolean(solanaSessionState.publicKey);
+        const isLoading = solanaDepositSendButton.dataset.loading === 'true';
+        solanaDepositSendButton.disabled = !hasSession || isLoading;
+      }
+      if (solanaDepositVerifyButton) {
+        if (solanaDepositVerifyButton.dataset.loading !== 'true') {
+          solanaDepositVerifyButton.textContent = 'Verify Purchase';
+        }
+        const hasSignature = Boolean(solanaDepositState.signature);
+        const isLoading = solanaDepositVerifyButton.dataset.loading === 'true';
+        solanaDepositVerifyButton.disabled = !hasSignature || isLoading;
+      }
+    };
+
+    const clearSolanaSession = () => {
+      solanaSessionState.provider = null;
+      solanaSessionState.publicKey = '';
+      if (solanaDepositSendButton) {
+        delete solanaDepositSendButton.dataset.loading;
+      }
+      if (solanaDepositVerifyButton) {
+        delete solanaDepositVerifyButton.dataset.loading;
+      }
+      updateSolanaActionButtons();
+      updateSolanaSessionDetails();
+      resetSolanaActionState();
+      setSolanaActionsVisibility(false);
+      solanaIntentActive = false;
+      updateSolanaOpenStatus('');
+    };
+
+    const setSolanaSession = (provider, publicKey) => {
+      solanaSessionState.provider = provider || null;
+      solanaSessionState.publicKey = publicKey || '';
+      updateSolanaActionButtons();
+      updateSolanaSessionDetails();
+      updateSolanaActionStatus('Phantom session active. Select an access card action to continue.');
+      if (publicKey) {
+        setSolanaActionsVisibility(true);
+        updateSolanaOpenStatus('Phantom session active. Access card purchasing ready.', 'success');
+      } else {
+        setSolanaActionsVisibility(false);
+        updateSolanaOpenStatus('');
+      }
+    };
+
+    const getSelectedSolanaAmount = () => {
+      if (!solanaDepositAmountInput) {
+        return MIN_SOL_DEPOSIT_SOL;
+      }
+      const sanitized = sanitizeSolanaAmount(solanaDepositAmountInput.value);
+      solanaDepositAmountInput.value = sanitized.toString();
+      return sanitized;
+    };
+
+    const syncSolanaAmountSelection = () => {
+      const sanitized = getSelectedSolanaAmount();
+      const amountChanged = solanaDepositState.amountSol !== sanitized;
+      if (solanaDepositState.completed && amountChanged) {
+        clearSolanaDepositState({ keepVisible: true });
+        solanaDepositState.amountSol = sanitized;
+      } else if (!solanaDepositState.completed) {
+        solanaDepositState.amountSol = sanitized;
+      }
+      if (!solanaDepositState.completed && solanaDepositStatus) {
+        solanaDepositStatus.textContent = `Access card purchase pending. Select ${formatSolDepositLabel(
+          sanitized
+        )} and use Purchase once your Phantom session is active.`;
+        solanaDepositStatus.classList.remove('wallet-status--connected');
+      }
+      updateSolanaActionButtons();
+      return sanitized;
+    };
+
+    const clearSolanaDepositState = ({ keepVisible = isSolanaIoncPopupOpen() } = {}) => {
+      solanaDepositState.signature = '';
+      solanaDepositState.lamports = MIN_SOL_DEPOSIT_LAMPORTS;
+      solanaDepositState.completed = false;
+      solanaDepositState.amountSol = sanitizeSolanaAmount(
+        solanaDepositAmountInput ? solanaDepositAmountInput.value : MIN_SOL_DEPOSIT_SOL
+      );
+      if (solanaDepositSignatureInput) {
+        solanaDepositSignatureInput.value = '';
+      }
+      if (solanaDepositAmountHiddenInput) {
+        solanaDepositAmountHiddenInput.value = '';
+      }
+      if (solanaDepositAmountInput) {
+        solanaDepositAmountInput.value = solanaDepositState.amountSol.toString();
+      }
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = !keepVisible;
+      }
+      if (solanaDepositStatus) {
+        const pendingAmount = formatSolDepositLabel(solanaDepositState.amountSol);
+        solanaDepositStatus.textContent =
+          `Access card purchase pending. Select ${pendingAmount} and use Purchase once your Phantom session is active.`;
+        solanaDepositStatus.classList.remove('wallet-status--connected');
+      }
+      updateSolanaActionButtons();
+    };
+
+    const markSolanaDepositComplete = (
+      signature,
+      lamports = MIN_SOL_DEPOSIT_LAMPORTS,
+      amountSol = solanaDepositState.amountSol
+    ) => {
+      if (!signature) {
+        return;
+      }
+      solanaDepositState.signature = signature;
+      solanaDepositState.lamports = lamports || MIN_SOL_DEPOSIT_LAMPORTS;
+      solanaDepositState.completed = true;
+      const normalizedAmount = sanitizeSolanaAmount(
+        amountSol || solanaDepositState.lamports / (IoncoreSolanaModule?.LAMPORTS_PER_SOL || 1_000_000_000)
+      );
+      solanaDepositState.amountSol = normalizedAmount;
+      if (solanaDepositSignatureInput) {
+        solanaDepositSignatureInput.value = signature;
+      }
+      if (solanaDepositAmountHiddenInput) {
+        solanaDepositAmountHiddenInput.value = normalizedAmount.toString();
+      }
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = false;
+      }
+      if (solanaDepositStatus) {
+        solanaDepositStatus.textContent = `${formatSolDepositLabel(
+          normalizedAmount
+        )} access card purchase submitted. Ref: ${shortenIdentifier(signature)}`;
+        solanaDepositStatus.classList.add('wallet-status--connected');
+      }
+      updateSolanaActionButtons();
+    };
+
+    if (solanaDepositAmountInput) {
+      const refreshAmount = () => {
+        syncSolanaAmountSelection();
+      };
+      ['input', 'change', 'blur'].forEach((eventName) => {
+        solanaDepositAmountInput.addEventListener(eventName, refreshAmount);
+      });
+      refreshAmount();
+    }
+
+    updateSolanaActionButtons();
+
+    const ensureSolanaDeposit = async ({ provider, publicKey }) => {
+      if (!provider || !publicKey) {
+        throw new Error('Phantom provider required to submit the SOL access card purchase.');
+      }
+
+      if (solanaDepositState.completed && solanaDepositState.signature) {
+        return { ...solanaDepositState };
+      }
+
+      if (!IoncoreSolanaModule || typeof IoncoreSolanaModule.requestDeposit !== 'function') {
+        throw new Error('Solana deposit module unavailable. Refresh the page and try again.');
+      }
+
+      const selectedAmount = syncSolanaAmountSelection();
+      const amountLabel = formatSolDepositLabel(selectedAmount);
+      if (solanaDepositRow) {
+        solanaDepositRow.hidden = false;
+      }
+      if (solanaDepositStatus) {
+        solanaDepositStatus.textContent = `Preparing ${amountLabel} access card purchase…`;
+        solanaDepositStatus.classList.remove('wallet-status--connected');
+      }
+
+      try {
+        const receipt = await IoncoreSolanaModule.requestDeposit({
+          provider,
+          fromAddress: publicKey,
+          destinationAddress: SOLANA_TREASURY_ADDRESS,
+          rpcEndpoint: SOLANA_RPC_ENDPOINT,
+          amountSol: selectedAmount,
+          statusElement: solanaDepositStatus,
+          onSignature: (signature, lamports, amount) => {
+            markSolanaDepositComplete(signature, lamports, amount);
+          }
+        });
+
+        return receipt;
+      } catch (error) {
+        if (solanaDepositStatus) {
+          solanaDepositStatus.textContent =
+            error?.message || `Unable to submit the ${amountLabel} access card purchase. Try again shortly.`;
+          solanaDepositStatus.classList.remove('wallet-status--connected');
+        }
+        throw error;
+      }
+    };
+
+    const verifySolanaDeposit = async (signature) => {
+      if (!signature) {
+        throw new Error('Transaction signature required for verification.');
+      }
+
+      if (!IoncoreSolanaModule || typeof IoncoreSolanaModule.verifySignature !== 'function') {
+        throw new Error('Solana verification module unavailable. Refresh the page and try again.');
+      }
+
+      const status = await IoncoreSolanaModule.verifySignature({
+        signature,
+        rpcEndpoint: SOLANA_RPC_ENDPOINT
+      });
+
+      return status;
+    };
+
+    if (solanaDepositSendButton) {
+      solanaDepositSendButton.addEventListener('click', async () => {
+        if (!solanaSessionState.publicKey || !solanaSessionState.provider) {
+          updateStatus('Connect Phantom before authorizing the SOL access card purchase.', 'error');
+          triggerFailureAnimation();
+          return;
+        }
+
+        const amountLabel = formatSolDepositLabel(solanaDepositState.amountSol);
+        solanaDepositSendButton.dataset.loading = 'true';
+        solanaDepositSendButton.disabled = true;
+        solanaDepositSendButton.textContent = 'Purchasing…';
+
+        try {
+          const receipt = await ensureSolanaDeposit({
+            provider: solanaSessionState.provider,
+            publicKey: solanaSessionState.publicKey
+          });
+
+          const signature = receipt?.signature || solanaDepositState.signature;
+          const normalizedAmount = formatSolDepositLabel(
+            receipt && Number.isFinite(receipt.amountSol) ? receipt.amountSol : solanaDepositState.amountSol
+          );
+          const solanaValueMessage =
+            walletValueState.provider === 'solana' && Number.isFinite(walletValueState.usdValue)
+              ? ` SOL value ≈ ${formatUsd(walletValueState.usdValue)}.`
+              : '';
+
+          const confirmationPrompt = signature
+            ? ` ${normalizedAmount} access card purchase submitted (${shortenIdentifier(signature)}).`
+            : ` ${normalizedAmount} access card purchase submitted.`;
+
+          updateStatus(
+            `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the purchase or continue with MEKNX clearance.`,
+            'success'
+          );
+
+          updateSolanaActionStatus(
+            `${normalizedAmount} access card purchase submitted. Verify the purchase or continue with MEKNX clearance.`,
+            'success'
+          );
+
+          setInlineStatus(
+            ioncInlineStatus,
+            signature
+              ? `IONC holdings confirmed. ${normalizedAmount} access card purchase submitted (${shortenIdentifier(
+                  signature
+                )}). Submit to enter the vault.`
+              : `IONC holdings confirmed. ${normalizedAmount} access card purchase submitted. Submit to enter the vault.`,
+            'success'
+          );
+        } catch (error) {
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent =
+              error?.message || `Unable to submit the ${amountLabel} access card purchase. Try again shortly.`;
+            solanaDepositStatus.classList.remove('wallet-status--connected');
+          }
+          updateStatus(error?.message || 'Unable to submit the SOL access card purchase.', 'error');
+          updateSolanaActionStatus(
+            error?.message || `Unable to submit the ${amountLabel} access card purchase. Try again shortly.`,
+            'error'
+          );
+          triggerFailureAnimation();
+        } finally {
+          delete solanaDepositSendButton.dataset.loading;
+          updateSolanaActionButtons();
+        }
+      });
+    }
+
+    if (solanaDepositVerifyButton) {
+      solanaDepositVerifyButton.addEventListener('click', async () => {
+        if (!solanaDepositState.signature) {
+          updateStatus('Complete the SOL access card purchase before verifying it.', 'error');
+          triggerFailureAnimation();
+          return;
+        }
+
+        solanaDepositVerifyButton.dataset.loading = 'true';
+        solanaDepositVerifyButton.disabled = true;
+        solanaDepositVerifyButton.textContent = 'Verifying…';
+
+        if (solanaDepositStatus) {
+          solanaDepositStatus.textContent = 'Confirming access card purchase on Solana…';
+          solanaDepositStatus.classList.remove('wallet-status--connected');
+        }
+
+        try {
+          const status = await verifySolanaDeposit(solanaDepositState.signature);
+          const confirmationLabel = status?.confirmationStatus || 'confirmed';
+          const normalizedAmount = formatSolDepositLabel(solanaDepositState.amountSol);
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent = `${normalizedAmount} access card purchase confirmed (${confirmationLabel}). Ref: ${shortenIdentifier(
+              solanaDepositState.signature
+            )}.`;
+            solanaDepositStatus.classList.add('wallet-status--connected');
+          }
+
+          const solanaValueMessage =
+            walletValueState.provider === 'solana' && Number.isFinite(walletValueState.usdValue)
+              ? ` SOL value ≈ ${formatUsd(walletValueState.usdValue)}.`
+              : '';
+
+          updateStatus(
+            `Phantom purchase verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            'success'
+          );
+
+          updateSolanaActionStatus(
+            `${normalizedAmount} access card purchase verified (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            'success'
+          );
+
+          setInlineStatus(
+            ioncInlineStatus,
+            `IONC holdings confirmed. ${normalizedAmount} access card purchase submitted (${shortenIdentifier(
+              solanaDepositState.signature
+            )}). Submit to enter the vault.`,
+            'success'
+          );
+        } catch (error) {
+          if (solanaDepositStatus) {
+            solanaDepositStatus.textContent =
+              error?.message || 'Unable to verify the SOL access card purchase. Try again shortly.';
+            solanaDepositStatus.classList.remove('wallet-status--connected');
+          }
+          updateStatus(error?.message || 'Unable to verify the SOL access card purchase.', 'error');
+          updateSolanaActionStatus(
+            error?.message || 'Unable to verify the SOL access card purchase. Try again shortly.',
+            'error'
+          );
+          triggerFailureAnimation();
+        } finally {
+          delete solanaDepositVerifyButton.dataset.loading;
+          updateSolanaActionButtons();
+        }
+      });
+    }
+
+    const recordWalletValueState = (provider, tokenSymbol, tokenBalance, usdValue) => {
+      walletValueState.provider = provider;
+      walletValueState.tokenSymbol = tokenSymbol;
+      walletValueState.tokenBalance = tokenBalance;
+      walletValueState.usdValue = usdValue;
+      walletValueState.checkedAt = Date.now();
+      return { ...walletValueState };
+    };
+
+    const waitForWalletInjection = async (detector, { interval = 200, timeout = 2200 } = {}) => {
+      let detected = detector();
+      if (detected) {
+        return detected;
+      }
+
+      const start = Date.now();
+
+      while (Date.now() - start < timeout) {
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, interval);
+        });
+        detected = detector();
+        if (detected) {
+          return detected;
+        }
+      }
+
+      return null;
+    };
+
+    const detectMetaMaskProvider = () => {
+      const { ethereum } = window;
+      if (!ethereum) {
+        return null;
+      }
+
+      if (Array.isArray(ethereum.providers)) {
+        const metamaskProvider = ethereum.providers.find((provider) => provider && provider.isMetaMask);
+        if (metamaskProvider) {
+          return metamaskProvider;
+        }
+      }
+
+      if (ethereum.isMetaMask) {
+        return ethereum;
+      }
+
+      return typeof ethereum.request === 'function' ? ethereum : null;
+    };
+
+    const detectPhantomProvider = () => {
+      if (window.solana && window.solana.isPhantom) {
+        return window.solana;
+      }
+      if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
+        return window.phantom.solana;
+      }
+      return null;
+    };
+
+    const isMobileDevice = () => {
+      if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+        return navigator.userAgentData.mobile;
+      }
+      const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+      return /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini/.test(ua);
+    };
+
+    const openDeepLinkWindow = (url) => {
+      if (!url) {
+        return false;
+      }
+      const opened = window.open(url, '_blank', 'noopener');
+      if (!opened) {
+        window.location.href = url;
+      }
+      return true;
+    };
+
+    const triggerMobileWalletDeepLink = (wallet) => {
+      if (!isMobileDevice()) {
+        return false;
+      }
+
+      const currentUrl = window.location.href;
+      if (!currentUrl) {
+        return false;
+      }
+
+      if (wallet === 'metamask') {
+        const sanitized = currentUrl.replace(/^https?:\/\//i, '');
+        const deepLink = `https://metamask.app.link/dapp/${sanitized}`;
+        return openDeepLinkWindow(deepLink);
+      }
+
+      if (wallet === 'phantom') {
+        const encoded = encodeURIComponent(currentUrl);
+        const deepLink = `https://phantom.app/ul/v1/open-app?app_url=${encoded}`;
+        return openDeepLinkWindow(deepLink);
+      }
+
+      return false;
+    };
+
+    const hexToBytes = (hex) => {
+      if (typeof hex !== 'string') {
+        throw new Error('Invalid Cardano balance payload.');
+      }
+      const cleaned = hex.startsWith('0x') ? hex.slice(2) : hex;
+      if (cleaned.length % 2 !== 0) {
+        throw new Error('Malformed Cardano balance payload.');
+      }
+      const bytes = new Uint8Array(cleaned.length / 2);
+      for (let i = 0; i < cleaned.length; i += 2) {
+        bytes[i / 2] = Number.parseInt(cleaned.slice(i, i + 2), 16);
+      }
+      return bytes;
+    };
+
+    const readCborLength = (bytes, offset, additionalInfo) => {
+      if (additionalInfo < 24) {
+        return { value: BigInt(additionalInfo), offset };
+      }
+      const byteLengths = {
+        24: 1,
+        25: 2,
+        26: 4,
+        27: 8
+      };
+      const lengthBytes = byteLengths[additionalInfo];
+      if (!lengthBytes) {
+        throw new Error('Unsupported CBOR length descriptor.');
+      }
+      if (offset + lengthBytes > bytes.length) {
+        throw new Error('Unexpected end of CBOR payload.');
+      }
+      let value = 0n;
+      for (let i = 0; i < lengthBytes; i += 1) {
+        value = (value << 8n) + BigInt(bytes[offset + i]);
+      }
+      return { value, offset: offset + lengthBytes };
+    };
+
+    const decodeCborValue = (bytes, startOffset = 0) => {
+      if (startOffset >= bytes.length) {
+        throw new Error('Unexpected end of CBOR payload.');
+      }
+      const initialByte = bytes[startOffset];
+      const majorType = initialByte >> 5;
+      const additionalInfo = initialByte & 0x1f;
+      let offset = startOffset + 1;
+
+      if (majorType === 0) {
+        const { value, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        return { value, offset: nextOffset };
+      }
+
+      if (majorType === 1) {
+        const { value, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        return { value: -1n - value, offset: nextOffset };
+      }
+
+      if (majorType === 2 || majorType === 3) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber) || nextOffset + lengthNumber > bytes.length) {
+          throw new Error('Invalid CBOR byte/string length.');
+        }
+        const slice = bytes.slice(nextOffset, nextOffset + lengthNumber);
+        const value =
+          majorType === 3
+            ? typeof TextDecoder !== 'undefined'
+              ? new TextDecoder().decode(slice)
+              : String.fromCharCode(...slice)
+            : slice;
+        return { value, offset: nextOffset + lengthNumber };
+      }
+
+      if (majorType === 4) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber)) {
+          throw new Error('CBOR array too large.');
+        }
+        const result = [];
+        let innerOffset = nextOffset;
+        for (let i = 0; i < lengthNumber; i += 1) {
+          const decoded = decodeCborValue(bytes, innerOffset);
+          result.push(decoded.value);
+          innerOffset = decoded.offset;
+        }
+        return { value: result, offset: innerOffset };
+      }
+
+      if (majorType === 5) {
+        const { value: length, offset: nextOffset } = readCborLength(bytes, offset, additionalInfo);
+        const lengthNumber = Number(length);
+        if (!Number.isSafeInteger(lengthNumber)) {
+          throw new Error('CBOR map too large.');
+        }
+        const result = new Map();
+        let innerOffset = nextOffset;
+        for (let i = 0; i < lengthNumber; i += 1) {
+          const key = decodeCborValue(bytes, innerOffset);
+          const value = decodeCborValue(bytes, key.offset);
+          result.set(key.value, value.value);
+          innerOffset = value.offset;
+        }
+        return { value: result, offset: innerOffset };
+      }
+
+      throw new Error('Unsupported CBOR data type encountered.');
+    };
+
+    const extractCardanoLovelace = (hexBalance) => {
+      const bytes = hexToBytes(hexBalance);
+      const decoded = decodeCborValue(bytes);
+      const payload = decoded.value;
+      if (typeof payload === 'bigint') {
+        return payload;
+      }
+      if (Array.isArray(payload) && payload.length > 0 && typeof payload[0] === 'bigint') {
+        return payload[0];
+      }
+      throw new Error('Unsupported Cardano balance format.');
+    };
+
+    const fetchTokenPriceUsd = async (tokenId) => {
+      const cached = tokenPriceCache.get(tokenId);
+      const now = Date.now();
+      if (cached && now - cached.timestamp < 60000) {
+        return cached.price;
+      }
+
+      const response = await fetch(`${TOKEN_PRICE_ENDPOINT}?ids=${encodeURIComponent(tokenId)}&vs_currencies=usd`);
+      if (!response.ok) {
+        throw new Error(`Unable to retrieve ${tokenId.toUpperCase()} price data.`);
+      }
+      const data = await response.json();
+      const price = Number(data?.[tokenId]?.usd);
+      if (!Number.isFinite(price)) {
+        throw new Error(`USD price unavailable for ${tokenId.toUpperCase()}.`);
+      }
+      tokenPriceCache.set(tokenId, { price, timestamp: now });
+      return price;
+    };
+
+    const getSolanaBalanceLamports = async (publicKey) => {
+      try {
+        const response = await fetch(SOLANA_RPC_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'solana-balance-check',
+            method: 'getBalance',
+            params: [publicKey]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Solana RPC responded with ${response.status}.`);
+        }
+
+        const data = await response.json();
+        const lamports = data?.result?.value;
+        if (!Number.isFinite(lamports)) {
+          throw new Error('Invalid SOL balance response.');
+        }
+        return lamports;
+      } catch (error) {
+        console.warn('Unable to automatically retrieve SOL balance.', error);
+        return null;
+      }
+    };
+
+    const getCardanoBalanceLovelace = async (api) => {
+      if (!api || typeof api.getBalance !== 'function') {
+        throw new Error('Connected Cardano wallet does not expose balance queries.');
+      }
+      const balanceHex = await api.getBalance();
+      if (!balanceHex) {
+        throw new Error('No Cardano balance data returned.');
+      }
+      return extractCardanoLovelace(balanceHex);
+    };
+
+    const ensureWalletUsdValue = async ({
+      provider,
+      address,
+      api,
+      statusElement,
+      walletLabel = ''
+    }) => {
+      const normalizedProvider = provider || '';
+
+      if (normalizedProvider === 'solana') {
+        if (statusElement) {
+          statusElement.textContent = 'Assessing SOL balance value…';
+        }
+        const lamports = await getSolanaBalanceLamports(address);
+        if (!Number.isFinite(lamports)) {
+          if (statusElement) {
+            statusElement.textContent = 'Phantom wallet connected. SOL balance unavailable right now.';
+            statusElement.classList.add('wallet-status--connected');
+          }
+          return null;
+        }
+        const solBalance = lamports / 1_000_000_000;
+        const solPrice = await fetchTokenPriceUsd('solana');
+        const usdValue = solBalance * solPrice;
+        if (usdValue < MIN_WALLET_VALUE_USD) {
+          throw new Error(
+            `SOL holdings below ${formatUsd(MIN_WALLET_VALUE_USD)}. Increase your balance to continue.`
+          );
+        }
+        const snapshot = recordWalletValueState('solana', 'SOL', solBalance, usdValue);
+        if (statusElement) {
+          statusElement.textContent = `SOL balance ≈ ${formatTokenAmount(solBalance)} (${formatUsd(usdValue)})`;
+        }
+        return snapshot;
+      }
+
+      if (normalizedProvider.startsWith('cardano')) {
+        if (statusElement) {
+          statusElement.textContent = 'Assessing ADA balance value…';
+        }
+        const lovelace = await getCardanoBalanceLovelace(api);
+        const adaBalance = Number(lovelace) / 1_000_000;
+        const adaPrice = await fetchTokenPriceUsd('cardano');
+        const usdValue = adaBalance * adaPrice;
+        if (usdValue < MIN_WALLET_VALUE_USD) {
+          const label = walletLabel || 'Cardano';
+          throw new Error(
+            `${label} holdings below ${formatUsd(MIN_WALLET_VALUE_USD)}. Increase your ADA balance to continue.`
+          );
+        }
+        const snapshot = recordWalletValueState(normalizedProvider, 'ADA', adaBalance, usdValue);
+        if (statusElement) {
+          const label = walletLabel || 'Cardano';
+          statusElement.textContent = `${label} balance ≈ ${formatTokenAmount(adaBalance)} ADA (${formatUsd(usdValue)})`;
+        }
+        return snapshot;
+      }
+
+      clearWalletValueState();
+      return null;
+    };
+
+    const resetWalletIndicators = () => {
+      if (metamaskStatus) {
+        metamaskStatus.textContent = 'Not connected.';
+        metamaskStatus.classList.remove('wallet-status--connected');
+      }
+      if (phantomStatus) {
+        phantomStatus.textContent = 'Not connected.';
+        phantomStatus.classList.remove('wallet-status--connected');
+      }
+      if (cardanoStatus) {
+        cardanoStatus.textContent = 'Not connected.';
+        cardanoStatus.classList.remove('wallet-status--connected');
+      }
+      if (walletAddressInput) {
+        walletAddressInput.value = '';
+      }
+      if (walletProviderInput) {
+        walletProviderInput.value = '';
+      }
+      solanaIntentActive = false;
+      clearWalletValueState();
+      clearSolanaDepositState();
+      clearSolanaSession();
+      resetMeknxState();
+      syncMeknxModuleVisibility();
+      syncIoncModuleVisibility();
+      resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
+      syncCardanoModuleVisibility();
+      setSolanaActionsVisibility(false);
+      updateSolanaOpenStatus('');
+      if (isSolanaIoncPopupOpen()) {
+        closeSolanaIoncPopup({ restoreFocus: false });
+      }
+    };
+
+    const checkIonCTokenBalance = async (publicKey) => {
+      if (!publicKey) {
+        return { hasToken: false, accounts: [] };
+      }
+
+      const response = await fetch(SOLANA_RPC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
-        { once: true }
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'ionc-token-check',
+          method: 'getTokenAccountsByOwner',
+          params: [
+            publicKey,
+            { mint: IONC_TOKEN_MINT },
+            { encoding: 'jsonParsed' }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network error verifying IONC token.');
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error?.message || 'RPC error verifying IONC token.');
+      }
+
+      const rawAccounts = Array.isArray(data?.result?.value) ? data.result.value : [];
+      const accounts = rawAccounts
+        .map((entry) => {
+          const info = entry?.account?.data?.parsed?.info || {};
+          const tokenAmount = info?.tokenAmount || {};
+          let amount = tokenAmount.uiAmount;
+          if (!Number.isFinite(amount)) {
+            amount = Number.parseFloat(tokenAmount.uiAmountString || tokenAmount.amount || '0');
+          }
+          return {
+            accountAddress: entry?.pubkey || info?.address || info?.owner || '',
+            mint: info?.mint || IONC_TOKEN_MINT,
+            amount: Number.isFinite(amount) ? amount : 0,
+            rawAmount: tokenAmount?.amount || '0',
+            decimals: Number.parseInt(tokenAmount?.decimals, 10) || 0
+          };
+        })
+        .filter((entry) => Number.isFinite(entry.amount) && entry.amount > 0);
+
+      return {
+        hasToken: accounts.length > 0,
+        accounts
+      };
+    };
+
+    const enforceIoncRequirement = async (publicKey) => {
+      if (!publicKey) {
+        throw new Error('No wallet account returned.');
+      }
+
+      const { hasToken, accounts } = await checkIonCTokenBalance(publicKey);
+
+      if (!hasToken) {
+        ioncState.holdings = [];
+        ioncState.tokens = 0;
+        renderIoncTokenHoldings([], { showEmpty: true });
+        if (ioncVerifiedInput) {
+          ioncVerifiedInput.value = '';
+        }
+        throw new Error('No IONC token holdings detected. Acquire IONC to continue.');
+      }
+
+      const totalTokens = accounts.reduce((sum, entry) => {
+        const value = Number.isFinite(entry.amount) ? entry.amount : 0;
+        return sum + value;
+      }, 0);
+
+      ioncState.tokens = totalTokens;
+      ioncState.holdings = accounts;
+      renderIoncTokenHoldings(accounts, { showEmpty: true });
+      syncIoncModuleVisibility();
+
+      if (ioncVerifiedInput) {
+        ioncVerifiedInput.value = 'true';
+      }
+
+      return { hasToken, accounts, total: totalTokens };
+    };
+
+    const connectCardanoWallet = (button, statusElement) => {
+      if (!button) return;
+      const originalLabel = button.textContent;
+
+      button.addEventListener('click', async () => {
+        solanaIntentActive = false;
+        syncIoncModuleVisibility();
+        const wallet = await waitForWalletInjection(detectCardanoWallet, { timeout: 2800, interval: 220 });
+        const walletLabel = wallet ? wallet.label : 'Cardano';
+        updateStatus(`Requesting ${walletLabel} session…`);
+        button.disabled = true;
+        button.textContent = 'Connecting…';
+
+        try {
+          if (!wallet) {
+            throw new Error(
+              'No supported Cardano wallets detected on this device. Open Lace, Nami, Eternl, or another CIP-30 wallet and try again.'
+            );
+          }
+
+          const { key: walletKey, provider } = wallet;
+          const api = await provider.enable();
+          if (!api) {
+            throw new Error(`Unable to establish a ${walletLabel} wallet session.`);
+          }
+
+          if (typeof api.getNetworkId === 'function') {
+            const networkId = await api.getNetworkId();
+            if (networkId !== 1) {
+              throw new Error('Switch your wallet to Cardano mainnet before connecting.');
+            }
+          }
+
+          let addresses = [];
+          if (typeof api.getUsedAddresses === 'function') {
+            addresses = await api.getUsedAddresses();
+          }
+          if ((!addresses || addresses.length === 0) && typeof api.getUnusedAddresses === 'function') {
+            addresses = await api.getUnusedAddresses();
+          }
+
+          const accountAddress = Array.isArray(addresses) && addresses.length ? addresses[0] : '';
+          if (!accountAddress) {
+            throw new Error('No wallet address returned. Ensure the wallet has an active account.');
+          }
+
+          if (walletAddressInput) {
+            walletAddressInput.value = accountAddress;
+          }
+          if (walletProviderInput) {
+            walletProviderInput.value = `cardano-${walletKey}`;
+          }
+          if (cardanoPolicyInput) {
+            cardanoPolicyInput.value = CARDANO_POLICY_ID;
+          }
+          if (cardanoVerifiedInput) {
+            cardanoVerifiedInput.value = '';
+          }
+
+          cardanoState.walletType = walletKey;
+          cardanoState.api = api;
+          cardanoState.policyId = CARDANO_POLICY_ID;
+          cardanoState.verified = false;
+
+          const cardanoValueSnapshot = await ensureWalletUsdValue({
+            provider: `cardano-${walletKey}`,
+            address: accountAddress,
+            api,
+            statusElement,
+            walletLabel
+          });
+
+          resetMeknxState();
+          syncIoncModuleVisibility();
+          syncCardanoModuleVisibility();
+          indicateWalletConnection(`cardano-${walletKey}`, accountAddress, walletLabel);
+          syncMeknxModuleVisibility();
+          if (isSolanaIoncPopupOpen()) {
+            closeSolanaIoncPopup({ restoreFocus: false });
+          }
+
+          const continuationMessage =
+            meknxState.status === 'verified' || meknxState.status === 'minted'
+              ? ' Verify the Cardano policy to continue.'
+              : ' Complete MEKNX clearance then verify the Cardano policy.';
+          const cardanoValueMessage = cardanoValueSnapshot
+            ? ` ADA value ≈ ${formatUsd(cardanoValueSnapshot.usdValue)}.`
+            : '';
+          updateStatus(
+            `${walletLabel} session established.${cardanoValueMessage}${continuationMessage}`,
+            'success'
+          );
+        } catch (error) {
+          resetWalletIndicators();
+          const message = error?.message || 'Unable to connect to the Cardano wallet. Try again.';
+          if (statusElement) {
+            statusElement.textContent = message;
+          }
+          updateStatus(message, 'error');
+          triggerFailureAnimation();
+        } finally {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        }
+      });
+    };
+
+    const verifyMeknxToken = async (rawToken) => {
+      const formatted = normaliseMeknxToken(rawToken);
+
+      if (!formatted) {
+        throw new Error('Enter your MEKNX access token before verifying.');
+      }
+
+      if (!formatted.startsWith('MEKNX')) {
+        throw new Error('MEKNX token must begin with "MEKNX".');
+      }
+
+      if (formatted.length < 12) {
+        throw new Error('MEKNX token format is too short to be valid.');
+      }
+
+      await new Promise((resolve) => {
+        window.setTimeout(resolve, 650);
+      });
+
+      return formatted;
+    };
+
+    const indicateWalletConnection = (providerLabel, address, cardanoLabel = '') => {
+      const formatted = shortenIdentifier(address);
+      const balanceSuffix =
+        walletValueState.provider === providerLabel && walletValueState.tokenSymbol
+          ? ` • ${walletValueState.tokenSymbol} ≈ ${formatTokenAmount(walletValueState.tokenBalance)} (${formatUsd(
+              walletValueState.usdValue
+            )})`
+          : '';
+      if (providerLabel === 'evm') {
+        if (metamaskStatus) {
+          metamaskStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
+          metamaskStatus.classList.add('wallet-status--connected');
+        }
+        if (phantomStatus) {
+          phantomStatus.textContent = 'Not connected.';
+          phantomStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          cardanoStatus.textContent = 'Not connected.';
+          cardanoStatus.classList.remove('wallet-status--connected');
+        }
+        clearSolanaDepositState();
+        clearSolanaSession();
+      } else if (providerLabel === 'solana') {
+        if (phantomStatus) {
+          phantomStatus.textContent = `Connected: ${formatted}${balanceSuffix}`;
+          phantomStatus.classList.add('wallet-status--connected');
+        }
+        if (metamaskStatus) {
+          metamaskStatus.textContent = 'Not connected.';
+          metamaskStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          cardanoStatus.textContent = 'Not connected.';
+          cardanoStatus.classList.remove('wallet-status--connected');
+        }
+        if (solanaDepositState.completed && solanaDepositState.signature) {
+          markSolanaDepositComplete(
+            solanaDepositState.signature,
+            solanaDepositState.lamports,
+            solanaDepositState.amountSol
+          );
+        } else {
+          if (solanaDepositRow) {
+            solanaDepositRow.hidden = false;
+          }
+          if (solanaDepositStatus) {
+            const pendingLabel = formatSolDepositLabel(solanaDepositState.amountSol);
+            solanaDepositStatus.textContent = `Access card purchase pending. Purchase the ${pendingLabel} allocation from this panel.`;
+            solanaDepositStatus.classList.remove('wallet-status--connected');
+          }
+        }
+      } else if (providerLabel && providerLabel.startsWith('cardano')) {
+        if (metamaskStatus) {
+          metamaskStatus.textContent = 'Not connected.';
+          metamaskStatus.classList.remove('wallet-status--connected');
+        }
+        if (phantomStatus) {
+          phantomStatus.textContent = 'Not connected.';
+          phantomStatus.classList.remove('wallet-status--connected');
+        }
+        if (cardanoStatus) {
+          const resolvedLabel =
+            cardanoLabel ||
+            (providerLabel === 'cardano-lace'
+              ? 'Lace'
+              : providerLabel === 'cardano-daedalus'
+              ? 'Daedalus'
+              : 'Cardano');
+          cardanoStatus.textContent = `Connected (${resolvedLabel}): ${formatted}${balanceSuffix}`;
+          cardanoStatus.classList.add('wallet-status--connected');
+        }
+        clearSolanaDepositState();
+        clearSolanaSession();
+      }
+    };
+
+    const updateStatus = (message, tone = 'neutral') => {
+      if (!status) return;
+      status.textContent = message;
+      status.classList.remove('status-message--error', 'status-message--success');
+      if (tone === 'error') {
+        status.classList.add('status-message--error');
+      }
+      if (tone === 'success') {
+        status.classList.add('status-message--success');
+      }
+    };
+
+    const healthBar = document.querySelector('.health-bar');
+    const healthStatusElement = document.getElementById('health-status');
+    const healthCountElement = document.querySelector('.health-count');
+    const heartElements = healthBar ? Array.from(healthBar.querySelectorAll('.health-heart')) : [];
+    const lockdownOverlay = document.querySelector('.lockdown-overlay');
+    const MAX_HEARTS = heartElements.length;
+    let remainingHearts = MAX_HEARTS;
+    let isLockdownActive = false;
+    let lockdownResetTimeoutId;
+    let lockdownHideTimeoutId;
+    const LOCKDOWN_RESET_DELAY = 2200;
+    const LOCKDOWN_HIDE_DELAY = 3400;
+
+    const updateHealthStatus = (overrideMessage) => {
+      if (!MAX_HEARTS) {
+        return;
+      }
+      const safeRemaining = Math.max(remainingHearts, 0);
+      const message =
+        typeof overrideMessage === 'string'
+          ? overrideMessage
+          : `Security hearts remaining: ${safeRemaining} of ${MAX_HEARTS}.`;
+      if (healthStatusElement) {
+        healthStatusElement.textContent = message;
+      }
+      if (healthCountElement) {
+        healthCountElement.textContent = `${safeRemaining}/${MAX_HEARTS}`;
+      }
+    };
+
+    const resetHealthHearts = (options = {}) => {
+      if (!heartElements.length) {
+        return;
+      }
+      remainingHearts = MAX_HEARTS;
+      heartElements.forEach((heart) => {
+        heart.classList.remove('is-depleted', 'is-popped');
+      });
+      if (healthBar) {
+        healthBar.classList.remove('is-critical');
+      }
+      updateHealthStatus(
+        options.announce
+          ? `Security hearts restored. ${MAX_HEARTS} of ${MAX_HEARTS} available.`
+          : undefined
       );
     };
 
-    const updateStatus = (message, tone) => {
-      if (!status) return;
-      status.textContent = message;
+    const triggerLockdownReset = () => {
+      if (!MAX_HEARTS) {
+        return;
+      }
+      if (!lockdownOverlay) {
+        resetHealthHearts({ announce: true });
+        return;
+      }
+      if (isLockdownActive) {
+        return;
+      }
+      isLockdownActive = true;
+      lockdownOverlay.classList.add('is-active');
+      window.clearTimeout(lockdownResetTimeoutId);
+      window.clearTimeout(lockdownHideTimeoutId);
 
-      status.classList.remove('status-message--notice', 'status-message--success', 'status-message--error');
-      if (tone === 'success') {
-        status.classList.add('status-message--success');
-      } else if (tone === 'error') {
-        status.classList.add('status-message--error');
+      lockdownResetTimeoutId = window.setTimeout(() => {
+        resetHealthHearts({ announce: true });
+      }, LOCKDOWN_RESET_DELAY);
+
+      lockdownHideTimeoutId = window.setTimeout(() => {
+        lockdownOverlay.classList.remove('is-active');
+        isLockdownActive = false;
+      }, LOCKDOWN_HIDE_DELAY);
+    };
+
+    const registerFailureHeart = () => {
+      if (!heartElements.length) {
+        return;
+      }
+      if (remainingHearts <= 0) {
+        triggerLockdownReset();
+        return;
+      }
+
+      const heartIndex = remainingHearts - 1;
+      const heart = heartElements[heartIndex];
+      remainingHearts -= 1;
+
+      if (heart) {
+        heart.classList.add('is-depleted');
+        heart.classList.remove('is-popped');
+        void heart.offsetWidth;
+        heart.classList.add('is-popped');
+      }
+
+      if (remainingHearts > 0) {
+        updateHealthStatus();
       } else {
-        status.classList.add('status-message--notice');
+        if (healthBar) {
+          healthBar.classList.add('is-critical');
+        }
+        updateHealthStatus('Security hearts depleted. Countermeasures engaging.');
+        window.setTimeout(() => {
+          triggerLockdownReset();
+        }, 900);
       }
     };
 
+    if (MAX_HEARTS > 0) {
+      updateHealthStatus();
+    }
+
+    const triggerFailureAnimation = () => {
+      if (!failureOverlay) return;
+
+      const restartAnimation = (element) => {
+        if (!element) return;
+        element.style.animation = 'none';
+        void element.offsetWidth;
+        element.style.animation = '';
+      };
+
+      const animatedSelectors = [
+        '.bomb',
+        '.bomb-fuse',
+        '.bomb-spark',
+        '.bomb-shadow',
+        '.face-piece',
+        '.face-feature',
+        '.face-shatter-ring',
+        '.comic-text'
+      ];
+
+      animatedSelectors.forEach((selector) => {
+        failureOverlay.querySelectorAll(selector).forEach(restartAnimation);
+      });
+
+      failureOverlay.classList.remove('is-visible');
+      void failureOverlay.offsetWidth;
+      failureOverlay.classList.add('is-visible');
+      triggerCameraFlashEffect();
+      playShotgunBlastSound();
+      registerFailureHeart();
+      setTimeout(() => {
+        failureOverlay.classList.remove('is-visible');
+      }, 2200);
+    };
+
     if (form && status) {
+      if (meknxPasscodeInput) {
+        meknxPasscodeInput.addEventListener('input', (event) => {
+          const target = event.target;
+          const normalised = normaliseMeknxToken(target.value);
+          if (target.value !== normalised) {
+            target.value = normalised;
+          }
+          if (meknxPassIdInput && meknxPassIdInput.value && normalised !== meknxPassIdInput.value) {
+            meknxPassIdInput.value = '';
+            if (meknxStatus) {
+              meknxStatus.textContent = 'Awaiting verification.';
+              meknxStatus.classList.remove('wallet-status--connected');
+            }
+          }
+        });
+      }
+
+      let activeMode = 'credentials';
+
+      const setMode = (mode, force = false) => {
+        if (!force && mode === activeMode) {
+          return;
+        }
+
+        activeMode = mode;
+
+        modeButtons.forEach((button) => {
+          const isActive = button.dataset.mode === mode;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        panels.forEach((panel) => {
+          if (panel.dataset.mode === mode) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', 'hidden');
+          }
+        });
+
+        if (activeMode === 'credentials') {
+          if (usernameInput) usernameInput.required = true;
+          if (passwordInput) passwordInput.required = true;
+        } else {
+          if (usernameInput) usernameInput.required = false;
+          if (passwordInput) passwordInput.required = false;
+
+          if (activeMode === 'wallet') {
+            if (!walletAddressInput || !walletAddressInput.value) {
+              resetWalletIndicators();
+            } else {
+              syncMeknxModuleVisibility();
+              syncIoncModuleVisibility();
+              syncCardanoModuleVisibility();
+            }
+          } else if (activeMode === 'meknx') {
+            if (!meknxPassIdInput || !meknxPassIdInput.value) {
+              resetMeknxState();
+              syncMeknxModuleVisibility();
+            }
+          }
+        }
+
+        const hasFeedbackTone =
+          status.classList.contains('status-message--error') ||
+          status.classList.contains('status-message--success');
+
+        if (!status.textContent || (!hasFeedbackTone && !force)) {
+          if (activeMode === 'wallet') {
+            updateStatus('Link MetaMask, Phantom, or a Cardano wallet to request vault entry.');
+          } else if (activeMode === 'credentials') {
+            updateStatus('Authenticate with your assigned access key.');
+          } else if (activeMode === 'meknx') {
+            updateStatus('Verify your MEKNX credential or mint a new one to continue.');
+          }
+        }
+      };
+
+      modeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const mode = button.dataset.mode;
+          if (mode) {
+            setMode(mode);
+          }
+        });
+      });
+
+      if (meknxVerifyButton) {
+        meknxVerifyButton.addEventListener('click', async () => {
+          if (!meknxPasscodeInput) {
+            return;
+          }
+
+          meknxVerifyButton.disabled = true;
+          meknxVerifyButton.textContent = 'Verifying…';
+          updateStatus('Validating MEKNX credential…');
+
+          try {
+            const verifiedToken = await verifyMeknxToken(meknxPasscodeInput.value);
+            if (meknxPassIdInput) {
+              meknxPassIdInput.value = verifiedToken;
+            }
+            if (meknxStatus) {
+              meknxStatus.textContent = `Access granted. Opening vault… (${shortenIdentifier(verifiedToken)})`;
+              meknxStatus.classList.add('wallet-status--connected');
+            }
+            updateStatus('Access granted. Opening vault… Submit to enter.', 'success');
+          } catch (error) {
+            if (meknxPassIdInput) {
+              meknxPassIdInput.value = '';
+            }
+            if (meknxStatus) {
+              const message = error?.message || 'Unable to verify MEKNX token.';
+              meknxStatus.textContent = message;
+              meknxStatus.classList.remove('wallet-status--connected');
+            }
+            updateStatus(error?.message || 'Unable to verify MEKNX token.', 'error');
+            triggerFailureAnimation();
+          } finally {
+            meknxVerifyButton.disabled = false;
+            meknxVerifyButton.textContent = 'Verify Token';
+          }
+        });
+      }
+
+      if (meknxMintButton) {
+        meknxMintButton.addEventListener('click', () => {
+          const mintUrl = 'https://meknx.com/mint/ioncore-access';
+          window.open(mintUrl, '_blank', 'noopener');
+          updateStatus('MEKNX minting portal opened in a new tab. Complete minting then verify your token.');
+        });
+      }
+
+      if (metamaskButton) {
+        metamaskButton.addEventListener('click', async () => {
+          solanaIntentActive = false;
+          syncIoncModuleVisibility();
+          updateStatus('Requesting MetaMask session…');
+          metamaskButton.disabled = true;
+          metamaskButton.textContent = 'Connecting…';
+
+          try {
+            let provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 2800, interval: 220 });
+
+            if (!provider) {
+              const openedMobileLink = triggerMobileWalletDeepLink('metamask');
+              if (openedMobileLink) {
+                if (metamaskStatus) {
+                  metamaskStatus.textContent = 'Opening MetaMask app… return here after approving the session.';
+                }
+                updateStatus('Launching MetaMask. Approve the connection in-app, then return to the browser.');
+                provider = await waitForWalletInjection(detectMetaMaskProvider, { timeout: 7200, interval: 260 });
+              }
+            }
+
+            if (!provider) {
+              throw new Error(
+                'MetaMask not detected on this device. Unlock MetaMask or open the MetaMask app, then try again.'
+              );
+            }
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            const account = accounts && accounts[0];
+            if (!account) {
+              throw new Error('No wallet account returned.');
+            }
+            if (walletAddressInput) {
+              walletAddressInput.value = account;
+            }
+            if (walletProviderInput) {
+              walletProviderInput.value = 'evm';
+            }
+            clearWalletValueState();
+            clearSolanaDepositState();
+            resetMeknxState();
+            syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
+            indicateWalletConnection('evm', account);
+            syncMeknxModuleVisibility();
+            if (isSolanaIoncPopupOpen()) {
+              closeSolanaIoncPopup({ restoreFocus: false });
+            }
+            updateStatus('Wallet channel established. Run MEKNX clearance to continue.', 'success');
+          } catch (error) {
+            resetWalletIndicators();
+            const message = error?.message || 'MetaMask connection failed. Try again.';
+            if (metamaskStatus) {
+              metamaskStatus.textContent = message;
+            }
+            updateStatus(message, 'error');
+            triggerFailureAnimation();
+          } finally {
+            metamaskButton.disabled = false;
+            metamaskButton.textContent = 'Connect MetaMask';
+          }
+        });
+      }
+
+      if (phantomButton) {
+        phantomButton.addEventListener('click', async () => {
+          solanaIntentActive = false;
+          setSolanaActionsVisibility(false);
+          syncIoncModuleVisibility();
+          updateStatus('Requesting Phantom session…');
+          updateSolanaOpenStatus('Requesting Phantom connection…', 'notice');
+          phantomButton.disabled = true;
+          phantomButton.textContent = 'Connecting…';
+
+          try {
+            clearSolanaDepositState({ keepVisible: true });
+            clearSolanaSession();
+            let provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 2800, interval: 220 });
+            if (!provider || !provider.isPhantom) {
+              const openedMobileLink = triggerMobileWalletDeepLink('phantom');
+              if (openedMobileLink) {
+                if (phantomStatus) {
+                  phantomStatus.textContent = 'Opening Phantom app… approve the session and return here.';
+                }
+                updateStatus('Launching Phantom. Approve the session in-app, then return to complete verification.');
+                provider = await waitForWalletInjection(detectPhantomProvider, { timeout: 7200, interval: 260 });
+              }
+            }
+            if (!provider || !provider.isPhantom) {
+              throw new Error(
+                'Phantom wallet not detected on this device. Open Phantom on desktop or mobile and try again.'
+              );
+            }
+            const response = await provider.connect();
+            const publicKey = response?.publicKey?.toString();
+            if (!publicKey) {
+              throw new Error('No wallet account returned.');
+            }
+            const formattedAddress = shortenIdentifier(publicKey);
+            if (phantomStatus) {
+              phantomStatus.textContent = `Connected: ${formattedAddress}`;
+              phantomStatus.classList.add('wallet-status--connected');
+            }
+            updateStatus('Phantom wallet connected. Loading Solana account data…', 'success');
+            updateSolanaOpenStatus('Phantom wallet connected. Access card purchasing ready.', 'success');
+            if (walletAddressInput) {
+              walletAddressInput.value = publicKey;
+            }
+            if (walletProviderInput) {
+              walletProviderInput.value = 'solana';
+            }
+            setSolanaSession(provider, publicKey);
+            indicateWalletConnection('solana', publicKey);
+            syncIoncModuleVisibility();
+            syncCardanoModuleVisibility();
+            let ioncHoldingsResult = null;
+            let ioncBalanceError = null;
+            try {
+              ioncHoldingsResult = await checkIonCTokenBalance(publicKey);
+            } catch (balanceError) {
+              ioncBalanceError = balanceError;
+              console.warn('Unable to automatically detect IONC holdings.', balanceError);
+            }
+            const solanaValueSnapshot = await ensureWalletUsdValue({
+              provider: 'solana',
+              address: publicKey,
+              statusElement: phantomStatus,
+              walletLabel: 'Solana'
+            });
+            const selectedAmount = syncSolanaAmountSelection();
+            if (solanaDepositRow) {
+              solanaDepositRow.hidden = false;
+            }
+            const ioncAccounts = Array.isArray(ioncHoldingsResult?.accounts) ? ioncHoldingsResult.accounts : [];
+            const detectedTokens = ioncAccounts.reduce((sum, entry) => {
+              const value = Number.isFinite(entry?.amount) ? entry.amount : 0;
+              return sum + value;
+            }, 0);
+            const formattedTokenCount = formatTokenAmount(detectedTokens);
+            const ioncTokenLabel = detectedTokens === 1 ? 'token' : 'tokens';
+            resetMeknxState();
+            syncMeknxModuleVisibility();
+            ioncState.tokens = detectedTokens;
+            ioncState.holdings = ioncAccounts;
+            ioncState.detectionError = Boolean(ioncBalanceError);
+            openSolanaIoncPopup();
+            const solanaValueMessage = solanaValueSnapshot
+              ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
+              : '';
+            const depositAmountLabel = formatSolDepositLabel(selectedAmount);
+            const hasReceipt = solanaDepositState.completed && solanaDepositState.signature;
+            if (!hasReceipt && solanaDepositStatus) {
+              solanaDepositStatus.textContent =
+                `Access card purchase pending. Select ${depositAmountLabel} and use Purchase once your Phantom session is active.`;
+              solanaDepositStatus.classList.remove('wallet-status--connected');
+            }
+            const depositMessage = hasReceipt
+              ? ` ${depositAmountLabel} access card purchase submitted (${shortenIdentifier(solanaDepositState.signature)}).`
+              : ` Click "Purchase ${depositAmountLabel}" to authorize the access card purchase.`;
+            const hasIoncTokens = ioncAccounts.length > 0;
+            const ioncHoldingsMessage = ioncBalanceError
+              ? ' Unable to automatically detect IONC holdings. Use Verify IONC Token to continue.'
+              : hasIoncTokens
+              ? ` Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}.`
+              : ' No IONC tokens detected yet. Use Verify IONC Token after minting to continue.';
+            updateStatus(
+              `Phantom channel ready.${solanaValueMessage}${ioncHoldingsMessage}${depositMessage} Complete MEKNX clearance then run Verify IONC Token to continue.`,
+              'success'
+            );
+            let inlineStatusTone = 'neutral';
+            let inlineStatusMessage;
+            if (hasIoncTokens && hasReceipt) {
+              inlineStatusTone = 'success';
+              inlineStatusMessage = `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. ${depositAmountLabel} access card purchase submitted (${shortenIdentifier(
+                solanaDepositState.signature
+              )}). Submit to enter the vault.`;
+            } else if (hasIoncTokens) {
+              inlineStatusTone = 'success';
+              inlineStatusMessage = `Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}. Purchase ${depositAmountLabel} access card allocation to continue.`;
+            } else if (ioncBalanceError) {
+              inlineStatusMessage = 'Phantom session active. Unable to auto-detect IONC tokens. Select Verify IONC Token to continue.';
+            } else {
+              inlineStatusMessage = 'Phantom session active. Verify IONC token after minting to continue.';
+            }
+            setInlineStatus(ioncInlineStatus, inlineStatusMessage, inlineStatusTone);
+          } catch (error) {
+            resetWalletIndicators();
+            const message = error?.message || 'Phantom connection failed. Try again.';
+            if (phantomStatus) {
+              phantomStatus.textContent = message;
+            }
+            updateStatus(message, 'error');
+            updateSolanaActionStatus(message, 'error');
+            updateSolanaOpenStatus('', 'notice');
+            setSolanaActionsVisibility(false);
+            const normalizedMessage = String(message || '').toLowerCase();
+            const shouldTriggerFailure = /not detected|no wallet account returned|access denied|denied|rejected/.test(
+              normalizedMessage
+            );
+            if (shouldTriggerFailure) {
+              triggerFailureAnimation();
+            }
+            solanaIntentActive = false;
+            syncIoncModuleVisibility();
+          } finally {
+            phantomButton.disabled = false;
+            phantomButton.textContent = 'Connect Phantom';
+          }
+        });
+      }
+
+      connectCardanoWallet(cardanoButton, cardanoStatus);
+
+      if (meknxActionButton) {
+        meknxActionButton.addEventListener('click', async () => {
+          const action = (meknxActionSelect && meknxActionSelect.value) || 'verify';
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(
+              meknxInlineStatus,
+              'Connect MetaMask, Phantom, or a Cardano wallet before requesting MEKNX clearance.',
+              'error'
+            );
+            updateStatus('Connect a wallet before starting MEKNX clearance.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          const progressLabel =
+            action === 'mint' ? 'Minting MEKNX clearance…' : 'Verifying MEKNX pass…';
+          setInlineStatus(meknxInlineStatus, progressLabel);
+          meknxActionButton.disabled = true;
+
+          try {
+            const response = await fetch('/access/meknx', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                action,
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage =
+                action === 'mint'
+                  ? 'MEKNX minting request denied. Review requirements and try again.'
+                  : 'MEKNX verification failed. Mint a pass or retry.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(meknxInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            applyMeknxResponse(data);
+            const successMessageBase = data && data.message ? `${data.message} ` : '';
+            const successMessage = `${successMessageBase}Access granted. Opening vault…`.trim();
+            const normalizedProvider =
+              provider || meknxState.walletProvider || (walletProviderInput ? walletProviderInput.value : '');
+            const needsIonc =
+              normalizedProvider === 'solana' && !ioncState.verified;
+            const needsCardanoPolicy =
+              normalizedProvider.startsWith && normalizedProvider.startsWith('cardano') && !cardanoState.verified;
+            const continuation = needsIonc
+              ? ' Continue with IONC verification.'
+              : needsCardanoPolicy
+              ? ' Continue with Cardano policy verification.'
+              : ' Submit to enter the vault.';
+            updateStatus(`${successMessage}${continuation}`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'MEKNX clearance request failed. Try again shortly.';
+            setInlineStatus(meknxInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            meknxActionButton.disabled = false;
+          }
+        });
+      }
+
+      if (ioncVerifyButton) {
+        ioncVerifyButton.addEventListener('click', async () => {
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (provider !== 'solana') {
+            setInlineStatus(ioncInlineStatus, 'IONC verification requires an active Phantom session.', 'error');
+            updateStatus('Open a Phantom session before requesting IONC verification.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(ioncInlineStatus, 'Connect Phantom before verifying IONC tokens.', 'error');
+            updateStatus('Connect Phantom before verifying IONC tokens.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          setInlineStatus(ioncInlineStatus, 'Checking Solana IONC balance…');
+          ioncVerifyButton.disabled = true;
+
+          try {
+            const response = await fetch('/access/ionc', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider,
+                meknxPassId: meknxState.passId
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage = 'IONC verification failed. Ensure your Solana wallet holds the access token.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(ioncInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              updateSolanaActionStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            const tokens = Number.isFinite(data.tokens) ? data.tokens : ioncState.tokens;
+            const holdings = Array.isArray(data.accounts) ? data.accounts : ioncState.holdings;
+            markIoncVerified(tokens, holdings);
+            syncIoncModuleVisibility();
+            const successMessage =
+              data && data.message
+                ? data.message
+                : `IONC verification complete. Tokens detected: ${tokens}.`;
+            updateStatus(`${successMessage} Submit to enter the vault.`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'Unable to verify IONC tokens. Try again shortly.';
+            setInlineStatus(ioncInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            updateSolanaActionStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            ioncVerifyButton.disabled = false;
+          }
+        });
+      }
+
+      if (cardanoVerifyButton) {
+        cardanoVerifyButton.addEventListener('click', async () => {
+          const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+
+          if (!walletAddressInput || !walletAddressInput.value) {
+            setInlineStatus(
+              cardanoInlineStatus,
+              'Connect a Cardano wallet before verifying the policy.',
+              'error'
+            );
+            updateStatus('Connect a Cardano wallet before verifying the policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (!provider || !provider.startsWith('cardano')) {
+            setInlineStatus(cardanoInlineStatus, 'Active session is not a Cardano wallet.', 'error');
+            updateStatus('Switch to a Cardano wallet to verify the policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
+            setInlineStatus(cardanoInlineStatus, 'Complete MEKNX clearance before policy checks.', 'error');
+            updateStatus('Complete MEKNX clearance before verifying the Cardano policy.', 'error');
+            triggerFailureAnimation();
+            return;
+          }
+
+          cardanoVerifyButton.disabled = true;
+          setInlineStatus(cardanoInlineStatus, 'Verifying Cardano policy…');
+          updateStatus('Confirming Cardano policy holdings…');
+
+          try {
+            const response = await fetch('/access/cardano', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                walletAddress: walletAddressInput.value,
+                walletProvider: provider,
+                meknxPassId: meknxState.passId,
+                policyId: cardanoState.policyId || CARDANO_POLICY_ID
+              })
+            });
+
+            if (!response.ok) {
+              let errorMessage = 'Cardano policy verification failed. Try again.';
+              try {
+                const data = await response.json();
+                if (data && data.message) {
+                  errorMessage = data.message;
+                }
+              } catch (err) {
+                // ignore JSON parsing errors
+              }
+              setInlineStatus(cardanoInlineStatus, errorMessage, 'error');
+              updateStatus(errorMessage, 'error');
+              triggerFailureAnimation();
+              return;
+            }
+
+            const data = await response.json();
+            cardanoState.verified = true;
+            cardanoState.policyId = data.policyId || cardanoState.policyId || CARDANO_POLICY_ID;
+            if (cardanoVerifiedInput) {
+              cardanoVerifiedInput.value = 'true';
+            }
+            if (cardanoPolicyInput) {
+              cardanoPolicyInput.value = cardanoState.policyId;
+            }
+            syncCardanoModuleVisibility();
+            const successMessage =
+              data && data.message ? data.message : 'Cardano policy verification complete.';
+            updateStatus(`${successMessage} Submit to enter the vault.`, 'success');
+          } catch (error) {
+            const fallbackMessage = 'Cardano policy verification failed. Try again shortly.';
+            setInlineStatus(cardanoInlineStatus, fallbackMessage, 'error');
+            updateStatus(fallbackMessage, 'error');
+            triggerFailureAnimation();
+          } finally {
+            cardanoVerifyButton.disabled = false;
+          }
+        });
+      }
+
+      setMode('credentials', true);
+
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const submitButton = form.querySelector('button[type="submit"]');
@@ -2714,25 +5724,116 @@
           return;
         }
 
-        const username = usernameInput ? usernameInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value : '';
-
-        if (!username || !password) {
-          updateStatus('Enter both your access key and clearance code.', 'error');
-          triggerFailureAnimation();
-          return;
-        }
-
-        updateStatus('Decrypting clearance codes…');
+        const verifyingMessage =
+          activeMode === 'wallet'
+            ? 'Verifying wallet clearance…'
+            : activeMode === 'meknx'
+            ? 'Confirming MEKNX credential…'
+            : 'Decrypting clearance codes…';
+        updateStatus(verifyingMessage);
         submitButton.disabled = true;
-        submitButton.textContent = 'Verifying…';
+        submitButton.textContent =
+          activeMode === 'wallet'
+            ? 'Verifying Wallet…'
+            : activeMode === 'meknx'
+            ? 'Verifying MEKNX…'
+            : 'Verifying…';
 
         const payload = {
-          method: 'credentials',
-          username,
-          password,
+          method: activeMode,
           next: nextPath
         };
+
+        if (activeMode === 'wallet') {
+          if (!walletAddressInput || !walletAddressInput.value) {
+            updateStatus('Connect MetaMask, Phantom, or a Cardano wallet before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
+            updateStatus('Complete MEKNX clearance before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (provider === 'solana' && !ioncState.verified) {
+            updateStatus('Verify your IONC access token before requesting entry.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (provider && provider.startsWith('cardano') && !cardanoState.verified) {
+            updateStatus('Verify the required Cardano policy before requesting entry.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+
+          if (provider === 'solana' || (provider && provider.startsWith('cardano'))) {
+            if (walletValueState.provider !== provider) {
+              updateStatus('Reconnect your wallet to refresh the on-chain balance check.', 'error');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+
+            if (walletValueState.usdValue < MIN_LOGIN_VALUE_USD) {
+              const tokenLabel = walletValueState.tokenSymbol || 'Wallet';
+              updateStatus(
+                `${tokenLabel} holdings must exceed ${formatUsd(
+                  MIN_LOGIN_VALUE_USD
+                )} before entering. Current value: ${formatUsd(walletValueState.usdValue)}.`,
+                'error'
+              );
+              submitButton.disabled = false;
+              submitButton.textContent = 'Enter the Vault';
+              triggerFailureAnimation();
+              return;
+            }
+          }
+
+          payload.walletAddress = walletAddressInput.value;
+          payload.walletProvider = provider;
+          payload.meknxPassId = meknxState.passId;
+          payload.meknxStatus = meknxState.status;
+          payload.meknxMintedAt = meknxState.mintedAt;
+          payload.ioncTokens = ioncState.tokens;
+          payload.ioncVerified = ioncState.verified;
+          payload.cardanoPolicyVerified = provider && provider.startsWith('cardano') ? cardanoState.verified : false;
+          payload.cardanoPolicyId = provider && provider.startsWith('cardano') ? cardanoState.policyId : '';
+        } else if (activeMode === 'meknx') {
+          const meknxPassId = meknxPassIdInput ? meknxPassIdInput.value.trim() : '';
+          if (!meknxPassId) {
+            updateStatus('Verify your MEKNX token before requesting access.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+          payload.meknxPassId = meknxPassId;
+        } else {
+          const username = usernameInput ? usernameInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
+          if (!username || !password) {
+            updateStatus('Enter both your access key and clearance code.', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enter the Vault';
+            triggerFailureAnimation();
+            return;
+          }
+          payload.username = username;
+          payload.password = password;
+        }
 
         try {
           const response = await fetch('/login', {
@@ -2760,13 +5861,13 @@
             } catch (err) {
               // ignore
             }
-            updateStatus(errorMessage, 'error');
+            updateStatus(`${errorMessage} The vault just giggled at the explosion.`, 'error');
             triggerFailureAnimation();
             submitButton.disabled = false;
             submitButton.textContent = 'Enter the Vault';
           }
         } catch (error) {
-          updateStatus('Secure channel disrupted. Please attempt again.', 'error');
+          updateStatus('Secure channel disrupted. A cartoon blast occurred. Please attempt again.', 'error');
           triggerFailureAnimation();
           submitButton.disabled = false;
           submitButton.textContent = 'Enter the Vault';
@@ -2774,7 +5875,6 @@
       });
     }
   </script>
-
 
   <footer class="legal-footer">
     <p>Copyright © 2024 Ioncore Energy. Proprietary clean data and assets licensed for Ioncore Energy marketing use only.</p>

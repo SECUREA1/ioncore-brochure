@@ -2295,7 +2295,15 @@ function isPublicRoute(req) {
   if (isReadOnlyRequest) {
     const publicHtml = new Set([
       '/login',
-      '/login.html'
+      '/login.html',
+      '/',
+      '/webpage.html',
+      '/ioncore-contracting.html',
+      '/IONCORECHAT',
+      '/IONCORECHAT/',
+      '/IONCORECHAT/index',
+      '/IONCORECHAT/index.html',
+      '/metrics'
     ]);
     if (publicHtml.has(req.path)) {
       return true;
@@ -2307,7 +2315,7 @@ function isPublicRoute(req) {
       return true;
     }
 
-    const publicApis = new Set();
+    const publicApis = new Set(['/api/marketplace']);
     if (publicApis.has(req.path)) {
       return true;
     }
@@ -2317,27 +2325,8 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  if (isPublicRoute(req)) {
-    return next();
-  }
-
-  const sessionId = getSessionIdFromCookies(req);
-  if (validateAuthSession(sessionId)) {
-    setSessionCookie(res, sessionId);
-    return next();
-  }
-
-  const expectsHtml = (req.method === 'GET' || req.method === 'HEAD') && req.accepts('html');
-  if (expectsHtml) {
-    const originalPath =
-      typeof req.originalUrl === 'string' && req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//')
-        ? req.originalUrl
-        : '/';
-    const params = new URLSearchParams({ next: originalPath });
-    return res.redirect(`/login?${params.toString()}`);
-  }
-
-  return res.status(401).json({ message: 'Authentication required. Log in to continue.' });
+  // Authentication gate disabled: all routes are now publicly accessible.
+  return next();
 }
 
 async function getHtmlFiles(dir) {

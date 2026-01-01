@@ -1,0 +1,4043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IONCORE Poker — Secure Gesture Login + Glass UI + Full Audio + AI Traits</title>
+
+  <!--
+    NOTE (Security Reality Check):
+    This is a single-file, client-only demo using MediaPipe Hands + localStorage.
+    It is NOT production authentication (no server-side verification, no attestation, no anti-tamper, etc.)
+    However, it DOES enforce a real “locked until verified” UX gate and removes common bypasses.
+  -->
+
+  <style>
+    :root{
+      --ion-cyan: #20ffe6;
+      --ion-cyan2:#00d8ff;
+      --ion-violet:#b04cff;
+      --ion-amber:#ffcf55;
+
+      --bg0:#050814;
+      --bg1:#07122a;
+
+      --felt0:#0b5f2a;
+      --felt1:#0a3c2a;
+      --felt2:#092a2a;
+
+      --panel: rgba(10, 14, 30, .55);
+      --panel2: rgba(6, 10, 24, .60);
+      --stroke: rgba(255,255,255,.14);
+
+      --text: rgba(255,255,255,.95);
+      --muted: rgba(255,255,255,.72);
+
+      --glowAlpha: 0.65;
+      --motionMul: 1;
+      --shadow: 0 14px 42px rgba(0,0,0,.45);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      display:flex;
+      justify-content:center;
+
+      /* ✅ Safe-area + top-line not hidden (iOS notch etc.) */
+      padding:
+        calc(10px + env(safe-area-inset-top))
+        10px
+        calc(16px + env(safe-area-inset-bottom));
+
+      background:
+        radial-gradient(900px 450px at 50% 10%, rgba(32,255,230,.12), transparent 62%),
+        radial-gradient(850px 520px at 30% 30%, rgba(176,76,255,.10), transparent 60%),
+        radial-gradient(700px 700px at 80% 40%, rgba(0,216,255,.09), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,.35), transparent 60%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,.18), transparent 60%),
+        radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,.18), transparent 60%),
+        radial-gradient(1px 1px at 10% 70%, rgba(255,255,255,.18), transparent 60%);
+      opacity:.35;
+      filter: blur(.2px);
+    }
+
+    #app{
+      width: min(1060px, 98vw);
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      gap:10px;
+      position:relative;
+      z-index:1;
+    }
+
+    /* ✅ Proper bordered top header */
+    header{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 10px 12px;
+      flex-wrap:wrap;
+
+      border-radius: 16px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 260px;
+    }
+    .brandTitle{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+    }
+    .brandTitle .top{
+      font-weight: 1000;
+      letter-spacing: .6px;
+      font-size: 16px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.95);
+    }
+    .brandTitle .sub{
+      font-size: 11px;
+      color: rgba(255,255,255,.72);
+      letter-spacing:.3px;
+      max-width: 540px;
+    }
+
+    .topBar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .pill{
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+    }
+    .pill b{ color: rgba(255,255,255,.95); }
+
+    .btnSmall{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.30);
+      color: rgba(255,255,255,.95);
+      border-radius: 12px;
+      padding: 7px 11px;
+      cursor:pointer;
+      font-size: 12px;
+      transition: transform .08s ease, filter .15s ease, background .15s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+    .btnSmall:hover{
+      background: rgba(0,0,0,.40);
+      filter: drop-shadow(0 0 10px rgba(32,255,230, calc(.35 * var(--glowAlpha))));
+    }
+    .btnSmall:active{ transform: translateY(1px); }
+    .btnSmall:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      filter: grayscale(1);
+    }
+    .btnSmall.danger{
+      border-color: rgba(255,80,80,.35);
+      background: rgba(255,0,0,.10);
+    }
+    .btnSmall.danger:hover{
+      background: rgba(255,0,0,.16);
+      filter: drop-shadow(0 0 10px rgba(255,80,80,.22));
+    }
+
+    /* ===== LAYOUT ===== */
+    #layout{
+      width:100%;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap: 12px;
+      align-items:start;
+    }
+    #mainCol{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      align-items:center;
+    }
+    #sideCol{ position:relative; }
+
+    /* ===== TABLE ===== */
+    #tableWrap{
+      width: min(660px, 96vw);
+      position:relative;
+      height: 450px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    #table{
+      width: 520px;
+      height: 410px;
+      border-radius: 999px;
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(32,255,230,.10), transparent 55%),
+        radial-gradient(circle at 50% 60%, rgba(176,76,255,.10), transparent 58%),
+        radial-gradient(circle at 50% 40%, var(--felt0), var(--felt1) 55%, var(--felt2));
+      border: 2px solid rgba(255,255,255,.25);
+      box-shadow:
+        0 0 0 4px rgba(255,255,255,.08),
+        0 0 40px rgba(32,255,230, calc(.18 * var(--glowAlpha))),
+        0 0 60px rgba(176,76,255, calc(.14 * var(--glowAlpha))),
+        var(--shadow);
+    }
+    #table:before{
+      content:"";
+      position:absolute;
+      inset: 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(32,255,230, calc(.35 * var(--glowAlpha)));
+      box-shadow:
+        0 0 24px rgba(32,255,230, calc(.40 * var(--glowAlpha))),
+        0 0 44px rgba(176,76,255, calc(.22 * var(--glowAlpha)));
+      pointer-events:none;
+    }
+
+    #reactor{
+      position:absolute;
+      left:50%;
+      top:52%;
+      transform: translate(-50%,-50%);
+      width: 320px;
+      opacity: .22;
+      pointer-events:none;
+      z-index: 1;
+      filter:
+        drop-shadow(0 0 14px rgba(32,255,230, calc(.45 * var(--glowAlpha))))
+        drop-shadow(0 0 18px rgba(176,76,255, calc(.28 * var(--glowAlpha))));
+      animation: spin calc(22s / var(--motionMul)) linear infinite;
+    }
+    @keyframes spin{
+      from{ transform: translate(-50%,-50%) rotate(0deg); }
+      to{ transform: translate(-50%,-50%) rotate(360deg); }
+    }
+
+    #center{
+      position:absolute;
+      left:50%;
+      top:52%;
+      transform: translate(-50%, -50%);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 10px;
+      width: 88%;
+      pointer-events:none;
+      z-index: 2;
+    }
+
+    #community{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      justify-content:center;
+      min-height: 66px;
+      padding: 10px 10px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.10),
+        0 0 18px rgba(0,216,255, calc(.10 * var(--glowAlpha)));
+      flex-wrap: wrap;
+    }
+
+    #potBadge{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.16);
+      font-size: 13px;
+      color: var(--muted);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.10),
+        0 0 16px rgba(176,76,255, calc(.09 * var(--glowAlpha)));
+    }
+    #potBadge b{ color: var(--ion-amber); }
+    .chipIcon{ width: 16px; height: 16px; filter: drop-shadow(0 0 10px rgba(255,207,85, .25)); }
+
+    .seat{
+      position:absolute;
+      width: 138px;
+      height: 94px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: 4px;
+      text-align:center;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+      padding: 6px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.10),
+        0 0 14px rgba(0,216,255, calc(.08 * var(--glowAlpha)));
+      z-index: 3;
+      backdrop-filter: blur(4px);
+    }
+    .seat.out{ opacity:.40; filter: grayscale(1); }
+
+    .seatTitle{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-weight: 1000;
+      font-size: 12px;
+      line-height: 1;
+      width: 100%;
+    }
+    .seatTitle span[id^="name"]{
+      max-width: 84px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space:nowrap;
+      display:inline-block;
+      vertical-align:middle;
+    }
+
+    .styleTag{
+      font-weight: 900;
+      font-size: 10px;
+      color: rgba(255,255,255,.82);
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      white-space: nowrap;
+      text-transform: lowercase;
+    }
+
+    .turnDot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: #ff2f2f;
+      box-shadow: 0 0 10px rgba(255,0,0,.55);
+      display:none;
+      animation: pulse calc(1.1s / var(--motionMul)) ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); opacity:.85; }
+      50%{ transform: scale(1.35); opacity:1; }
+    }
+    .seat.turning .turnDot{ display:inline-block; }
+
+    .chipLine{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      justify-content:center;
+    }
+    .chipLine b{ color: rgba(255,255,255,.95); }
+    .betMini{ color: rgba(255,255,255,.78); font-size: 11px; }
+
+    .cardsRow{
+      display:flex;
+      gap: 6px;
+      justify-content:center;
+      align-items:center;
+      min-height: 56px;
+    }
+
+    .card{
+      width: 40px; height: 58px;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,.9), #ffffff 55%),
+        linear-gradient(180deg, #fff, #f0f3ff);
+      color:#0c1226;
+      border: 1px solid rgba(0,0,0,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      font-size: 15px;
+      box-shadow:
+        0 10px 18px rgba(0,0,0,.28),
+        0 0 14px rgba(0,216,255, calc(.10 * var(--glowAlpha)));
+      position:relative;
+      overflow:hidden;
+      user-select:none;
+    }
+    .card.red{ color:#b01818; }
+    .card.back{
+      background:
+        radial-gradient(circle at 30% 20%, rgba(32,255,230,.18), transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(176,76,255,.18), transparent 55%),
+        linear-gradient(135deg, rgba(10,14,30,.92), rgba(6,10,24,.92));
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow:
+        0 10px 16px rgba(0,0,0,.28),
+        0 0 18px rgba(32,255,230, calc(.22 * var(--glowAlpha)));
+      color: rgba(255,255,255,0);
+    }
+    .card.back:before{
+      content:"IONCORE";
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 1000;
+      letter-spacing: .8px;
+      font-size: 11px;
+      color: rgba(255,255,255,.18);
+      text-transform: uppercase;
+      transform: rotate(-18deg);
+    }
+    .card.back:after{
+      content:"";
+      position:absolute; inset:-10px;
+      background: repeating-linear-gradient(45deg, rgba(32,255,230,.08) 0 6px, transparent 6px 12px);
+      opacity:.35;
+      transform: rotate(10deg);
+    }
+    .dealIn{ animation: dealIn calc(.28s / var(--motionMul)) ease-out; }
+    @keyframes dealIn{
+      from{ transform: translateY(-8px) scale(.97); opacity:.0; }
+      to{ transform: translateY(0) scale(1); opacity:1; }
+    }
+
+    /* Seats layout */
+    #seat0 { left: 50%; top: 83%; transform: translate(-50%,-50%); }
+    #seat1 { left: 82%; top: 50%; transform: translate(-50%,-50%); }
+    #seat2 { left: 50%; top: 14%; transform: translate(-50%,-50%); }
+    #seat3 { left: 18%; top: 50%; transform: translate(-50%,-50%); }
+    #seat4 { left: 28%; top: 78%; transform: translate(-50%,-50%); }
+
+    #banner{
+      position:absolute; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      z-index: 20;
+      pointer-events:none;
+      background: rgba(0,0,0,.20);
+      backdrop-filter: blur(2px);
+    }
+    #banner .inner{
+      background: rgba(0,0,0,.70);
+      border: 1px solid rgba(255,255,255,.20);
+      border-radius: 18px;
+      padding: 16px 18px;
+      text-align:center;
+      width: min(420px, 88%);
+      box-shadow: var(--shadow);
+    }
+    #banner .inner .big{
+      font-size: 20px;
+      font-weight: 1000;
+      color: var(--ion-amber);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      filter: drop-shadow(0 0 16px rgba(255,207,85,.20));
+    }
+    #banner .inner .small{
+      font-size: 13px;
+      color: rgba(255,255,255,.88);
+      line-height: 1.3;
+    }
+
+    #infoRow{
+      width: min(660px, 96vw);
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+      align-items:center;
+    }
+
+    #bestPanel{
+      width:100%;
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+      backdrop-filter: blur(4px);
+    }
+    #bestPanel .title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 6px;
+    }
+    #bestPanel .title .left{
+      font-weight: 1000;
+      font-size: 13px;
+      letter-spacing:.25px;
+    }
+    #bestPanel .title .right{
+      font-size: 12px;
+      color: rgba(255,255,255,.80);
+    }
+    #bestLines{ font-size: 13px; line-height: 1.35; color: rgba(255,255,255,.94); }
+    #bestLines .muted{ color: rgba(255,255,255,.75); }
+
+    #actionsBar{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap:wrap;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: var(--panel2);
+      border: 1px solid var(--stroke);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      backdrop-filter: blur(4px);
+    }
+    .leftActions, .rightActions{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex-wrap:wrap;
+    }
+
+    input[type="number"]{
+      width: 86px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.95);
+      outline:none;
+      font-weight: 900;
+    }
+    .textInput{
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.95);
+      outline:none;
+      font-weight: 900;
+    }
+    .selectInput{
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.95);
+      outline:none;
+      font-weight: 900;
+      cursor:pointer;
+    }
+
+    .btn{
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      cursor:pointer;
+      font-weight: 1000;
+      color: rgba(255,255,255,.96);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(32,255,230,.20), transparent 55%),
+        linear-gradient(180deg, rgba(176,76,255,.35), rgba(0,0,0,.25));
+      box-shadow:
+        0 10px 18px rgba(0,0,0,.25),
+        0 0 18px rgba(32,255,230, calc(.18 * var(--glowAlpha)));
+      transition: transform .08s ease, filter .15s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{
+      filter: brightness(1.06) drop-shadow(0 0 14px rgba(32,255,230, calc(.22 * var(--glowAlpha))));
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; filter: grayscale(1); }
+
+    .btn.secondary{
+      background: linear-gradient(180deg, rgba(255,0,0,.18), rgba(0,0,0,.25));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 10px 18px rgba(0,0,0,.20);
+    }
+
+    #log{
+      width: min(660px, 96vw);
+      height: 170px;
+      background: linear-gradient(180deg, rgba(8,12,34,.82), rgba(8,12,34,.70));
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      padding: 10px 12px;
+      overflow:auto;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    #log p{ margin: 0 0 6px; }
+    #log .dim{ color: rgba(255,255,255,.72); }
+
+    /* ===== RIGHT SIDEBAR ===== */
+    #tunerPanel{
+      position: sticky;
+      top: 10px;
+      background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.18));
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 10px;
+      backdrop-filter: blur(6px);
+      max-height: calc(100vh - 24px);
+      overflow:auto;
+    }
+    .tunerHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .tunerHeader .title{
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing:.7px;
+      font-size: 12px;
+      color: rgba(255,255,255,.92);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .tunerGroup{
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .tunerGroupTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+      font-weight: 1000;
+      font-size: 12px;
+      letter-spacing:.3px;
+      color: rgba(255,255,255,.92);
+    }
+    .tunerGroupTitle .hint{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(255,255,255,.70);
+    }
+    .miniBtn{
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.30);
+      color: rgba(255,255,255,.92);
+      border-radius: 10px;
+      padding: 6px 10px;
+      cursor:pointer;
+      font-size: 11px;
+      font-weight: 900;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+    .miniBtn:hover{ filter: drop-shadow(0 0 10px rgba(176,76,255,.20)); }
+    .miniBtn:disabled{ opacity:.45; cursor:not-allowed; filter: grayscale(1); }
+
+    .setting{
+      background: rgba(0,0,0,.15);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .setting label{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.92);
+      margin-bottom: 8px;
+      font-weight: 1000;
+    }
+    .setting .val{
+      color: rgba(32,255,230,.92);
+      font-weight: 1000;
+    }
+    .setting input[type="range"]{ width:100%; }
+    .setting small{
+      color: rgba(255,255,255,.72);
+      display:block;
+      margin-top:6px;
+      font-size: 11px;
+      line-height:1.25;
+    }
+    .toggleRow{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,.90);
+      font-weight: 1000;
+    }
+    .toggleRow input{ transform: scale(1.15); }
+
+    .row2{
+      display:grid;
+      grid-template-columns: 1fr 92px;
+      gap: 10px;
+      align-items:center;
+    }
+    .numTiny{
+      width: 92px !important;
+      padding: 8px 10px !important;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.95);
+      font-weight: 1000;
+    }
+
+    .tunerFooter{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top: 8px;
+    }
+
+    /* ✅ AI player editor */
+    .aiDetails{
+      background: rgba(0,0,0,.14);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .aiDetails summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight: 1000;
+      font-size: 12px;
+      color: rgba(255,255,255,.92);
+    }
+    .aiDetails summary::-webkit-details-marker{ display:none; }
+    .aiSumLeft{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width: 0;
+    }
+    .aiPill{
+      font-weight: 900;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.85);
+      white-space: nowrap;
+      text-transform: lowercase;
+    }
+    .aiSumName{
+      max-width: 130px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display:inline-block;
+    }
+    .aiBody{
+      margin-top: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      #layout{ grid-template-columns: 1fr; }
+      #tunerPanel{ position:relative; top:auto; max-height:none; }
+    }
+    @media (max-width: 560px){
+      #table{ width: 480px; height: 400px; }
+      #seat4{ display:none; }
+      .brandTitle .sub{ display:none; }
+      #tunerPanel{ max-height:none; }
+    }
+
+    /* ===== Gesture Cursor ===== */
+    #gCursor{
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid rgba(32,255,230,.95);
+      box-shadow:
+        0 0 18px rgba(32,255,230,.25),
+        0 0 26px rgba(176,76,255,.18);
+      transform: translate(-50%,-50%);
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), rgba(32,255,230,.08));
+    }
+    #gCursor.pinch{
+      border-color: rgba(255,207,85,.95);
+      box-shadow: 0 0 20px rgba(255,207,85,.25), 0 0 34px rgba(176,76,255,.18);
+      transform: translate(-50%,-50%) scale(0.92);
+    }
+
+    /* ===== Glass Gesture Login Overlay — ✅ RECENTERED + FLEX FIT + TOP BORDER + HEADLINE ===== */
+    #loginOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+
+      /* ✅ top line not hidden when content tall */
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+
+      padding:
+        calc(14px + env(safe-area-inset-top))
+        14px
+        calc(14px + env(safe-area-inset-bottom));
+
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(12px);
+      overflow:auto; /* ✅ if tall, scroll from the top */
+    }
+    #loginOverlay.show{ display: flex; }
+
+    .loginShell{
+      width: min(1140px, 97vw);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(1000px 560px at 18% 0%, rgba(32,255,230,.12), transparent 62%),
+        radial-gradient(900px 620px at 92% 10%, rgba(176,76,255,.12), transparent 64%),
+        rgba(8,12,34,.62);
+      box-shadow: 0 18px 64px rgba(0,0,0,.60);
+      overflow:hidden;
+
+      display:flex;
+      flex-direction: column;
+
+      /* ✅ flex-fit inside viewport */
+      max-height: calc(100vh - 28px);
+    }
+
+    .loginHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      padding: 14px 14px 12px;
+      background: rgba(0,0,0,.18);
+      border-bottom: 1px solid rgba(255,255,255,.14); /* ✅ proper top border */
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .loginHeadTitle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 1000;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      font-size: 13px;
+      color: rgba(255,255,255,.94);
+    }
+    .loginHeadDesc{
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.3;
+      color: rgba(255,255,255,.78);
+      max-width: 720px;
+    }
+
+    .hudBadge{
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.85);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .hudBadge b{ color: rgba(255,207,85,.95); }
+
+    .loginHeaderRight{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .loginBody{
+      display:flex;
+      flex: 1 1 auto;
+      min-height: 0; /* ✅ important for inner scrolling */
+    }
+    @media (max-width: 960px){
+      .loginBody{ flex-direction: column; }
+    }
+
+    .loginCamPane{
+      position:relative;
+      padding: 12px;
+      background: rgba(0,0,0,.18);
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+
+      flex: 1.25 1 0;
+      min-width: 0;
+      min-height: 0;
+
+      border-right: 1px solid rgba(255,255,255,.10);
+    }
+    @media (max-width: 960px){
+      .loginCamPane{ border-right:none; border-bottom: 1px solid rgba(255,255,255,.10); }
+    }
+
+    .loginControlPane{
+      padding: 12px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+
+      flex: 0.75 1 0;
+      min-width: 0;
+
+      overflow:auto; /* ✅ control pane scrolls if needed */
+    }
+
+    #camCanvas{
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    /* countdown */
+    #countdownHud{
+      position:absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%,-50%);
+      width: min(380px, 92%);
+      text-align:center;
+      pointer-events:none;
+      display:none;
+      z-index: 4;
+    }
+    #countdownHud.show{ display:block; }
+    #countdownNum{
+      font-size: 76px;
+      font-weight: 1000;
+      color: rgba(255,255,255,.94);
+      text-shadow:
+        0 0 24px rgba(32,255,230,.22),
+        0 0 30px rgba(176,76,255,.18);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    #countdownMsg{
+      font-size: 13px;
+      font-weight: 900;
+      color: rgba(255,255,255,.84);
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      padding: 8px 10px;
+      display:inline-block;
+      backdrop-filter: blur(6px);
+    }
+
+    /* camera HUD corners */
+    .camHudCorner{
+      position:absolute;
+      z-index: 3;
+      background: rgba(0,0,0,.26);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      padding: 10px 10px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 18px rgba(0,0,0,.25);
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 220px;
+    }
+    .camHudCorner b{ color: rgba(32,255,230,.92); }
+    .camHudCorner .hot{ color: rgba(255,207,85,.95); font-weight:1000; }
+    .camHudCorner .dim{ color: rgba(255,255,255,.70); }
+
+    #camHudTL{ left: 20px; top: 20px; }
+    #camHudTR{ right: 20px; top: 20px; min-width: 240px; }
+    #camHudBL{ left: 20px; bottom: 20px; min-width: 260px; }
+    #camHudBR{ right: 20px; bottom: 20px; min-width: 240px; }
+
+    .hudRowLine{ display:flex; justify-content:space-between; gap:10px; }
+    .hudRowLine span{ color: rgba(255,255,255,.72); font-weight:900; }
+    .hudRowLine b{ font-weight:1000; }
+
+    .progressWrap{
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    #loginProg{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(32,255,230,.78), rgba(176,76,255,.68));
+      box-shadow: 0 0 18px rgba(32,255,230,.25);
+      transition: width .08s linear;
+    }
+
+    .panelBlock{
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .panelTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+      font-weight: 1000;
+      font-size: 12px;
+      letter-spacing:.6px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.92);
+    }
+    .panelTitle .hint{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(255,255,255,.70);
+      text-transform:none;
+      letter-spacing:0;
+    }
+
+    .helpSteps{
+      font-size: 12px;
+      line-height: 1.35;
+      color: rgba(255,255,255,.90);
+    }
+    .helpSteps b{ color: rgba(32,255,230,.92); }
+    .helpSteps .muted{ color: rgba(255,255,255,.74); }
+
+    .loginActions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #cam{ display:none; }
+  </style>
+</head>
+
+<body>
+  <div id="gCursor"></div>
+
+  <!-- ✅ Glass Login Overlay -->
+  <div id="loginOverlay" class="show">
+    <div class="loginShell">
+      <div class="loginHeader">
+        <div>
+          <div class="loginHeadTitle">
+            <span>IONCORE</span>
+            <span style="opacity:.65">•</span>
+            <span>Secure Gesture Access</span>
+          </div>
+          <div class="loginHeadDesc">
+            Enroll once, then verify to unlock poker. Index fingertip controls the cursor; pinch (thumb+index) clicks.
+            Tune the cursor offset if it doesn’t line up.
+          </div>
+        </div>
+
+        <div class="loginHeaderRight">
+          <div class="hudBadge">Mode: <b id="loginModePill">Idle</b></div>
+          <button class="btnSmall" id="loginCloseBtn" disabled>Close</button>
+        </div>
+      </div>
+
+      <div class="loginBody">
+        <div class="loginCamPane">
+          <div style="position:relative;">
+            <canvas id="camCanvas" width="960" height="720"></canvas>
+
+            <div id="countdownHud">
+              <div id="countdownNum">3</div>
+              <div id="countdownMsg">Hold your gesture steady</div>
+            </div>
+
+            <!-- Camera HUD corners -->
+            <div class="camHudCorner" id="camHudTL">
+              <div class="hudRowLine"><span>Camera</span><b id="camStatus">starting…</b></div>
+              <div class="hudRowLine"><span>Hand</span><b id="handStatus">none</b></div>
+              <div class="hudRowLine"><span>Pinch</span><b id="pinchStatus" class="dim">no</b></div>
+            </div>
+
+            <div class="camHudCorner" id="camHudTR">
+              <div class="hudRowLine"><span>Template</span><b id="templStatus">no</b></div>
+              <div class="hudRowLine"><span>Similarity</span><b id="simVal">—</b></div>
+              <div class="hudRowLine"><span>Threshold</span><b id="thrHud">0.88</b></div>
+            </div>
+
+            <div class="camHudCorner" id="camHudBL">
+              <div class="hudRowLine"><span>Cursor X</span><b id="curXHud">—</b></div>
+              <div class="hudRowLine"><span>Cursor Y</span><b id="curYHud">—</b></div>
+              <div class="hudRowLine"><span>Offset</span><b id="offHud">0, 0</b></div>
+            </div>
+
+            <div class="camHudCorner" id="camHudBR">
+              <div class="hudRowLine"><span>Status</span><b id="loginMsgHud">Idle</b></div>
+              <div class="hudRowLine"><span>Capture</span><b id="capHud">0%</b></div>
+              <div class="hudRowLine"><span>Tip</span><b class="hot">Enroll → Verify</b></div>
+            </div>
+          </div>
+
+          <div class="progressWrap"><div id="loginProg"></div></div>
+        </div>
+
+        <div class="loginControlPane">
+          <div class="panelBlock">
+            <div class="panelTitle">
+              <span>Quick Start</span>
+              <span class="hint">secure flow</span>
+            </div>
+            <div class="helpSteps">
+              <div>1) <b>Enroll</b> once (3-2-1), hold your pose steady.</div>
+              <div>2) Then <b>Verify</b> to unlock the game.</div>
+              <div class="muted" style="margin-top:6px;">Template is saved locally for next time.</div>
+              <div class="muted">Camera requires <b>https</b> or <b>localhost</b>.</div>
+            </div>
+          </div>
+
+          <div class="panelBlock">
+            <div class="panelTitle">
+              <span>Login Controls</span>
+              <span class="hint">countdown → capture → compare</span>
+            </div>
+
+            <div class="loginActions">
+              <button class="btn" id="enrollBtn">Enroll (3-2-1)</button>
+              <button class="btn" id="verifyBtn">Verify (3-2-1)</button>
+              <button class="btn secondary" id="clearEnrollBtn">Clear</button>
+            </div>
+          </div>
+
+          <div class="panelBlock">
+            <div class="panelTitle">
+              <span>Gesture Cursor</span>
+              <span class="hint">pinch = click</span>
+            </div>
+
+            <div class="setting">
+              <label><span>Gesture cursor</span><span class="val" id="sGC">ON</span></label>
+              <div class="toggleRow">
+                <span>Enable cursor + pinch</span>
+                <input type="checkbox" id="gcOn" checked>
+              </div>
+              <small>Index fingertip moves cursor. Thumb + index pinch clicks.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Pinch threshold</span><span class="val" id="sPinchThr">0.045</span></label>
+              <input type="range" id="pinchThr" min="0.020" max="0.090" step="0.001" value="0.045">
+              <small>Lower = tighter pinch required.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Cursor smoothing</span><span class="val" id="sSmooth">0.22</span></label>
+              <input type="range" id="smooth" min="0.05" max="0.60" step="0.01" value="0.22">
+              <small>Higher = smoother but slower.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Cursor offset X (px)</span><span class="val" id="sOffX">0</span></label>
+              <div class="row2">
+                <input type="range" id="offX" min="-240" max="240" step="1" value="0">
+                <input class="numTiny" type="number" id="offXNum" min="-240" max="240" step="1" value="0">
+              </div>
+              <small>Moves cursor left/right to match your screen.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Cursor offset Y (px)</span><span class="val" id="sOffY">0</span></label>
+              <div class="row2">
+                <input type="range" id="offY" min="-240" max="240" step="1" value="0">
+                <input class="numTiny" type="number" id="offYNum" min="-240" max="240" step="1" value="0">
+              </div>
+              <small>Moves cursor up/down to match your tracked position.</small>
+            </div>
+
+            <div class="setting" style="margin-bottom:0;">
+              <label><span>Login match threshold</span><span class="val" id="sStrict">0.88</span></label>
+              <input type="range" id="strict" min="0.70" max="0.97" step="0.01" value="0.88">
+              <small>Higher = stricter verification.</small>
+            </div>
+
+            <div class="tunerFooter">
+              <button class="miniBtn" id="quickZeroOffsets">Zero Offsets</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /loginBody -->
+    </div><!-- /loginShell -->
+  </div><!-- /loginOverlay -->
+
+  <video id="cam" autoplay playsinline></video>
+
+  <div id="app">
+    <header>
+      <div class="brand">
+        <svg width="46" height="46" viewBox="0 0 46 46" aria-label="IonCore logo" role="img">
+          <defs>
+            <linearGradient id="gIon" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#20ffe6"/>
+              <stop offset="0.55" stop-color="#00d8ff"/>
+              <stop offset="1" stop-color="#b04cff"/>
+            </linearGradient>
+          </defs>
+          <circle cx="23" cy="23" r="20" fill="rgba(0,0,0,.35)" stroke="url(#gIon)" stroke-width="2"/>
+          <path d="M23 8 C30 12, 34 18, 34 23
+                   C34 28, 30 34, 23 38
+                   C16 34, 12 28, 12 23
+                   C12 18, 16 12, 23 8Z"
+                fill="none" stroke="url(#gIon)" stroke-width="2.2" opacity=".95"/>
+          <circle cx="23" cy="23" r="6" fill="rgba(32,255,230,.18)" stroke="url(#gIon)" stroke-width="2"/>
+          <path d="M23 14 L26 23 L23 32 L20 23 Z" fill="url(#gIon)" opacity=".85"/>
+        </svg>
+
+        <div class="brandTitle">
+          <div class="top">IONCORE Poker</div>
+          <div class="sub">
+            Texas Hold’em Reactor Table • Secure Gesture Login • Glass HUD • Pinch Cursor • Full WebAudio • Per-Player AI Traits
+          </div>
+        </div>
+      </div>
+
+      <div class="topBar">
+        <div class="pill">Access: <b id="accessPill">Locked</b></div>
+        <div class="pill">Phase: <b id="phasePill">—</b></div>
+        <div class="pill">To Call: <b id="toCallPill">—</b></div>
+
+        <button class="btnSmall" id="gestureBtn">Gesture: ON</button>
+        <button class="btnSmall" id="musicBtn">Music: ON</button>
+        <button class="btnSmall" id="sfxBtn">SFX: ON</button>
+
+        <button class="btnSmall" id="loginBtn">Login</button>
+        <button class="btnSmall danger" id="logoutBtn" style="display:none;">Logout</button>
+
+        <button class="btnSmall" id="newHandBtn">New Hand</button>
+        <button class="btnSmall" id="restartBtn">Restart Game</button>
+      </div>
+    </header>
+
+    <div id="layout">
+      <main id="mainCol">
+        <div id="tableWrap">
+          <div id="banner">
+            <div class="inner">
+              <div class="big" id="bannerBig"></div>
+              <div class="small" id="bannerSmall"></div>
+            </div>
+          </div>
+
+          <div id="table">
+            <svg id="reactor" viewBox="0 0 200 200" aria-hidden="true">
+              <defs>
+                <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#20ffe6"/>
+                  <stop offset="0.55" stop-color="#00d8ff"/>
+                  <stop offset="1" stop-color="#b04cff"/>
+                </linearGradient>
+              </defs>
+              <circle cx="100" cy="100" r="70" fill="none" stroke="url(#rg)" stroke-width="3" opacity=".9"/>
+              <circle cx="100" cy="100" r="52" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" opacity=".7"/>
+              <path d="M100 30 C128 46, 146 72, 146 100
+                       C146 128, 128 154, 100 170
+                       C72 154, 54 128, 54 100
+                       C54 72, 72 46, 100 30Z"
+                    fill="none" stroke="url(#rg)" stroke-width="3" opacity=".75"/>
+              <path d="M100 55 L118 100 L100 145 L82 100 Z"
+                    fill="rgba(32,255,230,.18)" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
+              <text x="100" y="106" text-anchor="middle"
+                    font-size="16" font-weight="900" fill="rgba(255,255,255,.30)"
+                    style="letter-spacing:2px;">IONCORE</text>
+            </svg>
+
+            <div id="center">
+              <div id="community"></div>
+
+              <div id="potBadge">
+                <svg class="chipIcon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" fill="rgba(255,207,85,.18)" stroke="rgba(255,207,85,.85)" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="4" fill="rgba(0,0,0,.18)" stroke="rgba(255,207,85,.85)" stroke-width="2"/>
+                </svg>
+                Pot: <b id="potVal">0</b>
+                <span class="dim">|</span>
+                Bet: <b id="betVal">0</b>
+              </div>
+            </div>
+
+            <div class="seat" id="seat0">
+              <div class="seatTitle"><span class="turnDot"></span><span id="name0">You</span><span class="styleTag">human</span></div>
+              <div class="cardsRow" id="cards0"></div>
+              <div class="chipLine">Chips: <b id="chips0">1200</b> <span class="betMini" id="bet0"></span></div>
+            </div>
+
+            <div class="seat" id="seat1">
+              <div class="seatTitle"><span class="turnDot"></span><span id="name1">Opponent 1</span><span class="styleTag" id="tag1">aggressive</span></div>
+              <div class="cardsRow" id="cards1"></div>
+              <div class="chipLine">Chips: <b id="chips1">1200</b> <span class="betMini" id="bet1"></span></div>
+            </div>
+
+            <div class="seat" id="seat2">
+              <div class="seatTitle"><span class="turnDot"></span><span id="name2">Opponent 2</span><span class="styleTag" id="tag2">cautious</span></div>
+              <div class="cardsRow" id="cards2"></div>
+              <div class="chipLine">Chips: <b id="chips2">1200</b> <span class="betMini" id="bet2"></span></div>
+            </div>
+
+            <div class="seat" id="seat3">
+              <div class="seatTitle"><span class="turnDot"></span><span id="name3">Opponent 3</span><span class="styleTag" id="tag3">balanced</span></div>
+              <div class="cardsRow" id="cards3"></div>
+              <div class="chipLine">Chips: <b id="chips3">1200</b> <span class="betMini" id="bet3"></span></div>
+            </div>
+
+            <div class="seat" id="seat4">
+              <div class="seatTitle"><span class="turnDot"></span><span id="name4">Opponent 4</span><span class="styleTag" id="tag4">random</span></div>
+              <div class="cardsRow" id="cards4"></div>
+              <div class="chipLine">Chips: <b id="chips4">1200</b> <span class="betMini" id="bet4"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="infoRow">
+          <div id="bestPanel">
+            <div class="title">
+              <div class="left">Your best hand & opportunities</div>
+              <div class="right" id="bestMeta">—</div>
+            </div>
+            <div id="bestLines">
+              <div class="muted">Locked — verify gesture to begin.</div>
+            </div>
+          </div>
+
+          <div id="actionsBar">
+            <div class="leftActions">
+              <span class="pill">Raise +</span>
+              <input type="number" id="raiseInput" min="1" value="20"/>
+              <span class="pill">Max/hand <b id="maxHandPill">200</b></span>
+            </div>
+
+            <div class="rightActions">
+              <button class="btn" id="callBtn">Call</button>
+              <button class="btn" id="raiseBtn">Raise</button>
+              <button class="btn secondary" id="foldBtn">Fold</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="log"></div>
+      </main>
+
+      <aside id="sideCol">
+        <div id="tunerPanel">
+          <div class="tunerHeader">
+            <div class="title">IonCore Tuners</div>
+            <button class="miniBtn" id="resetAllBtn">Reset ALL</button>
+          </div>
+
+          <div class="tunerGroup">
+            <div class="tunerGroupTitle">
+              <span>Gameplay</span>
+              <span class="hint">table + limits</span>
+              <button class="miniBtn" id="resetGameplayBtn">Reset</button>
+            </div>
+
+            <div class="setting">
+              <label><span>Base call per street</span><span class="val" id="sBaseBet">20</span></label>
+              <input type="range" id="baseBet" min="0" max="60" step="5" value="20">
+              <small>Each betting round starts at this bet (reactor rules).</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Max raises per hand</span><span class="val" id="sMaxRaises">1</span></label>
+              <input type="range" id="maxRaises" min="0" max="2" step="1" value="1">
+              <small>Limits raise aggression across the whole table.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>AI sim iterations</span><span class="val" id="sIters">160</span></label>
+              <input type="range" id="iters" min="60" max="320" step="20" value="160">
+              <small>Higher = smarter odds, slower turns.</small>
+            </div>
+
+            <div class="setting" style="margin-bottom:0;">
+              <label><span>Max bet per hand</span><span class="val" id="sMaxHand">200</span></label>
+              <input type="range" id="maxHand" min="60" max="500" step="20" value="200">
+              <small>Caps current bet size.</small>
+            </div>
+          </div>
+
+          <!-- ✅ NEW: AI Players per-seat traits -->
+          <div class="tunerGroup" id="aiPlayersGroup">
+            <div class="tunerGroupTitle">
+              <span>AI Players</span>
+              <span class="hint">per-seat traits</span>
+              <button class="miniBtn" id="resetAIAllBtn">Reset</button>
+            </div>
+
+            <div id="aiPlayersContainer"></div>
+
+            <div style="font-size:11px; color:rgba(255,255,255,.72); line-height:1.25;">
+              Tip: “Aggression” boosts raises. “Tightness” boosts folds. “Bluff” adds random raises.
+              “Randomness” adds noise to decisions.
+            </div>
+          </div>
+
+          <div class="tunerGroup">
+            <div class="tunerGroupTitle">
+              <span>Visual</span>
+              <span class="hint">Glow + motion</span>
+              <button class="miniBtn" id="resetVisualBtn">Reset</button>
+            </div>
+
+            <div class="setting">
+              <label><span>Ion glow</span><span class="val" id="sGlow">0.65</span></label>
+              <input type="range" id="glow" min="0.10" max="1.00" step="0.01" value="0.65">
+              <small>Controls neon glow intensity.</small>
+            </div>
+
+            <div class="setting" style="margin-bottom:0;">
+              <label><span>Motion speed</span><span class="val" id="sMotion">1.00</span></label>
+              <input type="range" id="motion" min="0.50" max="2.00" step="0.05" value="1.00">
+              <small>Reactor spin speed.</small>
+            </div>
+          </div>
+
+          <div class="tunerGroup">
+            <div class="tunerGroupTitle">
+              <span>Audio</span>
+              <span class="hint">music + SFX</span>
+              <button class="miniBtn" id="resetAudioBtn">Reset</button>
+            </div>
+
+            <div class="setting">
+              <label><span>Music</span><span class="val" id="sMusicOn">ON</span></label>
+              <div class="toggleRow">
+                <span>Enable</span>
+                <input type="checkbox" id="musicOn" checked>
+              </div>
+              <small>Ambient IonCore loop (generated with WebAudio).</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Music volume</span><span class="val" id="sMusicVol">0.28</span></label>
+              <input type="range" id="musicVol" min="0.00" max="0.60" step="0.01" value="0.28">
+              <small>Lower this if SFX feel too quiet.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>SFX</span><span class="val" id="sSfxOn">ON</span></label>
+              <div class="toggleRow">
+                <span>Enable</span>
+                <input type="checkbox" id="sfxOn" checked>
+              </div>
+              <small>All actions: deal/bet/fold/check/call/raise/win/lose/login.</small>
+            </div>
+
+            <div class="setting" style="margin-bottom:0;">
+              <label><span>SFX volume</span><span class="val" id="sSfxVol">0.55</span></label>
+              <input type="range" id="sfxVol" min="0.00" max="1.00" step="0.01" value="0.55">
+              <small>Controls sound effects loudness.</small>
+            </div>
+          </div>
+
+          <div class="tunerGroup">
+            <div class="tunerGroupTitle">
+              <span>Gesture</span>
+              <span class="hint">cursor + login</span>
+              <button class="miniBtn" id="resetGestureBtn">Reset</button>
+            </div>
+
+            <div class="setting">
+              <label><span>Gesture cursor</span><span class="val" id="sGC2">ON</span></label>
+              <div class="toggleRow">
+                <span>Enable</span>
+                <input type="checkbox" id="gcOn2" checked>
+              </div>
+              <small>Same as login panel.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Pinch threshold</span><span class="val" id="sPinchThr2">0.045</span></label>
+              <input type="range" id="pinchThr2" min="0.020" max="0.090" step="0.001" value="0.045">
+              <small>Same as login panel.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Cursor smoothing</span><span class="val" id="sSmooth2">0.22</span></label>
+              <input type="range" id="smooth2" min="0.05" max="0.60" step="0.01" value="0.22">
+              <small>Same as login panel.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Cursor offset X (px)</span><span class="val" id="sOffX2">0</span></label>
+              <div class="row2">
+                <input type="range" id="offX2" min="-240" max="240" step="1" value="0">
+                <input class="numTiny" type="number" id="offXNum2" min="-240" max="240" step="1" value="0">
+              </div>
+              <small>Line up cursor to your screen.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Cursor offset Y (px)</span><span class="val" id="sOffY2">0</span></label>
+              <div class="row2">
+                <input type="range" id="offY2" min="-240" max="240" step="1" value="0">
+                <input class="numTiny" type="number" id="offYNum2" min="-240" max="240" step="1" value="0">
+              </div>
+              <small>Line up cursor to your screen.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Login threshold</span><span class="val" id="sStrict2">0.88</span></label>
+              <input type="range" id="strict2" min="0.70" max="0.97" step="0.01" value="0.88">
+              <small>Same as login panel.</small>
+            </div>
+          </div>
+
+          <div class="tunerFooter">
+            <button class="miniBtn" id="reOpenLoginBtn">Open Login HUD</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MediaPipe -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+  <script>
+  /* =======================
+     Full Audio Engine (Music + SFX) — WebAudio Synth
+  ======================= */
+  const IonAudio = (() => {
+    let ctx = null;
+    let master = null;
+    let musicBus = null;
+    let sfxBus = null;
+    let comp = null;
+
+    let delay = null, delayGain = null;
+    let verb = null, verbGain = null;
+
+    let musicEnabled = true;
+    let sfxEnabled = true;
+    let musicVolume = 0.28;
+    let sfxVolume = 0.55;
+
+    let schedTimer = null;
+    let bpm = 92;
+    let step = 0;
+    let nextTime = 0;
+    const lookahead = 0.12;
+    const tickMs = 25;
+
+    const prog = [
+      { root: 57, type: "min" },
+      { root: 53, type: "maj" },
+      { root: 60, type: "maj" },
+      { root: 55, type: "maj" },
+    ];
+
+    function midiToHz(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+
+    function ensure(){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return false;
+
+      if(!ctx){
+        ctx = new AC();
+
+        master = ctx.createGain();
+        master.gain.value = 0.85;
+
+        comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -18;
+        comp.knee.value = 20;
+        comp.ratio.value = 4;
+        comp.attack.value = 0.01;
+        comp.release.value = 0.15;
+
+        musicBus = ctx.createGain();
+        sfxBus = ctx.createGain();
+        musicBus.gain.value = musicEnabled ? musicVolume : 0;
+        sfxBus.gain.value = sfxEnabled ? sfxVolume : 0;
+
+        delay = ctx.createDelay(1.2);
+        delay.delayTime.value = 0.22;
+        delayGain = ctx.createGain();
+        delayGain.gain.value = 0.22;
+
+        verb = ctx.createConvolver();
+        verb.buffer = buildImpulse(1.2, 2.2);
+        verbGain = ctx.createGain();
+        verbGain.gain.value = 0.20;
+
+        musicBus.connect(delay); delay.connect(delayGain); delayGain.connect(musicBus);
+        musicBus.connect(verb); verb.connect(verbGain); verbGain.connect(master);
+
+        sfxBus.connect(verb);
+        sfxBus.connect(master);
+
+        master.connect(comp);
+        comp.connect(ctx.destination);
+
+        startMusic();
+      }
+
+      if(ctx.state === "suspended") ctx.resume().catch(()=>{});
+      return true;
+    }
+
+    function buildImpulse(seconds=1.1, decay=2.2){
+      const rate = ctx.sampleRate;
+      const len = Math.floor(rate * seconds);
+      const buf = ctx.createBuffer(2, len, rate);
+      for(let ch=0; ch<2; ch++){
+        const data = buf.getChannelData(ch);
+        for(let i=0;i<len;i++){
+          const t = i / len;
+          data[i] = (Math.random()*2-1) * Math.pow(1 - t, decay);
+        }
+      }
+      return buf;
+    }
+
+    function setMusicEnabled(on){
+      musicEnabled = !!on;
+      if(!ctx) return;
+      musicBus.gain.setTargetAtTime(musicEnabled ? musicVolume : 0, ctx.currentTime, 0.02);
+    }
+    function setSfxEnabled(on){
+      sfxEnabled = !!on;
+      if(!ctx) return;
+      sfxBus.gain.setTargetAtTime(sfxEnabled ? sfxVolume : 0, ctx.currentTime, 0.02);
+    }
+    function setMusicVolume(v){
+      musicVolume = Math.max(0, Math.min(0.60, +v));
+      if(!ctx) return;
+      if(musicEnabled) musicBus.gain.setTargetAtTime(musicVolume, ctx.currentTime, 0.02);
+    }
+    function setSfxVolume(v){
+      sfxVolume = Math.max(0, Math.min(1.00, +v));
+      if(!ctx) return;
+      if(sfxEnabled) sfxBus.gain.setTargetAtTime(sfxVolume, ctx.currentTime, 0.02);
+    }
+
+    function safeTime(t){
+      if(!ctx) return 0;
+      return Math.max(ctx.currentTime, t);
+    }
+
+    function playTone({freq=440, dur=0.08, type="sine", gain=0.12, detune=0, when=null, bus="sfx", lp=16000, hp=0}){
+      if(!ensure()) return;
+      const t0 = safeTime(when ?? ctx.currentTime);
+
+      const osc = ctx.createOscillator();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      osc.detune.setValueAtTime(detune, t0);
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(gain, t0 + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+      let node = osc;
+      if(hp > 0){
+        const hpf = ctx.createBiquadFilter();
+        hpf.type = "highpass";
+        hpf.frequency.setValueAtTime(hp, t0);
+        node.connect(hpf);
+        node = hpf;
+      }
+      if(lp < 16000){
+        const lpf = ctx.createBiquadFilter();
+        lpf.type = "lowpass";
+        lpf.frequency.setValueAtTime(lp, t0);
+        node.connect(lpf);
+        node = lpf;
+      }
+
+      node.connect(g);
+      g.connect(bus==="music" ? musicBus : sfxBus);
+
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.03);
+    }
+
+    function playNoise({dur=0.08, gain=0.18, when=null, bus="sfx", band=8000, q=0.8}){
+      if(!ensure()) return;
+      const t0 = safeTime(when ?? ctx.currentTime);
+
+      const len = Math.floor(ctx.sampleRate * dur);
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for(let i=0;i<len;i++) data[i] = (Math.random()*2-1);
+
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+
+      const bp = ctx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.setValueAtTime(band, t0);
+      bp.Q.setValueAtTime(q, t0);
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(gain, t0 + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+      src.connect(bp); bp.connect(g);
+      g.connect(bus==="music" ? musicBus : sfxBus);
+
+      src.start(t0);
+      src.stop(t0 + dur + 0.02);
+    }
+
+    function playClick(){
+      if(!sfxEnabled) return;
+      playTone({freq: 640, dur: 0.05, type:"triangle", gain:0.10, lp:6000});
+      playTone({freq: 960, dur: 0.035, type:"sine", gain:0.06, when: (ctx? ctx.currentTime+0.01 : null), lp:8000});
+    }
+    function playDeal(){
+      if(!sfxEnabled) return;
+      playNoise({dur:0.07, gain:0.18, band:5200, q:0.9});
+      playTone({freq: 520, dur: 0.045, type:"triangle", gain:0.08, lp:5200, when:(ctx?ctx.currentTime+0.01:null)});
+    }
+    function playCheck(){
+      if(!sfxEnabled) return;
+      playTone({freq: 410, dur: 0.07, type:"sine", gain:0.08, lp:5000});
+    }
+    function playCall(){
+      if(!sfxEnabled) return;
+      playTone({freq: 380, dur: 0.08, type:"triangle", gain:0.09, lp:5200});
+      playTone({freq: 760, dur: 0.06, type:"sine", gain:0.06, when:(ctx?ctx.currentTime+0.02:null), lp:7000});
+    }
+    function playBet(){
+      if(!sfxEnabled) return;
+      playTone({freq: 260, dur: 0.10, type:"sine", gain:0.10, lp:5000});
+      playTone({freq: 520, dur: 0.08, type:"triangle", gain:0.08, when:(ctx?ctx.currentTime+0.03:null), lp:6200});
+      playNoise({dur:0.05, gain:0.10, band:3000, q:0.7, when:(ctx?ctx.currentTime+0.01:null)});
+    }
+    function playRaise(){
+      if(!sfxEnabled) return;
+      playTone({freq: 300, dur: 0.10, type:"triangle", gain:0.10, lp:6500});
+      playTone({freq: 450, dur: 0.10, type:"triangle", gain:0.09, when:(ctx?ctx.currentTime+0.04:null), lp:7000});
+      playTone({freq: 680, dur: 0.10, type:"sine", gain:0.08, when:(ctx?ctx.currentTime+0.08:null), lp:9000});
+    }
+    function playFold(){
+      if(!sfxEnabled) return;
+      playNoise({dur:0.10, gain:0.14, band:1800, q:0.6});
+      playTone({freq: 240, dur: 0.12, type:"sawtooth", gain:0.05, lp:1200});
+    }
+    function playWin(){
+      if(!sfxEnabled) return;
+      const t = ctx ? ctx.currentTime : 0;
+      const notes = [69, 72, 76, 81];
+      notes.forEach((m,i)=>{
+        playTone({freq:midiToHz(m), dur:0.12, type:"sine", gain:0.12, when:t + i*0.08, lp:10000});
+      });
+      playNoise({dur:0.14, gain:0.10, band:9500, q:0.7, when:t+0.02});
+    }
+    function playLose(){
+      if(!sfxEnabled) return;
+      const t = ctx ? ctx.currentTime : 0;
+      playTone({freq:midiToHz(45), dur:0.18, type:"triangle", gain:0.14, when:t, lp:1600});
+      playTone({freq:midiToHz(40), dur:0.22, type:"sine", gain:0.10, when:t+0.04, lp:1300});
+      playNoise({dur:0.08, gain:0.10, band:900, q:0.6, when:t+0.02});
+    }
+    function playLoginEnroll(){
+      if(!sfxEnabled) return;
+      const t = ctx ? ctx.currentTime : 0;
+      [720, 880, 1040].forEach((f,i)=> playTone({freq:f, dur:0.08, type:"sine", gain:0.10, when:t+i*0.06, lp:12000}));
+    }
+    function playLoginSuccess(){
+      if(!sfxEnabled) return;
+      const t = ctx ? ctx.currentTime : 0;
+      const seq = [76, 79, 83, 88];
+      seq.forEach((m,i)=> playTone({freq:midiToHz(m), dur:0.10, type:"sine", gain:0.12, when:t + i*0.07, lp:12000}));
+      playNoise({dur:0.12, gain:0.10, band:11000, q:0.7, when:t+0.01});
+    }
+    function playLoginFail(){
+      if(!sfxEnabled) return;
+      const t = ctx ? ctx.currentTime : 0;
+      playTone({freq: 220, dur: 0.18, type:"sawtooth", gain:0.06, when:t, lp:1200});
+      playTone({freq: 180, dur: 0.22, type:"square", gain:0.04, when:t+0.03, lp:900});
+      playNoise({dur:0.10, gain:0.10, band:2200, q:0.8, when:t+0.02});
+    }
+    function playCountdownTick(){
+      if(!sfxEnabled) return;
+      playTone({freq: 880, dur:0.04, type:"triangle", gain:0.07, lp:9000});
+    }
+    function playCountdownGo(){
+      if(!sfxEnabled) return;
+      playTone({freq: 1040, dur:0.06, type:"triangle", gain:0.10, lp:10000});
+      playTone({freq: 520, dur:0.10, type:"sine", gain:0.08, when:(ctx?ctx.currentTime+0.03:null), lp:7000});
+    }
+
+    function stopMusic(){
+      if(schedTimer){
+        clearInterval(schedTimer);
+        schedTimer = null;
+      }
+    }
+
+    function chordTones(root, type){
+      if(type === "min") return [root, root+3, root+7, root+10];
+      return [root, root+4, root+7, root+11];
+    }
+
+    function schedulePad(ch, t){
+      const tones = chordTones(ch.root, ch.type);
+      const base = tones.map(midiToHz);
+      base.forEach((f,i)=>{
+        const osc = ctx.createOscillator();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(f, t);
+        osc.detune.setValueAtTime((i%2? -7 : 7), t);
+
+        const lpf = ctx.createBiquadFilter();
+        lpf.type = "lowpass";
+        lpf.frequency.setValueAtTime(900, t);
+        lpf.Q.setValueAtTime(0.6, t);
+
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(0.08, t + 0.30);
+        g.gain.linearRampToValueAtTime(0.05, t + 1.4);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2);
+
+        osc.connect(lpf); lpf.connect(g); g.connect(musicBus);
+        osc.start(t);
+        osc.stop(t + 3.3);
+      });
+
+      playNoise({dur:0.14, gain:0.04, band:9500, q:0.9, when:t+0.02, bus:"music"});
+    }
+
+    function scheduleBass(ch, t){
+      const f = midiToHz(ch.root - 24);
+      playTone({freq:f, dur:0.18, type:"triangle", gain:0.10, when:t, bus:"music", lp:700});
+      playTone({freq:f*2, dur:0.10, type:"sine", gain:0.03, when:t+0.01, bus:"music", lp:900});
+    }
+
+    function scheduleArp(ch, t, idx){
+      const tones = chordTones(ch.root, ch.type);
+      const pick = tones[idx % tones.length] + (idx%2 ? 12 : 0);
+      playTone({freq:midiToHz(pick), dur:0.09, type:"triangle", gain:0.06, when:t, bus:"music", lp:6000, hp:120});
+    }
+
+    function scheduleHat(t){
+      playNoise({dur:0.03, gain:0.035, band:11000, q:0.6, when:t, bus:"music"});
+    }
+
+    function scheduler(){
+      if(!ctx || !musicEnabled) return;
+      const now = ctx.currentTime;
+      const stepDur = (60 / bpm) / 2;
+
+      while(nextTime < now + lookahead){
+        const chordIndex = Math.floor(step / 16) % prog.length;
+        const ch = prog[chordIndex];
+
+        if(step % 16 === 0) schedulePad(ch, nextTime);
+        if(step % 4 === 0) scheduleBass(ch, nextTime);
+        scheduleArp(ch, nextTime, step);
+        if(step % 2 === 1) scheduleHat(nextTime);
+
+        step++;
+        nextTime += stepDur;
+      }
+    }
+
+    function startMusic(){
+      if(!ensure()) return;
+      if(schedTimer) return;
+      step = 0;
+      nextTime = ctx.currentTime + 0.08;
+      schedTimer = setInterval(scheduler, tickMs);
+    }
+
+    return {
+      ensure,
+      startMusic,
+      stopMusic,
+      setMusicEnabled,
+      setSfxEnabled,
+      setMusicVolume,
+      setSfxVolume,
+      get musicEnabled(){ return musicEnabled; },
+      get sfxEnabled(){ return sfxEnabled; },
+      get musicVolume(){ return musicVolume; },
+      get sfxVolume(){ return sfxVolume; },
+
+      click: playClick,
+      deal: playDeal,
+      check: playCheck,
+      call: playCall,
+      bet: playBet,
+      raise: playRaise,
+      fold: playFold,
+      win: playWin,
+      lose: playLose,
+      enroll: playLoginEnroll,
+      loginOk: playLoginSuccess,
+      loginFail: playLoginFail,
+      tick: playCountdownTick,
+      go: playCountdownGo,
+    };
+  })();
+
+  /* =======================
+     Helpers
+  ======================= */
+  const el = (id)=>document.getElementById(id);
+  function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+  function clamp01(n){ return clamp(n, 0, 1); }
+
+  function safeJSONParse(raw, fallback){
+    try{ return JSON.parse(raw); }catch(e){ return fallback; }
+  }
+
+  /* =======================
+     Persistent App Settings (Tuners + AI)
+  ======================= */
+  const SETTINGS_KEY = "ioncore_poker_settings_v2";
+
+  const AI_PRESETS = {
+    Aggressive: { aggression:0.85, tightness:0.35, bluff:0.12, raiseThr:0.74, randomness:0.10 },
+    Cautious:   { aggression:0.35, tightness:0.80, bluff:0.03, raiseThr:0.86, randomness:0.05 },
+    Balanced:   { aggression:0.55, tightness:0.55, bluff:0.07, raiseThr:0.80, randomness:0.08 },
+    Random:     { aggression:0.60, tightness:0.60, bluff:0.10, raiseThr:0.80, randomness:0.25 },
+  };
+
+  const DEFAULTS = {
+    gameplay: {
+      baseBet: 20,
+      maxRaisesPerHand: 1,
+      simIterations: 160,
+      maxBetPerHand: 200,
+    },
+    aiPlayers: [
+      { name:"Opponent 1", preset:"Aggressive", ...AI_PRESETS.Aggressive },
+      { name:"Opponent 2", preset:"Cautious",   ...AI_PRESETS.Cautious },
+      { name:"Opponent 3", preset:"Balanced",   ...AI_PRESETS.Balanced },
+      { name:"Opponent 4", preset:"Random",     ...AI_PRESETS.Random },
+    ],
+    visual: {
+      glowAlpha: 0.65,
+      motionMul: 1.00,
+    },
+    audio: {
+      musicOn: true,
+      musicVol: 0.28,
+      sfxOn: true,
+      sfxVol: 0.55,
+    },
+    gesture: {
+      enabled: true,
+      pinchThr: 0.045,
+      smooth: 0.22,
+      strict: 0.88,
+      offsetX: 0,
+      offsetY: 0,
+    }
+  };
+
+  function clampAIPlayer(p, fallback){
+    const out = { ...fallback, ...(p||{}) };
+    out.name = String(out.name ?? fallback.name).slice(0, 28);
+    out.preset = String(out.preset ?? fallback.preset);
+    out.aggression = clamp01(+out.aggression);
+    out.tightness  = clamp01(+out.tightness);
+    out.bluff      = clamp(+out.bluff, 0, 0.25);
+    out.raiseThr   = clamp(+out.raiseThr, 0.55, 0.95);
+    out.randomness = clamp(+out.randomness, 0, 0.35);
+    return out;
+  }
+
+  function loadSettings(){
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    const parsed = raw ? safeJSONParse(raw, {}) : {};
+
+    const gameplay = { ...DEFAULTS.gameplay, ...(parsed.gameplay||{}) };
+    gameplay.baseBet = clamp(+gameplay.baseBet, 0, 60) | 0;
+    gameplay.maxRaisesPerHand = clamp(+gameplay.maxRaisesPerHand, 0, 2) | 0;
+    gameplay.simIterations = clamp(+gameplay.simIterations, 60, 320) | 0;
+    gameplay.maxBetPerHand = clamp(+gameplay.maxBetPerHand, 60, 500) | 0;
+
+    const visual = { ...DEFAULTS.visual, ...(parsed.visual||{}) };
+    visual.glowAlpha = clamp(+visual.glowAlpha, 0.10, 1.00);
+    visual.motionMul = clamp(+visual.motionMul, 0.50, 2.00);
+
+    const audio = { ...DEFAULTS.audio, ...(parsed.audio||{}) };
+    audio.musicOn = !!audio.musicOn;
+    audio.sfxOn = !!audio.sfxOn;
+    audio.musicVol = clamp(+audio.musicVol, 0.00, 0.60);
+    audio.sfxVol = clamp(+audio.sfxVol, 0.00, 1.00);
+
+    const gesture = { ...DEFAULTS.gesture, ...(parsed.gesture||{}) };
+    gesture.enabled = !!gesture.enabled;
+    gesture.pinchThr = clamp(+gesture.pinchThr, 0.020, 0.090);
+    gesture.smooth = clamp(+gesture.smooth, 0.05, 0.60);
+    gesture.strict = clamp(+gesture.strict, 0.70, 0.97);
+    gesture.offsetX = clamp(Math.round(+gesture.offsetX), -240, 240);
+    gesture.offsetY = clamp(Math.round(+gesture.offsetY), -240, 240);
+
+    const savedAI = Array.isArray(parsed.aiPlayers) ? parsed.aiPlayers : [];
+    const aiPlayers = DEFAULTS.aiPlayers.map((d,i)=> clampAIPlayer(savedAI[i], d));
+
+    return { gameplay, aiPlayers, visual, audio, gesture };
+  }
+
+  function saveSettings(current){
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(current));
+  }
+
+  const appSettings = loadSettings();
+
+  /* =======================
+     Poker Game
+  ======================= */
+  const SUITS = ["♠","♥","♦","♣"];
+  const RANKS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+  const RANK_VAL = Object.fromEntries(RANKS.map((r,i)=>[r,i+2]));
+
+  const aiPlayers = appSettings.aiPlayers.map(p => ({...p}));
+
+  const seats = [
+    { id:"You", chips:1200, hole:[], alive:true },
+    { id: aiPlayers[0].name, chips:1200, hole:[], alive:true },
+    { id: aiPlayers[1].name, chips:1200, hole:[], alive:true },
+    { id: aiPlayers[2].name, chips:1200, hole:[], alive:true },
+    { id: aiPlayers[3].name, chips:1200, hole:[], alive:true },
+  ];
+
+  const settings = {
+    baseBet: appSettings.gameplay.baseBet,
+    maxRaisesPerHand: appSettings.gameplay.maxRaisesPerHand,
+    simIterations: appSettings.gameplay.simIterations,
+    maxBetPerHand: appSettings.gameplay.maxBetPerHand,
+  };
+
+  const state = {
+    deck: [],
+    community: [],
+    pot: 0,
+    phase: "preflop",
+    streetBets: [0,0,0,0,0],
+    folded:    [false,false,false,false,false],
+    allIn:     [false,false,false,false,false],
+    currentBet: 0,
+    needsAction: new Set(),
+    actionOrder: [],
+    cursor: 0,
+    currentActor: 0,
+    globalRaises: 0,
+    raiseCount: [0,0,0,0,0],
+    handActive: false,
+    revealAll: false,
+  };
+
+  const logBox = el("log");
+  function log(msg, dim=false){
+    const p = document.createElement("p");
+    if(dim) p.classList.add("dim");
+    p.innerHTML = msg;
+    logBox.appendChild(p);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+  function showBanner(big, small){
+    el("bannerBig").textContent = big;
+    el("bannerSmall").textContent = small || "";
+    el("banner").style.display = "flex";
+    setTimeout(()=> el("banner").style.display = "none", 2200);
+  }
+
+  function aliveSeatIndices(){
+    const out = [];
+    for(let i=0;i<seats.length;i++) if(seats[i].alive) out.push(i);
+    return out;
+  }
+  function inHandIndices(){
+    const res = [];
+    for(let i=0;i<seats.length;i++){
+      if(seats[i].alive && !state.folded[i]) res.push(i);
+    }
+    return res;
+  }
+
+  function resetForNewHand(){
+    state.community = [];
+    state.pot = 0;
+    state.phase = "preflop";
+    state.streetBets = [0,0,0,0,0];
+    state.folded = [false,false,false,false,false];
+    state.allIn = [false,false,false,false,false];
+    state.currentBet = settings.baseBet;
+    state.needsAction = new Set(aliveSeatIndices());
+    state.actionOrder = aliveSeatIndices();
+    state.cursor = 0;
+    state.currentActor = state.actionOrder[0] ?? 0;
+    state.globalRaises = 0;
+    state.raiseCount = [0,0,0,0,0];
+    state.handActive = true;
+    state.revealAll = false;
+  }
+
+  function makeDeck(){
+    const deck = [];
+    for(const s of SUITS) for(const r of RANKS) deck.push(`${r}${s}`);
+    return deck;
+  }
+  function shuffle(deck){
+    for(let i=deck.length-1;i>0;i--){
+      const j = (Math.random()*(i+1))|0;
+      [deck[i],deck[j]] = [deck[j],deck[i]];
+    }
+    return deck;
+  }
+  function draw(){ return state.deck.pop(); }
+
+  function cardIsRed(card){
+    const suit = card.slice(-1);
+    return suit === "♥" || suit === "♦";
+  }
+  function renderCardHTML(card, faceUp=true){
+    if(!faceUp) return `<div class="card back dealIn"></div>`;
+    const red = cardIsRed(card) ? " red" : "";
+    return `<div class="card${red} dealIn">${card}</div>`;
+  }
+  function phaseLabel(p){
+    if(p==="preflop") return "Preflop";
+    if(p==="flop") return "Flop";
+    if(p==="turn") return "Turn";
+    if(p==="river") return "River";
+    if(p==="showdown") return "Showdown";
+    return p;
+  }
+
+  function updateUISeats(){
+    // Keep AI seat names synced
+    for(let i=1;i<=4;i++){
+      seats[i].id = aiPlayers[i-1].name;
+      el("name"+i).textContent = seats[i].id;
+      el("tag"+i).textContent = String(aiPlayers[i-1].preset || "custom").toLowerCase();
+    }
+    el("name0").textContent = "You";
+
+    for(let i=0;i<seats.length;i++){
+      const seatEl = el("seat"+i);
+      seatEl.classList.toggle("out", !seats[i].alive);
+
+      el("chips"+i).textContent = seats[i].chips;
+      el("bet"+i).textContent = state.streetBets[i] ? `Bet: ${state.streetBets[i]}` : "";
+
+      const faceUp = (i===0) || state.revealAll;
+      const showCards = seats[i].alive ? seats[i].hole : [];
+      el("cards"+i).innerHTML = showCards.map(c => renderCardHTML(c, faceUp)).join("");
+    }
+
+    el("potVal").textContent = state.pot;
+    el("betVal").textContent = state.currentBet;
+    el("phasePill").textContent = state.handActive ? phaseLabel(state.phase) : "—";
+
+    const toCall = state.handActive ? Math.max(0, state.currentBet - state.streetBets[0]) : 0;
+    el("toCallPill").textContent = state.handActive ? String(toCall) : "—";
+
+    el("community").innerHTML = state.community.map(c => renderCardHTML(c,true)).join("");
+
+    for(let i=0;i<seats.length;i++){
+      el("seat"+i).classList.toggle("turning", i === state.currentActor && state.handActive);
+    }
+
+    el("maxHandPill").textContent = settings.maxBetPerHand;
+  }
+
+  function setButtonsEnabled(on){
+    el("callBtn").disabled  = !on;
+    el("raiseBtn").disabled = !on;
+    el("foldBtn").disabled  = !on;
+    el("raiseInput").disabled = !on;
+  }
+
+  /* ===== Hand evaluation ===== */
+  function parseCard(card){
+    const suit = card.slice(-1);
+    const rank = card.slice(0, -1);
+    return { rank, suit, val: RANK_VAL[rank] };
+  }
+  function compareEval(a,b){
+    if(a.cat !== b.cat) return a.cat - b.cat;
+    const n = Math.max(a.tiebreak.length, b.tiebreak.length);
+    for(let i=0;i<n;i++){
+      const av = a.tiebreak[i] ?? 0;
+      const bv = b.tiebreak[i] ?? 0;
+      if(av !== bv) return av - bv;
+    }
+    return 0;
+  }
+  function eval5(cards){
+    const pcs = cards.map(parseCard);
+    const vals = pcs.map(p=>p.val).sort((a,b)=>b-a);
+
+    const suits = pcs.map(p=>p.suit);
+    const isFlush = suits.every(s=>s===suits[0]);
+
+    const count = {};
+    for(const v of vals) count[v] = (count[v]||0)+1;
+
+    const groups = Object.entries(count)
+      .map(([v,c])=>({v:+v,c}))
+      .sort((a,b)=> b.c-a.c || b.v-a.v);
+
+    const uniq = [...new Set(vals)].sort((a,b)=>b-a);
+    const uniqA = uniq.includes(14) ? [...uniq, 1] : uniq.slice();
+    let straightHigh = 0;
+    for(let i=0;i<uniqA.length;i++){
+      const start = uniqA[i];
+      let run = 1;
+      for(let k=1;k<5;k++){
+        if(uniqA.includes(start-k)) run++;
+        else break;
+      }
+      if(run>=5){ straightHigh = start; break; }
+    }
+    const isStraight = straightHigh>0;
+
+    if(isFlush && isStraight) return { cat: 8, tiebreak:[straightHigh], name:"Straight Flush" };
+    if(groups[0].c===4){
+      const quad = groups[0].v;
+      const kicker = groups.find(g=>g.c===1).v;
+      return { cat: 7, tiebreak:[quad,kicker], name:"Four of a Kind" };
+    }
+    if(groups[0].c===3 && groups[1]?.c>=2){
+      const trip = groups[0].v;
+      const pair = groups[1].v;
+      return { cat: 6, tiebreak:[trip,pair], name:"Full House" };
+    }
+    if(isFlush) return { cat: 5, tiebreak: vals.slice(), name:"Flush" };
+    if(isStraight) return { cat: 4, tiebreak:[straightHigh], name:"Straight" };
+    if(groups[0].c===3){
+      const trip = groups[0].v;
+      const kickers = groups.filter(g=>g.c===1).map(g=>g.v).sort((a,b)=>b-a);
+      return { cat: 3, tiebreak:[trip, ...kickers], name:"Three of a Kind" };
+    }
+    if(groups[0].c===2 && groups[1]?.c===2){
+      const highPair = Math.max(groups[0].v, groups[1].v);
+      const lowPair  = Math.min(groups[0].v, groups[1].v);
+      const kicker = groups.find(g=>g.c===1).v;
+      return { cat: 2, tiebreak:[highPair, lowPair, kicker], name:"Two Pair" };
+    }
+    if(groups[0].c===2){
+      const pair = groups[0].v;
+      const kickers = groups.filter(g=>g.c===1).map(g=>g.v).sort((a,b)=>b-a);
+      return { cat: 1, tiebreak:[pair, ...kickers], name:"One Pair" };
+    }
+    return { cat: 0, tiebreak: vals.slice(), name:"High Card" };
+  }
+  function combos5(arr){
+    const n = arr.length;
+    const out = [];
+    for(let a=0;a<n-4;a++)
+      for(let b=a+1;b<n-3;b++)
+        for(let c=b+1;c<n-2;c++)
+          for(let d=c+1;d<n-1;d++)
+            for(let e=d+1;e<n;e++)
+              out.push([arr[a],arr[b],arr[c],arr[d],arr[e]]);
+    return out;
+  }
+  function bestOf(cards){
+    if(cards.length < 5) return { cat:-1, tiebreak:[], name:"—", best5:[] };
+    const cs = combos5(cards);
+    let best = null;
+    for(const five of cs){
+      const ev = eval5(five);
+      if(!best || compareEval(best, ev) < 0){
+        best = ev;
+        best.best5 = five.slice();
+      }
+    }
+    return best;
+  }
+
+  function drawOpportunity(cards){
+    if(cards.length < 4) return null;
+    const pcs = cards.map(parseCard);
+
+    const suitCounts = {};
+    pcs.forEach(p=> suitCounts[p.suit] = (suitCounts[p.suit]||0)+1 );
+    const flushSuit = Object.keys(suitCounts).find(s=>suitCounts[s]===4);
+    if(flushSuit && state.community.length < 5) return `Flush draw (need one ${flushSuit})`;
+
+    const vals = [...new Set(pcs.map(p=>p.val))].sort((a,b)=>a-b);
+    const valsA = vals.includes(14) ? [1, ...vals] : vals.slice();
+    for(let start=1; start<=10; start++){
+      const window = [start,start+1,start+2,start+3,start+4];
+      const have = window.filter(v=>valsA.includes(v)).length;
+      if(have===4 && state.community.length < 5) return `Straight draw (one card completes it)`;
+    }
+    return null;
+  }
+
+  function estimateWinChance(heroHole, community, opponents, iterations){
+    const used = new Set([...heroHole, ...community]);
+    const full = makeDeck();
+    const remaining = full.filter(c=>!used.has(c));
+    const needBoard = 5 - community.length;
+
+    let wins = 0, ties = 0;
+    const iters = Math.max(30, iterations|0);
+
+    for(let t=0;t<iters;t++){
+      const pool = remaining.slice();
+      const need = needBoard + opponents*2;
+      for(let i=0;i<need;i++){
+        const j = i + ((Math.random()*(pool.length-i))|0);
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      const addBoard = pool.slice(0, needBoard);
+      const board = community.concat(addBoard);
+
+      let idx = needBoard;
+      const oppHoles = [];
+      for(let k=0;k<opponents;k++) oppHoles.push([pool[idx++], pool[idx++]]);
+
+      const heroBest = bestOf(heroHole.concat(board));
+      let bestOpp = null;
+      for(const oh of oppHoles){
+        const ev = bestOf(oh.concat(board));
+        if(!bestOpp || compareEval(bestOpp, ev) < 0) bestOpp = ev;
+      }
+
+      const cmp = compareEval(bestOpp, heroBest);
+      if(cmp < 0) wins++;
+      else if(cmp === 0) ties++;
+    }
+    return (wins + ties*0.5) / iters;
+  }
+
+  function preflopHeuristic(hole){
+    const a = parseCard(hole[0]);
+    const b = parseCard(hole[1]);
+    const hi = Math.max(a.val,b.val);
+    const lo = Math.min(a.val,b.val);
+    const suited = a.suit===b.suit;
+    const pair = a.val===b.val;
+    const gap = hi - lo;
+
+    let s = 0.25;
+    if(pair) s += (hi>=11? 0.55 : hi>=8? 0.45 : 0.35);
+    if(hi>=13 && lo>=11) s += 0.35;
+    if(suited) s += 0.06;
+    if(gap===1) s += 0.06;
+    if(gap===2) s += 0.03;
+    s += (hi-8)*0.02;
+    return clamp(s, 0.05, 0.95);
+  }
+
+  /* ✅ AI decision now uses per-player trait settings */
+  function aiDecide(seatIdx){
+    const cfg = aiPlayers[seatIdx-1] || DEFAULTS.aiPlayers[seatIdx-1];
+    const toCall = Math.max(0, state.currentBet - state.streetBets[seatIdx]);
+    const hole = seats[seatIdx].hole;
+
+    const contenders = inHandIndices().filter(i=>i!==seatIdx && !state.allIn[i]);
+    const oppCount = Math.max(1, contenders.length);
+
+    let winChance;
+    if(state.community.length < 3) winChance = preflopHeuristic(hole);
+    else winChance = estimateWinChance(hole, state.community, oppCount, settings.simIterations);
+
+    // randomness adds a small noise band
+    const noise = (Math.random()*2 - 1) * (cfg.randomness * 0.12);
+    winChance = clamp(winChance + noise, 0.02, 0.98);
+
+    const p0 = parseCard(hole[0]), p1 = parseCard(hole[1]);
+    const pair = p0.val === p1.val;
+    const hi = Math.max(p0.val,p1.val);
+    const lo = Math.min(p0.val,p1.val);
+    const twoHigh = (hi>=11 && lo>=11);
+
+    // fold behavior from tightness + bet pressure
+    const foldThreshold = 0.16 + cfg.tightness * 0.16;  // 0.16 → 0.32
+    const pressure = clamp(toCall / Math.max(1, settings.maxBetPerHand), 0, 1);
+    const foldProb = clamp(0.10 + cfg.tightness * 0.80 + pressure * 0.20, 0.05, 0.96);
+
+    if(toCall > 0 && winChance < foldThreshold && Math.random() < foldProb){
+      return { type:"fold", winChance };
+    }
+
+    const canRaise =
+      settings.maxRaisesPerHand > 0 &&
+      state.globalRaises < settings.maxRaisesPerHand &&
+      state.raiseCount[seatIdx] < 1;
+
+    // bluff only on decent “bluffable” preflop-ish holdings
+    const bluffOk = (twoHigh || (pair && hi>=11));
+    const bluff = bluffOk && Math.random() < cfg.bluff;
+
+    // raising logic (aggression + threshold)
+    const raiseThr = cfg.raiseThr;
+    const over = winChance - raiseThr;
+    const raiseProb = clamp(0.10 + cfg.aggression*0.75 + over*1.20, 0, 0.96);
+
+    if(canRaise && ((winChance >= raiseThr && Math.random() < raiseProb) || (bluff && Math.random() < (0.45 + cfg.aggression*0.45)))){
+      const base = 12 + cfg.aggression * 26;
+      const spread = 10 + cfg.aggression * 24;
+      let inc = Math.round(base + Math.random()*spread);
+
+      // limit to cap
+      const maxAllowedInc = Math.max(0, settings.maxBetPerHand - state.currentBet);
+      inc = clamp(inc, 1, maxAllowedInc);
+
+      return { type:"raise", inc, winChance, bluff };
+    }
+
+    // pocket pairs tend to stick around
+    if(pair && toCall > 0 && Math.random() < 0.90){
+      return { type:"call", winChance };
+    }
+
+    if(toCall === 0){
+      // sometimes probe bet if aggressive and close to threshold
+      if(canRaise && winChance >= raiseThr - 0.06 && Math.random() < (cfg.aggression * 0.35)){
+        const maxAllowedInc = Math.max(0, settings.maxBetPerHand - state.currentBet);
+        let inc = Math.round(10 + cfg.aggression*20 + Math.random()*15);
+        inc = clamp(inc, 1, maxAllowedInc);
+        if(inc > 0) return { type:"raise", inc, winChance, bluff:false };
+      }
+      return { type:"check", winChance };
+    }
+
+    // calling tendency: looser if aggressive, tighter if tightness is high
+    const callThreshold = clamp(0.18 + cfg.tightness*0.10, 0.18, 0.32);
+    if(winChance >= callThreshold || Math.random() < (0.50 + cfg.aggression*0.25)){
+      return { type:"call", winChance };
+    }
+
+    return { type:"fold", winChance };
+  }
+
+  function nextActor(){
+    const order = state.actionOrder;
+    if(order.length===0) return null;
+    for(let tries=0; tries<order.length; tries++){
+      const idx = order[state.cursor % order.length];
+      state.cursor = (state.cursor + 1) % order.length;
+      if(!seats[idx].alive) continue;
+      if(state.folded[idx]) continue;
+      if(state.allIn[idx]) { state.needsAction.delete(idx); continue; }
+      if(state.needsAction.has(idx)) return idx;
+    }
+    return null;
+  }
+
+  function pay(seatIdx, amount){
+    const payAmt = Math.min(amount, seats[seatIdx].chips);
+    seats[seatIdx].chips -= payAmt;
+    state.streetBets[seatIdx] += payAmt;
+    state.pot += payAmt;
+    if(seats[seatIdx].chips === 0) state.allIn[seatIdx] = true;
+    return payAmt;
+  }
+
+  function act(seatIdx, action){
+    const name = seats[seatIdx].id;
+    const toCall = Math.max(0, state.currentBet - state.streetBets[seatIdx]);
+
+    if(action.type === "fold"){
+      state.folded[seatIdx] = true;
+      state.needsAction.delete(seatIdx);
+      log(`<b>${name}</b> folds.`);
+      IonAudio.fold();
+      return;
+    }
+    if(action.type === "check"){
+      state.needsAction.delete(seatIdx);
+      log(`<b>${name}</b> checks.`, true);
+      IonAudio.check();
+      return;
+    }
+    if(action.type === "call"){
+      const paid = pay(seatIdx, toCall);
+      state.needsAction.delete(seatIdx);
+      log(`<b>${name}</b> calls (${paid}).`);
+      IonAudio.call();
+      return;
+    }
+    if(action.type === "raise"){
+      let inc = Math.max(1, action.inc|0);
+      const maxAllowedInc = Math.max(0, settings.maxBetPerHand - state.currentBet);
+      inc = Math.min(inc, maxAllowedInc);
+
+      if(settings.maxRaisesPerHand === 0 || state.globalRaises >= settings.maxRaisesPerHand || state.raiseCount[seatIdx] >= 1 || inc<=0){
+        const paid = pay(seatIdx, toCall);
+        state.needsAction.delete(seatIdx);
+        log(`<b>${name}</b> calls (${paid}).`);
+        IonAudio.call();
+        return;
+      }
+
+      const need = toCall + inc;
+      const paid = pay(seatIdx, need);
+      if(paid < need){
+        state.needsAction.delete(seatIdx);
+        log(`<b>${name}</b> goes all-in (${paid}).`);
+        IonAudio.raise();
+        return;
+      }
+
+      state.currentBet = state.streetBets[seatIdx];
+      state.globalRaises++;
+      state.raiseCount[seatIdx]++;
+
+      for(const i of aliveSeatIndices()){
+        if(i===seatIdx) continue;
+        if(state.folded[i] || state.allIn[i]) continue;
+        if(state.streetBets[i] < state.currentBet) state.needsAction.add(i);
+      }
+      state.needsAction.delete(seatIdx);
+
+      log(`<b>${name}</b> raises +${inc} to <b>${state.currentBet}</b>.`);
+      IonAudio.raise();
+    }
+  }
+
+  function endIfSingleRemaining(){
+    const remaining = inHandIndices();
+    if(remaining.length === 1){
+      const w = remaining[0];
+      const won = state.pot;
+      seats[w].chips += won;
+
+      showBanner(`${seats[w].id} wins`, `Won ${won} chips (everyone folded).`);
+      log(`<b>${seats[w].id}</b> wins <b>${won}</b> chips (everyone folded).`);
+
+      if(w===0) IonAudio.win(); else IonAudio.lose();
+
+      state.pot = 0;
+      state.handActive = false;
+      state.revealAll = true;
+      updateUISeats();
+      setTimeout(()=>finishHandAndNext(), 900);
+      return true;
+    }
+    return false;
+  }
+
+  function streetDone(){
+    if(state.needsAction.size === 0) return true;
+    let anyNeed = false;
+    for(const i of inHandIndices()){
+      if(!state.allIn[i] && state.needsAction.has(i)) anyNeed = true;
+    }
+    return !anyNeed;
+  }
+
+  function updateCallLabel(){
+    if(!state.handActive){
+      el("callBtn").textContent = "Call";
+      return;
+    }
+    const toCall = Math.max(0, state.currentBet - state.streetBets[0]);
+    el("callBtn").textContent = (toCall===0) ? "Check" : "Call";
+    el("toCallPill").textContent = String(toCall);
+  }
+
+  function updateBestPanel(){
+    const meta = [];
+    meta.push(state.handActive ? `${phaseLabel(state.phase)}` : "Locked");
+    meta.push(`Board: ${state.community.length}/5`);
+    el("bestMeta").textContent = meta.join(" • ");
+
+    const hole = seats[0].hole.slice();
+    if(!state.handActive || hole.length < 2){
+      el("bestLines").innerHTML = `<div class="muted">${gesture.loggedIn ? "Press New Hand to deal." : "Locked — verify gesture to begin."}</div>`;
+      return;
+    }
+
+    const known = hole.concat(state.community);
+
+    if(state.community.length === 0){
+      const p0 = parseCard(hole[0]);
+      const p1 = parseCard(hole[1]);
+      const pair = p0.val===p1.val;
+      const suited = p0.suit===p1.suit;
+      const txt1 = pair ? `Made: Pocket pair` : `Made: High cards`;
+      const txt2 = suited ? `Opportunity: Flush potential` : `Opportunity: Pair up / connect`;
+      el("bestLines").innerHTML = `<div>1) ${txt1}</div><div>2) <span class="muted">${txt2}</span></div>`;
+      return;
+    }
+
+    const best = bestOf(known);
+    const made = `1) Made: <b>${best.name}</b> — <span class="muted">[${best.best5.join(" ")}]</span>`;
+    const opp = drawOpportunity(known);
+    const second = opp ? `2) <span class="muted">Opportunity: ${opp}</span>`
+                       : `2) <span class="muted">Opportunity: Improve with remaining board cards</span>`;
+    el("bestLines").innerHTML = `<div>${made}</div><div>${second}</div>`;
+  }
+
+  function advancePhase(){
+    state.streetBets = [0,0,0,0,0];
+    state.currentBet = settings.baseBet;
+    state.needsAction = new Set(inHandIndices().filter(i=>!state.allIn[i]));
+    state.actionOrder = inHandIndices();
+    state.cursor = 0;
+
+    if(state.phase === "preflop"){
+      state.phase = "flop";
+      state.community.push(draw(), draw(), draw());
+      log(`<b>Flop:</b> ${state.community.join(" ")}`);
+      IonAudio.deal();
+    }else if(state.phase === "flop"){
+      state.phase = "turn";
+      state.community.push(draw());
+      log(`<b>Turn:</b> ${state.community.join(" ")}`);
+      IonAudio.deal();
+    }else if(state.phase === "turn"){
+      state.phase = "river";
+      state.community.push(draw());
+      log(`<b>River:</b> ${state.community.join(" ")}`);
+      IonAudio.deal();
+    }else if(state.phase === "river"){
+      state.phase = "showdown";
+      runShowdown();
+      return;
+    }
+
+    updateBestPanel();
+    updateUISeats();
+    promptTurn();
+  }
+
+  function runShowdown(){
+    const contenders = inHandIndices();
+    state.revealAll = true;
+    updateUISeats();
+
+    const board = state.community.slice();
+    const evals = contenders.map(i=>{
+      const cards = seats[i].hole.concat(board);
+      const best = bestOf(cards);
+      return { i, best };
+    });
+
+    let bestEv = null;
+    for(const e of evals){
+      if(!bestEv || compareEval(bestEv.best, e.best) < 0) bestEv = e;
+    }
+    const winners = evals.filter(e => compareEval(e.best, bestEv.best)===0);
+
+    const split = Math.floor(state.pot / winners.length);
+    let remainder = state.pot - split*winners.length;
+
+    winners.forEach((w)=>{
+      let add = split;
+      if(remainder>0){ add++; remainder--; }
+      seats[w.i].chips += add;
+    });
+
+    const names = winners.map(w=>seats[w.i].id).join(" & ");
+    const wonTotal = state.pot;
+
+    showBanner(`${names} wins`, `${bestEv.best.name} • Won ${split}${winners.length>1 ? " each (split)" : ""} chips`);
+    log(`<b>Showdown:</b> ${names} wins <b>${wonTotal}</b> chips with <b>${bestEv.best.name}</b>.`);
+
+    const youWon = winners.some(w=>w.i===0);
+    if(youWon) IonAudio.win(); else IonAudio.lose();
+
+    state.pot = 0;
+    state.handActive = false;
+    updateUISeats();
+    setTimeout(()=>finishHandAndNext(), 1200);
+  }
+
+  function finishHandAndNext(){
+    for(let i=0;i<seats.length;i++){
+      if(seats[i].alive && seats[i].chips <= 0){
+        seats[i].alive = false;
+        log(`<b>${seats[i].id}</b> is out of chips and leaves the table.`);
+      }
+    }
+    if(!seats[0].alive){
+      showBanner("IONCORE TABLE LOCKED", "You are out of chips. Restart to play again.");
+      log(`<b>You are out.</b> Game over.`);
+      setButtonsEnabled(false);
+      updateUISeats();
+      return;
+    }
+    const alive = aliveSeatIndices();
+    if(alive.length === 1){
+      showBanner(`${seats[alive[0]].id} wins the game`, "All chips collected.");
+      log(`<b>${seats[alive[0]].id}</b> wins the game!`);
+      setButtonsEnabled(false);
+      updateUISeats();
+      return;
+    }
+
+    if(!gesture.loggedIn){
+      state.handActive = false;
+      updateUISeats();
+      updateBestPanel();
+      return;
+    }
+    startHand();
+  }
+
+  function promptTurn(){
+    if(!state.handActive) return;
+    if(endIfSingleRemaining()) return;
+
+    if(streetDone()){
+      advancePhase();
+      return;
+    }
+
+    const nxt = nextActor();
+    if(nxt === null){
+      advancePhase();
+      return;
+    }
+
+    state.currentActor = nxt;
+    updateUISeats();
+
+    if(nxt === 0){
+      setButtonsEnabled(gesture.loggedIn);
+      updateCallLabel();
+      updateBestPanel();
+      return;
+    }
+
+    setButtonsEnabled(false);
+    setTimeout(()=>{
+      if(!state.handActive || state.currentActor !== nxt) return;
+      const decision = aiDecide(nxt);
+      act(nxt, decision);
+      updateUISeats();
+      updateBestPanel();
+      promptTurn();
+    }, 420);
+  }
+
+  function dealHoleCards(){
+    for(let i=0;i<seats.length;i++){
+      seats[i].hole = [];
+      if(!seats[i].alive) continue;
+      seats[i].hole.push(draw(), draw());
+    }
+  }
+
+  function startHand(){
+    if(!gesture.loggedIn){
+      showBanner("LOCKED", "Verify gesture to unlock.");
+      return;
+    }
+
+    log(`<hr style="border:0;border-top:1px solid rgba(255,255,255,.12); margin:10px 0;">`, true);
+    state.deck = shuffle(makeDeck());
+    resetForNewHand();
+    dealHoleCards();
+    state.revealAll = false;
+    updateUISeats();
+    updateBestPanel();
+    log(`<b>New hand</b> dealt. Reactor bet starts at <b>${settings.baseBet}</b>.`);
+    IonAudio.deal();
+    setTimeout(()=>IonAudio.deal(), 80);
+    setTimeout(()=>IonAudio.deal(), 160);
+
+    state.currentActor = 0;
+    updateUISeats();
+    updateCallLabel();
+    setButtonsEnabled(true);
+  }
+
+  function restartGame(){
+    if(!gesture.loggedIn){
+      openLoginOverlay();
+      return;
+    }
+    for(const s of seats){
+      s.chips = 1200;
+      s.alive = true;
+      s.hole = [];
+    }
+    logBox.innerHTML = "";
+    showBanner("REACTOR RESET", "Everyone back to 1200 chips.");
+    IonAudio.bet();
+    startHand();
+  }
+
+  function playerFold(){
+    if(state.currentActor !== 0 || !state.handActive || !gesture.loggedIn) return;
+    setButtonsEnabled(false);
+    act(0, {type:"fold"});
+    updateUISeats();
+    updateBestPanel();
+    promptTurn();
+  }
+  function playerCall(){
+    if(state.currentActor !== 0 || !state.handActive || !gesture.loggedIn) return;
+    setButtonsEnabled(false);
+    const toCall = Math.max(0, state.currentBet - state.streetBets[0]);
+    if(toCall === 0) act(0, {type:"check"});
+    else act(0, {type:"call"});
+    updateUISeats();
+    updateBestPanel();
+    promptTurn();
+  }
+  function playerRaise(){
+    if(state.currentActor !== 0 || !state.handActive || !gesture.loggedIn) return;
+    setButtonsEnabled(false);
+
+    const toCall = Math.max(0, state.currentBet - state.streetBets[0]);
+    let inc = parseInt(el("raiseInput").value, 10);
+    if(!Number.isFinite(inc) || inc <= 0) inc = 20;
+
+    const maxAllowedInc = Math.max(0, settings.maxBetPerHand - state.currentBet);
+    inc = clamp(inc, 1, maxAllowedInc);
+
+    const canRaise = settings.maxRaisesPerHand > 0 && state.globalRaises < settings.maxRaisesPerHand;
+    if(!canRaise || inc<=0){
+      act(0, {type: (toCall===0 ? "check":"call")});
+      updateUISeats(); updateBestPanel(); promptTurn();
+      return;
+    }
+
+    act(0, {type:"raise", inc});
+    updateUISeats();
+    updateBestPanel();
+    promptTurn();
+  }
+
+  /* =======================
+     Secure Gesture Login + Gesture Cursor (with Offset)
+  ======================= */
+  const gesture = {
+    cfg: {
+      enabled: appSettings.gesture.enabled,
+      pinchThr: appSettings.gesture.pinchThr,
+      smooth: appSettings.gesture.smooth,
+      strict: appSettings.gesture.strict,
+      offsetX: appSettings.gesture.offsetX,
+      offsetY: appSettings.gesture.offsetY,
+    },
+    camReady: false,
+    loggedIn: false,
+    overlayOpen: true,
+
+    cursorX: window.innerWidth * 0.5,
+    cursorY: window.innerHeight * 0.5,
+    pinchDown: false,
+    pinchTarget: null,
+
+    mode: "idle",
+    stage: "idle",
+    countdown: 0,
+
+    captureFramesNeed: 26,
+    captureFramesGot: 0,
+    acc: null,
+    lastVec: null,
+    lastSim: null,
+  };
+
+  const TEMPLATE_KEY = "ioncore_glass_gesture_template_v2";
+  const videoEl = el("cam");
+  const canvasEl = el("camCanvas");
+  const ctx2d = canvasEl.getContext("2d");
+
+  function loadTemplateVec(){
+    const raw = localStorage.getItem(TEMPLATE_KEY);
+    if(!raw) return null;
+    const parsed = safeJSONParse(raw, null);
+    if(!parsed) return null;
+    if(Array.isArray(parsed) && parsed.length>0) return parsed;
+    if(parsed && parsed.v===2 && Array.isArray(parsed.vec) && parsed.vec.length>0) return parsed.vec;
+    return null;
+  }
+  function saveTemplateVec(vec){
+    const payload = { v:2, createdAt: Date.now(), vec };
+    localStorage.setItem(TEMPLATE_KEY, JSON.stringify(payload));
+  }
+  function clearTemplate(){
+    localStorage.removeItem(TEMPLATE_KEY);
+  }
+
+  function setModePill(){
+    el("loginModePill").textContent =
+      gesture.stage === "countdown" ? (gesture.mode === "enrolling" ? "Enroll • Countdown" : "Verify • Countdown") :
+      gesture.stage === "capture" ? (gesture.mode === "enrolling" ? "Enroll • Capture" : "Verify • Capture") :
+      "Idle";
+  }
+
+  function updateHudBasics(){
+    el("camStatus").textContent = gesture.camReady ? "ready" : "starting…";
+    el("templStatus").textContent = loadTemplateVec() ? "yes" : "no";
+    el("simVal").textContent = (gesture.lastSim===null) ? "—" : gesture.lastSim.toFixed(3);
+    el("thrHud").textContent = gesture.cfg.strict.toFixed(2);
+    el("offHud").textContent = `${gesture.cfg.offsetX|0}, ${gesture.cfg.offsetY|0}`;
+    el("curXHud").textContent = Math.round(gesture.cursorX);
+    el("curYHud").textContent = Math.round(gesture.cursorY);
+  }
+  function setHudMsg(msg){
+    el("loginMsgHud").textContent = msg;
+  }
+  function setCapHud(pct){
+    el("capHud").textContent = `${Math.round(pct)}%`;
+  }
+  function updateLoginProgress(pct){
+    el("loginProg").style.width = clamp(pct,0,100).toFixed(1) + "%";
+    setCapHud(pct);
+  }
+
+  function showCountdownHUD(on, num=3, msg="Hold your gesture steady"){
+    const hud = el("countdownHud");
+    if(on){
+      hud.classList.add("show");
+      el("countdownNum").textContent = String(num);
+      el("countdownMsg").textContent = msg;
+    }else{
+      hud.classList.remove("show");
+    }
+  }
+
+  function beginCountdown(mode){
+    if(!gesture.camReady){
+      setHudMsg("Camera not ready");
+      IonAudio.loginFail();
+      return;
+    }
+    if(!gesture.overlayOpen){
+      openLoginOverlay();
+    }
+    if(gesture.stage !== "idle"){
+      setHudMsg("Busy… wait");
+      return;
+    }
+
+    gesture.mode = mode;
+    gesture.stage = "countdown";
+    gesture.countdown = 3;
+    gesture.captureFramesGot = 0;
+    gesture.acc = null;
+    gesture.lastVec = null;
+    gesture.lastSim = null;
+
+    updateLoginProgress(0);
+    setModePill();
+    setHudMsg(mode==="enrolling" ? "Enroll countdown…" : "Verify countdown…");
+    showCountdownHUD(true, gesture.countdown, mode==="enrolling" ? "Prepare ENROLL gesture" : "Prepare LOGIN gesture");
+
+    IonAudio.tick();
+
+    const tick = () => {
+      if(gesture.stage !== "countdown") return;
+      gesture.countdown--;
+      if(gesture.countdown > 0){
+        showCountdownHUD(true, gesture.countdown, "Hold steady…");
+        setHudMsg("Counting down…");
+        IonAudio.tick();
+        setTimeout(tick, 700);
+      }else{
+        showCountdownHUD(true, "GO", "Capturing now…");
+        IonAudio.go();
+        setTimeout(()=>{
+          if(gesture.stage !== "countdown") return;
+          gesture.stage = "capture";
+          setModePill();
+          showCountdownHUD(false);
+          setHudMsg("Capturing… keep steady");
+        }, 380);
+      }
+    };
+    setTimeout(tick, 700);
+  }
+
+  function handScale(lm){
+    const a = lm[0], b = lm[9];
+    const dx = a.x-b.x, dy = a.y-b.y;
+    return Math.max(1e-6, Math.sqrt(dx*dx + dy*dy));
+  }
+  function vectorFromLandmarks(lm){
+    const s = handScale(lm);
+    const w = lm[0];
+    const out = [];
+    for(let i=0;i<21;i++){
+      out.push((lm[i].x - w.x)/s);
+      out.push((lm[i].y - w.y)/s);
+    }
+    return out;
+  }
+  function dot(a,b){ let s=0; for(let i=0;i<a.length;i++) s += a[i]*b[i]; return s; }
+  function norm(a){ return Math.sqrt(dot(a,a) + 1e-9); }
+  function cosineSim(a,b){ return dot(a,b) / (norm(a)*norm(b) + 1e-9); }
+
+  function setLoggedIn(on){
+    gesture.loggedIn = !!on;
+
+    el("accessPill").textContent = gesture.loggedIn ? "Verified" : "Locked";
+    el("logoutBtn").style.display = gesture.loggedIn ? "inline-block" : "none";
+    el("loginBtn").textContent = gesture.loggedIn ? "HUD" : "Login";
+
+    // ✅ close button only if verified
+    el("loginCloseBtn").disabled = !gesture.loggedIn;
+
+    if(!gesture.loggedIn){
+      setButtonsEnabled(false);
+      state.handActive = false;
+      state.community = [];
+      seats.forEach(s=> s.hole = []);
+      updateUISeats();
+      updateBestPanel();
+      log(`<b>LOCKED:</b> Verify gesture to play.`, true);
+    }else{
+      if(!state.handActive){
+        startHand();
+      }else{
+        setButtonsEnabled(state.currentActor===0 && state.handActive);
+      }
+      updateBestPanel();
+    }
+  }
+
+  function openLoginOverlay(){
+    gesture.overlayOpen = true;
+    el("loginOverlay").classList.add("show");
+    setButtonsEnabled(false);
+    gesture.mode = "idle";
+    gesture.stage = "idle";
+    gesture.lastSim = null;
+    setModePill();
+    updateLoginProgress(0);
+    setHudMsg(gesture.loggedIn ? "HUD open" : "Locked — verify to enter");
+    updateHudBasics();
+  }
+
+  function closeLoginOverlay(){
+    if(!gesture.loggedIn) return;
+    gesture.overlayOpen = false;
+    el("loginOverlay").classList.remove("show");
+    updateHudBasics();
+    setButtonsEnabled(state.currentActor===0 && state.handActive && gesture.loggedIn);
+  }
+
+  function completeLogin(){
+    setLoggedIn(true);
+    IonAudio.loginOk();
+    closeLoginOverlay();
+    showBanner("ACCESS GRANTED", "Gesture verified. Poker unlocked.");
+    log(`<b>Login verified.</b> Welcome back.`, true);
+  }
+
+  function logout(){
+    IonAudio.loginFail();
+    setLoggedIn(false);
+    openLoginOverlay();
+    showBanner("LOGGED OUT", "Verify again to unlock.");
+  }
+
+  function setCursor(rawX, rawY){
+    let x = rawX + gesture.cfg.offsetX;
+    let y = rawY + gesture.cfg.offsetY;
+
+    x = clamp(x, 0, window.innerWidth);
+    y = clamp(y, 0, window.innerHeight);
+
+    const smooth = gesture.cfg.smooth;
+    gesture.cursorX = gesture.cursorX*(1-smooth) + x*smooth;
+    gesture.cursorY = gesture.cursorY*(1-smooth) + y*smooth;
+
+    const cur = el("gCursor");
+    if(gesture.cfg.enabled){
+      cur.style.display = "block";
+      cur.style.left = gesture.cursorX + "px";
+      cur.style.top  = gesture.cursorY + "px";
+    }else{
+      cur.style.display = "none";
+    }
+
+    el("curXHud").textContent = Math.round(gesture.cursorX);
+    el("curYHud").textContent = Math.round(gesture.cursorY);
+  }
+
+  function dispatchMouse(type, target, x, y){
+    if(!target) return;
+    const evt = new MouseEvent(type, { bubbles:true, cancelable:true, clientX:x, clientY:y, button:0 });
+    target.dispatchEvent(evt);
+  }
+  function dispatchPointer(type, target, x, y){
+    if(!target || !window.PointerEvent) return;
+    const evt = new PointerEvent(type, { bubbles:true, cancelable:true, clientX:x, clientY:y, pointerId:1, pointerType:"touch", isPrimary:true });
+    target.dispatchEvent(evt);
+  }
+
+  function pinchClickUpdate(pinchNow){
+    const cur = el("gCursor");
+    cur.classList.toggle("pinch", pinchNow);
+
+    el("pinchStatus").textContent = pinchNow ? "YES" : "no";
+    el("pinchStatus").className = pinchNow ? "hot" : "dim";
+
+    if(!gesture.cfg.enabled){
+      if(gesture.pinchDown){
+        gesture.pinchDown = false;
+        const x = gesture.cursorX, y = gesture.cursorY;
+        const target = gesture.pinchTarget || document.elementFromPoint(x, y);
+        dispatchPointer("pointerup", target, x, y);
+        dispatchMouse("mouseup", target, x, y);
+        gesture.pinchTarget = null;
+      }
+      return;
+    }
+
+    if(pinchNow && !gesture.pinchDown){
+      gesture.pinchDown = true;
+      const x = gesture.cursorX, y = gesture.cursorY;
+      const target = document.elementFromPoint(x, y);
+      gesture.pinchTarget = target;
+
+      dispatchPointer("pointermove", target, x, y);
+      dispatchPointer("pointerdown", target, x, y);
+      dispatchMouse("mousemove", target, x, y);
+      dispatchMouse("mousedown", target, x, y);
+      IonAudio.click();
+    }
+    if(!pinchNow && gesture.pinchDown){
+      gesture.pinchDown = false;
+      const x = gesture.cursorX, y = gesture.cursorY;
+      const target = gesture.pinchTarget || document.elementFromPoint(x, y);
+
+      dispatchPointer("pointerup", target, x, y);
+      dispatchMouse("mouseup", target, x, y);
+      dispatchMouse("click", target, x, y);
+      gesture.pinchTarget = null;
+    }
+  }
+
+  function dist2(a,b){
+    const dx = a.x-b.x, dy = a.y-b.y;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+  function pickFirstHand(results){
+    const lms = results.multiHandLandmarks || [];
+    if(!lms.length) return null;
+    return lms[0];
+  }
+
+  function onHandsResults(results){
+    ctx2d.save();
+    ctx2d.clearRect(0,0,canvasEl.width, canvasEl.height);
+    ctx2d.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
+
+    if(results.multiHandLandmarks && results.multiHandLandmarks.length){
+      for(const lm of results.multiHandLandmarks){
+        drawConnectors(ctx2d, lm, HAND_CONNECTIONS, {color:"rgba(32,255,230,.85)", lineWidth:3});
+        drawLandmarks(ctx2d, lm, {color:"rgba(255,255,255,.85)", lineWidth:1, radius:2});
+      }
+    }
+    ctx2d.restore();
+
+    const lm = pickFirstHand(results);
+    el("handStatus").textContent = lm ? "detected" : "none";
+
+    if(lm){
+      const idxTip = lm[8];
+      const thumbTip = lm[4];
+      setCursor(idxTip.x * window.innerWidth, idxTip.y * window.innerHeight);
+
+      const pinchD = dist2(idxTip, thumbTip);
+      const pinchNow = pinchD < gesture.cfg.pinchThr;
+      pinchClickUpdate(pinchNow);
+    }else{
+      pinchClickUpdate(false);
+    }
+
+    updateHudBasics();
+    setModePill();
+
+    if(!gesture.overlayOpen) return;
+    if(gesture.stage !== "capture") return;
+
+    if(!lm){
+      updateLoginProgress(0);
+      setHudMsg("No hand — keep in view");
+      return;
+    }
+
+    const vec = vectorFromLandmarks(lm);
+
+    if(gesture.lastVec){
+      const frameSim = cosineSim(vec, gesture.lastVec);
+      if(frameSim < 0.86){
+        gesture.captureFramesGot = 0;
+        gesture.acc = null;
+        gesture.lastVec = vec;
+        updateLoginProgress(0);
+        setHudMsg("Too much motion — hold steadier");
+        return;
+      }
+    }
+    gesture.lastVec = vec;
+
+    if(!gesture.acc) gesture.acc = new Array(vec.length).fill(0);
+    for(let i=0;i<vec.length;i++) gesture.acc[i] += vec[i];
+    gesture.captureFramesGot++;
+
+    const pct = (gesture.captureFramesGot / gesture.captureFramesNeed) * 100;
+    updateLoginProgress(pct);
+
+    if(gesture.mode === "verifying"){
+      const tmpl = loadTemplateVec();
+      if(tmpl){
+        const avg = gesture.acc.map(v => v / Math.max(1, gesture.captureFramesGot));
+        gesture.lastSim = cosineSim(avg, tmpl);
+        setHudMsg("Verifying…");
+      }else{
+        setHudMsg("No template — enroll first");
+      }
+    }else{
+      setHudMsg("Enrolling…");
+    }
+
+    if(gesture.captureFramesGot >= gesture.captureFramesNeed){
+      const avg = gesture.acc.map(v => v / gesture.captureFramesNeed);
+      gesture.acc = null;
+      gesture.captureFramesGot = 0;
+      gesture.lastVec = null;
+
+      if(gesture.mode === "enrolling"){
+        saveTemplateVec(avg);
+        gesture.stage = "idle";
+        gesture.mode = "idle";
+        gesture.lastSim = null;
+        updateLoginProgress(100);
+        setHudMsg("Enrolled ✓ Now Verify");
+        setModePill();
+        IonAudio.enroll();
+      }else if(gesture.mode === "verifying"){
+        const tmpl = loadTemplateVec();
+        if(!tmpl){
+          gesture.stage = "idle";
+          gesture.mode = "idle";
+          updateLoginProgress(0);
+          setHudMsg("No template — enroll first");
+          setModePill();
+          IonAudio.loginFail();
+          return;
+        }
+        const sim = cosineSim(avg, tmpl);
+        gesture.lastSim = sim;
+        const ok = sim >= gesture.cfg.strict;
+
+        if(ok){
+          updateLoginProgress(100);
+          setHudMsg("Verified ✓ Entering…");
+          gesture.stage = "idle";
+          gesture.mode = "idle";
+          setModePill();
+          setTimeout(()=> completeLogin(), 200);
+        }else{
+          updateLoginProgress(0);
+          setHudMsg("Failed — try again");
+          gesture.stage = "idle";
+          gesture.mode = "idle";
+          setModePill();
+          IonAudio.loginFail();
+        }
+      }
+    }
+  }
+
+  async function initHands(){
+    try{
+      const hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.60,
+        minTrackingConfidence: 0.60
+      });
+      hands.onResults(onHandsResults);
+
+      const camera = new Camera(videoEl, {
+        onFrame: async () => { await hands.send({ image: videoEl }); },
+        width: 960,
+        height: 720
+      });
+      await camera.start();
+
+      gesture.camReady = true;
+      setHudMsg("Camera ready");
+      updateHudBasics();
+      openLoginOverlay();
+    }catch(err){
+      console.error(err);
+      gesture.camReady = false;
+      setHudMsg("Camera failed (need https/localhost)");
+      updateHudBasics();
+      openLoginOverlay();
+    }
+  }
+
+  /* =======================
+     Tuners + UI binding (Unified + Persisted)
+  ======================= */
+  function bindTuners(){
+    const guard = { lock:false };
+
+    function writeSettings(){
+      const snap = {
+        gameplay: {
+          baseBet: settings.baseBet,
+          maxRaisesPerHand: settings.maxRaisesPerHand,
+          simIterations: settings.simIterations,
+          maxBetPerHand: settings.maxBetPerHand,
+        },
+        aiPlayers: aiPlayers.map(p=>({
+          name: p.name,
+          preset: p.preset,
+          aggression: p.aggression,
+          tightness: p.tightness,
+          bluff: p.bluff,
+          raiseThr: p.raiseThr,
+          randomness: p.randomness,
+        })),
+        visual: {
+          glowAlpha: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glowAlpha')) || DEFAULTS.visual.glowAlpha,
+          motionMul: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--motionMul')) || DEFAULTS.visual.motionMul,
+        },
+        audio: {
+          musicOn: IonAudio.musicEnabled,
+          musicVol: IonAudio.musicVolume,
+          sfxOn: IonAudio.sfxEnabled,
+          sfxVol: IonAudio.sfxVolume,
+        },
+        gesture: {
+          enabled: gesture.cfg.enabled,
+          pinchThr: gesture.cfg.pinchThr,
+          smooth: gesture.cfg.smooth,
+          strict: gesture.cfg.strict,
+          offsetX: gesture.cfg.offsetX,
+          offsetY: gesture.cfg.offsetY,
+        }
+      };
+      saveSettings(snap);
+    }
+
+    function refreshLabels(){
+      el("sBaseBet").textContent = settings.baseBet;
+      el("sMaxRaises").textContent = settings.maxRaisesPerHand;
+      el("sIters").textContent = settings.simIterations;
+      el("sMaxHand").textContent = settings.maxBetPerHand;
+
+      el("sGlow").textContent = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glowAlpha')) || 0).toFixed(2);
+      el("sMotion").textContent = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--motionMul')) || 0).toFixed(2);
+
+      el("sGC").textContent = gesture.cfg.enabled ? "ON" : "OFF";
+      el("sGC2").textContent = gesture.cfg.enabled ? "ON" : "OFF";
+      el("sPinchThr").textContent = gesture.cfg.pinchThr.toFixed(3);
+      el("sPinchThr2").textContent = gesture.cfg.pinchThr.toFixed(3);
+      el("sSmooth").textContent = gesture.cfg.smooth.toFixed(2);
+      el("sSmooth2").textContent = gesture.cfg.smooth.toFixed(2);
+      el("sStrict").textContent = gesture.cfg.strict.toFixed(2);
+      el("sStrict2").textContent = gesture.cfg.strict.toFixed(2);
+
+      el("sOffX").textContent = (gesture.cfg.offsetX|0);
+      el("sOffX2").textContent = (gesture.cfg.offsetX|0);
+      el("sOffY").textContent = (gesture.cfg.offsetY|0);
+      el("sOffY2").textContent = (gesture.cfg.offsetY|0);
+
+      el("gestureBtn").textContent = `Gesture: ${gesture.cfg.enabled ? "ON" : "OFF"}`;
+      el("musicBtn").textContent = `Music: ${IonAudio.musicEnabled ? "ON" : "OFF"}`;
+      el("sfxBtn").textContent   = `SFX: ${IonAudio.sfxEnabled ? "ON" : "OFF"}`;
+
+      el("sMusicOn").textContent = IonAudio.musicEnabled ? "ON" : "OFF";
+      el("sSfxOn").textContent   = IonAudio.sfxEnabled ? "ON" : "OFF";
+      el("sMusicVol").textContent= IonAudio.musicVolume.toFixed(2);
+      el("sSfxVol").textContent  = IonAudio.sfxVolume.toFixed(2);
+
+      el("thrHud").textContent = gesture.cfg.strict.toFixed(2);
+      el("offHud").textContent = `${gesture.cfg.offsetX|0}, ${gesture.cfg.offsetY|0}`;
+
+      const cur = parseInt(el("raiseInput").value,10);
+      if(!Number.isFinite(cur) || cur <= 0) el("raiseInput").value = "20";
+      el("raiseInput").max = String(Math.max(1, settings.maxBetPerHand));
+    }
+
+    function setGestureEnabled(on){
+      gesture.cfg.enabled = !!on;
+      if(!gesture.cfg.enabled){
+        el("gCursor").style.display = "none";
+        pinchClickUpdate(false);
+      }
+      refreshLabels();
+      writeSettings();
+    }
+    function setPinchThr(v){
+      gesture.cfg.pinchThr = clamp(+v, 0.020, 0.090);
+      refreshLabels();
+      writeSettings();
+    }
+    function setSmooth(v){
+      gesture.cfg.smooth = clamp(+v, 0.05, 0.60);
+      refreshLabels();
+      writeSettings();
+    }
+    function setStrict(v){
+      gesture.cfg.strict = clamp(+v, 0.70, 0.97);
+      refreshLabels();
+      updateHudBasics();
+      writeSettings();
+    }
+    function setOffX(v){
+      gesture.cfg.offsetX = clamp(Math.round(+v), -240, 240);
+      refreshLabels();
+      updateHudBasics();
+      writeSettings();
+    }
+    function setOffY(v){
+      gesture.cfg.offsetY = clamp(Math.round(+v), -240, 240);
+      refreshLabels();
+      updateHudBasics();
+      writeSettings();
+    }
+
+    function mirrorCheckbox(aId, bId, onVal){
+      const a = el(aId), b = el(bId);
+      const apply = (val) => {
+        if(guard.lock) return;
+        guard.lock = true;
+        a.checked = !!val;
+        b.checked = !!val;
+        onVal(!!val);
+        guard.lock = false;
+      };
+      a.addEventListener("change", ()=> apply(a.checked));
+      b.addEventListener("change", ()=> apply(b.checked));
+      apply(a.checked);
+    }
+
+    function mirrorRange(aId, bId, onVal){
+      const a = el(aId), b = el(bId);
+      const apply = (val) => {
+        if(guard.lock) return;
+        guard.lock = true;
+        a.value = val;
+        b.value = val;
+        onVal(parseFloat(val));
+        guard.lock = false;
+      };
+      a.addEventListener("input", ()=> apply(a.value));
+      b.addEventListener("input", ()=> apply(b.value));
+      apply(a.value);
+    }
+
+    function mirrorRangeWithNum(aRangeId, aNumId, bRangeId, bNumId, onVal){
+      const ar = el(aRangeId), an = el(aNumId);
+      const br = el(bRangeId), bn = el(bNumId);
+
+      const clampTo = (v, r) => clamp(v, parseFloat(r.min), parseFloat(r.max));
+
+      const apply = (val) => {
+        if(guard.lock) return;
+        guard.lock = true;
+
+        let v = parseFloat(val);
+        if(!Number.isFinite(v)) v = parseFloat(ar.value);
+        v = clampTo(v, ar);
+
+        ar.value = String(v); an.value = String(v);
+        br.value = String(v); bn.value = String(v);
+
+        onVal(v);
+
+        guard.lock = false;
+      };
+
+      ar.addEventListener("input", ()=> apply(ar.value));
+      br.addEventListener("input", ()=> apply(br.value));
+      an.addEventListener("input", ()=> apply(an.value));
+      bn.addEventListener("input", ()=> apply(bn.value));
+      an.addEventListener("change", ()=> apply(an.value));
+      bn.addEventListener("change", ()=> apply(bn.value));
+
+      apply(ar.value);
+    }
+
+    /* ===== Apply loaded settings ===== */
+    document.documentElement.style.setProperty("--glowAlpha", String(appSettings.visual.glowAlpha));
+    document.documentElement.style.setProperty("--motionMul", String(appSettings.visual.motionMul));
+
+    IonAudio.setMusicEnabled(appSettings.audio.musicOn);
+    IonAudio.setMusicVolume(appSettings.audio.musicVol);
+    IonAudio.setSfxEnabled(appSettings.audio.sfxOn);
+    IonAudio.setSfxVolume(appSettings.audio.sfxVol);
+
+    el("baseBet").value = String(settings.baseBet);
+    el("maxRaises").value = String(settings.maxRaisesPerHand);
+    el("iters").value = String(settings.simIterations);
+    el("maxHand").value = String(settings.maxBetPerHand);
+
+    el("glow").value = String(appSettings.visual.glowAlpha);
+    el("motion").value = String(appSettings.visual.motionMul);
+
+    el("musicOn").checked = IonAudio.musicEnabled;
+    el("musicVol").value  = String(IonAudio.musicVolume);
+    el("sfxOn").checked = IonAudio.sfxEnabled;
+    el("sfxVol").value  = String(IonAudio.sfxVolume);
+
+    el("gcOn").checked = gesture.cfg.enabled;
+    el("pinchThr").value = String(gesture.cfg.pinchThr);
+    el("smooth").value = String(gesture.cfg.smooth);
+    el("strict").value = String(gesture.cfg.strict);
+    el("offX").value = String(gesture.cfg.offsetX);
+    el("offXNum").value = String(gesture.cfg.offsetX);
+    el("offY").value = String(gesture.cfg.offsetY);
+    el("offYNum").value = String(gesture.cfg.offsetY);
+
+    el("gcOn2").checked = gesture.cfg.enabled;
+    el("pinchThr2").value = String(gesture.cfg.pinchThr);
+    el("smooth2").value = String(gesture.cfg.smooth);
+    el("strict2").value = String(gesture.cfg.strict);
+    el("offX2").value = String(gesture.cfg.offsetX);
+    el("offXNum2").value = String(gesture.cfg.offsetX);
+    el("offY2").value = String(gesture.cfg.offsetY);
+    el("offYNum2").value = String(gesture.cfg.offsetY);
+
+    /* ===== Gameplay tuners ===== */
+    el("baseBet").addEventListener("input",(e)=>{
+      settings.baseBet = parseInt(e.target.value,10);
+      if(state.handActive) state.currentBet = settings.baseBet;
+      refreshLabels(); updateUISeats(); updateCallLabel(); updateBestPanel();
+      writeSettings();
+    });
+    el("maxRaises").addEventListener("input",(e)=>{ settings.maxRaisesPerHand = parseInt(e.target.value,10); refreshLabels(); writeSettings(); });
+    el("iters").addEventListener("input",(e)=>{ settings.simIterations = parseInt(e.target.value,10); refreshLabels(); writeSettings(); });
+    el("maxHand").addEventListener("input",(e)=>{ settings.maxBetPerHand = parseInt(e.target.value,10); refreshLabels(); updateUISeats(); writeSettings(); });
+
+    /* ===== Visual ===== */
+    el("glow").addEventListener("input",(e)=>{
+      document.documentElement.style.setProperty('--glowAlpha', parseFloat(e.target.value).toFixed(2));
+      refreshLabels(); writeSettings();
+    });
+    el("motion").addEventListener("input",(e)=>{
+      document.documentElement.style.setProperty('--motionMul', parseFloat(e.target.value).toFixed(2));
+      refreshLabels(); writeSettings();
+    });
+
+    /* ===== Audio ===== */
+    el("musicOn").addEventListener("change",(e)=>{ IonAudio.ensure(); IonAudio.setMusicEnabled(e.target.checked); refreshLabels(); writeSettings(); });
+    el("sfxOn").addEventListener("change",(e)=>{ IonAudio.ensure(); IonAudio.setSfxEnabled(e.target.checked); refreshLabels(); writeSettings(); });
+    el("musicVol").addEventListener("input",(e)=>{ IonAudio.ensure(); IonAudio.setMusicVolume(parseFloat(e.target.value)); refreshLabels(); writeSettings(); });
+    el("sfxVol").addEventListener("input",(e)=>{ IonAudio.ensure(); IonAudio.setSfxVolume(parseFloat(e.target.value)); refreshLabels(); writeSettings(); });
+
+    /* ===== Gesture unified controls (overlay <-> sidebar) ===== */
+    mirrorCheckbox("gcOn","gcOn2",(v)=> setGestureEnabled(v));
+    mirrorRange("pinchThr","pinchThr2",(v)=> setPinchThr(v));
+    mirrorRange("smooth","smooth2",(v)=> setSmooth(v));
+    mirrorRange("strict","strict2",(v)=> setStrict(v));
+    mirrorRangeWithNum("offX","offXNum","offX2","offXNum2",(v)=> setOffX(v));
+    mirrorRangeWithNum("offY","offYNum","offY2","offYNum2",(v)=> setOffY(v));
+
+    /* ===== Topbar quick toggles ===== */
+    el("gestureBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      const next = !gesture.cfg.enabled;
+      el("gcOn").checked = next;
+      el("gcOn").dispatchEvent(new Event("change"));
+      IonAudio.click();
+    });
+    el("musicBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      const next = !IonAudio.musicEnabled;
+      el("musicOn").checked = next;
+      el("musicOn").dispatchEvent(new Event("change"));
+      IonAudio.click();
+    });
+    el("sfxBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      const next = !IonAudio.sfxEnabled;
+      el("sfxOn").checked = next;
+      el("sfxOn").dispatchEvent(new Event("change"));
+      IonAudio.click();
+    });
+
+    /* ===== Login overlay buttons ===== */
+    el("enrollBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      beginCountdown("enrolling");
+    });
+    el("verifyBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      beginCountdown("verifying");
+    });
+    el("clearEnrollBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      clearTemplate();
+      gesture.lastSim = null;
+      updateLoginProgress(0);
+      setHudMsg("Template cleared");
+      updateHudBasics();
+      IonAudio.fold();
+    });
+    el("loginCloseBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      closeLoginOverlay();
+      IonAudio.click();
+    });
+
+    /* ===== Open/close login controls ===== */
+    el("loginBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      openLoginOverlay();
+      IonAudio.click();
+    });
+    el("reOpenLoginBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      openLoginOverlay();
+      IonAudio.click();
+    });
+    el("logoutBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      logout();
+    });
+    el("quickZeroOffsets").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      el("offX").value = "0"; el("offXNum").value="0"; el("offX").dispatchEvent(new Event("input"));
+      el("offY").value = "0"; el("offYNum").value="0"; el("offY").dispatchEvent(new Event("input"));
+      showBanner("OFFSETS ZEROED", "Cursor offset X/Y set to 0.");
+      IonAudio.click();
+    });
+
+    /* ===== Game controls ===== */
+    el("callBtn").addEventListener("click", ()=>{ IonAudio.ensure(); playerCall(); });
+    el("raiseBtn").addEventListener("click", ()=>{ IonAudio.ensure(); playerRaise(); });
+    el("foldBtn").addEventListener("click", ()=>{ IonAudio.ensure(); playerFold(); });
+
+    el("newHandBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      if(!gesture.loggedIn){ openLoginOverlay(); return; }
+      startHand();
+      showBanner("NEW HAND", "Fresh reactor deal.");
+    });
+
+    el("restartBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      restartGame();
+    });
+
+    /* ===== AI Players UI (build + bind) ===== */
+    function buildAIControls(){
+      const container = el("aiPlayersContainer");
+      container.innerHTML = "";
+
+      const presetOptions = ["Aggressive","Cautious","Balanced","Random","Custom"]
+        .map(p=> `<option value="${p}">${p}</option>`).join("");
+
+      aiPlayers.forEach((p, idx)=>{
+        const seatNum = idx + 1; // maps to seats[seatNum]
+        const det = document.createElement("details");
+        det.className = "aiDetails";
+        det.open = true;
+
+        det.innerHTML = `
+          <summary>
+            <div class="aiSumLeft">
+              <span class="aiSumName" id="aiSumName${seatNum}">${p.name}</span>
+              <span class="aiPill" id="aiSumPreset${seatNum}">${String(p.preset).toLowerCase()}</span>
+            </div>
+            <span style="opacity:.70; font-weight:900;">edit</span>
+          </summary>
+
+          <div class="aiBody">
+            <div class="setting">
+              <label><span>Name</span><span class="val">seat ${seatNum}</span></label>
+              <input class="textInput" id="aiName${seatNum}" value="${p.name.replace(/"/g,'&quot;')}" maxlength="28" />
+              <small>Rename the AI at this seat.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Preset</span><span class="val" id="aiPresetVal${seatNum}">${p.preset}</span></label>
+              <select class="selectInput" id="aiPreset${seatNum}">
+                ${presetOptions}
+              </select>
+              <small>Choosing a preset writes all trait sliders. “Custom” keeps your manual values.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Aggression</span><span class="val" id="aiAggVal${seatNum}">${p.aggression.toFixed(2)}</span></label>
+              <input type="range" id="aiAgg${seatNum}" min="0" max="1" step="0.01" value="${p.aggression}">
+              <small>Higher = raises more often + larger.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Tightness</span><span class="val" id="aiTightVal${seatNum}">${p.tightness.toFixed(2)}</span></label>
+              <input type="range" id="aiTight${seatNum}" min="0" max="1" step="0.01" value="${p.tightness}">
+              <small>Higher = folds more under pressure.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Bluff chance</span><span class="val" id="aiBluffVal${seatNum}">${p.bluff.toFixed(2)}</span></label>
+              <input type="range" id="aiBluff${seatNum}" min="0" max="0.25" step="0.01" value="${p.bluff}">
+              <small>Random raises on bluffable holdings.</small>
+            </div>
+
+            <div class="setting">
+              <label><span>Raise threshold</span><span class="val" id="aiRaiseThrVal${seatNum}">${p.raiseThr.toFixed(2)}</span></label>
+              <input type="range" id="aiRaiseThr${seatNum}" min="0.55" max="0.95" step="0.01" value="${p.raiseThr}">
+              <small>Estimated win chance needed to raise (lower = more aggressive).</small>
+            </div>
+
+            <div class="setting" style="margin-bottom:0;">
+              <label><span>Randomness</span><span class="val" id="aiRandVal${seatNum}">${p.randomness.toFixed(2)}</span></label>
+              <input type="range" id="aiRand${seatNum}" min="0" max="0.35" step="0.01" value="${p.randomness}">
+              <small>Adds noise to decisions (higher = more chaotic).</small>
+            </div>
+
+            <div class="tunerFooter">
+              <button class="miniBtn" id="aiReset${seatNum}">Reset Seat</button>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(det);
+
+        // set preset select value after insert
+        const presetSel = el(`aiPreset${seatNum}`);
+        presetSel.value = (["Aggressive","Cautious","Balanced","Random","Custom"].includes(p.preset) ? p.preset : "Custom");
+      });
+
+      function syncSeatUI(){
+        updateUISeats();
+        updateBestPanel();
+      }
+
+      function setAI(idx, patch){
+        const base = aiPlayers[idx];
+        aiPlayers[idx] = clampAIPlayer({ ...base, ...patch }, DEFAULTS.aiPlayers[idx]);
+
+        // If traits diverge from preset, mark as Custom
+        const pr = aiPlayers[idx].preset;
+        if(pr !== "Custom" && AI_PRESETS[pr]){
+          const ref = AI_PRESETS[pr];
+          const diff =
+            Math.abs(aiPlayers[idx].aggression - ref.aggression) > 0.001 ||
+            Math.abs(aiPlayers[idx].tightness  - ref.tightness)  > 0.001 ||
+            Math.abs(aiPlayers[idx].bluff      - ref.bluff)      > 0.001 ||
+            Math.abs(aiPlayers[idx].raiseThr   - ref.raiseThr)   > 0.001 ||
+            Math.abs(aiPlayers[idx].randomness - ref.randomness) > 0.001;
+          if(diff) aiPlayers[idx].preset = "Custom";
+        }
+
+        writeSettings();
+        syncSeatUI();
+      }
+
+      // bind inputs
+      aiPlayers.forEach((p, idx)=>{
+        const seatNum = idx+1;
+
+        const nameEl = el(`aiName${seatNum}`);
+        nameEl.addEventListener("input", ()=>{
+          setAI(idx, { name: nameEl.value });
+          el(`aiSumName${seatNum}`).textContent = aiPlayers[idx].name;
+        });
+
+        const presetSel = el(`aiPreset${seatNum}`);
+        presetSel.addEventListener("change", ()=>{
+          const val = presetSel.value;
+          if(val !== "Custom" && AI_PRESETS[val]){
+            const presetTraits = AI_PRESETS[val];
+            setAI(idx, { preset: val, ...presetTraits });
+            // push to sliders
+            el(`aiAgg${seatNum}`).value = String(aiPlayers[idx].aggression);
+            el(`aiTight${seatNum}`).value = String(aiPlayers[idx].tightness);
+            el(`aiBluff${seatNum}`).value = String(aiPlayers[idx].bluff);
+            el(`aiRaiseThr${seatNum}`).value = String(aiPlayers[idx].raiseThr);
+            el(`aiRand${seatNum}`).value = String(aiPlayers[idx].randomness);
+          }else{
+            setAI(idx, { preset: "Custom" });
+          }
+          el(`aiPresetVal${seatNum}`).textContent = aiPlayers[idx].preset;
+          el(`aiSumPreset${seatNum}`).textContent = String(aiPlayers[idx].preset).toLowerCase();
+        });
+
+        function bindRange(id, valId, key, fmt=(v)=>Number(v).toFixed(2)){
+          const r = el(id), vEl = el(valId);
+          r.addEventListener("input", ()=>{
+            const v = parseFloat(r.value);
+            vEl.textContent = fmt(v);
+            setAI(idx, { [key]: v, preset: (aiPlayers[idx].preset === "Custom" ? "Custom" : aiPlayers[idx].preset) });
+            el(`aiSumPreset${seatNum}`).textContent = String(aiPlayers[idx].preset).toLowerCase();
+            el(`aiPresetVal${seatNum}`).textContent = aiPlayers[idx].preset;
+            presetSel.value = aiPlayers[idx].preset;
+          });
+        }
+
+        bindRange(`aiAgg${seatNum}`, `aiAggVal${seatNum}`, "aggression");
+        bindRange(`aiTight${seatNum}`, `aiTightVal${seatNum}`, "tightness");
+        bindRange(`aiBluff${seatNum}`, `aiBluffVal${seatNum}`, "bluff", (v)=>Number(v).toFixed(2));
+        bindRange(`aiRaiseThr${seatNum}`, `aiRaiseThrVal${seatNum}`, "raiseThr");
+        bindRange(`aiRand${seatNum}`, `aiRandVal${seatNum}`, "randomness");
+
+        el(`aiReset${seatNum}`).addEventListener("click", ()=>{
+          IonAudio.ensure();
+          const def = DEFAULTS.aiPlayers[idx];
+          setAI(idx, { ...def });
+          // refresh UI fields
+          el(`aiName${seatNum}`).value = aiPlayers[idx].name;
+          el(`aiPreset${seatNum}`).value = aiPlayers[idx].preset;
+          el(`aiPresetVal${seatNum}`).textContent = aiPlayers[idx].preset;
+          el(`aiSumName${seatNum}`).textContent = aiPlayers[idx].name;
+          el(`aiSumPreset${seatNum}`).textContent = String(aiPlayers[idx].preset).toLowerCase();
+
+          el(`aiAgg${seatNum}`).value = String(aiPlayers[idx].aggression);
+          el(`aiTight${seatNum}`).value = String(aiPlayers[idx].tightness);
+          el(`aiBluff${seatNum}`).value = String(aiPlayers[idx].bluff);
+          el(`aiRaiseThr${seatNum}`).value = String(aiPlayers[idx].raiseThr);
+          el(`aiRand${seatNum}`).value = String(aiPlayers[idx].randomness);
+
+          el(`aiAggVal${seatNum}`).textContent = aiPlayers[idx].aggression.toFixed(2);
+          el(`aiTightVal${seatNum}`).textContent = aiPlayers[idx].tightness.toFixed(2);
+          el(`aiBluffVal${seatNum}`).textContent = aiPlayers[idx].bluff.toFixed(2);
+          el(`aiRaiseThrVal${seatNum}`).textContent = aiPlayers[idx].raiseThr.toFixed(2);
+          el(`aiRandVal${seatNum}`).textContent = aiPlayers[idx].randomness.toFixed(2);
+
+          IonAudio.click();
+          showBanner("AI RESET", `Seat ${seatNum} restored.`);
+        });
+      });
+    }
+
+    buildAIControls();
+
+    el("resetAIAllBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      for(let i=0;i<aiPlayers.length;i++){
+        aiPlayers[i] = { ...DEFAULTS.aiPlayers[i] };
+      }
+      writeSettings();
+      updateUISeats();
+      updateBestPanel();
+      showBanner("AI RESET", "All AI seats restored.");
+      IonAudio.click();
+      // rebuild to refresh UI
+      buildAIControls();
+    });
+
+    /* ===== Reset buttons ===== */
+    function resetGameplay(){
+      settings.baseBet = DEFAULTS.gameplay.baseBet;
+      settings.maxRaisesPerHand = DEFAULTS.gameplay.maxRaisesPerHand;
+      settings.simIterations = DEFAULTS.gameplay.simIterations;
+      settings.maxBetPerHand = DEFAULTS.gameplay.maxBetPerHand;
+
+      el("baseBet").value = String(settings.baseBet);
+      el("maxRaises").value = String(settings.maxRaisesPerHand);
+      el("iters").value = String(settings.simIterations);
+      el("maxHand").value = String(settings.maxBetPerHand);
+
+      if(state.handActive) state.currentBet = settings.baseBet;
+      refreshLabels(); updateUISeats(); updateCallLabel(); updateBestPanel();
+      writeSettings();
+      IonAudio.bet();
+    }
+
+    function resetVisual(){
+      el("glow").value = String(DEFAULTS.visual.glowAlpha);
+      document.documentElement.style.setProperty('--glowAlpha', String(DEFAULTS.visual.glowAlpha));
+      el("motion").value = String(DEFAULTS.visual.motionMul);
+      document.documentElement.style.setProperty('--motionMul', String(DEFAULTS.visual.motionMul));
+      refreshLabels();
+      writeSettings();
+      IonAudio.click();
+    }
+
+    function resetAudio(){
+      IonAudio.ensure();
+      IonAudio.setMusicEnabled(DEFAULTS.audio.musicOn);
+      IonAudio.setSfxEnabled(DEFAULTS.audio.sfxOn);
+      IonAudio.setMusicVolume(DEFAULTS.audio.musicVol);
+      IonAudio.setSfxVolume(DEFAULTS.audio.sfxVol);
+
+      el("musicOn").checked = IonAudio.musicEnabled;
+      el("sfxOn").checked = IonAudio.sfxEnabled;
+      el("musicVol").value = String(IonAudio.musicVolume);
+      el("sfxVol").value = String(IonAudio.sfxVolume);
+
+      refreshLabels();
+      writeSettings();
+      IonAudio.click();
+    }
+
+    function resetGesture(){
+      el("gcOn").checked = DEFAULTS.gesture.enabled;
+      el("gcOn").dispatchEvent(new Event("change"));
+
+      el("pinchThr").value = String(DEFAULTS.gesture.pinchThr);
+      el("pinchThr").dispatchEvent(new Event("input"));
+
+      el("smooth").value = String(DEFAULTS.gesture.smooth);
+      el("smooth").dispatchEvent(new Event("input"));
+
+      el("strict").value = String(DEFAULTS.gesture.strict);
+      el("strict").dispatchEvent(new Event("input"));
+
+      el("offX").value = "0"; el("offXNum").value="0";
+      el("offX").dispatchEvent(new Event("input"));
+
+      el("offY").value = "0"; el("offYNum").value="0";
+      el("offY").dispatchEvent(new Event("input"));
+
+      refreshLabels();
+      writeSettings();
+      IonAudio.click();
+    }
+
+    el("resetGameplayBtn").addEventListener("click", ()=>{ IonAudio.ensure(); resetGameplay(); });
+    el("resetVisualBtn").addEventListener("click", ()=>{ IonAudio.ensure(); resetVisual(); });
+    el("resetAudioBtn").addEventListener("click", ()=>{ IonAudio.ensure(); resetAudio(); });
+    el("resetGestureBtn").addEventListener("click", ()=>{ IonAudio.ensure(); resetGesture(); });
+
+    el("resetAllBtn").addEventListener("click", ()=>{
+      IonAudio.ensure();
+      resetGameplay();
+
+      // AI reset
+      for(let i=0;i<aiPlayers.length;i++){
+        aiPlayers[i] = { ...DEFAULTS.aiPlayers[i] };
+      }
+
+      resetVisual();
+      resetAudio();
+      resetGesture();
+
+      writeSettings();
+      updateUISeats();
+      updateBestPanel();
+
+      showBanner("RESET ALL", "Tuners restored to defaults.");
+      IonAudio.click();
+
+      // rebuild AI UI after reset
+      buildAIControls();
+    });
+
+    // Start audio on first user gesture (browser autoplay rules)
+    const unlock = () => { IonAudio.ensure(); document.removeEventListener("pointerdown", unlock); };
+    document.addEventListener("pointerdown", unlock, { passive:true });
+
+    refreshLabels();
+    updateHudBasics();
+    updateUISeats();
+  }
+
+  /* =======================
+     Boot
+  ======================= */
+  window.addEventListener("resize", ()=>{
+    gesture.cursorX = clamp(gesture.cursorX, 0, window.innerWidth);
+    gesture.cursorY = clamp(gesture.cursorY, 0, window.innerHeight);
+    updateHudBasics();
+  });
+
+  window.addEventListener("keydown",(e)=>{
+    if(!gesture.loggedIn || !state.handActive || state.currentActor !== 0) return;
+    const k = e.key.toLowerCase();
+    if(k==="c" || k===" "){ e.preventDefault(); playerCall(); }
+    if(k==="f"){ e.preventDefault(); playerFold(); }
+    if(k==="r"){ e.preventDefault(); playerRaise(); }
+    if(k==="escape"){
+      if(gesture.overlayOpen) closeLoginOverlay();
+    }
+  });
+
+  bindTuners();
+
+  setLoggedIn(false);
+  updateUISeats();
+  updateBestPanel();
+  showBanner("IONCORE LOCKED", "Verify gesture to unlock poker.");
+
+  initHands();
+  </script>
+</body>
+</html>

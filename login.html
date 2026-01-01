@@ -723,6 +723,81 @@
       color: rgba(203, 213, 225, 0.9);
     }
 
+    .contract-guard {
+      border: 1px solid rgba(72, 255, 226, 0.22);
+      border-radius: 18px;
+      background: rgba(9, 17, 38, 0.7);
+      padding: 1rem 1.15rem;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .contract-guard__header h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+    }
+
+    .contract-guard__header p {
+      margin: 0.35rem 0 0;
+      color: rgba(203, 213, 225, 0.9);
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    .contract-guard__options {
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .contract-option {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.65rem;
+      align-items: flex-start;
+      padding: 0.75rem 0.85rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.55);
+      box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.12);
+    }
+
+    .contract-option input {
+      margin-top: 0.2rem;
+    }
+
+    .contract-option__body {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .contract-option__network {
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .contract-option__address {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.9rem;
+      color: rgba(148, 227, 255, 0.92);
+      word-break: break-all;
+    }
+
+    .contract-option__hint {
+      font-size: 0.85rem;
+      color: rgba(203, 213, 225, 0.8);
+    }
+
+    .contract-guard__hint {
+      margin: 0;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.82);
+    }
+
     .wallet-connect-row {
       display: flex;
       flex-wrap: wrap;
@@ -2509,7 +2584,7 @@
           </li>
           <li>
             <span class="login-highlights__label">Multi-rail authentication</span>
-            <span class="login-highlights__value">Wallet, access keys, and MEKNX continuum</span>
+            <span class="login-highlights__value">Wallet, access keys, and contract-gated clearance</span>
           </li>
           <li>
             <span class="login-highlights__label">Direct support</span>
@@ -2528,19 +2603,6 @@
       </div>
       <h1>Vault Access Protocol</h1>
       <p class="tagline">Authenticate with your Ioncore clearance credentials to unlock classified energy intelligence and synchronize with the broader Ioncore ecosystem. Unauthorized attempts trigger kinetic countermeasures.</p>
-      <section class="vault-analytics-link" aria-labelledby="vault-analytics-title">
-        <span class="vault-analytics-link__badge">New</span>
-        <div class="vault-analytics-link__content">
-          <h2 class="vault-analytics-link__title" id="vault-analytics-title">IONC Token Intelligence Snapshot</h2>
-          <p class="vault-analytics-link__copy">
-            Review live treasury reserves, unlock cadence, and demand pressure before submitting your access request. Insights update hourly from validator attestations.
-          </p>
-          <div class="vault-analytics-link__actions">
-            <button type="button" id="ionc-chart-button" class="vault-analytics-link__button">Open Token Console</button>
-            <p class="vault-analytics-link__hint">Launches in a secure tab.</p>
-          </div>
-        </div>
-      </section>
       <figure class="vault-credential-card" aria-labelledby="vault-card-caption">
         <img src="IMG_3143.jpeg" alt="Ioncore Energy secure client access card with QR credential" class="vault-credential-card__image" loading="lazy">
         <figcaption id="vault-card-caption" class="vault-credential-card__caption">Ioncore currency credential required for vault and continuum access.</figcaption>
@@ -2550,12 +2612,46 @@
           <div class="auth-mode-switch" role="tablist" aria-label="Choose authentication method">
             <button type="button" class="auth-mode is-active" role="tab" aria-selected="true" aria-controls="credentials-panel" data-mode="credentials" id="tab-credentials">Access Key</button>
             <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="wallet-panel" data-mode="wallet" id="tab-wallet">Wallet Connect</button>
-            <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Meknx Access</button>
+            <button type="button" class="auth-mode" role="tab" aria-selected="false" aria-controls="meknx-panel" data-mode="meknx" id="tab-meknx">Live Chat Assist</button>
           </div>
           <a class="auth-mode auth-mode--chat" id="tab-chat" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html" target="_blank" rel="noopener">Live Chat</a>
         </div>
         <div class="mode-panel" id="wallet-panel" data-mode="wallet" role="tabpanel" aria-labelledby="tab-wallet" hidden>
-          <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. After connecting, complete the MEKNX clearance flow and confirm any required token or policy checks.</p>
+          <p class="wallet-intro">Link a secure wallet session. Choose MetaMask for EVM chains, Phantom for Solana, or a supported Cardano wallet. Each login now requires declaring the contract you are authenticating against—Ethereum, Solana, or Cardano placeholders are listed below while production agreements finalize.</p>
+          <div class="contract-guard" role="region" aria-labelledby="contract-guard-title">
+            <div class="contract-guard__header">
+              <h3 id="contract-guard-title">Access contracts required</h3>
+              <p>Present the contract tied to your chain before requesting clearance. Addresses are placeholders while on-chain agreements finalize.</p>
+            </div>
+            <div class="contract-guard__options" role="group" aria-describedby="contract-guard-hint">
+              <label class="contract-option">
+                <input type="radio" name="contract-network" value="evm" data-contract-address="0xEThACCE55PLACEHOLDER">
+                <span class="contract-option__body">
+                  <span class="contract-option__network">Ethereum access contract</span>
+                  <span class="contract-option__address">0xEThACCE55PLACEHOLDER</span>
+                  <span class="contract-option__hint">Use MetaMask to pair with this contract.</span>
+                </span>
+              </label>
+              <label class="contract-option">
+                <input type="radio" name="contract-network" value="solana" data-contract-address="So1Acc355Plac3Hold3r1111111111111111">
+                <span class="contract-option__body">
+                  <span class="contract-option__network">Solana access contract</span>
+                  <span class="contract-option__address">So1Acc355Plac3Hold3r1111111111111111</span>
+                  <span class="contract-option__hint">Requires Phantom with the matching program ID.</span>
+                </span>
+              </label>
+              <label class="contract-option">
+                <input type="radio" name="contract-network" value="cardano" data-contract-address="addr1qionccontractplaceholder000000000000000000000">
+                <span class="contract-option__body">
+                  <span class="contract-option__network">Cardano access contract</span>
+                  <span class="contract-option__address">addr1qionccontractplaceholder000000000000000000000</span>
+                  <span class="contract-option__hint">Select when verifying with a supported Cardano wallet.</span>
+                </span>
+              </label>
+            </div>
+            <p id="contract-guard-hint" class="contract-guard__hint">Select the contract that matches your connected network.</p>
+            <div id="contract-status" class="inline-status">Contract selection required for entry.</div>
+          </div>
           <div class="wallet-connect-row">
             <button type="button" id="connect-metamask" class="wallet-connect-button wallet-connect-button--metamask">
               <span class="wallet-connect-button__icon" aria-hidden="true">
@@ -2729,14 +2825,14 @@
           </div>
           <div class="access-module" id="meknx-module" hidden aria-hidden="true">
             <div class="module-header">
-              <h3>MEKNX Clearance</h3>
-              <span class="module-tag">Required</span>
+              <h3>Legacy MEKNX Support</h3>
+              <span class="module-tag">Optional</span>
             </div>
             <div id="meknx-session-details" class="wallet-session-details" hidden aria-hidden="true">
               <span class="wallet-session-details__label">Connected wallet</span>
               <code id="meknx-session-address" class="wallet-session-details__value"></code>
             </div>
-            <p class="module-copy">Verify an existing MEKNX pass or mint a fresh credential to unlock the professional portal.</p>
+            <p class="module-copy">Contract-backed login is now primary. Legacy MEKNX passes can still be verified or minted here when required.</p>
             <div class="field">
               <label for="meknx-action">Clearance Action</label>
               <select id="meknx-action" name="meknx-action">
@@ -2746,7 +2842,7 @@
             </div>
             <div class="module-actions">
               <button type="button" id="meknx-action-button" class="action-button">Start Clearance</button>
-              <div id="meknx-inline-status" class="inline-status">MEKNX clearance pending.</div>
+              <div id="meknx-inline-status" class="inline-status">MEKNX clearance optional—contract selection takes priority.</div>
             </div>
           </div>
           <div class="access-module" id="cardano-module" hidden>
@@ -2767,6 +2863,8 @@
           <input type="hidden" name="ioncVerified" id="ionc-verified">
           <input type="hidden" name="cardanoVerified" id="cardano-verified">
           <input type="hidden" name="cardanoPolicyId" id="cardano-policy-id">
+          <input type="hidden" name="contractNetwork" id="contract-network">
+          <input type="hidden" name="contractAddress" id="contract-address">
         </div>
         <div class="mode-panel" id="credentials-panel" data-mode="credentials" role="tabpanel" aria-labelledby="tab-credentials">
           <div class="field">
@@ -2780,23 +2878,13 @@
         </div>
         <div class="mode-panel" id="meknx-panel" data-mode="meknx" role="tabpanel" aria-labelledby="tab-meknx" hidden>
           <div class="meknx-access-grid">
-            <h2>MEKNX Gatekeeper</h2>
-            <p class="meknx-description">Validate your MEKNX access credential or mint a fresh professional pass to enter the portal.</p>
-            <div class="meknx-token-inputs">
-              <label for="meknx-passcode">Access Token</label>
-              <input id="meknx-passcode" name="meknxPasscode" type="text" placeholder="MEKNX-ACCESS-0001" autocomplete="off">
-            </div>
+            <h2>Live Chat Clearance</h2>
+            <p class="meknx-description">MEKNX gatekeeping has been retired in favor of contract-backed access. Tap the live chat to coordinate clearance with an advisor while your Ethereum, Solana, or Cardano contract is validated.</p>
             <div class="meknx-actions">
-              <div class="wallet-connect-row">
-                <button type="button" id="meknx-verify" class="wallet-connect-button">Verify Token</button>
-                <div id="meknx-status" class="wallet-status">Awaiting verification.</div>
-              </div>
-              <div class="wallet-connect-row">
-                <button type="button" id="meknx-mint" class="wallet-connect-button wallet-connect-button--phantom">Mint Professional Pass</button>
-                <div class="wallet-status">Issue a new MEKNX pass instantly.</div>
-              </div>
+              <a class="auth-mode auth-mode--chat" id="meknx-live-chat" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html" target="_blank" rel="noopener">Open Live Chat</a>
+              <div class="wallet-status">Chat team will confirm your contract placeholder before granting entry.</div>
             </div>
-            <input type="hidden" name="meknxPassId" id="meknx-pass-id">
+            <input type="hidden" name="meknxPassId" id="meknx-pass-id" value="LIVE-CHAT-CLEARANCE">
           </div>
         </div>
         <button type="submit">Enter the Vault</button>
@@ -2838,7 +2926,6 @@
 
     const form = document.getElementById('login-form');
     const status = document.getElementById('status');
-    const ioncChartButton = document.getElementById('ionc-chart-button');
     const failureOverlay = document.querySelector('.failure-overlay');
     const query = new URLSearchParams(window.location.search);
     const nextPath = query.get('next') || '/';
@@ -2896,17 +2983,12 @@
     const meknxStatus = document.getElementById('meknx-status');
     const meknxPasscodeInput = document.getElementById('meknx-passcode');
     const meknxPassIdInput = document.getElementById('meknx-pass-id');
-
-    if (ioncChartButton) {
-      ioncChartButton.addEventListener('click', () => {
-        const chartWindow = window.open('ionc-token-chart.html', '_blank');
-        if (chartWindow) {
-          chartWindow.opener = null;
-        } else {
-          window.location.href = 'ionc-token-chart.html';
-        }
-      });
-    }
+    const contractOptions = Array.from(document.querySelectorAll('input[name=\"contract-network\"]'));
+    const contractNetworkInput = document.getElementById('contract-network');
+    const contractAddressInput = document.getElementById('contract-address');
+    const contractStatus = document.getElementById('contract-status');
+    const LIVE_CHAT_URL = 'https://ioncore-brochure.onrender.com/IONCORECHAT/index.html';
+    const LIVE_CHAT_FALLBACK = 'IONCORECHAT/index.html';
 
     const IoncoreSolanaModule = window.IoncoreSolana || null;
     const SOLANA_RPC_ENDPOINT =
@@ -2927,6 +3009,15 @@
     const TOKEN_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price';
     const MIN_WALLET_VALUE_USD = 10;
     const MIN_LOGIN_VALUE_USD = 15;
+    const CONTRACT_NETWORK_LABELS = {
+      evm: 'Ethereum',
+      solana: 'Solana',
+      cardano: 'Cardano'
+    };
+    const contractState = {
+      network: '',
+      address: ''
+    };
     const ACCESS_CARD_PRICE_SOL = 5;
     const MIN_SOL_DEPOSIT_SOL = ACCESS_CARD_PRICE_SOL;
     const MAX_SOL_DEPOSIT_SOL = 1000;
@@ -2946,8 +3037,7 @@
     const cardanoModuleStateTracker = {
       visible: false,
       provider: '',
-      address: '',
-      clearanceStatus: ''
+      address: ''
     };
 
     function formatTokenAmount(amount) {
@@ -3189,7 +3279,10 @@
       if (!shouldShow) {
         updateMeknxSessionDetails();
         if (meknxState.status === 'pending') {
-          setInlineStatus(meknxInlineStatus, 'Connect a wallet to start MEKNX clearance.');
+          setInlineStatus(
+            meknxInlineStatus,
+            'Connect a wallet to access optional MEKNX legacy support alongside contract checks.'
+          );
         }
         meknxModuleStateTracker.visible = false;
         meknxModuleStateTracker.provider = '';
@@ -3204,7 +3297,10 @@
 
       if (providerChanged && meknxState.status === 'pending') {
         const providerLabel = getWalletProviderLabel(provider);
-        setInlineStatus(meknxInlineStatus, `${providerLabel} wallet connected. Start MEKNX clearance to continue.`);
+        setInlineStatus(
+          meknxInlineStatus,
+          `${providerLabel} wallet connected. Use MEKNX legacy clearance only if requested.`
+        );
       }
 
       meknxModuleStateTracker.visible = true;
@@ -3486,6 +3582,20 @@
       }, 220);
     };
 
+    const updateContractInputs = (network, address) => {
+      if (contractNetworkInput) {
+        contractNetworkInput.value = network || '';
+      }
+      if (contractAddressInput) {
+        contractAddressInput.value = address || '';
+      }
+    };
+
+    const normaliseProviderNetwork = (provider) => {
+      if (!provider) return '';
+      return provider.startsWith('cardano') ? 'cardano' : provider;
+    };
+
     const setInlineStatus = (element, message, tone = 'neutral') => {
       if (!element) return;
       element.textContent = message;
@@ -3496,6 +3606,73 @@
         element.classList.add('inline-status--success');
       }
     };
+
+    const setContractSelection = (option) => {
+      if (!option) return;
+      contractOptions.forEach((input) => {
+        if (input !== option) {
+          input.checked = false;
+        }
+      });
+      const network = option.value || '';
+      const address = option.dataset.contractAddress || '';
+      contractState.network = network;
+      contractState.address = address;
+      updateContractInputs(network, address);
+      const label = CONTRACT_NETWORK_LABELS[network] || 'Network';
+      const tone = address ? 'success' : 'neutral';
+      setInlineStatus(
+        contractStatus,
+        address ? `${label} contract placeholder locked: ${address}.` : `${label} contract placeholder pending.`,
+        tone
+      );
+    };
+
+    const syncContractSelectionForProvider = (provider) => {
+      const normalized = normaliseProviderNetwork(provider);
+      if (!normalized) return;
+      const option = contractOptions.find((input) => input.value === normalized);
+      if (option) {
+        option.checked = true;
+        setContractSelection(option);
+      } else if (contractStatus) {
+        setInlineStatus(contractStatus, 'Select the contract that matches your connected wallet.', 'error');
+      }
+    };
+
+    const contractSelectionMatchesProvider = (provider) => {
+      const normalized = normaliseProviderNetwork(provider);
+      if (!contractState.network || !contractState.address) {
+        setInlineStatus(contractStatus, 'Select the contract that matches your connected wallet.', 'error');
+        return false;
+      }
+      if (normalized && contractState.network !== normalized) {
+        const expectedLabel = CONTRACT_NETWORK_LABELS[normalized] || 'wallet';
+        setInlineStatus(
+          contractStatus,
+          `Choose the ${expectedLabel} contract placeholder before requesting access.`,
+          'error'
+        );
+        return false;
+      }
+      return true;
+    };
+
+    const resetContractSelection = () => {
+      contractState.network = '';
+      contractState.address = '';
+      updateContractInputs('', '');
+      contractOptions.forEach((option) => {
+        option.checked = false;
+      });
+      setInlineStatus(contractStatus, 'Contract selection required for entry.');
+    };
+
+    if (contractOptions.length) {
+      contractOptions.forEach((option) => {
+        option.addEventListener('change', () => setContractSelection(option));
+      });
+    }
 
     const resetIoncState = (options = {}) => {
       ioncState.verified = false;
@@ -3542,7 +3719,11 @@
         meknxPassIdInput.value = '';
       }
       if (!options.silent) {
-        setInlineStatus(meknxInlineStatus, 'MEKNX clearance pending.');
+        setInlineStatus(
+          meknxInlineStatus,
+          'MEKNX clearance available for legacy users. Contract selection remains required.',
+          'notice'
+        );
         if (meknxStatus) {
           meknxStatus.textContent = 'Awaiting verification.';
           meknxStatus.classList.remove('wallet-status--connected');
@@ -3605,9 +3786,7 @@
       const provider = walletProviderInput ? walletProviderInput.value || '' : '';
       const address = walletAddressInput ? walletAddressInput.value || '' : '';
       const hasCardanoSession = provider.startsWith('cardano') && Boolean(address);
-      const clearanceStatus = meknxState.status;
-      const clearanceComplete = clearanceStatus === 'verified' || clearanceStatus === 'minted';
-      const shouldShow = hasCardanoSession && clearanceComplete;
+      const shouldShow = hasCardanoSession;
 
       cardanoModule.hidden = !shouldShow;
       cardanoModule.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
@@ -3616,18 +3795,11 @@
         if (!hasCardanoSession) {
           resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
           setInlineStatus(cardanoInlineStatus, 'Connect a Cardano wallet to unlock policy verification.');
-        } else if (!clearanceComplete) {
-          setInlineStatus(
-            cardanoInlineStatus,
-            'Complete MEKNX clearance to unlock Cardano policy verification.',
-            'error'
-          );
         }
 
         cardanoModuleStateTracker.visible = false;
         cardanoModuleStateTracker.provider = '';
         cardanoModuleStateTracker.address = '';
-        cardanoModuleStateTracker.clearanceStatus = clearanceStatus;
         return;
       }
 
@@ -3649,13 +3821,11 @@
       const becameVisible =
         !cardanoModuleStateTracker.visible ||
         cardanoModuleStateTracker.provider !== provider ||
-        cardanoModuleStateTracker.address !== address ||
-        cardanoModuleStateTracker.clearanceStatus !== clearanceStatus;
+        cardanoModuleStateTracker.address !== address;
 
       cardanoModuleStateTracker.visible = true;
       cardanoModuleStateTracker.provider = provider;
       cardanoModuleStateTracker.address = address;
-      cardanoModuleStateTracker.clearanceStatus = clearanceStatus;
 
       if (becameVisible) {
         if (typeof cardanoModule.scrollIntoView === 'function') {
@@ -4179,12 +4349,12 @@
             : ` ${normalizedAmount} access card purchase submitted.`;
 
           updateStatus(
-            `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the purchase or continue with MEKNX clearance.`,
+            `Phantom channel ready.${solanaValueMessage}${confirmationPrompt} Verify the purchase and confirm the Solana contract placeholder before entering.`,
             'success'
           );
 
           updateSolanaActionStatus(
-            `${normalizedAmount} access card purchase submitted. Verify the purchase or continue with MEKNX clearance.`,
+            `${normalizedAmount} access card purchase submitted. Verify the purchase and confirm the Solana contract placeholder before entering.`,
             'success'
           );
 
@@ -4250,12 +4420,12 @@
               : '';
 
           updateStatus(
-            `Phantom purchase verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            `Phantom purchase verified.${solanaValueMessage} ${normalizedAmount} confirmed (${confirmationLabel}). Proceed once the Solana contract placeholder is locked.`,
             'success'
           );
 
           updateSolanaActionStatus(
-            `${normalizedAmount} access card purchase verified (${confirmationLabel}). Complete MEKNX clearance to enter.`,
+            `${normalizedAmount} access card purchase verified (${confirmationLabel}). Proceed once the Solana contract placeholder is locked.`,
             'success'
           );
 
@@ -4660,6 +4830,7 @@
       clearSolanaDepositState();
       clearSolanaSession();
       resetMeknxState();
+      resetContractSelection();
       syncMeknxModuleVisibility();
       syncIoncModuleVisibility();
       resetCardanoState({ silent: true, keepWalletType: false, keepApi: false, preservePolicyInput: false });
@@ -4825,6 +4996,7 @@
           cardanoState.api = api;
           cardanoState.policyId = CARDANO_POLICY_ID;
           cardanoState.verified = false;
+          syncContractSelectionForProvider(`cardano-${walletKey}`);
 
           const cardanoValueSnapshot = await ensureWalletUsdValue({
             provider: `cardano-${walletKey}`,
@@ -4843,10 +5015,7 @@
             closeSolanaIoncPopup({ restoreFocus: false });
           }
 
-          const continuationMessage =
-            meknxState.status === 'verified' || meknxState.status === 'minted'
-              ? ' Verify the Cardano policy to continue.'
-              : ' Complete MEKNX clearance then verify the Cardano policy.';
+          const continuationMessage = ' Select the Cardano contract placeholder, then verify the policy.';
           const cardanoValueMessage = cardanoValueSnapshot
             ? ` ADA value ≈ ${formatUsd(cardanoValueSnapshot.usdValue)}.`
             : '';
@@ -5182,6 +5351,7 @@
               syncMeknxModuleVisibility();
               syncIoncModuleVisibility();
               syncCardanoModuleVisibility();
+              syncContractSelectionForProvider(walletProviderInput ? walletProviderInput.value : '');
             }
           } else if (activeMode === 'meknx') {
             if (!meknxPassIdInput || !meknxPassIdInput.value) {
@@ -5197,11 +5367,11 @@
 
         if (!status.textContent || (!hasFeedbackTone && !force)) {
           if (activeMode === 'wallet') {
-            updateStatus('Link MetaMask, Phantom, or a Cardano wallet to request vault entry.');
+            updateStatus('Link MetaMask, Phantom, or a Cardano wallet and lock the matching contract placeholder.');
           } else if (activeMode === 'credentials') {
             updateStatus('Authenticate with your assigned access key.');
           } else if (activeMode === 'meknx') {
-            updateStatus('Verify your MEKNX credential or mint a new one to continue.');
+            updateStatus('Use live chat to coordinate contract validation with an advisor.');
           }
         }
       };
@@ -5306,10 +5476,14 @@
             syncCardanoModuleVisibility();
             indicateWalletConnection('evm', account);
             syncMeknxModuleVisibility();
+            syncContractSelectionForProvider('evm');
             if (isSolanaIoncPopupOpen()) {
               closeSolanaIoncPopup({ restoreFocus: false });
             }
-            updateStatus('Wallet channel established. Run MEKNX clearance to continue.', 'success');
+            updateStatus(
+              'Wallet channel established. Confirm the Ethereum contract placeholder before continuing.',
+              'success'
+            );
           } catch (error) {
             resetWalletIndicators();
             const message = error?.message || 'MetaMask connection failed. Try again.';
@@ -5374,6 +5548,7 @@
             }
             setSolanaSession(provider, publicKey);
             indicateWalletConnection('solana', publicKey);
+            syncContractSelectionForProvider('solana');
             syncIoncModuleVisibility();
             syncCardanoModuleVisibility();
             let ioncHoldingsResult = null;
@@ -5427,7 +5602,7 @@
               ? ` Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}.`
               : ' No IONC tokens detected yet. Use Verify IONC Token after minting to continue.';
             updateStatus(
-              `Phantom channel ready.${solanaValueMessage}${ioncHoldingsMessage}${depositMessage} Complete MEKNX clearance then run Verify IONC Token to continue.`,
+              `Phantom channel ready.${solanaValueMessage}${ioncHoldingsMessage}${depositMessage} Lock the Solana contract placeholder and run Verify IONC Token to continue.`,
               'success'
             );
             let inlineStatusTone = 'neutral';
@@ -5649,16 +5824,16 @@
             return;
           }
 
-          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
-            setInlineStatus(cardanoInlineStatus, 'Complete MEKNX clearance before policy checks.', 'error');
-            updateStatus('Complete MEKNX clearance before verifying the Cardano policy.', 'error');
+          if (!contractSelectionMatchesProvider(provider)) {
+            updateStatus('Select the Cardano contract placeholder before verifying the policy.', 'error');
+            cardanoVerifyButton.disabled = false;
             triggerFailureAnimation();
             return;
           }
 
           cardanoVerifyButton.disabled = true;
           setInlineStatus(cardanoInlineStatus, 'Verifying Cardano policy…');
-          updateStatus('Confirming Cardano policy holdings…');
+          updateStatus('Confirming Cardano policy holdings and contract placeholder…');
 
           try {
             const response = await fetch('/access/cardano', {
@@ -5670,7 +5845,8 @@
               body: JSON.stringify({
                 walletAddress: walletAddressInput.value,
                 walletProvider: provider,
-                meknxPassId: meknxState.passId,
+                contractNetwork: contractState.network,
+                contractAddress: contractState.address,
                 policyId: cardanoState.policyId || CARDANO_POLICY_ID
               })
             });
@@ -5728,7 +5904,7 @@
           activeMode === 'wallet'
             ? 'Verifying wallet clearance…'
             : activeMode === 'meknx'
-            ? 'Confirming MEKNX credential…'
+            ? 'Opening live chat support…'
             : 'Decrypting clearance codes…';
         updateStatus(verifyingMessage);
         submitButton.disabled = true;
@@ -5736,7 +5912,7 @@
           activeMode === 'wallet'
             ? 'Verifying Wallet…'
             : activeMode === 'meknx'
-            ? 'Verifying MEKNX…'
+            ? 'Opening Live Chat…'
             : 'Verifying…';
 
         const payload = {
@@ -5753,15 +5929,13 @@
             return;
           }
 
-          if (meknxState.status !== 'verified' && meknxState.status !== 'minted') {
-            updateStatus('Complete MEKNX clearance before requesting access.', 'error');
+          const provider = walletProviderInput ? walletProviderInput.value : '';
+          if (!contractSelectionMatchesProvider(provider)) {
             submitButton.disabled = false;
             submitButton.textContent = 'Enter the Vault';
             triggerFailureAnimation();
             return;
           }
-
-          const provider = walletProviderInput ? walletProviderInput.value : '';
           if (provider === 'solana' && !ioncState.verified) {
             updateStatus('Verify your IONC access token before requesting entry.', 'error');
             submitButton.disabled = false;
@@ -5811,16 +5985,17 @@
           payload.ioncVerified = ioncState.verified;
           payload.cardanoPolicyVerified = provider && provider.startsWith('cardano') ? cardanoState.verified : false;
           payload.cardanoPolicyId = provider && provider.startsWith('cardano') ? cardanoState.policyId : '';
+          payload.contractNetwork = contractState.network;
+          payload.contractAddress = contractState.address;
         } else if (activeMode === 'meknx') {
-          const meknxPassId = meknxPassIdInput ? meknxPassIdInput.value.trim() : '';
-          if (!meknxPassId) {
-            updateStatus('Verify your MEKNX token before requesting access.', 'error');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Enter the Vault';
-            triggerFailureAnimation();
-            return;
+          const chatWindow = window.open(LIVE_CHAT_URL, '_blank', 'noopener');
+          if (!chatWindow) {
+            window.open(LIVE_CHAT_FALLBACK, '_blank', 'noopener');
           }
-          payload.meknxPassId = meknxPassId;
+          updateStatus('Live chat opened for contract validation support.', 'success');
+          submitButton.disabled = false;
+          submitButton.textContent = 'Enter the Vault';
+          return;
         } else {
           const username = usernameInput ? usernameInput.value.trim() : '';
           const password = passwordInput ? passwordInput.value : '';

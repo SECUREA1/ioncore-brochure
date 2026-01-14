@@ -3175,6 +3175,44 @@
       }
     };
 
+    function getMeknxActionPrompt(action) {
+      if (action === 'mint') {
+        return 'Mint a MEKNX professional pass to continue.';
+      }
+      return 'Verify your MEKNX access pass to continue.';
+    }
+
+    function syncMeknxActionUi({ forcePrompt = false } = {}) {
+      const action = (meknxActionSelect && meknxActionSelect.value) || 'verify';
+
+      if (meknxActionButton) {
+        meknxActionButton.textContent = action === 'mint' ? 'Mint MEKNX Pass' : 'Verify MEKNX Pass';
+      }
+
+      if (!meknxInlineStatus) {
+        return;
+      }
+
+      const isPending = meknxState.status === 'pending';
+      if (!isPending) {
+        return;
+      }
+
+      const provider = walletProviderInput ? walletProviderInput.value || '' : '';
+      const address = walletAddressInput ? walletAddressInput.value || '' : '';
+
+      if (!provider || !address) {
+        if (forcePrompt) {
+          setInlineStatus(meknxInlineStatus, 'Connect a wallet to start MEKNX clearance.');
+        }
+        return;
+      }
+
+      const providerLabel = getWalletProviderLabel(provider);
+      const prompt = getMeknxActionPrompt(action);
+      setInlineStatus(meknxInlineStatus, `${providerLabel} wallet connected. ${prompt}`);
+    }
+
     const syncMeknxModuleVisibility = () => {
       if (!meknxModule) {
         return;
@@ -3202,9 +3240,8 @@
         meknxModuleStateTracker.provider !== provider ||
         meknxModuleStateTracker.address !== address;
 
-      if (providerChanged && meknxState.status === 'pending') {
-        const providerLabel = getWalletProviderLabel(provider);
-        setInlineStatus(meknxInlineStatus, `${providerLabel} wallet connected. Start MEKNX clearance to continue.`);
+      if (providerChanged) {
+        syncMeknxActionUi({ forcePrompt: true });
       }
 
       meknxModuleStateTracker.visible = true;
@@ -3213,6 +3250,8 @@
 
       updateMeknxSessionDetails();
     };
+
+    syncMeknxActionUi();
 
     const resetSolanaActionState = () => {
       if (solanaActionSelect) {
@@ -3412,6 +3451,12 @@
         } else {
           updateSolanaActionStatus('Select an access card action to continue.');
         }
+      });
+    }
+
+    if (meknxActionSelect) {
+      meknxActionSelect.addEventListener('change', () => {
+        syncMeknxActionUi({ forcePrompt: true });
       });
     }
 
@@ -4826,13 +4871,27 @@
           cardanoState.policyId = CARDANO_POLICY_ID;
           cardanoState.verified = false;
 
-          const cardanoValueSnapshot = await ensureWalletUsdValue({
-            provider: `cardano-${walletKey}`,
-            address: accountAddress,
-            api,
-            statusElement,
-            walletLabel
-          });
+          let cardanoValueSnapshot = null;
+          let cardanoValueMessage = '';
+          let cardanoStatusTone = 'success';
+
+          try {
+            cardanoValueSnapshot = await ensureWalletUsdValue({
+              provider: `cardano-${walletKey}`,
+              address: accountAddress,
+              api,
+              statusElement,
+              walletLabel
+            });
+          } catch (valueError) {
+            console.warn('Cardano balance assessment failed.', valueError);
+            const fallbackMessage =
+              (valueError && valueError.message) || 'Cardano balance check unavailable. Session connected.';
+            cardanoValueMessage = ` ${fallbackMessage}`;
+            cardanoStatusTone =
+              valueError && valueError.message && /below/i.test(valueError.message) ? 'error' : 'neutral';
+            recordWalletValueState(`cardano-${walletKey}`, 'ADA', 0, 0);
+          }
 
           resetMeknxState();
           syncIoncModuleVisibility();
@@ -4847,12 +4906,15 @@
             meknxState.status === 'verified' || meknxState.status === 'minted'
               ? ' Verify the Cardano policy to continue.'
               : ' Complete MEKNX clearance then verify the Cardano policy.';
-          const cardanoValueMessage = cardanoValueSnapshot
-            ? ` ADA value ≈ ${formatUsd(cardanoValueSnapshot.usdValue)}.`
-            : '';
+          if (cardanoValueSnapshot) {
+            cardanoValueMessage = ` ADA value ≈ ${formatUsd(cardanoValueSnapshot.usdValue)}.`;
+            cardanoStatusTone = 'success';
+          }
+
+          const statusTone = cardanoStatusTone === 'error' ? 'error' : cardanoStatusTone === 'success' ? 'success' : 'neutral';
           updateStatus(
             `${walletLabel} session established.${cardanoValueMessage}${continuationMessage}`,
-            'success'
+            statusTone
           );
         } catch (error) {
           resetWalletIndicators();
@@ -5384,12 +5446,26 @@
               ioncBalanceError = balanceError;
               console.warn('Unable to automatically detect IONC holdings.', balanceError);
             }
-            const solanaValueSnapshot = await ensureWalletUsdValue({
-              provider: 'solana',
-              address: publicKey,
-              statusElement: phantomStatus,
-              walletLabel: 'Solana'
-            });
+            let solanaValueSnapshot = null;
+            let solanaValueMessage = '';
+            let solanaStatusTone = 'success';
+
+            try {
+              solanaValueSnapshot = await ensureWalletUsdValue({
+                provider: 'solana',
+                address: publicKey,
+                statusElement: phantomStatus,
+                walletLabel: 'Solana'
+              });
+            } catch (valueError) {
+              console.warn('Solana balance assessment failed.', valueError);
+              const fallbackMessage =
+                (valueError && valueError.message) || 'SOL balance check unavailable. Session connected.';
+              solanaValueMessage = ` ${fallbackMessage}`;
+              solanaStatusTone =
+                valueError && valueError.message && /below/i.test(valueError.message) ? 'error' : 'neutral';
+              recordWalletValueState('solana', 'SOL', 0, 0);
+            }
             const selectedAmount = syncSolanaAmountSelection();
             if (solanaDepositRow) {
               solanaDepositRow.hidden = false;
@@ -5407,9 +5483,10 @@
             ioncState.holdings = ioncAccounts;
             ioncState.detectionError = Boolean(ioncBalanceError);
             openSolanaIoncPopup();
-            const solanaValueMessage = solanaValueSnapshot
-              ? ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`
-              : '';
+            if (solanaValueSnapshot) {
+              solanaValueMessage = ` SOL value ≈ ${formatUsd(solanaValueSnapshot.usdValue)}.`;
+              solanaStatusTone = 'success';
+            }
             const depositAmountLabel = formatSolDepositLabel(selectedAmount);
             const hasReceipt = solanaDepositState.completed && solanaDepositState.signature;
             if (!hasReceipt && solanaDepositStatus) {
@@ -5426,9 +5503,11 @@
               : hasIoncTokens
               ? ` Detected ${formattedTokenCount} IONC access ${ioncTokenLabel}.`
               : ' No IONC tokens detected yet. Use Verify IONC Token after minting to continue.';
+            const solanaStatusToneLabel =
+              solanaStatusTone === 'error' ? 'error' : solanaStatusTone === 'success' ? 'success' : 'neutral';
             updateStatus(
               `Phantom channel ready.${solanaValueMessage}${ioncHoldingsMessage}${depositMessage} Complete MEKNX clearance then run Verify IONC Token to continue.`,
-              'success'
+              solanaStatusToneLabel
             );
             let inlineStatusTone = 'neutral';
             let inlineStatusMessage;

@@ -1284,7 +1284,7 @@ app.get('/login', async (req, res) => {
     const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
     return res.redirect(safeNext);
   }
-  await sendHtml(res, path.join(__dirname, 'login.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
 });
 
 app.post('/login', async (req, res) => {
@@ -1654,6 +1654,19 @@ app.post('/gateway', async (req, res) => {
       .status(500)
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
+
+  const sessionId = createAuthSession();
+  setSessionCookie(res, sessionId);
+  await recordLoginEvent({
+    method: 'gateway',
+    username: name,
+    success: true,
+    metadata: serializeMetadata({
+      role,
+      selections: normalizedStreams
+    }),
+    ipAddress: req.ip
+  });
 
   const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
   const readableSelections = normalizedStreams.map((value) => streamOptions.get(value));
@@ -2296,8 +2309,7 @@ function isPublicRoute(req) {
     const publicHtml = new Set([
       '/login',
       '/login.html',
-      '/',
-      '/webpage.html',
+      '/webpage-login.html',
       '/ioncore-contracting.html',
       '/IONCORECHAT',
       '/IONCORECHAT/',
@@ -2325,8 +2337,25 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  // Authentication gate disabled: all routes are now publicly accessible.
-  return next();
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    return next();
+  }
+
+  clearSessionCookie(res);
+  const accepts = req.headers.accept || '';
+  if (accepts.includes('text/html') || accepts.includes('*/*')) {
+    const nextPath = req.originalUrl || '/';
+    const encodedNext = encodeURIComponent(nextPath);
+    return res.redirect(`/login?next=${encodedNext}`);
+  }
+
+  return res.status(401).json({ message: 'Authentication required. Please sign in to continue.' });
 }
 
 async function getHtmlFiles(dir) {

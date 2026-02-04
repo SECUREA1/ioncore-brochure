@@ -662,6 +662,9 @@
     const submitButton = document.querySelector('.gateway__submit');
     const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
     let selectedRole = '';
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawNext = urlParams.get('next') || 'webpage.html';
+    const nextPath = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : 'webpage.html';
 
     roleButtons.forEach((button) => {
       button.addEventListener('click', () => {
@@ -863,10 +866,9 @@
 
       const redirectDelay = responseData && responseData.delayMs ? Number(responseData.delayMs) : 1400;
       setTimeout(() => {
-        window.location.href = 'webpage.html';
+        window.location.href = nextPath;
       }, redirectDelay);
     });
   </script>
 </body>
 </html>
-

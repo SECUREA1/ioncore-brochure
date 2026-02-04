@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
   <script src="omconsole-launcher.js" defer></script>
+  <script src="gateway.js" defer></script>
 </head>
 <body>
   <header class="site-header container">
@@ -32,6 +33,7 @@
         <li><a href="fullexperience.html#technology">Technology</a></li>
         <li><a href="fullexperience.html#deployment">Deployment</a></li>
         <li><a href="fullexperience.html#insights">Insights</a></li>
+        <li><a href="#secure-login">Secure Login</a></li>
       </ul>
     </nav>
 
@@ -61,6 +63,148 @@
       </div>
       <div class="index-hero__media" aria-hidden="true">
         <img src="IMG_3576.jpeg" alt="Display of Ioncore Energy products" loading="lazy">
+      </div>
+    </section>
+
+    <section class="page-section gateway-section" id="secure-login">
+      <div class="container">
+        <div class="gateway" role="region" aria-labelledby="gateway-title">
+          <div class="gateway__grid" aria-hidden="true"></div>
+          <div class="gateway__content">
+            <header class="gateway__header">
+              <div class="gateway__logo" aria-hidden="true">
+                <img src="battery.svg" alt="Ioncore Energy emblem">
+              </div>
+              <div class="gateway__identity">
+                <span>Ioncore Energy</span>
+                <h2 id="gateway-title" class="gateway__title">Secure access gateway</h2>
+                <p class="gateway__subtitle">Choose how you connect with Ioncore Energy to view the brochure, technical details, and coordination materials.</p>
+              </div>
+            </header>
+
+            <section>
+              <h3 class="visually-hidden">Access pathways</h3>
+              <div class="gateway__roles" role="list">
+                <button class="gateway-role" type="button" data-role="investor">
+                  <span class="gateway-role__eyebrow">Overview access</span>
+                  <span class="gateway-role__title">Guests &amp; general visitors</span>
+                  <p class="gateway-role__copy">Browse the brochure, company overview, and introductory materials.</p>
+                </button>
+                <button class="gateway-role" type="button" data-role="buyer">
+                  <span class="gateway-role__eyebrow">Technical access</span>
+                  <span class="gateway-role__title">Project &amp; deployment leads</span>
+                  <p class="gateway-role__copy">View technical notes, deployment considerations, and integration guidance.</p>
+                </button>
+                <button class="gateway-role" type="button" data-role="team">
+                  <span class="gateway-role__eyebrow">Ioncore team</span>
+                  <span class="gateway-role__title">Team members &amp; collaborators</span>
+                  <p class="gateway-role__copy">Access internal references, enablement tools, and coordination resources.</p>
+                </button>
+              </div>
+            </section>
+
+            <form class="gateway__form" id="gateway-form" novalidate>
+              <fieldset>
+                <legend>Access preferences</legend>
+                <div class="gateway__form-row">
+                  <div class="gateway__input">
+                    <label for="gateway-name">Full name</label>
+                    <input type="text" id="gateway-name" name="name" autocomplete="name" required placeholder="Jordan Avery">
+                    <p class="gateway__error" data-error-for="gateway-name" role="alert"></p>
+                  </div>
+                  <div class="gateway__input">
+                    <label for="gateway-email">Work email <span class="gateway__optional">Optional</span></label>
+                    <input type="email" id="gateway-email" name="email" autocomplete="email" placeholder="j.avery@organization.com">
+                    <p class="gateway__error" data-error-for="gateway-email" role="alert"></p>
+                  </div>
+                </div>
+                <div class="gateway__input gateway__toggles" id="gateway-streams" role="group" aria-labelledby="gateway-streams-label">
+                  <span id="gateway-streams-label" class="gateway__toggle-label">Choose what you'd like to explore</span>
+                  <div class="gateway__toggle-list">
+                    <label class="gateway-toggle">
+                      <input type="checkbox" name="streams" value="investor-dossier">
+                      <span class="gateway-toggle__body">
+                        <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                        <span class="gateway-toggle__content">
+                          <span class="gateway-toggle__title">Company overview pack</span>
+                          <span class="gateway-toggle__copy">High-level brochure, summary slides, and general background material.</span>
+                        </span>
+                      </span>
+                    </label>
+                    <label class="gateway-toggle">
+                      <input type="checkbox" name="streams" value="industrial-playbooks">
+                      <span class="gateway-toggle__body">
+                        <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                        <span class="gateway-toggle__content">
+                          <span class="gateway-toggle__title">Technical &amp; deployment briefs</span>
+                          <span class="gateway-toggle__copy">Specifications, layout notes, and rollout considerations for projects.</span>
+                        </span>
+                      </span>
+                    </label>
+                    <label class="gateway-toggle">
+                      <input type="checkbox" name="streams" value="team-ops">
+                      <span class="gateway-toggle__body">
+                        <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                        <span class="gateway-toggle__content">
+                          <span class="gateway-toggle__title">Project &amp; operations updates</span>
+                          <span class="gateway-toggle__copy">Internal coordination notes, timelines, and status updates.</span>
+                        </span>
+                      </span>
+                    </label>
+                    <label class="gateway-toggle">
+                      <input type="checkbox" name="streams" value="guest-interest">
+                      <span class="gateway-toggle__body">
+                        <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                        <span class="gateway-toggle__content">
+                          <span class="gateway-toggle__title">Quick tour highlights</span>
+                          <span class="gateway-toggle__copy">A curated preview of key points for visitors exploring Ioncore Energy.</span>
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                  <p class="gateway__error" data-error-for="gateway-streams" role="alert"></p>
+                </div>
+                <div class="gateway__input">
+                  <label for="gateway-passphrase">Access passphrase</label>
+                  <input
+                    type="password"
+                    id="gateway-passphrase"
+                    name="passphrase"
+                    autocomplete="off"
+                    inputmode="text"
+                    required
+                    placeholder="Required to continue"
+                  >
+                  <p class="gateway__error" data-error-for="gateway-passphrase" role="alert"></p>
+                </div>
+                <div class="gateway__input gateway__toggles gateway__toggles--secondary">
+                  <label class="gateway-toggle gateway-toggle--compact">
+                    <input type="checkbox" name="databaseOptIn" value="yes" checked>
+                    <span class="gateway-toggle__body">
+                      <span class="gateway-toggle__indicator" aria-hidden="true"></span>
+                      <span class="gateway-toggle__content">
+                        <span class="gateway-toggle__title">Add me to the Ioncore contact list</span>
+                        <span class="gateway-toggle__copy">Log my name for future follow-ups and coordination, where appropriate.</span>
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+              <div class="gateway__actions">
+                <p class="gateway__privacy">By continuing you acknowledge Ioncore Energy's confidentiality policy. Shared materials are proprietary and intended for approved guests, partners, and team members.</p>
+                <button class="gateway__submit" type="submit">
+                  PROCEED <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </form>
+
+            <div class="gateway__status" id="gateway-status" role="status" aria-live="assertive" aria-atomic="true">
+              <span class="status-icon" aria-hidden="true">✔</span>
+              <span class="status-message">Preferences saved. Redirecting to brochure.</span>
+              <span class="status-code" id="gateway-status-code"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

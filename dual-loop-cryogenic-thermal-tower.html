@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css">
   <style>
     .tower-hero {
-      background: linear-gradient(150deg, rgba(90, 255, 210, 0.18), rgba(6, 18, 32, 0.92));
+      background: linear-gradient(150deg, rgba(106, 255, 59, 0.18), rgba(6, 18, 32, 0.94));
       border: 1px solid var(--border);
       border-radius: 32px;
       padding: clamp(40px, 7vw, 72px);
@@ -23,11 +23,32 @@
       box-shadow: var(--shadow-soft), var(--highlight-glow);
     }
 
+    .tower-hero__branding {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(106, 255, 59, 0.32);
+      background: rgba(6, 18, 32, 0.7);
+      box-shadow: 0 12px 30px rgba(6, 16, 30, 0.45);
+      font-weight: 600;
+      color: var(--text-high);
+    }
+
+    .tower-hero__branding img {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      box-shadow: 0 0 24px rgba(106, 255, 59, 0.35);
+      background: rgba(6, 18, 32, 0.8);
+    }
+
     .tower-hero__image {
       border-radius: 24px;
       overflow: hidden;
       border: 1px solid rgba(148, 224, 255, 0.3);
-      background: radial-gradient(circle at top, rgba(94, 249, 180, 0.25), rgba(6, 20, 36, 0.85));
+      background: radial-gradient(circle at top, rgba(106, 255, 59, 0.25), rgba(6, 20, 36, 0.85));
       box-shadow: 0 20px 40px rgba(2, 8, 16, 0.45);
     }
 
@@ -54,7 +75,7 @@
       gap: 12px;
       align-items: flex-start;
       background: rgba(4, 18, 34, 0.7);
-      border: 1px solid rgba(94, 249, 180, 0.24);
+      border: 1px solid rgba(106, 255, 59, 0.24);
       border-radius: 16px;
       padding: 16px;
       box-shadow: 0 12px 28px rgba(2, 8, 16, 0.35);
@@ -72,13 +93,21 @@
     }
 
     .tower-system-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: linear-gradient(160deg, rgba(9, 16, 29, 0.96), rgba(7, 16, 28, 0.78));
+      border: 1px solid rgba(106, 255, 59, 0.18);
       border-radius: 22px;
       padding: 24px;
       display: grid;
       gap: 16px;
       box-shadow: var(--shadow-soft);
+    }
+
+    .tower-system-card span {
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
     }
 
     .tower-system-card h3 {
@@ -107,7 +136,7 @@
     .tower-gallery__item {
       border-radius: 18px;
       overflow: hidden;
-      border: 1px solid rgba(94, 249, 180, 0.2);
+      border: 1px solid rgba(106, 255, 59, 0.2);
       background: rgba(4, 16, 30, 0.85);
       box-shadow: 0 18px 32px rgba(2, 8, 16, 0.45);
     }
@@ -122,12 +151,43 @@
     }
 
     .tower-cta {
-      background: linear-gradient(135deg, rgba(94, 249, 180, 0.22), rgba(12, 30, 48, 0.92));
+      background: linear-gradient(135deg, rgba(106, 255, 59, 0.22), rgba(12, 30, 48, 0.92));
       border: 1px solid var(--border);
       border-radius: 28px;
       padding: clamp(32px, 6vw, 56px);
       text-align: center;
       box-shadow: var(--shadow-soft), var(--highlight-glow);
+    }
+
+    .tower-lifespan {
+      display: grid;
+      gap: 18px;
+      padding: 28px;
+      border-radius: 22px;
+      background: rgba(7, 18, 32, 0.85);
+      border: 1px solid rgba(106, 255, 59, 0.2);
+      box-shadow: 0 20px 40px rgba(5, 12, 24, 0.4);
+    }
+
+    .tower-lifespan ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+      color: var(--text-med);
+      font-size: 0.95rem;
+    }
+
+    .tower-lifespan li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .tower-lifespan i {
+      color: var(--accent);
+      margin-top: 3px;
     }
 
     .tower-cta p {
@@ -166,13 +226,17 @@
   <main class="container page-section">
     <section class="tower-hero">
       <div>
+        <div class="tower-hero__branding">
+          <img src="ioncore.png" alt="Ioncore logo">
+          <span>Ioncore Advanced Cryogenics Division</span>
+        </div>
         <span class="eyebrow">Cryogenic Infrastructure</span>
-        <h1 class="section-title">Dual-Loop Cryogenic Thermal Tower</h1>
-        <p class="section-subtitle">A mid-size magnetic inertia unit engineered to stabilize high-density power systems with Ioncore-grade cryogenic control. Dual-loop coolant routing and adaptive thermal mapping keep inertia stacks operating at peak efficiency.</p>
+        <h1 class="section-title">Advanced Dual-Loop Cryogenic Thermal Tower</h1>
+        <p class="section-subtitle">Ioncore’s next-generation dual-loop architecture pairs precision cryo flow control with advanced heat-exchange recovery to extend cryogenic system lifespan and protect magnetic inertia stacks at peak density.</p>
         <ul class="tower-highlights">
-          <li><i class="fa-solid fa-snowflake"></i><span>Dual-loop coolant routing with independent flow modulation for redundancy and precision.</span></li>
-          <li><i class="fa-solid fa-gauge-high"></i><span>Magnetic inertia core stabilization tuned for mid-size deployment footprints.</span></li>
-          <li><i class="fa-solid fa-tower-observation"></i><span>Vertical thermal tower layout for rapid heat extraction and serviceable access points.</span></li>
+          <li><i class="fa-solid fa-snowflake"></i><span>Adaptive cryogenic routing balances load across primary and recovery loops to maintain constant thermal equilibrium.</span></li>
+          <li><i class="fa-solid fa-gauge-high"></i><span>High-resolution thermal mapping and inertial telemetry keep cryo jackets within the optimal magnetic envelope.</span></li>
+          <li><i class="fa-solid fa-arrows-rotate"></i><span>Closed-loop regeneration extends system service life by reducing thermal cycling fatigue across the tower.</span></li>
         </ul>
       </div>
       <div class="tower-hero__image">
@@ -183,17 +247,35 @@
     <section class="page-section">
       <div class="tower-systems">
         <article class="tower-system-card">
-          <h3>Loop A — Primary Cryogenic Spine</h3>
-          <p>Ioncore’s primary loop maintains the core cryo jacket, prioritizing low-noise circulation and peak-load extraction. Built-in flow throttles keep the inertia rotor within its optimal magnetic envelope.</p>
+          <span>Primary loop</span>
+          <h3>Loop A — Precision Cryo Spine</h3>
+          <p>Ioncore’s advanced loop maintains the core cryo jacket with micro-pulse circulation and smart valves, holding rotor temperatures steady while extracting peak-load heat at low noise.</p>
         </article>
         <article class="tower-system-card">
-          <h3>Loop B — Stabilization + Recovery</h3>
-          <p>The secondary loop provides rapid recovery during surge scenarios, rerouting thermal payloads into the tower’s upper exchanger array for immediate dissipation and controlled return.</p>
+          <span>Recovery loop</span>
+          <h3>Loop B — Regenerative Stabilization</h3>
+          <p>Surge heat is redirected into the upper exchanger array for rapid dissipation and energy recovery, then returned to the system to minimize thermal shock and component stress.</p>
         </article>
         <article class="tower-system-card">
-          <h3>Magnetic Inertia Control</h3>
-          <p>Integrated sensor clusters feed Ioncore telemetry with live inertial drift data, enabling automated balance corrections, fault isolation, and predictive maintenance scheduling.</p>
+          <span>Control matrix</span>
+          <h3>Magnetic Inertia Longevity Matrix</h3>
+          <p>Integrated sensor clusters feed Ioncore telemetry with live inertial drift, coolant purity, and vibration data to automate balance corrections and extend system lifespan.</p>
         </article>
+      </div>
+    </section>
+
+    <section class="page-section">
+      <div class="tower-lifespan">
+        <div>
+          <span class="eyebrow">Lifespan Extension</span>
+          <h2 class="section-title">Built to protect cryogenic systems for the long haul</h2>
+          <p class="section-subtitle">The advanced dual-loop tower minimizes thermal shocks, balances cryo flow, and keeps critical components within optimal ranges to deliver extended operational life and reduced service interruptions.</p>
+        </div>
+        <ul>
+          <li><i class="fa-solid fa-shield-halved"></i><span>Smart cryo valves mitigate thermal cycling fatigue and preserve seal integrity.</span></li>
+          <li><i class="fa-solid fa-water"></i><span>Closed-loop filtration maintains coolant purity for cleaner cold plates and longer exchanger life.</span></li>
+          <li><i class="fa-solid fa-chart-line"></i><span>Predictive maintenance analytics forecast service windows before performance drift occurs.</span></li>
+        </ul>
       </div>
     </section>
 
@@ -201,7 +283,7 @@
       <div>
         <span class="eyebrow">Thermal Tower Visuals</span>
         <h2 class="section-title">System imagery &amp; component fit</h2>
-        <p class="section-subtitle">Each view is scaled to fit the Ioncore tower layout, highlighting panel access, coolant routing, and the magnetic inertia core.</p>
+        <p class="section-subtitle">Each view is scaled to the Ioncore tower layout, highlighting advanced loop routing, regenerative exchangers, and the magnetic inertia core.</p>
       </div>
       <div class="tower-gallery__grid">
         <div class="tower-gallery__item">
@@ -227,9 +309,9 @@
 
     <section class="page-section">
       <div class="tower-cta">
-        <h2 class="section-title">Deploy the tower with Ioncore guidance</h2>
-        <p class="section-subtitle">Coordinate with the Ioncore Energy team to align the dual-loop tower with your magnetic inertia deployment, installation schedules, and service coverage.</p>
-        <a class="btn btn-primary" href="mailto:hello@ioncoreenergy.com">Request deployment briefing</a>
+        <h2 class="section-title">Deploy the advanced dual-loop tower with Ioncore</h2>
+        <p class="section-subtitle">Coordinate with the Ioncore Energy team to align the advanced dual-loop tower with your cryogenic roadmap, installation schedules, and lifecycle service coverage.</p>
+        <a class="btn btn-primary" href="mailto:hello@ioncoreenergy.com">Request advanced deployment briefing</a>
       </div>
     </section>
   </main>

@@ -484,6 +484,78 @@
     .row span{ color: var(--muted); }
     .row b{ font-weight:650; letter-spacing:-.1px; }
 
+    /* Planner */
+    .plannerGrid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+    }
+    @media (max-width: 980px){ .plannerGrid{ grid-template-columns:1fr; } }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .field span{ color: var(--muted2); font-size: 12px; }
+    .input,
+    .select,
+    .textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      outline:none;
+      font-size: 14px;
+    }
+    .input:focus,
+    .select:focus,
+    .textarea:focus{
+      border-color: rgba(124,92,255,.55);
+      box-shadow: 0 0 0 2px rgba(124,92,255,.15);
+    }
+    .formGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 720px){ .formGrid{ grid-template-columns:1fr; } }
+    .calcRow{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 12px;
+      align-items:center;
+    }
+    .outputStack{
+      display:grid;
+      gap: 12px;
+    }
+    .outputCard{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      padding: 12px;
+    }
+    .outputCard b{ display:block; font-size: 18px; }
+    .outputCard span{ color: var(--muted); font-size: 12.5px; }
+    .meter{
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      margin-top: 10px;
+    }
+    .meter > i{
+      display:block;
+      height:100%;
+      width:40%;
+      background: linear-gradient(90deg, var(--brand), var(--brand2));
+      border-radius: inherit;
+    }
+
     /* CTA band */
     .ctaBand{
       border-radius: var(--r28);
@@ -558,6 +630,16 @@
     /* Small utilities */
     .muted{ color: var(--muted); }
     .sr{ position:absolute; left:-9999px; }
+    .status{
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(52,211,153,.10);
+      border: 1px solid rgba(52,211,153,.25);
+      color: var(--good);
+      font-size: 12.5px;
+      display:none;
+    }
+    .status.show{ display:block; }
   </style>
 </head>
 
@@ -577,6 +659,7 @@
         <a href="#how">How it works</a>
         <a href="#features">Features</a>
         <a href="#specs">Specs</a>
+        <a href="#planner">Planner</a>
         <a href="#safety">Safety</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -836,6 +919,81 @@
     </div>
   </section>
 
+  <!-- PLANNER -->
+  <section id="planner">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>Performance planner</h2>
+          <p>Estimate how much hot-water energy MI-HWC can capture based on your tank size, temperature rise, and available surplus power.</p>
+        </div>
+      </div>
+
+      <div class="plannerGrid">
+        <div class="card">
+          <form id="planner-form" class="outputStack">
+            <div class="formGrid">
+              <label class="field">
+                Tank size (gal)
+                <input class="input" id="tankSize" type="number" min="20" max="120" step="1" value="50">
+                <span>Typical home tank: 40–80 gal</span>
+              </label>
+              <label class="field">
+                Temperature rise (°F)
+                <input class="input" id="deltaT" type="number" min="10" max="90" step="1" value="50">
+                <span>From cold inlet to target setpoint</span>
+              </label>
+            </div>
+
+            <div class="formGrid">
+              <label class="field">
+                Available surplus power (kW)
+                <input class="input" id="surplusPower" type="number" min="0.5" max="5" step="0.1" value="1.5">
+                <span>Typical MI-HWC charge power</span>
+              </label>
+              <label class="field">
+                Surplus hours per day
+                <input class="input" id="surplusHours" type="number" min="1" max="12" step="0.5" value="4">
+                <span>Off-peak or solar window</span>
+              </label>
+            </div>
+
+            <label class="field">
+              Energy rate ($/kWh)
+              <input class="input" id="rate" type="number" min="0.05" max="0.6" step="0.01" value="0.18">
+              <span>Used for daily value estimate</span>
+            </label>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="outputStack">
+            <div class="outputCard">
+              <b id="storageEnergy">—</b>
+              <span>Total hot-water energy storage (kWh)</span>
+            </div>
+            <div class="outputCard">
+              <b id="chargeTime">—</b>
+              <span>Estimated time to fully charge tank</span>
+              <div class="meter"><i id="chargeMeter"></i></div>
+            </div>
+            <div class="outputCard">
+              <b id="dailyOffset">—</b>
+              <span>Daily energy captured during surplus window</span>
+            </div>
+            <div class="outputCard">
+              <b id="dailyValue">—</b>
+              <span>Estimated daily value at selected rate</span>
+            </div>
+            <p class="muted" style="margin:0;font-size:12px;">
+              Estimates assume 100% transfer efficiency for simplicity. Final performance depends on plumbing layout, tank insulation, and control tuning.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- SAFETY -->
   <section id="safety">
     <div class="wrap">
@@ -906,43 +1064,39 @@
       </div>
 
       <div class="card">
-        <form onsubmit="event.preventDefault(); alert('Thanks — we\\'ll follow up shortly.');" style="display:grid; gap:12px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <label>
-              <span class="sr">Name</span>
-              <input required placeholder="Name"
-                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+        <form id="contact-form" style="display:grid; gap:12px;">
+          <div class="formGrid">
+            <label class="field">
+              Name
+              <input required class="input" placeholder="Name">
             </label>
-            <label>
-              <span class="sr">Email</span>
-              <input required type="email" placeholder="Email"
-                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+            <label class="field">
+              Email
+              <input required class="input" type="email" placeholder="Email">
             </label>
           </div>
 
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <label>
-              <span class="sr">Region</span>
-              <input placeholder="Region (e.g., Ontario, CA)"
-                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+          <div class="formGrid">
+            <label class="field">
+              Region
+              <input class="input" placeholder="Region (e.g., Ontario, CA)">
             </label>
-            <label>
-              <span class="sr">Use case</span>
-              <input placeholder="Use case (home / cabin / off-grid)"
-                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+            <label class="field">
+              Use case
+              <input class="input" placeholder="Use case (home / cabin / off-grid)">
             </label>
           </div>
 
-          <label>
-            <span class="sr">Message</span>
-            <textarea rows="4" placeholder="Tell us your tank size, solar setup, and goals..."
-              style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none; resize:vertical;"></textarea>
+          <label class="field">
+            Message
+            <textarea class="textarea" rows="4" placeholder="Tell us your tank size, solar setup, and goals..."></textarea>
           </label>
 
           <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
             <button class="btn primary" type="submit">Submit request</button>
             <span class="muted" style="font-size:12.5px;">We’ll reply with pricing, lead time, and installer requirements.</span>
           </div>
+          <div id="contact-status" class="status" role="status">Thanks — we’ll follow up shortly.</div>
         </form>
       </div>
     </div>
@@ -984,6 +1138,65 @@
         el.scrollIntoView({behavior:'smooth', block:'start'});
       });
     });
+
+    const plannerInputs = [
+      document.getElementById('tankSize'),
+      document.getElementById('deltaT'),
+      document.getElementById('surplusPower'),
+      document.getElementById('surplusHours'),
+      document.getElementById('rate')
+    ];
+    const storageEnergy = document.getElementById('storageEnergy');
+    const chargeTime = document.getElementById('chargeTime');
+    const dailyOffset = document.getElementById('dailyOffset');
+    const dailyValue = document.getElementById('dailyValue');
+    const chargeMeter = document.getElementById('chargeMeter');
+
+    function clamp(value, min, max){
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function formatNumber(value){
+      return value.toLocaleString(undefined, {maximumFractionDigits: 1});
+    }
+
+    function updatePlanner(){
+      const gallons = clamp(parseFloat(plannerInputs[0].value) || 0, 20, 120);
+      const deltaF = clamp(parseFloat(plannerInputs[1].value) || 0, 10, 90);
+      const power = clamp(parseFloat(plannerInputs[2].value) || 0, 0.5, 5);
+      const hours = clamp(parseFloat(plannerInputs[3].value) || 0, 1, 12);
+      const rate = clamp(parseFloat(plannerInputs[4].value) || 0, 0.05, 0.6);
+
+      const energyKwh = (gallons * 8.34 * deltaF) / 3412;
+      const chargeHours = energyKwh / power;
+      const dailyCharge = Math.min(energyKwh, power * hours);
+      const value = dailyCharge * rate;
+
+      storageEnergy.textContent = `${formatNumber(energyKwh)} kWh`;
+      chargeTime.textContent = `${formatNumber(chargeHours)} hrs`;
+      dailyOffset.textContent = `${formatNumber(dailyCharge)} kWh/day`;
+      dailyValue.textContent = `$${formatNumber(value)} / day`;
+
+      const meterPct = clamp((dailyCharge / Math.max(energyKwh, 0.1)) * 100, 5, 100);
+      chargeMeter.style.width = `${meterPct}%`;
+    }
+
+    plannerInputs.forEach(input=>{
+      if(input){
+        input.addEventListener('input', updatePlanner);
+      }
+    });
+    updatePlanner();
+
+    const contactForm = document.getElementById('contact-form');
+    const contactStatus = document.getElementById('contact-status');
+    if(contactForm && contactStatus){
+      contactForm.addEventListener('submit', event=>{
+        event.preventDefault();
+        contactStatus.classList.add('show');
+        contactForm.reset();
+      });
+    }
   </script>
 </body>
 </html>

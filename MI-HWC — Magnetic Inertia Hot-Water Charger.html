@@ -141,6 +141,9 @@
       .heroGrid{ grid-template-columns: 1fr; }
       .navlinks{ display:none; }
     }
+    @media (max-width: 720px){
+      .photoGrid{ grid-template-columns: 1fr; }
+    }
 
     .kicker{
       display:inline-flex; gap:10px; align-items:center;
@@ -196,6 +199,32 @@
       color: var(--good);
       font-weight:900;
       font-size: 12px;
+    }
+
+    .photoGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(14px, 3vw, 24px);
+    }
+    .photoCard{
+      border-radius: var(--r20);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      padding: clamp(12px, 2vw, 18px);
+      box-shadow: var(--shadow2);
+    }
+    .photoCard img{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .photoCaption{
+      margin: 12px 2px 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     /* Hero product card */
@@ -624,6 +653,29 @@
       </div>
     </div>
   </header>
+
+  <!-- PRODUCT IMAGERY -->
+  <section id="gallery">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>MI-HWC visual overview</h2>
+          <p>High-resolution renders of the magnetic inertia hot-water charger and its internal thermal routing layout.</p>
+        </div>
+      </div>
+
+      <div class="photoGrid">
+        <figure class="photoCard">
+          <img src="00e00f48-fcbc-4847-8be3-dbebd8537686.png" alt="MI-HWC exterior chassis render with thermal recovery module highlighted" loading="lazy">
+          <figcaption class="photoCaption">Exterior view showcasing the MI-HWC chassis, service access panels, and thermal recovery module.</figcaption>
+        </figure>
+        <figure class="photoCard">
+          <img src="c44b56db-3699-4b51-9f2d-0ae57e95ba8c.png" alt="MI-HWC interior layout with magnetic inertia flywheel and plumbing" loading="lazy">
+          <figcaption class="photoCaption">Interior layout detailing the magnetic inertia flywheel, pump loop, and hot-water heat exchanger routing.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
 
   <!-- HOW IT WORKS -->
   <section id="how">

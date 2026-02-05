@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>MI-HWC — Magnetic Inertia Hot-Water Charger</title>
+  <meta name="description" content="MI-HWC captures surplus electricity and converts it into stored hot water using magnetic inertia buffering, intelligent controls, and quiet heat recovery." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="MI-HWC — Magnetic Inertia Hot-Water Charger" />
+  <meta property="og:description" content="Turn surplus power into stored hot water. Quiet, efficient, home-grade energy buffering + thermal storage." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root{
+      --bg0:#070a12;
+      --bg1:#0b1220;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --stroke:rgba(255,255,255,.12);
+      --text:#e9edf7;
+      --muted:rgba(233,237,247,.72);
+      --muted2:rgba(233,237,247,.55);
+      --brand:#7c5cff;
+      --brand2:#22d3ee;
+      --good:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --shadow2: 0 12px 40px rgba(0,0,0,.35);
+
+      --r12: 12px;
+      --r16: 16px;
+      --r20: 20px;
+      --r28: 28px;
+
+      --max: 1160px;
+      --pad: clamp(18px, 3vw, 28px);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 5%, rgba(124,92,255,.20), transparent 60%),
+        radial-gradient(900px 600px at 90% 10%, rgba(34,211,238,.15), transparent 55%),
+        radial-gradient(900px 700px at 70% 85%, rgba(52,211,153,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 45%, #070a12 100%);
+      overflow-x:hidden;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    .wrap{ width:min(var(--max), calc(100% - 2*var(--pad))); margin:0 auto; }
+
+    /* Top nav */
+    .nav{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(7,10,18,.75), rgba(7,10,18,.35));
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .nav .inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 0;
+      gap:14px;
+    }
+    .brandmark{
+      display:flex; align-items:center; gap:12px;
+      letter-spacing:.2px;
+    }
+    .logo{
+      width:38px; height:38px; border-radius: 12px;
+      background:
+        radial-gradient(14px 14px at 25% 30%, rgba(255,255,255,.75), rgba(255,255,255,0) 60%),
+        linear-gradient(135deg, rgba(124,92,255,.95), rgba(34,211,238,.80));
+      box-shadow: 0 10px 30px rgba(124,92,255,.18);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .brandmark .title{
+      font-weight:700;
+      font-size: 14px;
+      display:flex; flex-direction:column;
+      line-height:1.15;
+    }
+    .brandmark .title span:last-child{
+      font-weight:500;
+      color:var(--muted2);
+      font-size:12px;
+    }
+
+    .navlinks{
+      display:flex; align-items:center; gap:16px;
+      color:var(--muted);
+      font-size: 13px;
+    }
+    .navlinks a{ padding:8px 10px; border-radius: 999px; }
+    .navlinks a:hover{ background: rgba(255,255,255,.06); color:var(--text); }
+
+    .cta{
+      display:flex; gap:10px; align-items:center;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:600;
+      font-size: 13px;
+      box-shadow: var(--shadow2);
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); }
+    .btn.primary{
+      border: 1px solid rgba(124,92,255,.55);
+      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(34,211,238,.75));
+      box-shadow: 0 22px 70px rgba(124,92,255,.22);
+    }
+    .btn.primary:hover{ transform: translateY(-1px); filter: brightness(1.02); }
+
+    /* Hero */
+    .hero{
+      padding: clamp(26px, 5vw, 64px) 0 20px;
+    }
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: clamp(16px, 4vw, 34px);
+      align-items:center;
+    }
+    @media (max-width: 980px){
+      .heroGrid{ grid-template-columns: 1fr; }
+      .navlinks{ display:none; }
+    }
+
+    .kicker{
+      display:inline-flex; gap:10px; align-items:center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: 12.5px;
+      letter-spacing: .18px;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,0) 55%),
+                  linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow: 0 0 22px rgba(124,92,255,.35);
+    }
+
+    h1{
+      margin: 16px 0 10px;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height:1.05;
+      letter-spacing:-.7px;
+    }
+    .lead{
+      color: var(--muted);
+      font-size: clamp(15px, 1.4vw, 18px);
+      line-height:1.55;
+      margin: 0 0 18px;
+      max-width: 62ch;
+    }
+    .heroActions{
+      display:flex; flex-wrap:wrap; gap:12px;
+      margin: 18px 0 18px;
+    }
+    .subnote{
+      display:flex; gap:14px; flex-wrap:wrap;
+      color:var(--muted2); font-size:12.5px;
+      margin-top: 8px;
+    }
+    .subnote span{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+    .check{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-grid; place-items:center;
+      background: rgba(52,211,153,.14);
+      border: 1px solid rgba(52,211,153,.35);
+      color: var(--good);
+      font-weight:900;
+      font-size: 12px;
+    }
+
+    /* Hero product card */
+    .productCard{
+      border-radius: var(--r28);
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .productTop{
+      padding: 18px 18px 0;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(124,92,255,.12);
+      border: 1px solid rgba(124,92,255,.22);
+      color: rgba(233,237,247,.92);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .pill small{ color: rgba(233,237,247,.70); font-weight:600; }
+    .statGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 14px 18px 18px;
+    }
+    .stat{
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      min-height: 78px;
+    }
+    .stat b{
+      display:block;
+      font-size: 14px;
+      letter-spacing:-.2px;
+    }
+    .stat span{
+      display:block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.35;
+    }
+
+    .productViz{
+      margin: 0 18px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(120px 120px at 22% 30%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(120px 120px at 70% 45%, rgba(34,211,238,.18), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      overflow:hidden;
+      position:relative;
+      aspect-ratio: 4/3;
+      display:grid;
+      place-items:center;
+    }
+    .vizInner{
+      width: 86%;
+      height: 76%;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(11,18,32,.35), rgba(11,18,32,.10));
+      position:relative;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+    .fanRow{
+      position:absolute; left:10%; right:10%; bottom:12%;
+      display:grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      opacity:.9;
+    }
+    .fan{
+      border-radius: 14px;
+      height: 52px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      display:grid; place-items:center;
+      overflow:hidden;
+      position:relative;
+    }
+    .fan:before{
+      content:"";
+      width:34px; height:34px; border-radius:999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%),
+        linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.00));
+      display:block;
+      animation: spin 2.8s linear infinite;
+    }
+    .fan:nth-child(2):before{ animation-duration: 3.3s; }
+    .fan:nth-child(3):before{ animation-duration: 3.0s; }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+
+    .flywheel{
+      position:absolute;
+      left:10%;
+      top:18%;
+      width: 44%;
+      aspect-ratio: 1/1;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.22), rgba(255,255,255,0) 55%),
+        linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      box-shadow: 0 20px 80px rgba(0,0,0,.35);
+    }
+    .flywheel:after{
+      content:"";
+      position:absolute; inset:18%;
+      border-radius:999px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.03);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+    .screen{
+      position:absolute; right:12%; top:12%;
+      width: 40%;
+      height: 22%;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(135deg, rgba(124,92,255,.22), rgba(34,211,238,.16)),
+        rgba(255,255,255,.04);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+    .pipes{
+      position:absolute; right:10%; bottom:30%;
+      width: 42%;
+      height: 34%;
+      border-radius: 18px;
+      border: 1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+    }
+    .pipes:before{
+      content:"";
+      position:absolute; left:12%; top:18%;
+      width: 76%; height: 10px;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(34,211,238,.55), rgba(124,92,255,.55));
+      filter: blur(.2px);
+      opacity:.8;
+    }
+    .pipes:after{
+      content:"";
+      position:absolute; left:18%; top:55%;
+      width: 68%; height: 10px;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(52,211,153,.55), rgba(34,211,238,.35));
+      filter: blur(.2px);
+      opacity:.8;
+    }
+
+    /* Sections */
+    section{ padding: 56px 0; }
+    .sectionHead{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+      margin-bottom: 18px;
+    }
+    .sectionHead h2{
+      margin:0;
+      font-size: clamp(22px, 2.6vw, 34px);
+      letter-spacing:-.4px;
+    }
+    .sectionHead p{
+      margin:0;
+      color:var(--muted);
+      max-width: 62ch;
+      line-height:1.55;
+      font-size: 14.5px;
+    }
+
+    .grid3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 980px){ .grid3{ grid-template-columns:1fr; } }
+
+    .card{
+      border-radius: var(--r20);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      box-shadow: var(--shadow2);
+      padding: 16px;
+      overflow:hidden;
+      position:relative;
+    }
+    .card h3{
+      margin: 0 0 8px;
+      font-size: 15.5px;
+      letter-spacing:-.15px;
+    }
+    .card p{
+      margin:0;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height:1.55;
+    }
+    .icon{
+      width: 36px; height: 36px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%),
+        linear-gradient(135deg, rgba(124,92,255,.18), rgba(34,211,238,.10));
+      margin-bottom: 12px;
+    }
+    .icon svg{ opacity:.9; }
+
+    /* Specs table */
+    .specWrap{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 980px){ .specWrap{ grid-template-columns:1fr; } }
+    .spec{
+      border-radius: var(--r20);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 14px;
+    }
+    .spec header{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .spec header b{ font-size: 14px; letter-spacing:-.15px; }
+    .tag{
+      font-size: 12px;
+      color: rgba(233,237,247,.80);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .rows{ display:grid; gap: 8px; }
+    .row{
+      display:flex; justify-content:space-between; gap: 10px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      font-size: 13px;
+    }
+    .row span{ color: var(--muted); }
+    .row b{ font-weight:650; letter-spacing:-.1px; }
+
+    /* CTA band */
+    .ctaBand{
+      border-radius: var(--r28);
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(600px 280px at 20% 30%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(600px 280px at 90% 50%, rgba(34,211,238,.14), transparent 60%),
+        rgba(255,255,255,.04);
+      padding: 20px;
+      display:flex; align-items:center; justify-content:space-between; gap: 16px;
+      box-shadow: var(--shadow);
+    }
+    @media (max-width: 980px){ .ctaBand{ flex-direction:column; align-items:flex-start; } }
+
+    .ctaBand h3{ margin:0 0 6px; font-size: 18px; letter-spacing:-.25px; }
+    .ctaBand p{ margin:0; color: var(--muted); font-size: 13.5px; line-height:1.55; }
+
+    /* FAQ */
+    details{
+      border-radius: var(--r16);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 12px 14px;
+    }
+    details+details{ margin-top: 10px; }
+    summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      font-weight:650;
+      font-size: 14px;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    details p{
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height:1.6;
+      font-size: 13.5px;
+    }
+    .chev{
+      width: 20px; height: 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      display:grid; place-items:center;
+      transition: transform .15s ease;
+      flex:0 0 auto;
+    }
+    details[open] .chev{ transform: rotate(180deg); }
+
+    /* Footer */
+    footer{
+      padding: 40px 0 50px;
+      color: var(--muted2);
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(7,10,18,0), rgba(7,10,18,.75));
+    }
+    .footgrid{
+      display:flex; justify-content:space-between; gap: 18px; flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .footgrid small{ display:block; margin-top: 10px; max-width: 70ch; line-height:1.55; }
+    .footlinks{ display:flex; gap: 12px; flex-wrap:wrap; }
+    .footlinks a{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+    .footlinks a:hover{ background: rgba(255,255,255,.06); color:var(--text); }
+
+    /* Small utilities */
+    .muted{ color: var(--muted); }
+    .sr{ position:absolute; left:-9999px; }
+  </style>
+</head>
+
+<body>
+  <!-- NAV -->
+  <div class="nav">
+    <div class="wrap inner">
+      <div class="brandmark">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">
+          <span>MI-HWC</span>
+          <span>Magnetic Inertia Hot-Water Charger</span>
+        </div>
+      </div>
+
+      <nav class="navlinks" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#specs">Specs</a>
+        <a href="#safety">Safety</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="cta">
+        <a class="btn" href="#specs">View specs</a>
+        <a class="btn primary" href="#contact">Request pricing</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="wrap heroGrid">
+      <div>
+        <div class="kicker">
+          <span class="dot" aria-hidden="true"></span>
+          Home-grade energy buffering + thermal storage
+        </div>
+
+        <h1>Turn surplus power into <span style="background:linear-gradient(90deg,var(--brand),var(--brand2)); -webkit-background-clip:text; background-clip:text; color:transparent;">stored hot water</span>.</h1>
+
+        <p class="lead">
+          MI-HWC captures excess solar/off-peak energy, buffers it with magnetic inertia, and converts it into hot water storage.
+          Quiet, intelligent, and designed for real utility rooms—not lab benches.
+        </p>
+
+        <div class="heroActions">
+          <a class="btn primary" href="#contact">Request pricing & lead time</a>
+          <a class="btn" href="#how">See how it works</a>
+        </div>
+
+        <div class="subnote">
+          <span><i class="check" aria-hidden="true">✓</i> Quiet cooling + heat recovery</span>
+          <span><i class="check" aria-hidden="true">✓</i> Smart DHW scheduling</span>
+          <span><i class="check" aria-hidden="true">✓</i> Serviceable modular layout</span>
+        </div>
+      </div>
+
+      <div class="productCard" aria-label="Product hero card">
+        <div class="productTop">
+          <div class="pill">MI-HWC <small>Home-Grade</small></div>
+          <div class="pill" style="background:rgba(34,211,238,.10);border-color:rgba(34,211,238,.22);">
+            Thermal Recovery <small>on</small>
+          </div>
+        </div>
+
+        <div class="productViz" role="img" aria-label="Stylized product visualization">
+          <!-- Replace this whole visualization with your real product photo anytime -->
+          <div class="vizInner">
+            <div class="screen" title="Touch HMI"></div>
+            <div class="flywheel" title="Inertia buffer (flywheel)"></div>
+            <div class="pipes" title="Heat exchanger + coolant routing"></div>
+            <div class="fanRow" aria-hidden="true">
+              <div class="fan"></div><div class="fan"></div><div class="fan"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="statGrid">
+          <div class="stat">
+            <b>1–2 kW</b>
+            <span>continuous thermal charging (home-grade)</span>
+          </div>
+          <div class="stat">
+            <b>0.3–0.8 kWh</b>
+            <span>inertia buffer for smooth power flow</span>
+          </div>
+          <div class="stat">
+            <b>4–9 kWh</b>
+            <span>typical DHW storage (50 gal, ΔT dependent)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>How MI-HWC works</h2>
+          <p>
+            A flywheel buffers rapid power fluctuations while your hot-water tank stores energy for hours.
+            The controller prioritizes safety, comfort, and cost—then routes recovered heat where it matters.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <div class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 18v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M22 12h-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M7 7l-1.5-1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M18.5 18.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M7 17l-1.5 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M18.5 5.5L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Capture</h3>
+          <p>Absorb surplus PV or off-peak power and stabilize spikes on a 48V DC bus.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3a9 9 0 1 0 9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M21 3v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Buffer</h3>
+          <p>Magnetic inertia smooths short bursts so heating stays stable through dips and clouds.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2s5 5 5 10a5 5 0 1 1-10 0c0-5 5-10 5-10Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h3>Store</h3>
+          <p>Route recovered heat into your water tank—your safest, cheapest “battery” at home scale.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>Built for real installations</h2>
+          <p>Quiet cooling, modular serviceability, and smart controls designed around utility rooms, electricians, and plumbers.</p>
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <h3>Heat-first routing</h3>
+          <p>Priority routing sends waste heat into DHW via brazed plate HX—radiator only when tank is satisfied.</p>
+        </div>
+        <div class="card">
+          <h3>Installer-friendly</h3>
+          <p>DIN rail layout, labeled harness runs, quick-service pump and filter access, and standard plumbing connections.</p>
+        </div>
+        <div class="card">
+          <h3>Smart scheduling</h3>
+          <p>Supports off-peak heating windows, PV surplus biasing, and a weekly pasteurization cycle.</p>
+        </div>
+        <div class="card">
+          <h3>Quiet operation</h3>
+          <p>Large radiator area + low-RPM fans + liquid spreading keeps acoustic profile under control.</p>
+        </div>
+        <div class="card">
+          <h3>Data & diagnostics</h3>
+          <p>Temperature, flow, pressure, and current sensing with event logs for service calls and tuning.</p>
+        </div>
+        <div class="card">
+          <h3>Safety-led control</h3>
+          <p>Derate and controlled spin-down logic for over-temp, low-flow, and fault conditions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPECS -->
+  <section id="specs">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>Core specifications</h2>
+          <p>These are the home-grade engineering targets for the MI-HWC unit. Production variants can scale up.</p>
+        </div>
+      </div>
+
+      <div class="specWrap">
+        <div class="spec">
+          <header><b>Electrical</b> <span class="tag">48V DC bus</span></header>
+          <div class="rows">
+            <div class="row"><span>Thermal charge power</span><b>1–2 kW continuous (3 kW peak)</b></div>
+            <div class="row"><span>Motor-generator</span><b>3 kW cont / 5–6 kW peak</b></div>
+            <div class="row"><span>DC protection</span><b>100A breaker + contactor + precharge</b></div>
+            <div class="row"><span>Controls power</span><b>24V + 12V auxiliary rails</b></div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <header><b>Thermal</b> <span class="tag">Heat recovery</span></header>
+          <div class="rows">
+            <div class="row"><span>Coolant</span><b>PG-40 (propylene glycol mix)</b></div>
+            <div class="row"><span>PHE heat transfer</span><b>~3 kW @ ΔT 10K (target)</b></div>
+            <div class="row"><span>Loop temperature</span><b>35–45 °C typical (≤ 60 °C max)</b></div>
+            <div class="row"><span>Noise target</span><b>&lt; 35 dBA @ 1m</b></div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <header><b>Inertia buffer</b> <span class="tag">Smooth power flow</span></header>
+          <div class="rows">
+            <div class="row"><span>Flywheel buffer</span><b>0.3–0.8 kWh mechanical</b></div>
+            <div class="row"><span>Rotor design speed</span><b>≤ 6,000 RPM (home-grade)</b></div>
+            <div class="row"><span>Balance class</span><b>ISO 1940 G 6.3 or better</b></div>
+            <div class="row"><span>Touchdown bearings</span><b>Hybrid ceramic 6204 class</b></div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <header><b>Hot-water integration</b> <span class="tag">Standard plumbing</span></header>
+          <div class="rows">
+            <div class="row"><span>Tank</span><b>40–80 gal electric (typical 50 gal)</b></div>
+            <div class="row"><span>Thermal storage</span><b>4–9 kWh usable (ΔT dependent)</b></div>
+            <div class="row"><span>Mixing valve</span><b>ASSE 1017 tempering (49–55 °C)</b></div>
+            <div class="row"><span>Pasteurization</span><b>Weekly 60–62 °C cycle</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px" class="ctaBand">
+        <div>
+          <h3>Want the full spec sheet + BOM?</h3>
+          <p>We can provide a commissioning checklist, wiring diagram, and installation kit list for your installer.</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="#contact">Request installer kit</a>
+          <a class="btn primary" href="#contact">Request pricing</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAFETY -->
+  <section id="safety">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>Safety & reliability</h2>
+          <p>Designed with layered protections: sensing, derate control, and controlled spin-down for fault events.</p>
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <h3>Thermal derate</h3>
+          <p>Automatic staged power reduction if inverter baseplate, bearings, or chamber temps trend high.</p>
+        </div>
+        <div class="card">
+          <h3>Low-flow detection</h3>
+          <p>Flow/ΔT monitoring triggers protective modes if cooling performance drops or pump fails.</p>
+        </div>
+        <div class="card">
+          <h3>Controlled spin-down</h3>
+          <p>Brake + controller logic brings rotor to safe speed without abrupt stops or mechanical shock.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>FAQ</h2>
+          <p>Quick answers to common questions for homeowners, installers, and early adopters.</p>
+        </div>
+      </div>
+
+      <details>
+        <summary>Is MI-HWC a “free energy” device? <span class="chev" aria-hidden="true">⌄</span></summary>
+        <p>No. MI-HWC stores and manages energy. The flywheel is a buffer; the water tank is the long-duration storage.</p>
+      </details>
+
+      <details>
+        <summary>What does it work with—solar, grid, or both? <span class="chev" aria-hidden="true">⌄</span></summary>
+        <p>Both. It can bias charging to PV surplus or off-peak grid windows, depending on configuration and local rules.</p>
+      </details>
+
+      <details>
+        <summary>How much energy can it store? <span class="chev" aria-hidden="true">⌄</span></summary>
+        <p>The flywheel buffers short intervals (0.3–0.8 kWh). Your tank stores the bulk energy (typically 4–9 kWh usable).</p>
+      </details>
+
+      <details>
+        <summary>Is it loud? <span class="chev" aria-hidden="true">⌄</span></summary>
+        <p>Designed to be quiet: liquid cooling + large, low-RPM fans. Target is under 35 dBA at 1 meter in steady state.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="wrap">
+      <div class="sectionHead">
+        <div>
+          <h2>Request pricing & availability</h2>
+          <p>Use this form layout as-is, or replace with your CRM embed (HubSpot, Typeform, etc.).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <form onsubmit="event.preventDefault(); alert('Thanks — we\\'ll follow up shortly.');" style="display:grid; gap:12px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <label>
+              <span class="sr">Name</span>
+              <input required placeholder="Name"
+                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+            </label>
+            <label>
+              <span class="sr">Email</span>
+              <input required type="email" placeholder="Email"
+                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+            </label>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <label>
+              <span class="sr">Region</span>
+              <input placeholder="Region (e.g., Ontario, CA)"
+                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+            </label>
+            <label>
+              <span class="sr">Use case</span>
+              <input placeholder="Use case (home / cabin / off-grid)"
+                style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none;">
+            </label>
+          </div>
+
+          <label>
+            <span class="sr">Message</span>
+            <textarea rows="4" placeholder="Tell us your tank size, solar setup, and goals..."
+              style="width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); outline:none; resize:vertical;"></textarea>
+          </label>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <button class="btn primary" type="submit">Submit request</button>
+            <span class="muted" style="font-size:12.5px;">We’ll reply with pricing, lead time, and installer requirements.</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footgrid">
+      <div>
+        <div class="brandmark" style="gap:10px;">
+          <div class="logo" aria-hidden="true" style="width:30px;height:30px;border-radius:10px;"></div>
+          <div class="title">
+            <span>MI-HWC</span>
+            <span>Magnetic Inertia Hot-Water Charger</span>
+          </div>
+        </div>
+        <small>
+          MI-HWC is a product concept/spec landing page template. Replace placeholders (logos, photos, pricing) with your final assets.
+          Always follow local electrical/plumbing codes and certification requirements for deployed hardware.
+        </small>
+      </div>
+
+      <div class="footlinks" aria-label="Footer links">
+        <a href="#how">How it works</a>
+        <a href="#specs">Specs</a>
+        <a href="#safety">Safety</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll for in-page anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href');
+        const el = document.querySelector(id);
+        if(!el) return;
+        e.preventDefault();
+        el.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    });
+  </script>
+</body>
+</html>

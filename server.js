@@ -2307,6 +2307,7 @@ function isPublicRoute(req) {
 
   if (isReadOnlyRequest) {
     const publicHtml = new Set([
+      '/',
       '/login',
       '/login.html',
       '/webpage-login.html',
@@ -2384,7 +2385,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'webpage.html'));
+  res.redirect('/webpage-login.html');
 });
 
 app.get('/timepieces', async (req, res) => {

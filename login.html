@@ -5848,6 +5848,18 @@
 
           if (response.ok) {
             const data = await response.json();
+            try {
+              sessionStorage.setItem(
+                'ioncore-login-session',
+                JSON.stringify({
+                  authenticated: true,
+                  authenticatedAt: Date.now(),
+                  next: data && data.redirect ? data.redirect : nextPath || '/'
+                })
+              );
+            } catch (storageError) {
+              console.warn('Unable to persist login session state', storageError);
+            }
             updateStatus('Access granted. Opening vault…', 'success');
             setTimeout(() => {
               window.location.href = data.redirect || nextPath || '/';

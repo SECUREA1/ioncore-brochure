@@ -1284,7 +1284,7 @@ app.get('/login', async (req, res) => {
     const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
     return res.redirect(safeNext);
   }
-  await sendHtml(res, path.join(__dirname, 'webpage-login.html'));
+  await sendHtml(res, path.join(__dirname, 'login.html'));
 });
 
 app.post('/login', async (req, res) => {

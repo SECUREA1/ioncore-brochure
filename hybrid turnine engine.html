@@ -3,30 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="application-name" content="Ioncore Energy" />
+  <meta name="theme-color" content="#6aff3b" />
   <title>Hybrid Turbine–Magnetic Engine Program | Project Index</title>
   <meta name="description" content="High-level project index for a hybrid turbine–magnetic engine program: integrated turbine, magnetic generator, thermal management, control, and patent package artifacts." />
+  <link rel="icon" type="image/svg+xml" href="battery.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root{
-      --bg:#0b0f14;
-      --panel:#0f1620;
-      --panel2:#111c28;
+      --bg:#05080d;
+      --panel:#0d141f;
+      --panel2:#111a2a;
       --text:#e8eef6;
       --muted:#a7b4c5;
-      --accent:#66d9ef;
-      --accent2:#a6e22e;
+      --accent:#6aff3b;
+      --accent2:#57c6ff;
       --warn:#ffcc66;
       --danger:#ff6b6b;
-      --line:#223244;
+      --line:#1f334d;
       --shadow: 0 8px 30px rgba(0,0,0,.35);
       --radius: 14px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --sans: "Montserrat", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family:var(--sans);
-      background: radial-gradient(1200px 700px at 20% 0%, #122033 0%, var(--bg) 60%);
+      background: radial-gradient(1200px 700px at 20% 0%, #0f2341 0%, var(--bg) 60%);
       color:var(--text);
       line-height:1.55;
     }
@@ -37,7 +43,7 @@
       top:0;
       z-index:100;
       backdrop-filter: blur(10px);
-      background: rgba(11,15,20,.75);
+      background: rgba(5,8,13,.82);
       border-bottom:1px solid var(--line);
     }
     .wrap{ max-width:1100px; margin:0 auto; padding:18px 18px; }
@@ -46,6 +52,21 @@
     }
     .brand{
       display:flex; flex-direction:column; gap:2px;
+    }
+    .brand-mark{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:4px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--accent);
+      font-weight:700;
+    }
+    .brand-mark img{
+      width:18px;
+      height:18px;
     }
     .brand h1{
       font-size:16px; margin:0; letter-spacing:.4px; font-weight:700;
@@ -60,9 +81,9 @@
       font-size:12px; color:var(--muted);
       border:1px solid rgba(34,50,68,.8);
       padding:8px 10px; border-radius:999px;
-      background: rgba(17,28,40,.35);
+      background: rgba(13,20,31,.6);
     }
-    nav a:hover{ color:var(--text); border-color: rgba(102,217,239,.6); }
+    nav a:hover{ color:var(--text); border-color: rgba(106,255,59,.6); }
     .hero{
       padding:36px 0 18px;
     }
@@ -76,7 +97,7 @@
       nav{ justify-content:flex-start; }
     }
     .card{
-      background: linear-gradient(180deg, rgba(17,28,40,.75), rgba(15,22,32,.75));
+      background: linear-gradient(180deg, rgba(17,26,42,.78), rgba(13,20,31,.78));
       border:1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -92,8 +113,8 @@
     }
     .dot{
       width:10px; height:10px; border-radius:99px;
-      background: radial-gradient(circle at 30% 30%, var(--accent) 0%, #2b7a8a 70%);
-      box-shadow: 0 0 18px rgba(102,217,239,.35);
+      background: radial-gradient(circle at 30% 30%, var(--accent) 0%, #399122 70%);
+      box-shadow: 0 0 18px rgba(106,255,59,.35);
     }
     h2{ margin:0 0 8px; font-size:22px; }
     h3{ margin:0 0 8px; font-size:16px; }
@@ -136,7 +157,7 @@
     .callout{
       border-left: 3px solid var(--accent);
       padding:12px 12px 12px 14px;
-      background: rgba(102,217,239,.08);
+      background: rgba(106,255,59,.08);
       border-radius: 10px;
       margin-top:10px;
     }
@@ -185,7 +206,7 @@
       cursor:pointer;
       user-select:none;
     }
-    .btn:hover{ border-color: rgba(102,217,239,.6); }
+    .btn:hover{ border-color: rgba(106,255,59,.6); }
     .btn small{ color:var(--muted); }
     .figure-grid{
       display:grid;
@@ -195,7 +216,7 @@
     }
     @media (max-width: 900px){ .figure-grid{ grid-template-columns:1fr; } }
     .figure{
-      border:1px dashed rgba(102,217,239,.35);
+      border:1px dashed rgba(106,255,59,.35);
       background: rgba(17,28,40,.18);
       border-radius: 12px;
       padding:12px;
@@ -212,6 +233,37 @@
       font-size:12px;
       color:var(--muted);
     }
+    .asset-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width: 900px){ .asset-grid{ grid-template-columns:1fr; } }
+    .asset-card{
+      border:1px solid rgba(31,51,77,.85);
+      background: rgba(13,20,31,.5);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .asset-card img{
+      width:100%;
+      aspect-ratio:4/3;
+      object-fit:cover;
+      display:block;
+      background:#090f18;
+    }
+    .asset-card figcaption{
+      font-size:12px;
+      padding:10px 12px;
+      color:var(--muted);
+    }
+    .asset-card[data-missing="true"]{
+      border-style:dashed;
+    }
+    .asset-card[data-missing="true"] figcaption{
+      color:var(--warn);
+    }
   </style>
 </head>
 <body>
@@ -220,10 +272,12 @@
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
+        <div class="brand-mark"><img src="battery.svg" alt="Ioncore Energy" />Ioncore Energy Platform</div>
         <h1>Hybrid Turbine–Magnetic Engine Program</h1>
-        <div class="sub">Integrated turbine + magnetic generation + thermal management + controls • Engineering & Patent Track</div>
+        <div class="sub">Ioncore-branded concept program • integrated turbine + magnetic generation + thermal management + controls</div>
       </div>
       <nav>
+        <a href="index.html">Library</a>
         <a href="#overview">Overview</a>
         <a href="#architecture">Architecture</a>
         <a href="#capabilities">Capabilities</a>
@@ -269,6 +323,7 @@
         </div>
 
         <div class="btnrow">
+          <a class="btn" href="index.html">Back to Brochure Library</a>
           <button class="btn" onclick="toggleAll(true)">Expand all sections <small>↓</small></button>
           <button class="btn" onclick="toggleAll(false)">Collapse all sections <small>↑</small></button>
           <button class="btn" onclick="window.print()">Print / Save as PDF</button>
@@ -300,6 +355,18 @@
           <b>Designed to accomplish:</b> a scalable path from concept → engineering definition → prototype-ready package,
           with clear subsystem boundaries and verifiable interfaces.
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="assets">
+    <div class="card">
+      <h3>Engine Visual Assets</h3>
+      <p class="muted">These renders are wired to the provided asset names so the page stays aligned with your project package.</p>
+      <div class="asset-grid">
+        <figure class="asset-card"><img src="engine.png" alt="Hybrid turbine engine render" loading="lazy" /><figcaption><b>engine.png</b> • Primary exterior concept render.</figcaption></figure>
+        <figure class="asset-card"><img src="engine1.png" alt="Hybrid turbine engine side render" loading="lazy" /><figcaption><b>engine1.png</b> • Alternate perspective for packaging review.</figcaption></figure>
+        <figure class="asset-card"><img src="engine2.png" alt="Hybrid turbine engine cutaway render" loading="lazy" /><figcaption><b>engine2.png</b> • Internal layout / cutaway context.</figcaption></figure>
       </div>
     </div>
   </section>
@@ -604,7 +671,7 @@ SIGNALS:
   index.html
       </div>
       <div style="margin-top:10px;" class="muted">
-        © <span id="year"></span> Hybrid Turbine–Magnetic Engine Program. All content is informational and subject to revision.
+        © <span id="year"></span> Ioncore Energy • Hybrid Turbine–Magnetic Engine Program. All content is informational and subject to revision.
       </div>
     </div>
   </div>
@@ -616,6 +683,19 @@ SIGNALS:
   function toggleAll(open){
     document.querySelectorAll("details").forEach(d => d.open = open);
   }
+  document.querySelectorAll(".asset-card img").forEach((img) => {
+    img.addEventListener("error", () => {
+      const card = img.closest(".asset-card");
+      if (card) {
+        card.dataset.missing = "true";
+      }
+      img.style.display = "none";
+      const caption = img.nextElementSibling;
+      if (caption) {
+        caption.innerHTML += " <br><small>Image file not found in this folder yet.</small>";
+      }
+    });
+  });
   document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 

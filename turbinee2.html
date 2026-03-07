@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Small Drone Power Core — Investor & Development One-Pager</title>
+  <meta name="description" content="Investor-grade one-pager for the Small Drone Power Core: compact turbine + magnetic generation + regulated DC power module. Development roadmap, validation plan, and pricing (no equity terms)." />
+  <style>
+    :root{
+      --bg:#070b10;
+      --panel:#0b1320;
+      --panel2:#0f1b2c;
+      --text:#eaf1fb;
+      --muted:#a6b6cc;
+      --line:#1f324a;
+      --accent:#6ee7ff;
+      --accent2:#a3ff6e;
+      --warn:#ffd37a;
+      --danger:#ff7a7a;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --r:18px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text);
+      background: radial-gradient(1100px 650px at 25% 0%, #12233b 0%, var(--bg) 68%);
+      line-height:1.55;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1100px; margin:0 auto; padding:22px 18px 44px}
+    header{
+      position:sticky; top:0; z-index:40;
+      backdrop-filter: blur(12px);
+      background: rgba(7,11,16,.75);
+      border-bottom:1px solid rgba(31,50,74,.7);
+    }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+      padding:14px 0;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:2px;
+      min-width:240px;
+    }
+    .brand strong{font-size:13px; letter-spacing:.3px}
+    .brand span{font-size:12px; color:var(--muted)}
+    nav{display:flex; flex-wrap:wrap; gap:8px}
+    nav a{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(31,50,74,.9);
+      background: rgba(11,19,32,.35);
+      padding:7px 10px; border-radius:999px;
+    }
+    nav a:hover{color:var(--text); border-color: rgba(110,231,255,.55)}
+    .card{
+      background: linear-gradient(180deg, rgba(15,27,44,.82), rgba(11,19,32,.82));
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .hero{
+      padding:18px 0 0;
+    }
+    .grid{display:grid; gap:14px}
+    @media (min-width:960px){ .grid-2{grid-template-columns:1.15fr .85fr} }
+    @media (min-width:960px){ .grid-3{grid-template-columns:1fr 1fr 1fr} }
+    h1{margin:0 0 8px; font-size:28px; letter-spacing:.2px}
+    h2{margin:0 0 8px; font-size:16px}
+    h3{margin:0 0 8px; font-size:14px}
+    p{margin:0 0 10px; color:#d9e5f7}
+    .muted{color:var(--muted)}
+    .badge{
+      display:inline-flex; align-items:center; gap:10px;
+      border:1px solid rgba(110,231,255,.25);
+      background: rgba(110,231,255,.08);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:10px;
+      width:fit-content;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent) 0%, #2a8da0 70%);
+      box-shadow: 0 0 20px rgba(110,231,255,.35);
+    }
+    .pillrow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+    .pill{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(31,50,74,.9);
+      background: rgba(11,19,32,.35);
+      padding:6px 10px; border-radius:999px;
+    }
+    .pill b{color:var(--text)}
+    .callout{
+      border-left:3px solid var(--accent);
+      background: rgba(110,231,255,.08);
+      padding:12px 12px 12px 14px;
+      border-radius:14px;
+      margin-top:10px;
+    }
+    .warn{border-left-color: var(--warn); background: rgba(255,211,122,.10)}
+    .danger{border-left-color: var(--danger); background: rgba(255,122,122,.10)}
+    .list{margin:10px 0 0; padding:0; list-style:none; display:grid; gap:10px}
+    .list li{
+      border:1px solid rgba(31,50,74,.9);
+      background: rgba(11,19,32,.35);
+      border-radius:16px;
+      padding:12px;
+    }
+    .rowtitle{display:flex; justify-content:space-between; gap:10px; align-items:center; font-weight:800}
+    .tag{
+      font-size:11px; color:var(--muted);
+      border:1px solid rgba(31,50,74,.9);
+      background: rgba(15,27,44,.35);
+      padding:3px 8px; border-radius:999px;
+      white-space:nowrap;
+    }
+    .mono{
+      font-family:var(--mono);
+      font-size:12px;
+      border:1px solid rgba(31,50,74,.9);
+      background: rgba(6,10,16,.55);
+      border-radius:16px;
+      padding:12px;
+      overflow:auto;
+      white-space:pre;
+      color:#cfe5ff;
+    }
+    .cta{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      border-radius:14px;
+      padding:10px 12px;
+      border:1px solid rgba(110,231,255,.35);
+      background: rgba(110,231,255,.10);
+      color:var(--text);
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{border-color: rgba(110,231,255,.7)}
+    .btn.secondary{
+      border-color: rgba(163,255,110,.28);
+      background: rgba(163,255,110,.09);
+    }
+    .btn.secondary:hover{border-color: rgba(163,255,110,.55)}
+    .btn.ghost{
+      border-color: rgba(31,50,74,.9);
+      background: rgba(11,19,32,.25);
+    }
+    .btn.ghost:hover{border-color: rgba(110,231,255,.55)}
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid rgba(31,50,74,.9);
+      border-radius:16px;
+      background: rgba(11,19,32,.25);
+      margin-top:10px;
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(31,50,74,.65);
+      vertical-align:top;
+      text-align:left;
+      font-size:12px;
+      color:#d9e5f7;
+    }
+    th{
+      color:var(--text);
+      background: rgba(15,27,44,.55);
+      font-weight:900;
+    }
+    tr:last-child td{border-bottom:none}
+    .price{font-weight:900; color: var(--accent2)}
+    .section{scroll-margin-top:86px; margin-top:14px}
+    footer{margin-top:16px; color:var(--muted); font-size:12px}
+    .smallprint{font-size:11px; color:var(--muted)}
+    .split{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+    }
+    .kpi{
+      display:flex; flex-wrap:wrap; gap:8px;
+    }
+    .kpi .pill{background: rgba(11,19,32,.45)}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap" style="padding-top:0; padding-bottom:0;">
+    <div class="topbar">
+      <div class="brand">
+        <strong>Small Drone Power Core</strong>
+        <span>Investor & Development One-Pager • No equity terms</span>
+      </div>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#market">Problem</a>
+        <a href="#solution">Solution</a>
+        <a href="#modes">Modes</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#validation">Validation</a>
+        <a href="#ask">Ask</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section id="overview" class="hero section">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="badge"><span class="dot"></span> Early Investment & Development (Investor-Ready Summary)</div>
+        <h1>Compact turbine-driven power module for endurance-focused UAV platforms</h1>
+        <p>
+          We’re developing a <b>Small Drone Power Core</b>: a compact turbine energy core with an integrated
+          <b>magnetic generator</b>, a <b>regulated DC power stack</b>, and <b>thermal management</b>—engineered as a single,
+          testable module.
+        </p>
+        <p class="muted">
+          This is built like a product program: clear interfaces, safety logic, a validation plan, and deliverables that
+          translate into prototype readiness and scalable manufacturing.
+        </p>
+
+        <div class="kpi">
+          <span class="pill"><b>Modes:</b> Turbo-Electric / Turbo-Shaft</span>
+          <span class="pill"><b>Output:</b> Regulated DC bus</span>
+          <span class="pill"><b>Baseline:</b> Liquid cooling</span>
+          <span class="pill"><b>Options:</b> Cryogenic loop, magnetic inertia</span>
+        </div>
+
+        <div class="callout warn">
+          <b>Performance transparency:</b> All performance numbers remain targets until validated via component maps,
+          thermal limits, and instrumented testing. The roadmap below is designed to turn targets into verified specs.
+        </div>
+
+        <div class="cta">
+          <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+          <a class="btn secondary" href="#ask">Jump to Partnership Ask</a>
+          <a class="btn ghost" href="#pricing">See Pricing</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>What’s inside the module</h2>
+        <ul class="list">
+          <li>
+            <div class="rowtitle">Turbine energy core <span class="tag">Brayton cycle</span></div>
+            <div class="muted">Inlet → compressor → combustor → turbine → exhaust</div>
+          </li>
+          <li>
+            <div class="rowtitle">Shared-shaft magnetic generation <span class="tag">3-phase</span></div>
+            <div class="muted">Rotor + stator windings with high-speed packaging</div>
+          </li>
+          <li>
+            <div class="rowtitle">Power electronics stack <span class="tag">AC→DC→Reg</span></div>
+            <div class="muted">Rectifier, DC link, regulation, protected distribution</div>
+          </li>
+          <li>
+            <div class="rowtitle">Thermal management <span class="tag">continuous rating</span></div>
+            <div class="muted">Liquid loop baseline; advanced thermal options available</div>
+          </li>
+          <li>
+            <div class="rowtitle">Controls + safety <span class="tag">sequencing</span></div>
+            <div class="muted">V/I/T/RPM sensing, fault handling, safe shutdown</div>
+          </li>
+        </ul>
+
+        <div class="callout">
+          <b>Design philosophy:</b> treat the engine as a complete power architecture—so integration, safety,
+          and continuous performance are engineered in from day one.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="market" class="section">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>The problem</h2>
+        <p>
+          Small UAV platforms increasingly require longer mission time and higher sustained payload power,
+          but power systems often become the bottleneck due to energy density limits, thermal derating, and integration complexity.
+        </p>
+        <ul class="list">
+          <li><div class="rowtitle">Endurance ceiling <span class="tag">mission time</span></div><div class="muted">Fuel/battery capacity and sustained cruise power define total mission capability.</div></li>
+          <li><div class="rowtitle">Thermal derating <span class="tag">continuous power</span></div><div class="muted">Generators and power electronics frequently reduce output under heat soak.</div></li>
+          <li><div class="rowtitle">Integration friction <span class="tag">time + cost</span></div><div class="muted">Nonstandard power interfaces and safety logic slow deployment and scaling.</div></li>
+        </ul>
+      </div>
+
+      <div class="card" id="solution">
+        <h2>Our solution</h2>
+        <p>
+          A compact turbine + magnetic generation core packaged with a regulation and distribution stack that delivers a
+          <b>protected, integrator-friendly DC output</b>—backed by a validation plan that produces measurable, repeatable specifications.
+        </p>
+        <div class="mono">
+AIRFLOW:  Inlet → Compressor → Combustor → Turbine → Exhaust
+SHAFT:    Turbine → Common Shaft → Generator Rotor
+POWER:    3-phase → Rectify → DC Link → Regulate → DC Bus / Outputs
+THERMAL:  Liquid cooling loop + sensors + control
+        </div>
+        <div class="callout warn">
+          <b>Investment leverage:</b> funding accelerates definition, testing, and iteration—moving the program from
+          design targets to verified continuous ratings and integration-ready interfaces.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODES -->
+  <section id="modes" class="section">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Turbo-Electric mode</h2>
+        <p class="muted">Turbine drives generator → regulated DC bus → propulsion motor(s) + payload.</p>
+        <ul class="list">
+          <li><div class="rowtitle">Flexible packaging <span class="tag">airframe fit</span></div><div class="muted">Place generator/motors where they best serve balance and layout.</div></li>
+          <li><div class="rowtitle">Clean DC architecture <span class="tag">stable bus</span></div><div class="muted">Regulation + distribution designed for predictable bus behavior.</div></li>
+          <li><div class="rowtitle">Multi-motor ready <span class="tag">distributed</span></div><div class="muted">Supports distributed propulsion layouts without mechanical complexity.</div></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Turbo-Shaft mode</h2>
+        <p class="muted">Turbine drives propulsor directly (optional auxiliary DC for onboard systems).</p>
+        <ul class="list">
+          <li><div class="rowtitle">Fewer conversion steps <span class="tag">efficiency</span></div><div class="muted">Direct mechanical power path can reduce conversion losses.</div></li>
+          <li><div class="rowtitle">Simpler thrust delivery <span class="tag">prop/fan</span></div><div class="muted">Conventional propulsor integration pathways.</div></li>
+          <li><div class="rowtitle">Optional onboard DC <span class="tag">hybrid</span></div><div class="muted">Aux generation supports avionics and payload systems.</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING (DOUBLED) -->
+  <section id="pricing" class="section">
+    <div class="card">
+      <div class="split">
+        <div>
+          <h2>Pricing guide (development + units)</h2>
+          <p class="muted">Pricing below reflects a doubled baseline planning guide. Final quotes are scoped to requirements and validation needs.</p>
+        </div>
+        <div class="cta">
+          <button class="btn ghost" onclick="togglePricing(true)">Show all details</button>
+          <button class="btn ghost" onclick="togglePricing(false)">Collapse details</button>
+        </div>
+      </div>
+
+      <details open id="pricing-nre">
+        <summary class="rowtitle" style="cursor:pointer; padding:6px 0;">
+          Development packages (NRE) <span class="tag">doubled</span>
+        </summary>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:24%;">Package</th>
+              <th>Includes</th>
+              <th style="width:20%;">Typical Range (USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Concept Package</b></td>
+              <td class="muted">Web graphics, high-level renders, diagram set, requirements outline.</td>
+              <td class="price">$10k–$50k</td>
+            </tr>
+            <tr>
+              <td><b>Engineering Definition Pack</b></td>
+              <td class="muted">BOM v1, interfaces, controls outline, safety plan, simulation runs, patent-style diagrams.</td>
+              <td class="price">$50k–$240k</td>
+            </tr>
+            <tr>
+              <td><b>Prototype Development (Alpha)</b></td>
+              <td class="muted">Generator bench testing + power stack bring-up + thermal loop validation.</td>
+              <td class="price">$240k–$900k</td>
+            </tr>
+            <tr>
+              <td><b>Prototype Development (Beta)</b></td>
+              <td class="muted">Integrated run program + endurance validation + iteration & reliability improvements.</td>
+              <td class="price">$900k–$3.0M</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details open id="pricing-unit" style="margin-top:12px;">
+        <summary class="rowtitle" style="cursor:pointer; padding:6px 0;">
+          Unit pricing (Core + Power Stack + Safety distribution) <span class="tag">doubled</span>
+        </summary>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:24%;">Volume</th>
+              <th>Notes</th>
+              <th style="width:20%;">Unit Price (USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>1–5 units (prototype)</b></td>
+              <td class="muted">Hand build, test support, early validation overhead.</td>
+              <td class="price">$50k–$160k</td>
+            </tr>
+            <tr>
+              <td><b>10–50 units (low-rate)</b></td>
+              <td class="muted">Stabilized supply chain, basic fixtures, QA flow.</td>
+              <td class="price">$24k–$70k</td>
+            </tr>
+            <tr>
+              <td><b>100+ units</b></td>
+              <td class="muted">Yield improvements, cost-down revisions, production QA.</td>
+              <td class="price">$12k–$34k</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details id="pricing-options" style="margin-top:12px;">
+        <summary class="rowtitle" style="cursor:pointer; padding:6px 0;">
+          Advanced option adders <span class="tag">doubled</span>
+        </summary>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30%;">Option</th>
+              <th>What it adds</th>
+              <th style="width:22%;">Prototype Add-On</th>
+              <th style="width:22%;">Low-Rate Add-On</th>
+              <th style="width:22%;">100+ Add-On</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Liquid cryogenic thermal module</b></td>
+              <td class="muted">Two-loop thermal architecture: insulated tank/lines, cryo-to-secondary HX, controls & safety relief.</td>
+              <td class="price">+$16k–$70k</td>
+              <td class="price">+$6k–$30k</td>
+              <td class="price">+$3k–$16k</td>
+            </tr>
+            <tr>
+              <td><b>Magnetic inertia module</b></td>
+              <td class="muted">Flywheel + magnetic bearing assist for transient smoothing and stability; includes containment implications.</td>
+              <td class="price">+$20k–$90k</td>
+              <td class="price">+$8k–$36k</td>
+              <td class="price">+$4k–$20k</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+
+      <div class="callout">
+        <b>What drives cost:</b> high-RPM rotor/containment + balancing, hot-section materials, power electronics thermal design,
+        validation time, and QA/yield.
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap" class="section">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Roadmap</h2>
+        <ul class="list">
+          <li><div class="rowtitle">M1 — Baseline lock <span class="tag">definition</span></div><div class="muted">Architecture, interfaces, BOM v1, figure pack, capability model assumptions.</div></li>
+          <li><div class="rowtitle">M2 — Bench power validation <span class="tag">electrical</span></div><div class="muted">Generator + rectifier/regulation thermal behavior, load-step response, protections.</div></li>
+          <li><div class="rowtitle">M3 — Rotor stability envelope <span class="tag">mechanical</span></div><div class="muted">Balance, vibration vs RPM, bearing temp, overspeed shutdown validation.</div></li>
+          <li><div class="rowtitle">M4 — Controlled light-off <span class="tag">combustion</span></div><div class="muted">Stable ignition, temperature stability, safe shutdown sequencing.</div></li>
+          <li><div class="rowtitle">M5 — Endurance validation <span class="tag">continuous rating</span></div><div class="muted">Continuous vs peak confirmed with heat rejection and logged data.</div></li>
+          <li><div class="rowtitle">M6 — Pre-production plan <span class="tag">scale</span></div><div class="muted">QA checks, assembly steps, cost-down roadmap, supplier strategy.</div></li>
+        </ul>
+      </div>
+
+      <div class="card" id="validation">
+        <h2>Validation plan (high level)</h2>
+        <ul class="list">
+          <li><div class="rowtitle">Bench: generator + power stack</div><div class="muted">Voltage vs RPM, rectifier heating, ripple, regulation stability, fault handling.</div></li>
+          <li><div class="rowtitle">Thermal: continuous rating</div><div class="muted">Cold plate + coolant loop characterization, derating curves, heat rejection limits.</div></li>
+          <li><div class="rowtitle">Integrated: spool + combustion</div><div class="muted">Light-off control, temperature stability, vibration envelope, safe shutdown.</div></li>
+          <li><div class="rowtitle">Endurance: mission profile</div><div class="muted">Cruise-power fuel burn and sustained output validation with instrumentation.</div></li>
+        </ul>
+
+        <div class="callout warn">
+          <b>Deliverables to partners:</b> test reports, updated spec sheet, BOM revision, integration notes, and a production-readiness plan.
+        </div>
+
+        <div class="mono">
+Instrumentation targets (examples):
+- RPM, temperatures (stator/rectifier/DC-DC), coolant in/out
+- Bus voltage/current, ripple, load steps
+- Vibration (accelerometers), optional pressure sensing
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASK (NO EQUITY TERMS) -->
+  <section id="ask" class="section">
+    <div class="card">
+      <h2>Partnership ask (no equity terms)</h2>
+      <p class="muted">
+        We’re looking for early partners to accelerate definition, validation, and prototype readiness.
+        Engagements can be structured as development sponsorship, prototype pre-orders, or integration programs.
+      </p>
+
+      <div class="grid grid-2">
+        <div>
+          <ul class="list">
+            <li>
+              <div class="rowtitle">What funding supports <span class="tag">use of funds</span></div>
+              <div class="muted">Rotor dynamics + containment, power electronics iterations, thermal validation, instrumentation, and manufacturing planning.</div>
+            </li>
+            <li>
+              <div class="rowtitle">What partners receive <span class="tag">deliverables</span></div>
+              <div class="muted">Early interface definitions, milestone reports, prioritized integration support, and prototype allocation (as available).</div>
+            </li>
+            <li>
+              <div class="rowtitle">Partner fit <span class="tag">who we want</span></div>
+              <div class="muted">UAV platform builders, energy integrators, and organizations needing compact regulated DC power modules.</div>
+            </li>
+          </ul>
+
+          <div class="callout">
+            <b>Fast scoping:</b> A 30–45 minute discovery call to align on power class, DC bus target, and mission profile.
+            Then we deliver a scoped development plan and timeline.
+          </div>
+        </div>
+
+        <div>
+          <div class="mono">
+CONTACT
+- Name: Jodel Chad
+- Email: jodelchad@chaines.io
+- Handle: @jodelchad
+
+REQUESTED INFO (to scope quickly)
+- Target continuous kW (e.g., 5 / 10 / 20)
+- Turbo-Electric or Turbo-Shaft (or both)
+- DC bus target (48–120V or 300–450V)
+- Desired mission profile (cruise power + duration)
+- Environment constraints (temp, altitude, duty cycle)
+          </div>
+
+          <div class="cta">
+            <button class="btn" onclick="copyContact()">Copy contact block</button>
+            <button class="btn ghost" onclick="window.print()">Print / Save PDF</button>
+          </div>
+
+          <div class="callout danger">
+            <b>Important:</b> This page intentionally contains <b>no equity/share terms</b>. Partnership structure is handled separately.
+          </div>
+        </div>
+      </div>
+
+      <div class="smallprint" style="margin-top:10px;">
+        This one-pager is informational and subject to change. Any commercialization or performance representation is contingent on
+        engineering validation and compliance with applicable safety and regulatory requirements.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © <span id="y"></span> Small Drone Power Core Program • Investor & Development One-Pager
+  </footer>
+
+</div>
+
+<script>
+  document.getElementById("y").textContent = new Date().getFullYear();
+
+  function togglePricing(open){
+    ["pricing-nre","pricing-unit","pricing-options"].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.open = open;
+    });
+  }
+
+  function copyContact(){
+    const text =
+`CONTACT
+- Name: Jodel Chad
+- Email: jodelchad@chaines.io
+- Handle: @jodelchad
+
+REQUESTED INFO (to scope quickly)
+- Target continuous kW (e.g., 5 / 10 / 20)
+- Turbo-Electric or Turbo-Shaft (or both)
+- DC bus target (48–120V or 300–450V)
+- Desired mission profile (cruise power + duration)
+- Environment constraints (temp, altitude, duty cycle)`;
+    navigator.clipboard.writeText(text).then(()=>{
+      alert("Copied contact block to clipboard.");
+    }).catch(()=>{
+      alert("Copy failed. You can manually copy the contact block.");
+    });
+  }
+</script>
+
+</body>
+</html>

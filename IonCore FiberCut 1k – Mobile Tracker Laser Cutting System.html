@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IonCore FiberCut 1k – Mobile Tracker Laser Cutting System</title>
+  <meta name="description" content="IonCore FiberCut 1k is a 1 kW fiber laser cutting system on a compact mobile tracker with an offboard stabilized power module, liquid cooling, and assist gas control for thin-gauge field cutting." />
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#121923;
+      --text:#e6eef7;
+      --muted:#9fb0c3;
+      --accent:#4aa3ff;
+      --line:#213044;
+      --ok:#47d16a;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --radius:14px;
+      --pad:18px;
+      --max:1120px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(74,163,255,.25), transparent 55%),
+                  radial-gradient(900px 500px at 95% 10%, rgba(71,209,106,.14), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.45;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:var(--max); margin:0 auto; padding:28px 18px 60px}
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px; padding:10px 0 18px;
+      border-bottom:1px solid var(--line);
+    }
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{
+      width:38px; height:38px; border-radius:10px;
+      background: linear-gradient(135deg, rgba(74,163,255,.95), rgba(74,163,255,.15));
+      border:1px solid rgba(74,163,255,.35);
+      box-shadow: 0 12px 34px rgba(74,163,255,.18);
+    }
+    .brand h1{font-size:15px; margin:0; letter-spacing:.6px}
+    .brand small{display:block; color:var(--muted); font-size:12px; margin-top:2px}
+    .navlinks{display:flex; gap:14px; flex-wrap:wrap}
+    .navlinks a{color:var(--muted); font-size:13px}
+    .navlinks a:hover{color:var(--text)}
+    .hero{
+      display:grid; grid-template-columns: 1.25fr .75fr; gap:18px;
+      padding:26px 0 18px;
+    }
+    @media (max-width: 880px){
+      .hero{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(18,25,35,.92), rgba(18,25,35,.72));
+      border: 1px solid rgba(33,48,68,.95);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+    .eyebrow{
+      display:inline-flex; align-items:center; gap:10px;
+      font-size:12px; color:var(--muted);
+      letter-spacing:.35px;
+    }
+    .pill{
+      border:1px solid rgba(74,163,255,.35);
+      background: rgba(74,163,255,.12);
+      color: var(--text);
+      padding:4px 10px; border-radius:999px; font-size:12px;
+    }
+    .hero h2{font-size:34px; line-height:1.06; margin:10px 0 10px}
+    .hero p{margin:0; color:var(--muted); font-size:15px; max-width:64ch}
+    .ctaRow{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(33,48,68,.95);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:600; font-size:13px;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(74,163,255,.95), rgba(74,163,255,.25));
+      border-color: rgba(74,163,255,.55);
+      box-shadow: 0 14px 38px rgba(74,163,255,.20);
+    }
+    .btn:hover{filter:brightness(1.05)}
+    .specgrid{
+      display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;
+      margin-top:12px;
+    }
+    .spec{
+      border:1px solid rgba(33,48,68,.95);
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      padding:12px;
+    }
+    .spec .k{color:var(--muted); font-size:12px}
+    .spec .v{font-family:var(--mono); font-size:13px; margin-top:6px}
+    .twoCol{display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-top:18px}
+    @media (max-width: 880px){ .twoCol{grid-template-columns:1fr} }
+    h3{margin:0 0 10px; font-size:16px}
+    .list{margin:0; padding-left:18px; color:var(--muted); font-size:14px}
+    .list li{margin:6px 0}
+    .tagRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .tag{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(33,48,68,.95);
+      padding:4px 10px; border-radius:999px;
+      background: rgba(255,255,255,.03);
+    }
+    .tableWrap{overflow:auto; border-radius:12px; border:1px solid rgba(33,48,68,.95)}
+    table{width:100%; border-collapse:collapse; min-width:840px; background: rgba(255,255,255,.02)}
+    th, td{padding:10px 12px; border-bottom:1px solid rgba(33,48,68,.75); vertical-align:top}
+    th{position:sticky; top:0; background: rgba(18,25,35,.95); text-align:left; font-size:12px; color:var(--muted)}
+    td{font-size:13px; color:var(--text)}
+    td small{color:var(--muted)}
+    .status{
+      display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted);
+      padding:4px 10px; border-radius:999px; border:1px solid rgba(33,48,68,.95); background: rgba(255,255,255,.02);
+    }
+    .dot{width:8px; height:8px; border-radius:999px; background: var(--ok)}
+    .dot.warn{background: var(--warn)}
+    .dot.bad{background: var(--bad)}
+    .options{
+      display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px
+    }
+    @media (max-width: 880px){ .options{grid-template-columns:1fr} }
+    .opt{
+      border:1px solid rgba(33,48,68,.95);
+      background: rgba(255,255,255,.03);
+      border-radius:12px; padding:12px;
+    }
+    .opt h4{margin:0 0 6px; font-size:14px}
+    .opt p{margin:0; color:var(--muted); font-size:13px}
+    .foot{margin-top:18px; color:var(--muted); font-size:12px}
+    .hr{height:1px; background: rgba(33,48,68,.95); margin:18px 0}
+    .callout{
+      border:1px solid rgba(74,163,255,.35);
+      background: rgba(74,163,255,.08);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .callout strong{color:var(--text)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>IONCORE <small>Field-Deployable Direct-Energy Systems</small></h1>
+        </div>
+      </div>
+      <nav class="navlinks" aria-label="Primary">
+        <a href="#overview">Overview</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#modules">Modules</a>
+        <a href="#parts">Parts List</a>
+        <a href="#options">Options</a>
+        <a href="#safety">Safety</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="overview">
+      <div class="card">
+        <div class="eyebrow">
+          <span class="pill">FiberCut 1k</span>
+          <span class="status"><span class="dot"></span> 1 kW Cutting Platform</span>
+          <span class="status"><span class="dot warn"></span> Thin-Gauge Optimized</span>
+        </div>
+        <h2>Mobile 1 kW Fiber Laser Cutting — Built for Field Work</h2>
+        <p>
+          IonCore FiberCut 1k combines a stabilized 48 V power module, liquid thermal management, and a compact tracked
+          motion platform carrying an autofocus cutting head. Heavy power and cooling stay offboard; the tracker stays light,
+          stable, and precise. Designed for consistent kerf and reliable cutting on thin-gauge steel and stainless.
+        </p>
+
+        <div class="ctaRow">
+          <a class="btn primary" href="#parts">View Parts & BOM</a>
+          <a class="btn" href="#options">Configure Options</a>
+          <a class="btn" href="#safety">Safety & Interlocks</a>
+        </div>
+
+        <div class="specgrid" style="margin-top:18px">
+          <div class="spec"><div class="k">Laser Output Power</div><div class="v">1 kW (fiber-coupled)</div></div>
+          <div class="spec"><div class="k">DC Bus</div><div class="v">48 V nominal (42–58.8 V)</div></div>
+          <div class="spec"><div class="k">Cutting Feed Range</div><div class="v">20–250 mm/s (closed-loop)</div></div>
+          <div class="spec"><div class="k">Z / Standoff Control</div><div class="v">30–60 mm Z + ±10 mm autofocus</div></div>
+          <div class="spec"><div class="k">Primary Cooling Loop</div><div class="v">1.5–2.5 L/min liquid (offboard)</div></div>
+          <div class="spec"><div class="k">Energy Stabilization</div><div class="v">~100 F supercap @ 48 V</div></div>
+        </div>
+
+        <div class="hr"></div>
+        <div class="callout">
+          <strong>Design intent:</strong> maintain consistent energy-per-mm while moving. Laser emission is gated by speed,
+          standoff, tilt, coolant flow, and window transmission thresholds to protect optics and maintain cut quality.
+        </div>
+      </div>
+
+      <aside class="card">
+        <h3>What’s Included</h3>
+        <ul class="list">
+          <li><strong>FiberCut Head</strong> with collimator, autofocus, protective window, nozzle, and sensors</li>
+          <li><strong>Power Module</strong> with hot-swappable LFP cartridges, precharge, contactor, telemetry, supercaps</li>
+          <li><strong>Thermal Module</strong> with pump, reservoir, flow/pressure sensing, radiator + fan control</li>
+          <li><strong>Tracked Mobile Platform</strong> with encoders, IMU, Z lift, and motion controller</li>
+          <li><strong>Umbilical</strong> (power, coolant, assist gas, comms, fiber delivery)</li>
+        </ul>
+
+        <div class="tagRow">
+          <span class="tag">Field repair</span>
+          <span class="tag">Thin-gauge cutting</span>
+          <span class="tag">Mobile fabrication</span>
+          <span class="tag">Serviceable modules</span>
+          <span class="tag">Safety interlocks</span>
+        </div>
+
+        <div class="hr"></div>
+        <h3>Best-Fit Use Cases</h3>
+        <ul class="list">
+          <li>On-site fabrication and retrofit cutting</li>
+          <li>Maintenance cutting and panel modification</li>
+          <li>Mobile shop support (yard / warehouse)</li>
+          <li>Robotic-style path cuts on large workpieces</li>
+        </ul>
+
+        <p class="foot">
+          Note: cutting performance depends on material, thickness, surface condition, and assist gas selection (O₂/N₂/Ar).
+          This page describes the standard 1 kW cutting configuration.
+        </p>
+      </aside>
+    </section>
+
+    <section class="twoCol" id="capabilities">
+      <div class="card">
+        <h3>Cutting Capabilities (Typical)</h3>
+        <div class="tableWrap" role="region" aria-label="Cutting capabilities table">
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Recommended Assist Gas</th>
+                <th>Typical Clean Cut Range</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mild Steel</td>
+                <td>O₂</td>
+                <td>1–3 mm</td>
+                <td><small>Higher speed possible with oxygen; oxidation edge may occur depending on settings.</small></td>
+              </tr>
+              <tr>
+                <td>Stainless Steel</td>
+                <td>N₂</td>
+                <td>1–3 mm</td>
+                <td><small>Nitrogen supports cleaner edge and reduced oxidation; flow stability is important.</small></td>
+              </tr>
+              <tr>
+                <td>Aluminum</td>
+                <td>N₂</td>
+                <td>1–2 mm</td>
+                <td><small>Reflectivity/back-reflection management required; conservative ramping recommended.</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="hr"></div>
+        <h3>Performance Controls That Keep Cuts Consistent</h3>
+        <ul class="list">
+          <li><strong>Energy-per-mm coupling:</strong> laser power scales with commanded speed; emission pauses on speed error.</li>
+          <li><strong>Dual-stage height management:</strong> Z-axis maintains standoff; autofocus maintains spot size.</li>
+          <li><strong>Window cleanliness protection:</strong> contamination monitoring triggers derate → purge → resume.</li>
+          <li><strong>Bus stability under transients:</strong> supercaps supply burst current to reduce droop and ripple.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Key System Specifications</h3>
+        <div class="tableWrap" role="region" aria-label="Specifications table">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Specification</th>
+                <th>Why it matters</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DC Bus</td>
+                <td><span style="font-family:var(--mono)">48 V nominal (42–58.8 V)</span></td>
+                <td><small>Maintains compatibility across modules and supports high current with manageable insulation and weight.</small></td>
+              </tr>
+              <tr>
+                <td>Energy Storage</td>
+                <td><span style="font-family:var(--mono)">1.2–1.8 kWh LFP, hot-swappable magazines</span></td>
+                <td><small>Field uptime via cartridge swaps; LFP chemistry improves thermal robustness.</small></td>
+              </tr>
+              <tr>
+                <td>Supercap Buffer</td>
+                <td><span style="font-family:var(--mono)">~100 F @ 48 V nominal</span></td>
+                <td><small>Fast transient response; reduces battery stress and improves cut stability during motion events.</small></td>
+              </tr>
+              <tr>
+                <td>Cooling</td>
+                <td><span style="font-family:var(--mono)">1.5–2.5 L/min liquid loop; radiator sized ~1.2 kW</span></td>
+                <td><small>Stabilizes optics and electronics temperature to reduce focus drift and protect components.</small></td>
+              </tr>
+              <tr>
+                <td>Motion</td>
+                <td><span style="font-family:var(--mono)">Tracked base; 20–250 mm/s closed-loop</span></td>
+                <td><small>Stable feed rate reduces kerf variation; traction supports dusty or uneven surfaces.</small></td>
+              </tr>
+              <tr>
+                <td>Z + Autofocus</td>
+                <td><span style="font-family:var(--mono)">30–60 mm Z travel; ±10 mm autofocus</span></td>
+                <td><small>Maintains standoff and focus on warped sheet or imperfect surfaces.</small></td>
+              </tr>
+              <tr>
+                <td>Assist Gas</td>
+                <td><span style="font-family:var(--mono)">O₂ / N₂ / Ar; 0.3–1.5 bar regulated</span></td>
+                <td><small>Controls oxidation, edge quality, and dross removal depending on material.</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="foot">
+          Specifications shown are for the standard 1 kW cutting configuration and represent realistic engineering targets
+          for a mobile platform. Site conditions and material selection affect results.
+        </p>
+      </div>
+    </section>
+
+    <section class="twoCol" id="modules">
+      <div class="card">
+        <h3>Module Architecture (What Ships as Separate Units)</h3>
+        <ul class="list">
+          <li><strong>FiberCut Head (300):</strong> collimator (310), autofocus (320), window (330), nozzle (340), sensor suite (350).</li>
+          <li><strong>Power Cartridge (100):</strong> battery magazines (104), precharge (140), contactor (130), telemetry (150), supercaps (160).</li>
+          <li><strong>Thermal Module (200):</strong> primary loop (210), HX/radiator (212), secondary loop (214), (optional) dew controller (240).</li>
+          <li><strong>Mobile Tracker:</strong> tracked drive, encoders, IMU, Z lift, motion controller, head mount isolation.</li>
+          <li><strong>Umbilical:</strong> fiber, power, coolant supply/return, assist gas line, CAN/Ethernet communications.</li>
+        </ul>
+
+        <div class="hr"></div>
+        <h3>Why Offboard Power + Cooling</h3>
+        <ul class="list">
+          <li>Reduces tracker mass to improve stability and path accuracy.</li>
+          <li>Moves heat rejection away from the cutting head for better thermal control.</li>
+          <li>Enables hot-swappable energy cartridges without stopping the tracker workflow.</li>
+          <li>Improves serviceability: modules can be replaced independently in the field.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Included Control Logic (High Level)</h3>
+        <ul class="list">
+          <li><strong>Safety interlocks:</strong> E-stop, keyed enable, cartridge seated, coolant flow, tilt/IMU, window transmission, standoff.</li>
+          <li><strong>Cut gating:</strong> emission only when speed and standoff are within limits.</li>
+          <li><strong>Bus sag response:</strong> supercap assist → duty reduction → alarm → graceful stop if persistent.</li>
+          <li><strong>Contamination recovery:</strong> derate → purge → confirm transmission &gt; T<sub>min</sub> → resume.</li>
+          <li><strong>Assist gas control:</strong> material-specific presets with pressure monitoring and valve response control.</li>
+        </ul>
+
+        <div class="hr"></div>
+        <div class="callout">
+          <strong>Reliability principle:</strong> batteries supply steady energy; supercaps handle transients; cooling maintains
+          optical stability. This reduces cut variation and extends component life.
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="parts">
+      <h3>Parts List (High-Level BOM)</h3>
+      <p style="margin:0 0 12px; color:var(--muted); font-size:14px">
+        This is a realistic high-level bill of materials for the standard 1 kW cutting configuration. Exact vendor part numbers
+        vary by region and compliance requirements.
+      </p>
+
+      <div class="tableWrap" role="region" aria-label="Parts list table">
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Major Subassemblies</th>
+              <th>Key Notes</th>
+              <th>Service Items</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>FiberCut Head (300)</strong></td>
+              <td>
+                Collimator (310), autofocus stage (320) with encoder, focus lens set, protective window (330),
+                coaxial nozzle (340), back-reflection photodiode, optional kerf camera, local I/O board.
+              </td>
+              <td><small>Autofocus travel ±10 mm; standoff managed by tracker Z + focus loop; contamination monitoring supports derate/purge flow.</small></td>
+              <td><small>Nozzle tips, protective window cassette, purge filters/seals.</small></td>
+            </tr>
+
+            <tr>
+              <td><strong>Power Cartridge (100)</strong></td>
+              <td>
+                LFP battery magazines (104), BMS + telemetry (150), precharge (140), main contactor (130),
+                DC bus bars, current sensor, interlock seat switch, supercap module (160).
+              </td>
+              <td><small>48 V bus; supercaps supply burst current to reduce droop under cutting transients; hot-swap supported via precharge + interlock logic.</small></td>
+              <td><small>Battery magazines, fuses, contactor, precharge resistor/relay.</small></td>
+            </tr>
+
+            <tr>
+              <td><strong>Thermal Module (200)</strong></td>
+              <td>
+                Pump (primary loop 210), reservoir/degas, radiator/HX (212), fan set, flow/pressure sensors,
+                temperature sensors, coolant quick-disconnect bulkhead.
+              </td>
+              <td><small>1.5–2.5 L/min primary flow; radiator capacity sized for ~1.2 kW heat rejection; alarms gate laser on flow loss.</small></td>
+              <td><small>Coolant filter, pump, fans, QD seals, coolant.</small></td>
+            </tr>
+
+            <tr>
+              <td><strong>Assist Gas Package</strong></td>
+              <td>
+                Cylinder mount, primary regulator, secondary precision regulator, solenoid/proportional valve,
+                line pressure sensor, quick-connect to umbilical.
+              </td>
+              <td><small>O₂ for mild steel speed; N₂ for stainless/aluminum edge quality; 0.3–1.5 bar regulated at delivery line (config-dependent).</small></td>
+              <td><small>Regulator seals, valve, filters.</small></td>
+            </tr>
+
+            <tr>
+              <td><strong>Umbilical</strong></td>
+              <td>
+                Fiber delivery line, DC power conductors, coolant supply/return lines, assist gas line,
+                CAN/Ethernet comms, strain relief + bend radius control.
+              </td>
+              <td><small>Designed to keep the tracker light and stable; dry-break coolant QDs recommended; fiber bend radius protection critical.</small></td>
+              <td><small>QD seals, strain relief, protective sheath.</small></td>
+            </tr>
+
+            <tr>
+              <td><strong>Mobile Tracker</strong></td>
+              <td>
+                Tracked chassis, drive motors + gear reduction, encoders, IMU, Z lift (30–60 mm),
+                standoff sensor (ToF/triangulation), motion controller + drivers, head mount isolation.
+              </td>
+              <td><small>Closed-loop feed rate 20–250 mm/s; emission gated by speed/standoff/tilt; stable motion reduces kerf variation.</small></td>
+              <td><small>Tracks, bearings, Z actuator, sensors.</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="foot">
+        For compliance (laser safety, CE/UL as applicable), the final BOM typically includes certified interlock components,
+        protective housings, labels, and test fixtures.
+      </p>
+    </section>
+
+    <section class="twoCol" id="options">
+      <div class="card">
+        <h3>Configuration Options</h3>
+        <div class="options">
+          <div class="opt">
+            <h4>Cut Quality Package</h4>
+            <p>Kerf camera + improved standoff sensor + material presets for steel/stainless/aluminum.</p>
+          </div>
+          <div class="opt">
+            <h4>Extended Duty Cooling</h4>
+            <p>Higher-capacity radiator stack, upgraded pump head, and enhanced head cold plate.</p>
+          </div>
+          <div class="opt">
+            <h4>Premium Stabilization</h4>
+            <p>Add magnetic inertia buffer (flywheel) for repeated transients and improved long-umbilical stability.</p>
+          </div>
+          <div class="opt">
+            <h4>Gas Automation</h4>
+            <p>Proportional gas control with pressure feedback and fast valve response tuned to cutting starts/stops.</p>
+          </div>
+          <div class="opt">
+            <h4>Rugged Field Kit</h4>
+            <p>Dust filtration, reinforced seals, cable boom management, and service spares pack.</p>
+          </div>
+          <div class="opt">
+            <h4>Remote Ops & Logging</h4>
+            <p>Networked telemetry, cut logs, event history, and predictive maintenance dashboards.</p>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+        <h3>What You Select at Order Time</h3>
+        <ul class="list">
+          <li>Material presets priority (steel vs stainless vs aluminum focus)</li>
+          <li>Assist gas setup (O₂ kit, N₂ kit, or dual-gas manifold)</li>
+          <li>Umbilical length (short shop vs extended field)</li>
+          <li>Tracker base (tracked standard; wheeled for clean floors)</li>
+          <li>Battery capacity (1.2 kWh vs 1.8 kWh)</li>
+        </ul>
+      </div>
+
+      <div class="card" id="safety">
+        <h3>Safety & Interlocks (Industrial-Grade)</h3>
+        <p style="margin:0 0 10px; color:var(--muted); font-size:14px">
+          Laser emission is only permitted when the system is in a verified-safe state.
+        </p>
+        <ul class="list">
+          <li><strong>E-stop chain:</strong> hard disable of emission and contactor logic.</li>
+          <li><strong>Keyed enable:</strong> prevents unauthorized activation.</li>
+          <li><strong>Cartridge seat interlock:</strong> inhibits contactor closure unless fully seated.</li>
+          <li><strong>Coolant flow gate:</strong> emission inhibited below minimum flow threshold.</li>
+          <li><strong>Tilt/IMU gate:</strong> inhibits emission if platform exceeds safe pitch/roll.</li>
+          <li><strong>Standoff gate:</strong> inhibits emission if height is outside permitted band.</li>
+          <li><strong>Window transmission gate:</strong> derate/purge/recover workflow; shuts down if below T<sub>min</sub>.</li>
+          <li><strong>Bus sag handling:</strong> supercap assist → duty reduction → alarm → graceful stop.</li>
+        </ul>
+
+        <div class="hr"></div>
+        <div class="callout">
+          <strong>Field readiness:</strong> the system is designed around serviceable modules and conservative fault handling.
+          When any safety boundary is crossed, the default action is inhibit emission and enter a controlled recovery path.
+        </div>
+
+        <p class="foot">
+          Always follow applicable laser safety standards and local regulations. Final product classification and required PPE
+          depend on enclosure, safeguards, and operating procedures.
+        </p>
+      </div>
+    </section>
+
+    <footer class="card" style="margin-top:18px">
+      <h3>Request a Demo or Integration</h3>
+      <p style="margin:0; color:var(--muted); font-size:14px">
+        IonCore FiberCut 1k is designed to support field cutting workflows with modular serviceability and robust safety interlocks.
+        Contact IonCore to discuss materials, thickness targets, assist gas configuration, and site environment requirements.
+      </p>
+      <div class="ctaRow" style="margin-top:14px">
+        <a class="btn primary" href="#overview">Back to top</a>
+        <a class="btn" href="#parts">Parts list</a>
+        <a class="btn" href="#options">Options</a>
+      </div>
+      <p class="foot" style="margin-top:12px">
+        © <span id="yr"></span> IonCore Energy. Product specifications subject to change as configurations evolve.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

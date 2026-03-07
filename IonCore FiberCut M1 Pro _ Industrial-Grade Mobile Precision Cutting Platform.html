@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IonCore FiberCut M1 Pro | Industrial-Grade Mobile Precision Cutting Platform</title>
+  <meta
+    name="description"
+    content="IonCore FiberCut M1 Pro is an industrial-grade mobile 1 kW fiber laser cutting platform with stabilized offboard power, dual-loop cooling, autofocus cutting head, tracked mobility, and field-ready serviceable modules."
+  />
+  <style>
+    :root{
+      --bg:#0a0f14;
+      --panel:#101823;
+      --panel-2:#0f1c2a;
+      --card:#131f2d;
+      --card-2:#172435;
+      --text:#edf4fb;
+      --muted:#9db1c8;
+      --line:#24364a;
+      --line-2:#2e4661;
+      --accent:#57a7ff;
+      --accent-2:#78d3ff;
+      --accent-soft:rgba(87,167,255,.16);
+      --success:#4fd27a;
+      --warning:#ffcf66;
+      --danger:#ff6f6f;
+      --shadow:0 18px 60px rgba(0,0,0,.35);
+      --radius:18px;
+      --radius-sm:12px;
+      --max:1240px;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(87,167,255,.22), transparent 55%),
+        radial-gradient(700px 500px at 85% 0%, rgba(120,211,255,.12), transparent 50%),
+        linear-gradient(180deg, #091018 0%, #0a0f14 100%);
+      line-height:1.5;
+    }
+
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+
+    .container{
+      width:min(var(--max), calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(14px);
+      background:rgba(10,15,20,.72);
+      border-bottom:1px solid rgba(36,54,74,.7);
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      min-height:76px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+
+    .brand-mark{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:
+        linear-gradient(145deg, rgba(87,167,255,.95), rgba(87,167,255,.24));
+      border:1px solid rgba(120,211,255,.35);
+      box-shadow:0 14px 34px rgba(87,167,255,.28);
+      flex:0 0 auto;
+    }
+
+    .brand-copy{
+      min-width:0;
+    }
+
+    .brand-copy strong{
+      display:block;
+      font-size:14px;
+      letter-spacing:.14em;
+      white-space:nowrap;
+    }
+
+    .brand-copy span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .nav-links{
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .nav-links a{
+      color:var(--muted);
+      font-size:13px;
+      transition:.18s ease;
+    }
+
+    .nav-links a:hover{
+      color:var(--text);
+    }
+
+    .hero{
+      padding:48px 0 30px;
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:22px;
+    }
+
+    .panel{
+      background:linear-gradient(180deg, rgba(19,31,45,.92), rgba(16,24,35,.88));
+      border:1px solid rgba(36,54,74,.9);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .hero-main{
+      padding:28px;
+    }
+
+    .eyebrow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(87,167,255,.28);
+      background:var(--accent-soft);
+      color:#d7ebff;
+      font-size:12px;
+      letter-spacing:.03em;
+    }
+
+    .pill .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--success);
+      box-shadow:0 0 0 5px rgba(79,210,122,.12);
+    }
+
+    .hero h1{
+      margin:0 0 14px;
+      font-size:clamp(34px, 6vw, 58px);
+      line-height:1.02;
+      letter-spacing:-.03em;
+      max-width:13ch;
+    }
+
+    .hero p.lead{
+      margin:0;
+      color:var(--muted);
+      font-size:16px;
+      max-width:64ch;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:22px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:12px;
+      border:1px solid rgba(46,70,97,.95);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      font-weight:600;
+      font-size:14px;
+      transition:.18s ease;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(120,211,255,.35);
+      background:rgba(255,255,255,.05);
+    }
+
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(87,167,255,.95), rgba(87,167,255,.24));
+      border-color:rgba(120,211,255,.45);
+      color:white;
+      box-shadow:0 14px 34px rgba(87,167,255,.22);
+    }
+
+    .hero-metrics{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-top:24px;
+    }
+
+    .metric{
+      padding:14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(36,54,74,.8);
+    }
+
+    .metric .label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .metric strong{
+      display:block;
+      font-size:15px;
+      line-height:1.25;
+      font-family:var(--mono);
+    }
+
+    .hero-side{
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .section-kicker{
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:11px;
+      margin:0 0 8px;
+    }
+
+    .mini-card{
+      padding:16px;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(36,54,74,.8);
+    }
+
+    .mini-card h3{
+      margin:0 0 8px;
+      font-size:15px;
+    }
+
+    .mini-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .grid{
+      display:grid;
+      gap:22px;
+      padding:10px 0 24px;
+    }
+
+    .two-col{
+      grid-template-columns:1fr 1fr;
+    }
+
+    .three-col{
+      grid-template-columns:repeat(3,1fr);
+    }
+
+    .content-card{
+      padding:24px;
+    }
+
+    .content-card h2{
+      margin:0 0 10px;
+      font-size:24px;
+      letter-spacing:-.02em;
+    }
+
+    .content-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    .feature-list{
+      list-style:none;
+      padding:0;
+      margin:18px 0 0;
+      display:grid;
+      gap:10px;
+    }
+
+    .feature-list li{
+      padding:12px 14px;
+      border-radius:12px;
+      background:rgba(255,255,255,.025);
+      border:1px solid rgba(36,54,74,.75);
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .feature-list strong{
+      color:var(--text);
+    }
+
+    .spec-table-wrap{
+      overflow:auto;
+      border-radius:16px;
+      border:1px solid rgba(36,54,74,.85);
+      margin-top:16px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:880px;
+      background:rgba(255,255,255,.02);
+    }
+
+    th, td{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(36,54,74,.7);
+      vertical-align:top;
+      text-align:left;
+    }
+
+    th{
+      background:rgba(16,24,35,.96);
+      color:var(--muted);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    td{
+      font-size:14px;
+    }
+
+    td small{
+      color:var(--muted);
+      display:block;
+      margin-top:4px;
+      line-height:1.45;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid rgba(36,54,74,.8);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:12px;
+      margin:0 8px 8px 0;
+    }
+
+    .modules{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .module{
+      padding:16px;
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      border:1px solid rgba(36,54,74,.8);
+    }
+
+    .module h4{
+      margin:0 0 8px;
+      font-size:16px;
+    }
+
+    .module p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .module ul{
+      margin:12px 0 0;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .module li{margin:6px 0}
+
+    .options-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .option{
+      padding:16px;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(36,54,74,.8);
+    }
+
+    .option h4{
+      margin:0 0 8px;
+      font-size:15px;
+    }
+
+    .option p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .highlight{
+      padding:16px 18px;
+      border-radius:14px;
+      border:1px solid rgba(87,167,255,.3);
+      background:rgba(87,167,255,.08);
+      color:var(--muted);
+      margin-top:16px;
+      font-size:14px;
+    }
+
+    .highlight strong{color:var(--text)}
+
+    .footer{
+      padding:30px 0 60px;
+    }
+
+    .footer .panel{
+      padding:24px;
+    }
+
+    .footer p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .footer-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+
+    @media (max-width: 1080px){
+      .hero{grid-template-columns:1fr}
+      .two-col,.three-col{grid-template-columns:1fr}
+      .modules,.options-grid{grid-template-columns:1fr}
+    }
+
+    @media (max-width: 720px){
+      .container{width:min(var(--max), calc(100% - 20px))}
+      .nav{align-items:flex-start; padding:14px 0}
+      .nav-links{gap:10px}
+      .hero-main,.hero-side,.content-card,.footer .panel{padding:18px}
+      .hero-metrics{grid-template-columns:1fr}
+      .hero h1{max-width:none}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div class="brand-copy">
+          <strong>IONCORE</strong>
+          <span>Industrial Mobile Direct-Energy Systems</span>
+        </div>
+      </div>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#overview">Overview</a>
+        <a href="#system">System</a>
+        <a href="#modules">Modules</a>
+        <a href="#specifications">Specifications</a>
+        <a href="#options">Options</a>
+        <a href="#value">Value</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" id="overview">
+      <article class="panel hero-main">
+        <div class="eyebrow">
+          <span class="pill"><span class="dot"></span> Industrial-Grade M1 Pro</span>
+          <span class="pill">1 kW Mobile Precision Cutting</span>
+          <span class="pill">Field-Serviceable Platform</span>
+        </div>
+
+        <h1>IonCore FiberCut M1 Pro</h1>
+        <p class="lead">
+          A premium industrial mobile precision cutting platform built around a stabilized 1 kW fiber architecture,
+          low-profile tracked mobility, offboard intelligent power delivery, and Gen 2 dual-loop thermal management.
+          The M1 Pro is designed for field fabrication, industrial maintenance, retrofit cutting, and repeatable
+          surface processing where mobility, stability, and uptime matter.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn primary" href="#modules">Explore system architecture</a>
+          <a class="btn" href="#specifications">View specifications</a>
+          <a class="btn" href="#options">Review upgrade options</a>
+        </div>
+
+        <div class="hero-metrics">
+          <div class="metric">
+            <span class="label">Output Architecture</span>
+            <strong>1 kW Fiber-Coupled Precision Cutting Head</strong>
+          </div>
+          <div class="metric">
+            <span class="label">Power Platform</span>
+            <strong>48 V Stabilized DC Bus + Hot-Swap LFP + Supercap Buffer</strong>
+          </div>
+          <div class="metric">
+            <span class="label">Mobility Envelope</span>
+            <strong>Tracked Closed-Loop Motion + Active Z / Standoff Control</strong>
+          </div>
+        </div>
+      </article>
+
+      <aside class="panel hero-side">
+        <div>
+          <p class="section-kicker">Industrial positioning</p>
+          <div class="mini-card">
+            <h3>Built as a platform, not a prototype</h3>
+            <p>
+              The M1 Pro is positioned as a premium field robotics cutter with modular serviceability, process-aware
+              safety gating, and upgradeable subsystems rather than a single-purpose portable laser tool.
+            </p>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <h3>Core value drivers</h3>
+          <p>
+            Stabilized energy delivery, precision mobile motion, dual-loop cooling, high-uptime optics protection,
+            industrial interface design, and premium service architecture.
+          </p>
+        </div>
+
+        <div class="mini-card">
+          <h3>Best-fit deployments</h3>
+          <p>
+            Field fabrication, industrial maintenance, retrofit modifications, structured cutting workflows,
+            mobile processing on large sheets and fixed workpieces, and advanced on-site repair programs.
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid two-col" id="system">
+      <article class="panel content-card">
+        <h2>Product description</h2>
+        <p>
+          The IonCore FiberCut M1 Pro is a premium industrial-grade mobile cutting system that separates heavy power
+          conversion, thermal rejection, and process support from the moving tool platform. A low-profile tracked base
+          carries the cutting head, precision Z-axis, standoff sensing, and motion control, while an offboard power
+          and process module manages stabilized DC distribution, hot-swappable energy storage, supercapacitor buffering,
+          liquid cooling, assist gas regulation, and system orchestration.
+        </p>
+        <ul class="feature-list">
+          <li><strong>Industrial body architecture:</strong> sealed panel design, protected cable routing, reinforced tracker frame, low-center-of-gravity stance.</li>
+          <li><strong>Premium cut stability:</strong> power-to-motion coupling, autofocus correction, tracked feed-rate regulation, standoff-gated emission.</li>
+          <li><strong>Field-ready uptime:</strong> modular service bays, quick-swap optics consumables, serviceable cooling drawer, hot-swappable energy cartridges.</li>
+          <li><strong>High-value product positioning:</strong> engineered as an upgradeable direct-energy platform with optional premium packages and enterprise features.</li>
+        </ul>
+      </article>
+
+      <article class="panel content-card">
+        <h2>Design philosophy</h2>
+        <p>
+          The M1 Pro is optimized around six product pillars: premium mechanical execution, advanced stabilized energy
+          delivery, Gen 2 cooling architecture, precision mobility, digital process intelligence, and modular ecosystem value.
+          These pillars work together to increase reliability, perceived quality, field confidence, and long-term platform worth.
+        </p>
+        <div style="margin-top:16px">
+          <span class="badge">Precision tracked chassis</span>
+          <span class="badge">Industrial fiber cutting head</span>
+          <span class="badge">Dual-loop cooling</span>
+          <span class="badge">Hot-swap LFP energy</span>
+          <span class="badge">Supercap transient buffer</span>
+          <span class="badge">Service-centered packaging</span>
+          <span class="badge">Premium HMI readiness</span>
+          <span class="badge">Enterprise upgrade path</span>
+        </div>
+        <div class="highlight">
+          <strong>Commercial framing:</strong> the M1 Pro should be sold as a mobile precision cutting platform for
+          industrial field work, not as a “portable laser cutter.” That positioning supports a higher-value brand,
+          stronger margins, and a clearer roadmap into future surface-processing variants.
+        </div>
+      </article>
+    </section>
+
+    <section class="panel content-card" id="modules">
+      <h2>System architecture and modules</h2>
+      <p>
+        The M1 Pro is divided into premium serviceable modules. Each major subsystem is built to be maintainable,
+        upgradable, and independently validated, reducing downtime and improving enterprise readiness.
+      </p>
+
+      <div class="modules">
+        <div class="module">
+          <h4>1. FiberCut M1 Pro Head</h4>
+          <p>
+            Industrial head assembly with stabilized collimator chamber, fast autofocus, quick-swap protective window,
+            contamination sensing, back-reflection monitoring, purge management, and a premium-machined nozzle block.
+          </p>
+          <ul>
+            <li>1 kW fiber-coupled optical path</li>
+            <li>Autofocus travel target: ±10 mm</li>
+            <li>Quick-swap window cassette for field service</li>
+            <li>Optional kerf camera and nozzle identification</li>
+          </ul>
+        </div>
+
+        <div class="module">
+          <h4>2. Precision Tracker Platform</h4>
+          <p>
+            Low-profile tracked robotic base with widened stance, enclosed drive housings, internal routing paths,
+            IMU-based motion awareness, and active Z-axis height management coordinated with standoff sensing.
+          </p>
+          <ul>
+            <li>Closed-loop speed regulation</li>
+            <li>Dual-rail Z-stage with anti-backlash design</li>
+            <li>Shock-isolated head mount and upper deck stiffening</li>
+            <li>Surface-following cutting support</li>
+          </ul>
+        </div>
+
+        <div class="module">
+          <h4>3. Offboard Power & Process Module</h4>
+          <p>
+            Premium field power module with locking caster base, cartridge bay, supercap drawer, control core,
+            labeled quick-connect panel, gas regulation zone, and industrial service access architecture.
+          </p>
+          <ul>
+            <li>Hot-swappable LFP battery magazines</li>
+            <li>Precharge + contactor bus engagement</li>
+            <li>High-capacitance supercapacitor stabilization</li>
+            <li>Telemetry, diagnostics, and event logging</li>
+          </ul>
+        </div>
+
+        <div class="module">
+          <h4>4. Gen 2 Cooling Architecture</h4>
+          <p>
+            Premium dual-loop thermal system with dedicated head loop, separate electronics loop, shared heat rejection,
+            serviceable radiator access, and optional Cryo Lite sub-ambient optical stabilization.
+          </p>
+          <ul>
+            <li>Microchannel head cooling</li>
+            <li>Window thermal ring for optics stability</li>
+            <li>Cooling drawer service module</li>
+            <li>Adaptive dew-point and purge logic</li>
+          </ul>
+        </div>
+
+        <div class="module">
+          <h4>5. Industrial Control & Interface Layer</h4>
+          <p>
+            Integrated control environment supporting safety interlocks, process gating, recipe storage, live telemetry,
+            service logs, material presets, and future fleet-ready diagnostics.
+          </p>
+          <ul>
+            <li>Ready-to-cut workflow guidance</li>
+            <li>Fault timeline and maintenance alerts</li>
+            <li>Optional 5–7 inch industrial touchscreen</li>
+            <li>Remote diagnostics-ready architecture</li>
+          </ul>
+        </div>
+
+        <div class="module">
+          <h4>6. Umbilical & Process Delivery System</h4>
+          <p>
+            Protected side-routed umbilical carrying fiber delivery, stabilized DC power, coolant supply/return,
+            assist gas, and communications while preserving tracker mobility and bend-radius safety.
+          </p>
+          <ul>
+            <li>Dry-break quick-connect cooling couplers</li>
+            <li>Keyed interfaces and strain relief</li>
+            <li>Protected fiber routing geometry</li>
+            <li>Field-service bulkhead access</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two-col" id="specifications">
+      <article class="panel content-card">
+        <h2>Industrial-grade specifications</h2>
+        <p>
+          These values describe the intended M1 Pro product class and realistic engineering targets for a premium
+          1 kW mobile cutting platform optimized for high-value field deployment.
+        </p>
+
+        <div class="spec-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>M1 Pro Target</th>
+                <th>Design intent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Laser architecture</td>
+                <td>1 kW fiber-coupled cutting head</td>
+                <td><small>Premium thin-gauge field cutting with stabilized optical delivery and industrial mobility.</small></td>
+              </tr>
+              <tr>
+                <td>Power bus</td>
+                <td>48 V nominal DC (42–58.8 V family)</td>
+                <td><small>Maintains modular compatibility and supports high-current field operation with realistic cable and connector design.</small></td>
+              </tr>
+              <tr>
+                <td>Energy storage</td>
+                <td>Hot-swap LFP cartridge system</td>
+                <td><small>Improves thermal robustness, cycle life, and serviceability under industrial duty.</small></td>
+              </tr>
+              <tr>
+                <td>Transient stabilization</td>
+                <td>Standard supercap bank; optional magnetic inertia buffer</td>
+                <td><small>Reduces bus droop, protects battery life, and smooths simultaneous cutting + motion spikes.</small></td>
+              </tr>
+              <tr>
+                <td>Cooling</td>
+                <td>Gen 2 dual-loop liquid architecture</td>
+                <td><small>Separates optics-critical cooling from electronics heat rejection for better process stability.</small></td>
+              </tr>
+              <tr>
+                <td>Motion platform</td>
+                <td>Premium low-profile tracked base</td>
+                <td><small>Improves field traction, feed-rate consistency, and industrial appearance.</small></td>
+              </tr>
+              <tr>
+                <td>Z / standoff package</td>
+                <td>Dual-rail Z-stage + standoff sensor + autofocus</td>
+                <td><small>Supports stable cutting on warped or uneven surfaces while preserving spot quality.</small></td>
+              </tr>
+              <tr>
+                <td>Industrial interface</td>
+                <td>Touch HMI-ready with live telemetry and service workflow</td>
+                <td><small>Elevates the platform from equipment to premium process system.</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel content-card">
+        <h2>Cutting-focused capability envelope</h2>
+        <p>
+          The M1 Pro is optimized for premium field cutting on thin-gauge materials where mobility, access, and
+          repeatability are more important than heavy static plate throughput.
+        </p>
+
+        <div class="spec-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Recommended gas</th>
+                <th>Typical range</th>
+                <th>Premium process notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mild steel</td>
+                <td>O₂</td>
+                <td>1–3 mm</td>
+                <td><small>Fast field cutting, good access work, service-friendly recipe base, possible oxidation depending on settings.</small></td>
+              </tr>
+              <tr>
+                <td>Stainless steel</td>
+                <td>N₂</td>
+                <td>1–3 mm</td>
+                <td><small>Cleaner visual edge and stronger premium finish positioning for maintenance and fabrication work.</small></td>
+              </tr>
+              <tr>
+                <td>Aluminum</td>
+                <td>N₂</td>
+                <td>1–2 mm</td>
+                <td><small>Requires careful reflection handling, premium gas regulation, and tighter sensor supervision.</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="highlight">
+          <strong>Premium differentiator:</strong> the M1 Pro focuses on consistent mobile kerf quality, stable optics,
+          uptime, and controlled process behavior rather than competing as a low-cost portable cutter.
+        </div>
+      </article>
+    </section>
+
+    <section class="panel content-card" id="options">
+      <h2>Premium options and industrial upgrade packages</h2>
+      <p>
+        To support a highly valued product family, the M1 Pro should be sold with meaningful upgrade paths that improve
+        performance, cooling, diagnostics, and enterprise readiness rather than minor cosmetic changes.
+      </p>
+
+      <div class="options-grid">
+        <div class="option">
+          <h4>Performance Package</h4>
+          <p>
+            Upgraded autofocus dynamics, enhanced standoff sensor package, kerf observation support, and advanced
+            motion-to-power coupling for tighter cut consistency.
+          </p>
+        </div>
+
+        <div class="option">
+          <h4>Extreme Duty Cooling Package</h4>
+          <p>
+            Higher-capacity radiator module, improved microchannel head cooling, serviceable thermal drawer, and
+            extended-duty fan and pump profile tuning for sustained cutting cycles.
+          </p>
+        </div>
+
+        <div class="option">
+          <h4>Cryo Lite Optical Stability Package</h4>
+          <p>
+            Compact sub-ambient optical assist, window thermal ring management, purge air conditioning, and adaptive
+            dew-point logic to reduce thermal bloom and optics drift in demanding environments.
+          </p>
+        </div>
+
+        <div class="option">
+          <h4>Smart Operations Package</h4>
+          <p>
+            Industrial HMI, material recipe library, live diagnostics, guided startup workflow, local service logs,
+            and remote diagnostics readiness for premium operations support.
+          </p>
+        </div>
+
+        <div class="option">
+          <h4>Field Service Package</h4>
+          <p>
+            Quick-swap window kit, nozzle service pack, maintenance tracking, replacement filters and seals,
+            and service-oriented panel access strategy for uptime-critical environments.
+          </p>
+        </div>
+
+        <div class="option">
+          <h4>Enterprise Package</h4>
+          <p>
+            Fleet-aware logging, usage analytics, advanced event history, multi-unit service planning, and future
+            compatibility with broader IonCore platform management infrastructure.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two-col" id="value">
+      <article class="panel content-card">
+        <h2>Why the M1 Pro is a high-value product</h2>
+        <p>
+          High product value comes from more than power rating. The M1 Pro combines premium industrial design,
+          repeatable mobile process quality, uptime-centered serviceability, modular upgradeability, and strong
+          commercial framing. These create both practical utility and premium market positioning.
+        </p>
+        <ul class="feature-list">
+          <li><strong>Premium mechanical execution:</strong> enclosed housings, flush fastening strategy, protected routing, and industrial-grade material choices.</li>
+          <li><strong>Real process stability:</strong> stabilized power, dual-loop cooling, motion-aware emission gating, and optics protection logic.</li>
+          <li><strong>Service architecture:</strong> modular drawers, cartridge swaps, labeled interfaces, and consumable access reduce downtime and support recurring value.</li>
+          <li><strong>Scalable family potential:</strong> Standard, Pro, and Enterprise variants support premium segmentation and long-term product line growth.</li>
+        </ul>
+      </article>
+
+      <article class="panel content-card">
+        <h2>Recommended product family structure</h2>
+        <p>
+          To maintain a premium position, the M1 Pro should sit inside a clear family strategy with a visible roadmap.
+          This makes the product feel mature, expandable, and investment-worthy.
+        </p>
+        <div class="spec-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Role</th>
+                <th>Commercial position</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>FiberCut M1</td>
+                <td>Core mobile cutting unit</td>
+                <td><small>Entry industrial model for field cutting programs.</small></td>
+              </tr>
+              <tr>
+                <td>FiberCut M1 Pro</td>
+                <td>Enhanced premium cutting platform</td>
+                <td><small>Primary high-value model with better cooling, motion, diagnostics, and serviceability.</small></td>
+              </tr>
+              <tr>
+                <td>FiberCut M1 Enterprise</td>
+                <td>Fleet and operations-grade system</td>
+                <td><small>Advanced diagnostics, analytics, and enterprise integration.</small></td>
+              </tr>
+              <tr>
+                <td>IonCore Surface Platform</td>
+                <td>Future modular processing family</td>
+                <td><small>Expansion path into marking, cleaning, cladding, and inspection systems.</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <div class="panel">
+        <h2 style="margin:0 0 10px;font-size:24px;letter-spacing:-.02em;">IonCore FiberCut M1 Pro</h2>
+        <p>
+          Industrial-grade mobile precision cutting, engineered as a premium platform. The M1 Pro combines stabilized
+          direct-energy delivery, low-profile robotic mobility, dual-loop thermal control, modular field serviceability,
+          and a roadmap-ready product family structure built to hold real market value.
+        </p>
+        <div class="footer-actions">
+          <a class="btn primary" href="#overview">Back to top</a>
+          <a class="btn" href="#modules">System modules</a>
+          <a class="btn" href="#options">Upgrade packages</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Hybrid Turbine–Magnetic Engine Program | Project Index</title>
-  <meta name="description" content="High-level project index for a hybrid turbine–magnetic engine program: integrated turbine, magnetic generator, thermal management, control, and patent package artifacts." />
+  <title>IonCore Hybrid Turbine–Magnetic Engine Program | Project Index</title>
+  <meta name="description" content="IonCore branded project index for the hybrid turbine–magnetic engine program: integrated turbine, magnetic generation, thermal management, controls, and patent package artifacts." />
   <style>
     :root{
       --bg:#0b0f14;
@@ -12,8 +12,8 @@
       --panel2:#111c28;
       --text:#e8eef6;
       --muted:#a7b4c5;
-      --accent:#66d9ef;
-      --accent2:#a6e22e;
+      --accent:#6aff3b;
+      --accent2:#7ae8ff;
       --warn:#ffcc66;
       --danger:#ff6b6b;
       --line:#223244;
@@ -26,7 +26,10 @@
     body{
       margin:0;
       font-family:var(--sans);
-      background: radial-gradient(1200px 700px at 20% 0%, #122033 0%, var(--bg) 60%);
+      background:
+        radial-gradient(1200px 700px at 20% 0%, rgba(39,130,83,.35) 0%, rgba(18,32,51,.0) 60%),
+        radial-gradient(1200px 700px at 90% -10%, rgba(106,255,59,.2) 0%, rgba(11,15,20,.0) 55%),
+        var(--bg);
       color:var(--text);
       line-height:1.55;
     }
@@ -49,6 +52,24 @@
     }
     .brand h1{
       font-size:16px; margin:0; letter-spacing:.4px; font-weight:700;
+    }
+    .brand-main{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-mark{
+      width:28px;
+      height:28px;
+      border-radius:8px;
+      border:1px solid rgba(106,255,59,.45);
+      background: radial-gradient(circle at 30% 30%, rgba(106,255,59,.7), rgba(30,57,44,.45));
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      font-size:11px;
+      color:#ecffe5;
+      letter-spacing:.6px;
     }
     .brand .sub{
       font-size:12px; color:var(--muted);
@@ -212,6 +233,46 @@
       font-size:12px;
       color:var(--muted);
     }
+    .hero-visual{
+      border:1px solid rgba(106,255,59,.4);
+      border-radius:12px;
+      overflow:hidden;
+      margin-bottom:10px;
+      min-height:220px;
+      background:#08130f;
+    }
+    .hero-visual img,
+    .engine-gallery img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .engine-gallery{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .engine-card{
+      border:1px solid rgba(106,255,59,.35);
+      border-radius:12px;
+      overflow:hidden;
+      background:rgba(9,18,16,.8);
+    }
+    .engine-cap{
+      padding:10px;
+      font-size:12px;
+      color:var(--muted);
+      border-top:1px solid rgba(106,255,59,.22);
+    }
+    .engine-image-wrap{
+      height:170px;
+      background:#091411;
+    }
+    @media (max-width: 900px){
+      .engine-gallery{ grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
@@ -220,8 +281,11 @@
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
-        <h1>Hybrid Turbine–Magnetic Engine Program</h1>
-        <div class="sub">Integrated turbine + magnetic generation + thermal management + controls • Engineering & Patent Track</div>
+        <div class="brand-main">
+          <div class="brand-mark">ION</div>
+          <h1>IonCore Hybrid Turbine–Magnetic Engine Program</h1>
+        </div>
+        <div class="sub">Integrated turbine + magnetic generation + thermal management + controls • IonCore Engineering & Patent Track</div>
       </div>
       <nav>
         <a href="#overview">Overview</a>
@@ -276,6 +340,9 @@
       </div>
 
       <div class="card">
+        <div class="hero-visual">
+          <img src="../engine.png" alt="IonCore hybrid turbine concept render" loading="lazy" onerror="this.onerror=null;this.src='../ioncore.png';">
+        </div>
         <h3>Program Objectives</h3>
         <ul class="list">
           <li>
@@ -348,6 +415,33 @@ AIR INTAKE → COMPRESSOR → COMBUSTOR → TURBINE → EXHAUST
             <li><div class="title">Instrumentation <span class="tag">TEMP / FLOW</span></div><div class="muted">Thermocouples, flow, and pressure sensing for control.</div></li>
           </ul>
         </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="brand-gallery">
+    <div class="card">
+      <h3>IonCore Engine Graphics</h3>
+      <p class="muted">Branded reference visuals for the hybrid turbine engine concept package.</p>
+      <div class="engine-gallery">
+        <figure class="engine-card">
+          <div class="engine-image-wrap">
+            <img src="../engine.png" alt="IonCore engine graphic 1" loading="lazy" onerror="this.onerror=null;this.src='../ioncore.png';">
+          </div>
+          <figcaption class="engine-cap">engine.png • Primary hero visual</figcaption>
+        </figure>
+        <figure class="engine-card">
+          <div class="engine-image-wrap">
+            <img src="../engine1.png" alt="IonCore engine graphic 2" loading="lazy" onerror="this.onerror=null;this.src='../ioncore.png';">
+          </div>
+          <figcaption class="engine-cap">engine1.png • Architecture support visual</figcaption>
+        </figure>
+        <figure class="engine-card">
+          <div class="engine-image-wrap">
+            <img src="../engine2.png" alt="IonCore engine graphic 3" loading="lazy" onerror="this.onerror=null;this.src='../ioncore.png';">
+          </div>
+          <figcaption class="engine-cap">engine2.png • Product concept detail</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -604,7 +698,7 @@ SIGNALS:
   index.html
       </div>
       <div style="margin-top:10px;" class="muted">
-        © <span id="year"></span> Hybrid Turbine–Magnetic Engine Program. All content is informational and subject to revision.
+        © <span id="year"></span> IonCore Hybrid Turbine–Magnetic Engine Program. All content is informational and subject to revision.
       </div>
     </div>
   </div>

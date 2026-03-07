@@ -818,7 +818,7 @@
         <div>
           <div class="hero__eyebrow"><i class="fa-solid fa-video" aria-hidden="true"></i>Ioncore Intelligence</div>
           <h1 class="hero__title" id="hero-title">Sentinel Multi‑Cam AI for <span>edge-first security teams</span>.</h1>
-          <p class="hero__copy">Ingest up to eight live camera feeds, recognise people, faces, objects, and vehicles in real time, and orchestrate explainable alerts with auditable history. Sentinel keeps sensitive telemetry on-site while empowering operators with actionable intelligence.</p>
+          <p class="hero__copy">Ingest up to eight live camera feeds and classify people, faces, objects, vehicle types, vehicle colours, package profiles, and heavy machinery in real time. Sentinel can flag high-risk categories such as guns, other weapon shapes, and suspicious bag or bomb-like objects with explainable alerts and auditable history while keeping sensitive telemetry on-site.</p>
           <div class="btn-group" role="group" aria-label="Primary actions">
             <a class="btn btn-primary" href="#pricing"><i class="fa-solid fa-tags" aria-hidden="true"></i><span>Explore plans</span></a>
             <a class="btn btn-outline" href="#capabilities"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>See feature map</span></a>
@@ -853,14 +853,16 @@
           <div class="pill-group" aria-label="Supported detections">
             <span class="pill">People & Faces</span>
             <span class="pill">Objects & Actions</span>
-            <span class="pill">Vehicles</span>
+            <span class="pill">Vehicles & Machinery</span>
+            <span class="pill">Weapons & Threat Objects</span>
             <span class="pill">Alerts</span>
           </div>
           <div class="divider" aria-hidden="true"></div>
           <ul class="hero-list">
             <li>YOLO-based object detection with shirt colour sampling</li>
             <li>Face recognition with unknown re-ID buckets & spot-locks</li>
-            <li>Vehicle registry with perceptual hashes & snapshots</li>
+            <li>Vehicle registry with type, colour, perceptual hashes & snapshots</li>
+            <li>Threat-focused labels for guns, weapons, suspicious bags, and bomb-like packages</li>
             <li>Notifications via Pushover, Telegram, Twilio, Webhooks</li>
           </ul>
         </aside>
@@ -880,7 +882,9 @@
               <li>Face recognition with instant grouping of unknown visitors</li>
               <li>Shirt and object colour sampling to accelerate re-identification</li>
               <li>Per-object state machine: placed → picked up → held → returned</li>
-              <li>Vehicle registry with perceptual hashing, metadata, and snapshots</li>
+              <li>Vehicle and machinery recognition (car, van, truck, bus, forklift, excavator, loader)</li>
+              <li>Vehicle registry with type, colour, metadata, and snapshots for evidentiary review</li>
+              <li>Threat monitoring labels for guns, weapon silhouettes, bomb-like items, and package types</li>
               <li>Review queues for people, faces, vehicles, and sensitive events</li>
             </ul>
           </div>
@@ -921,18 +925,21 @@
           </div>
           <div class="card">
             <h3>Objects & Actions</h3>
-            <p>Each object maintains its own state machine, logging precise pick-up, hold, and return events with durations and custom labels.</p>
+            <p>Each object maintains its own state machine, logging precise pick-up, hold, and return events with durations, threat tags, and custom labels.</p>
             <ul>
               <li>Custom labels for objects or object+colour pairs</li>
+              <li>Watchlists for guns, weapon-like forms, bomb-like objects, and unattended packages</li>
               <li>Auto-place timeout when items leave frame</li>
               <li>Spot-locks to suppress duplicate re-tags</li>
             </ul>
           </div>
           <div class="card">
             <h3>Vehicle Registry</h3>
-            <p>Maintain a local, privacy-respecting log of vehicles with snapshots, perceptual hashes, and operator annotations.</p>
+            <p>Maintain a local, privacy-respecting log of vehicles and field machinery with snapshots, perceptual hashes, and operator annotations.</p>
             <ul>
+              <li>Vehicle type recognition (sedan, SUV, van, truck, bus, motorcycle)</li>
               <li>Colour detection & hex values</li>
+              <li>Machinery classes such as forklifts, loaders, and excavators</li>
               <li>Recent sighting timeline with export</li>
               <li>Snapshot viewer for verification</li>
             </ul>
@@ -963,7 +970,8 @@
             <ul>
               <li>Face recognition with unknown re-identification buckets</li>
               <li>People tracking with shirt colour sampling near heads</li>
-              <li>YOLO-based object and package recognition with custom labels</li>
+              <li>Vehicle type + colour tracking and machinery classification across camera zones</li>
+              <li>YOLO-based object and package recognition with custom labels and threat categories</li>
             </ul>
           </div>
           <div class="card">

@@ -212,6 +212,12 @@
       font-size:12px;
       color:var(--muted);
     }
+    .ioncore-brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .ioncore-brand img{width:34px;height:34px;object-fit:contain}
+    .ioncore-brand span{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--accent2)}
+    .media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+    .media-grid img{width:100%;height:180px;object-fit:cover;border-radius:12px;border:1px solid rgba(34,50,68,.8);background:rgba(15,22,32,.55)}
+    @media (max-width:900px){.media-grid{grid-template-columns:1fr}.media-grid img{height:auto}}
   </style>
 </head>
 <body>
@@ -220,6 +226,7 @@
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
+        <div class="ioncore-brand"><img src="battery.svg" alt="Ioncore logo"><span>Ioncore Energy</span></div>
         <h1>Hybrid Turbine–Magnetic Engine Program</h1>
         <div class="sub">Integrated turbine + magnetic generation + thermal management + controls • Engineering & Patent Track</div>
       </div>
@@ -231,6 +238,7 @@
         <a href="#thermal">Thermal</a>
         <a href="#roadmap">Roadmap</a>
         <a href="#deliverables">Deliverables</a>
+        <a href="index.html">Library</a>
       </nav>
     </div>
   </div>
@@ -300,6 +308,23 @@
           <b>Designed to accomplish:</b> a scalable path from concept → engineering definition → prototype-ready package,
           with clear subsystem boundaries and verifiable interfaces.
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="media">
+    <div class="card">
+      <h3>Ioncore media and downloadable patent packet</h3>
+      <p class="muted">Shared engine renderings from the Ioncore brochure repository are included below, with direct access to the patent packet document for download.</p>
+      <div class="media-grid">
+        <img src="engine1.png" alt="Hybrid turbine magnetic engine rendering 1" loading="lazy">
+        <img src="engine.png" alt="Hybrid turbine magnetic engine rendering 2" loading="lazy">
+        <img src="engine2.png" alt="Hybrid turbine magnetic engine rendering 3" loading="lazy">
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="scripts/Hybrid_Turbine_Magnetic_Engine_Patent_Packet.pdf" download>Download patent packet (PDF)</a>
+        <a class="btn" href="power%20core.html">Open Power Core brief</a>
+        <a class="btn" href="turbinee2.html">Open Turbinee2 brief</a>
       </div>
     </div>
   </section>

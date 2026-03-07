@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hybrid Turbine–Magnetic Engine Program | Project Index</title>
+  <meta name="description" content="High-level project index for a hybrid turbine–magnetic engine program: integrated turbine, magnetic generator, thermal management, control, and patent package artifacts." />
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#0f1620;
+      --panel2:#111c28;
+      --text:#e8eef6;
+      --muted:#a7b4c5;
+      --accent:#66d9ef;
+      --accent2:#a6e22e;
+      --warn:#ffcc66;
+      --danger:#ff6b6b;
+      --line:#223244;
+      --shadow: 0 8px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 20% 0%, #122033 0%, var(--bg) 60%);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{ color:var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    header{
+      position:sticky;
+      top:0;
+      z-index:100;
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,20,.75);
+      border-bottom:1px solid var(--line);
+    }
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px 18px; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .brand h1{
+      font-size:16px; margin:0; letter-spacing:.4px; font-weight:700;
+    }
+    .brand .sub{
+      font-size:12px; color:var(--muted);
+    }
+    nav{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end;
+    }
+    nav a{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(34,50,68,.8);
+      padding:8px 10px; border-radius:999px;
+      background: rgba(17,28,40,.35);
+    }
+    nav a:hover{ color:var(--text); border-color: rgba(102,217,239,.6); }
+    .hero{
+      padding:36px 0 18px;
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:18px;
+    }
+    @media (max-width: 900px){
+      .hero-grid{ grid-template-columns:1fr; }
+      nav{ justify-content:flex-start; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(17,28,40,.75), rgba(15,22,32,.75));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(34,50,68,.8);
+      background: rgba(17,28,40,.35);
+      padding:8px 10px; border-radius:999px;
+      margin-bottom:12px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:99px;
+      background: radial-gradient(circle at 30% 30%, var(--accent) 0%, #2b7a8a 70%);
+      box-shadow: 0 0 18px rgba(102,217,239,.35);
+    }
+    h2{ margin:0 0 8px; font-size:22px; }
+    h3{ margin:0 0 8px; font-size:16px; }
+    p{ margin:0 0 10px; color: #d8e2ee; }
+    .muted{ color:var(--muted); }
+    .pillrow{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .pill{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(34,50,68,.8);
+      padding:6px 10px; border-radius:999px;
+      background: rgba(17,28,40,.25);
+    }
+    .pill strong{ color:var(--text); font-weight:700; }
+    .grid-2{
+      display:grid; grid-template-columns:1fr 1fr; gap:16px;
+    }
+    @media (max-width: 900px){ .grid-2{ grid-template-columns:1fr; } }
+    section{ scroll-margin-top: 86px; margin-bottom:18px; }
+    .list{
+      margin:10px 0 0; padding:0; list-style:none;
+      display:grid; gap:10px;
+    }
+    .list li{
+      border:1px solid rgba(34,50,68,.8);
+      background: rgba(17,28,40,.25);
+      border-radius: 12px;
+      padding:12px;
+    }
+    .list .title{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      font-weight:700;
+    }
+    .tag{
+      font-size:11px; color:var(--muted);
+      border:1px solid rgba(34,50,68,.8);
+      padding:3px 8px; border-radius:999px;
+      background: rgba(15,22,32,.35);
+      white-space:nowrap;
+    }
+    .callout{
+      border-left: 3px solid var(--accent);
+      padding:12px 12px 12px 14px;
+      background: rgba(102,217,239,.08);
+      border-radius: 10px;
+      margin-top:10px;
+    }
+    .warn{ border-left-color: var(--warn); background: rgba(255,204,102,.10); }
+    .danger{ border-left-color: var(--danger); background: rgba(255,107,107,.10); }
+    .mono{
+      font-family:var(--mono);
+      font-size:12px;
+      color:#cde7ff;
+      border:1px solid rgba(34,50,68,.8);
+      background: rgba(15,22,32,.55);
+      border-radius:12px;
+      padding:12px;
+      overflow:auto;
+      white-space:pre;
+    }
+    details{
+      border:1px solid rgba(34,50,68,.8);
+      background: rgba(17,28,40,.25);
+      border-radius: 12px;
+      padding:10px 12px;
+    }
+    details summary{
+      cursor:pointer;
+      font-weight:800;
+      list-style:none;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    .footer{
+      margin-top:18px;
+      border-top:1px solid var(--line);
+      padding:18px 0 30px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .btnrow{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid rgba(34,50,68,.85);
+      background: rgba(17,28,40,.35);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{ border-color: rgba(102,217,239,.6); }
+    .btn small{ color:var(--muted); }
+    .figure-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+      margin-top:10px;
+    }
+    @media (max-width: 900px){ .figure-grid{ grid-template-columns:1fr; } }
+    .figure{
+      border:1px dashed rgba(102,217,239,.35);
+      background: rgba(17,28,40,.18);
+      border-radius: 12px;
+      padding:12px;
+      min-height:110px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .figure .cap{
+      font-weight:800;
+    }
+    .figure .hint{
+      font-size:12px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Hybrid Turbine–Magnetic Engine Program</h1>
+        <div class="sub">Integrated turbine + magnetic generation + thermal management + controls • Engineering & Patent Track</div>
+      </div>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#electrical">Electrical</a>
+        <a href="#thermal">Thermal</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#deliverables">Deliverables</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" id="overview">
+    <div class="hero-grid">
+      <div class="card">
+        <div class="kicker"><span class="dot"></span> Program Index • Under Development</div>
+        <h2>What this system is</h2>
+        <p>
+          This program defines a <b>compact hybrid turbine engine</b> that couples a traditional
+          <b>Brayton-cycle gas turbine core</b> (inlet → compressor → combustor → turbine → exhaust)
+          to an <b>integrated electromagnetic generator</b> on a shared shaft, supported by a
+          <b>thermal management subsystem</b> and a <b>controls + power conditioning stack</b>.
+        </p>
+        <p class="muted">
+          The goal is a single packaged unit that can deliver <b>mechanical shaft power</b> and/or
+          <b>regulated electrical output</b>, with a clear documentation trail suitable for
+          patent filings, engineering reviews, and future prototyping.
+        </p>
+
+        <div class="pillrow">
+          <span class="pill"><strong>Core:</strong> Turbine + Compressor</span>
+          <span class="pill"><strong>Gen:</strong> PM or Wound Field</span>
+          <span class="pill"><strong>Output:</strong> DC Bus / AC via Inverter</span>
+          <span class="pill"><strong>Cooling:</strong> Liquid / Advanced Fluids</span>
+          <span class="pill"><strong>Docs:</strong> Patent-style figures + BOM</span>
+        </div>
+
+        <div class="callout warn">
+          <b>Note:</b> This page is a high-level program description. Performance values shown are
+          placeholders until validated via component maps, test data, or CFD/FEA.
+        </div>
+
+        <div class="btnrow">
+          <button class="btn" onclick="toggleAll(true)">Expand all sections <small>↓</small></button>
+          <button class="btn" onclick="toggleAll(false)">Collapse all sections <small>↑</small></button>
+          <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Program Objectives</h3>
+        <ul class="list">
+          <li>
+            <div class="title">Integrated turbine + generator packaging <span class="tag">mechanical + electrical</span></div>
+            <div class="muted">Shared shaft architecture with reduced external coupling complexity.</div>
+          </li>
+          <li>
+            <div class="title">Configurable electrical output <span class="tag">DC bus, optional inverter</span></div>
+            <div class="muted">Rectification, regulation, distribution, and safe disconnect/precharge.</div>
+          </li>
+          <li>
+            <div class="title">Thermal stability & serviceability <span class="tag">cooling + sensors</span></div>
+            <div class="muted">Thermal management loops for hot zones, generator, and power electronics.</div>
+          </li>
+          <li>
+            <div class="title">Patent-ready documentation <span class="tag">drawings + claims</span></div>
+            <div class="muted">Figures, reference numerals, claim sets, and alternative embodiments.</div>
+          </li>
+        </ul>
+
+        <div class="callout">
+          <b>Designed to accomplish:</b> a scalable path from concept → engineering definition → prototype-ready package,
+          with clear subsystem boundaries and verifiable interfaces.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="grid-2">
+      <div class="card">
+        <h3>System Architecture (High Level)</h3>
+        <div class="mono" aria-label="system block diagram">
+AIR INTAKE → COMPRESSOR → COMBUSTOR → TURBINE → EXHAUST
+                         │
+                         └── (COMMON SHAFT) ──► MAGNETIC GENERATOR ──► POWER CONDITIONING ──► DC BUS / OUTPUTS
+                                                        │
+                                                        └────────────► THERMAL MANAGEMENT + SENSORS + CONTROLS
+        </div>
+
+        <details open>
+          <summary>Subsystem Breakdown <span class="tag">mechanical</span></summary>
+          <ul class="list">
+            <li><div class="title">Inlet + IGV <span class="tag">flow conditioning</span></div><div class="muted">Stabilizes airflow and sets compressor inlet angle.</div></li>
+            <li><div class="title">Multi-stage Compressor <span class="tag">pressure ratio</span></div><div class="muted">Axial stages (rotor/stator) compress air into combustor.</div></li>
+            <li><div class="title">Combustion Chamber <span class="tag">energy add</span></div><div class="muted">Fuel injection + ignition + flame stabilization.</div></li>
+            <li><div class="title">Turbine Stage <span class="tag">shaft power</span></div><div class="muted">Extracts energy from hot gas to drive the shaft.</div></li>
+            <li><div class="title">Exhaust / Nozzle <span class="tag">flow control</span></div><div class="muted">Directs exhaust; may incorporate expansion and shielding.</div></li>
+          </ul>
+        </details>
+      </div>
+
+      <div class="card">
+        <details open>
+          <summary>Subsystem Breakdown <span class="tag">electrical</span></summary>
+          <ul class="list">
+            <li><div class="title">Generator (PM / Wound Field) <span class="tag">3-phase</span></div><div class="muted">Rotor magnetic assembly + stator windings.</div></li>
+            <li><div class="title">Rectification + DC Link <span class="tag">BR1 + Cbank</span></div><div class="muted">3-phase bridge to DC_RAW with smoothing capacitors.</div></li>
+            <li><div class="title">Regulation <span class="tag">DC-DC or shunt</span></div><div class="muted">Establishes DC_BUS and manages overvoltage across RPM.</div></li>
+            <li><div class="title">Distribution <span class="tag">contactors</span></div><div class="muted">Precharge + main contactor + external outputs.</div></li>
+            <li><div class="title">Sensors + ECU <span class="tag">closed loop</span></div><div class="muted">V/I/T/RPM monitoring, fault logic, safe shutdown.</div></li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>Subsystem Breakdown <span class="tag">thermal</span></summary>
+          <ul class="list">
+            <li><div class="title">Coolant Loop <span class="tag">pump + manifold</span></div><div class="muted">Pumped circuit for generator/power electronics zones.</div></li>
+            <li><div class="title">Heat Exchanger <span class="tag">rejection</span></div><div class="muted">Transfers heat to ambient air or secondary fluid loop.</div></li>
+            <li><div class="title">Instrumentation <span class="tag">TEMP / FLOW</span></div><div class="muted">Thermocouples, flow, and pressure sensing for control.</div></li>
+          </ul>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="capabilities">
+    <div class="card">
+      <h3>What it does (Capabilities)</h3>
+      <div class="grid-2">
+        <div>
+          <ul class="list">
+            <li>
+              <div class="title">Power Generation <span class="tag">electric</span></div>
+              <div class="muted">
+                Converts shaft power to multi-phase electrical output, then conditions it to a regulated DC bus.
+                Optional inverter stage can provide AC output.
+              </div>
+            </li>
+            <li>
+              <div class="title">Mechanical Output <span class="tag">shaft / thrust options</span></div>
+              <div class="muted">
+                Turbine core produces shaft rotation. Depending on integration, shaft can drive generator, pump, fan,
+                or other mechanical loads.
+              </div>
+            </li>
+            <li>
+              <div class="title">Thermal Stabilization <span class="tag">cooling</span></div>
+              <div class="muted">
+                Maintains component temperatures within operating windows, improving reliability and consistent output.
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="callout">
+            <b>Simulation readiness:</b> early “capability” estimates can be run using a Brayton-cycle model
+            (pressure ratio, turbine inlet temperature, component efficiencies, mass flow). Higher fidelity work
+            later adds compressor/turbine maps, transient thermal models, and control loop dynamics.
+          </div>
+          <div class="callout danger">
+            <b>Safety note:</b> Any real prototype involving combustion, high RPM rotors, or pressurized fuel systems
+            requires qualified engineering, proper test cells, and safety compliance.
+          </div>
+        </div>
+      </div>
+
+      <details>
+        <summary>Standard Spec Placeholders (editable) <span class="tag">update anytime</span></summary>
+        <div class="mono" aria-label="placeholder specs">
+GEOMETRY
+- Inlet diameter: 0.30 m (placeholder)
+- Engine length: 0.70–0.90 m (placeholder)
+- Nominal mass: 30–50 kg (placeholder)
+
+THERMO (placeholders)
+- Compressor PR: 4–8
+- Turbine inlet temp (Tt4): 1000–1300 K
+- Compressor η: 0.75–0.82
+- Turbine η: 0.80–0.88
+- Mechanical η: 0.95–0.99
+- Generator η: 0.90–0.97
+
+OUTPUT MODES
+- Regulated DC bus (primary)
+- Optional AC output via inverter
+- Optional energy storage interface (battery/supercap)
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section id="electrical">
+    <div class="card">
+      <h3>Electrical System (Patent Figure Set)</h3>
+      <p class="muted">
+        The electrical architecture is organized into patent figures FIG. 5A–5E, covering generation through regulation,
+        distribution, control, and optional storage.
+      </p>
+
+      <div class="figure-grid">
+        <div class="figure">
+          <div class="cap">FIG. 5A — Generation + Rectification</div>
+          <div class="hint">3-phase stator → protection → rectifier → DC link</div>
+          <div class="tag">PH_A/PH_B/PH_C → DC_RAW</div>
+        </div>
+        <div class="figure">
+          <div class="cap">FIG. 5B — Regulation</div>
+          <div class="hint">DC-DC or shunt dump to create DC_BUS</div>
+          <div class="tag">DC_RAW → DC_BUS</div>
+        </div>
+        <div class="figure">
+          <div class="cap">FIG. 5C — Distribution</div>
+          <div class="hint">Precharge + contactor + outputs</div>
+          <div class="tag">DC_BUS → DC_OUT</div>
+        </div>
+        <div class="figure">
+          <div class="cap">FIG. 5D — Sensing + ECU</div>
+          <div class="hint">Voltage/current/temp/RPM → controls + shutdown</div>
+          <div class="tag">closed-loop control</div>
+        </div>
+        <div class="figure">
+          <div class="cap">FIG. 5E — Optional Storage</div>
+          <div class="hint">Battery/supercap + OR-ing / anti-backfeed</div>
+          <div class="tag">DC_OUT ↔ storage</div>
+        </div>
+      </div>
+
+      <details>
+        <summary>Net Naming Convention (recommended) <span class="tag">CAD friendly</span></summary>
+        <div class="mono">
+AC:
+- PH_A, PH_B, PH_C
+
+RAW DC:
+- DC_RAW+, DC_RAW−
+
+REGULATED BUS:
+- DC_BUS+, DC_BUS−
+
+OUTPUT:
+- DC_OUT+, DC_OUT−
+
+AUX:
+- +12V_AUX, GND_AUX
+- +5V_LOGIC, GND_LOGIC
+
+SIGNALS:
+- V_BUS_SENSE, I_BUS_SENSE
+- TEMP_RECT, TEMP_STATOR, TEMP_CONV
+- K1_CTRL, KPRE_CTRL
+- PWM_SHUNT, EN_DC_DC
+- E_STOP
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section id="thermal">
+    <div class="card">
+      <h3>Thermal Management (What it’s designed to accomplish)</h3>
+      <ul class="list">
+        <li>
+          <div class="title">Protect high-temperature zones <span class="tag">turbine</span></div>
+          <div class="muted">Thermal shielding and controlled heat transfer away from turbine-adjacent structures.</div>
+        </li>
+        <li>
+          <div class="title">Stabilize generator + power electronics <span class="tag">reliability</span></div>
+          <div class="muted">Cooling loop targets stator housing, rectifier, DC-DC, and contactor regions.</div>
+        </li>
+        <li>
+          <div class="title">Enable consistent output <span class="tag">control</span></div>
+          <div class="muted">Sensor-driven pump/fan control to maintain stable operating temperatures.</div>
+        </li>
+      </ul>
+
+      <details>
+        <summary>Cooling Options (Embodiments) <span class="tag">expandable</span></summary>
+        <ul class="list">
+          <li><div class="title">Liquid loop <span class="tag">pump + HX</span></div><div class="muted">Most practical for compact packaging.</div></li>
+          <li><div class="title">Air ducting <span class="tag">simpler</span></div><div class="muted">Lower complexity, less heat flux capability.</div></li>
+          <li><div class="title">Advanced fluids / insulated lines <span class="tag">optional</span></div><div class="muted">For higher thermal gradients and specialized use cases.</div></li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="card">
+      <h3>Roadmap (Development Plan)</h3>
+
+      <details open>
+        <summary>Phase 1 — Definition <span class="tag">now</span></summary>
+        <ul class="list">
+          <li><div class="title">Lock baseline architecture</div><div class="muted">Finalize subsystem interfaces, reference numerals, and figure set.</div></li>
+          <li><div class="title">Finalize BOM / realistic parts list</div><div class="muted">Manufacturable components, materials, and assembly groupings.</div></li>
+          <li><div class="title">First-order performance modeling</div><div class="muted">Brayton-cycle estimate + generator/power conditioning estimates.</div></li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Phase 2 — Engineering Validation <span class="tag">next</span></summary>
+        <ul class="list">
+          <li><div class="title">Map-based performance model</div><div class="muted">Compressor/turbine maps, transient operation, surge margins.</div></li>
+          <li><div class="title">Thermal model</div><div class="muted">Heat loads, coolant sizing, electronics thermal derating.</div></li>
+          <li><div class="title">Controls and protection logic</div><div class="muted">Startup/shutdown sequencing, fault handling, regulation stability.</div></li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Phase 3 — Prototype Path <span class="tag">future</span></summary>
+        <ul class="list">
+          <li><div class="title">Test plan + instrumentation</div><div class="muted">RPM, EGT, pressures, bus voltage/current, vibration.</div></li>
+          <li><div class="title">Mechanical validation</div><div class="muted">Rotor dynamics, balancing, bearing selection, containment.</div></li>
+          <li><div class="title">Electrical validation</div><div class="muted">Rectifier heating, regulation ripple, load transients, EMI.</div></li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <section id="deliverables">
+    <div class="card">
+      <h3>Deliverables (What exists / what this program produces)</h3>
+      <ul class="list">
+        <li>
+          <div class="title">Patent-style diagram set <span class="tag">FIG. 1–5E</span></div>
+          <div class="muted">Front view, side cutaway, exploded assembly, airflow diagram, electrical schematic figures.</div>
+        </li>
+        <li>
+          <div class="title">Engineering BOM + parts lists <span class="tag">manufacturable</span></div>
+          <div class="muted">Assembly codes, realistic materials, sensors, and power electronics components.</div>
+        </li>
+        <li>
+          <div class="title">Patent packet <span class="tag">PDF</span></div>
+          <div class="muted">Definitions, detailed description, alternative embodiments, methods, reference numerals, and expanded claim set.</div>
+        </li>
+        <li>
+          <div class="title">Simulation notes <span class="tag">first-order</span></div>
+          <div class="muted">Capability estimates with a plan for higher fidelity modeling.</div>
+        </li>
+      </ul>
+
+      <div class="callout">
+        <b>Next best improvement for this index page:</b> Add links to local files (PDF drawings, BOM, and simulation
+        notebooks) once you drop them into a project folder.
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="card" style="box-shadow:none;">
+      <div><b>Project Status:</b> Under development • Engineering definition & documentation track</div>
+      <div style="margin-top:6px;">
+        <b>Suggested folder structure:</b>
+      </div>
+      <div class="mono" style="margin-top:8px;">
+/project
+  /docs
+    patent_packet.pdf
+    figures/
+      fig_1_front.png
+      fig_2_cutaway.png
+      fig_3_exploded.png
+      fig_4_airflow.png
+      fig_5a_generation.png
+      fig_5b_regulation.png
+      fig_5c_distribution.png
+      fig_5d_controls.png
+      fig_5e_storage.png
+  /bom
+    bom_master.csv
+  /sim
+    brayton_model.ipynb
+    generator_model.ipynb
+  index.html
+      </div>
+      <div style="margin-top:10px;" class="muted">
+        © <span id="year"></span> Hybrid Turbine–Magnetic Engine Program. All content is informational and subject to revision.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Expand / collapse all <details>
+  function toggleAll(open){
+    document.querySelectorAll("details").forEach(d => d.open = open);
+  }
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

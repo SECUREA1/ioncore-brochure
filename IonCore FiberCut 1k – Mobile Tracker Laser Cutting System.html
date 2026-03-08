@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IonCore FiberCut 1k – Mobile Tracker Laser Cutting System</title>
   <meta name="description" content="IonCore FiberCut 1k is a 1 kW fiber laser cutting system on a compact mobile tracker with an offboard stabilized power module, liquid cooling, and assist gas control for thin-gauge field cutting." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0b0f14;
-      --card:#121923;
-      --text:#e6eef7;
-      --muted:#9fb0c3;
-      --accent:#4aa3ff;
-      --line:#213044;
+      --bg:#030712;
+      --card:#101a2e;
+      --text:#f5f8ff;
+      --muted:#b7c7e4;
+      --accent:#6aff3b;
+      --line:rgba(255,255,255,.12);
       --ok:#47d16a;
       --warn:#ffcc66;
       --bad:#ff6b6b;
@@ -20,14 +23,14 @@
       --pad:18px;
       --max:1120px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --sans: 'Montserrat', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:var(--sans);
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(74,163,255,.25), transparent 55%),
-                  radial-gradient(900px 500px at 95% 10%, rgba(71,209,106,.14), transparent 60%),
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(106,255,59,.22), transparent 55%),
+                  radial-gradient(900px 500px at 95% 10%, rgba(17,32,61,.45), transparent 60%),
                   var(--bg);
       color:var(--text);
       line-height:1.45;
@@ -43,9 +46,11 @@
     .brand{display:flex; align-items:center; gap:12px}
     .logo{
       width:38px; height:38px; border-radius:10px;
-      background: linear-gradient(135deg, rgba(74,163,255,.95), rgba(74,163,255,.15));
-      border:1px solid rgba(74,163,255,.35);
-      box-shadow: 0 12px 34px rgba(74,163,255,.18);
+      background: rgba(106,255,59,.08);
+      border:1px solid rgba(106,255,59,.28);
+      box-shadow: 0 12px 34px rgba(106,255,59,.18);
+      padding:6px;
+      object-fit:contain;
     }
     .brand h1{font-size:15px; margin:0; letter-spacing:.6px}
     .brand small{display:block; color:var(--muted); font-size:12px; margin-top:2px}
@@ -72,8 +77,8 @@
       letter-spacing:.35px;
     }
     .pill{
-      border:1px solid rgba(74,163,255,.35);
-      background: rgba(74,163,255,.12);
+      border:1px solid rgba(106,255,59,.35);
+      background: rgba(106,255,59,.12);
       color: var(--text);
       padding:4px 10px; border-radius:999px; font-size:12px;
     }
@@ -89,9 +94,10 @@
       font-weight:600; font-size:13px;
     }
     .btn.primary{
-      background: linear-gradient(135deg, rgba(74,163,255,.95), rgba(74,163,255,.25));
-      border-color: rgba(74,163,255,.55);
-      box-shadow: 0 14px 38px rgba(74,163,255,.20);
+      background: linear-gradient(135deg, rgba(106,255,59,.95), rgba(60,191,42,.4));
+      border-color: rgba(106,255,59,.55);
+      box-shadow: 0 14px 38px rgba(106,255,59,.20);
+      color:#04110b;
     }
     .btn:hover{filter:brightness(1.05)}
     .specgrid{
@@ -145,26 +151,37 @@
     .foot{margin-top:18px; color:var(--muted); font-size:12px}
     .hr{height:1px; background: rgba(33,48,68,.95); margin:18px 0}
     .callout{
-      border:1px solid rgba(74,163,255,.35);
-      background: rgba(74,163,255,.08);
+      border:1px solid rgba(106,255,59,.35);
+      background: rgba(106,255,59,.08);
       border-radius: 12px;
       padding: 12px;
       color: var(--muted);
       font-size: 13px;
     }
     .callout strong{color:var(--text)}
+    .gallery{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
+    @media (max-width: 880px){ .gallery{grid-template-columns:1fr} }
+    .gallery figure{margin:0}
+    .gallery img{width:100%; border-radius:12px; border:1px solid var(--line)}
+    .gallery figcaption{margin-top:8px; color:var(--muted); font-size:12px}
   </style>
 </head>
 <body>
   <div class="container">
     <header class="nav">
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
+        <img class="logo" src="battery.svg" alt="Ioncore Energy" />
         <div>
           <h1>IONCORE <small>Field-Deployable Direct-Energy Systems</small></h1>
         </div>
       </div>
       <nav class="navlinks" aria-label="Primary">
+        <a href="index.html">Brochure Home</a>
         <a href="#overview">Overview</a>
         <a href="#capabilities">Capabilities</a>
         <a href="#modules">Modules</a>
@@ -242,6 +259,21 @@
           This page describes the standard 1 kW cutting configuration.
         </p>
       </aside>
+    </section>
+
+    <section class="card" id="media">
+      <h3>IonCore FiberCut Visuals</h3>
+      <p class="foot" style="margin-top:0; margin-bottom:10px;">Updated with the latest IonCore laser media assets.</p>
+      <div class="gallery">
+        <figure>
+          <img src="laser333.png" alt="IonCore FiberCut laser platform detail view" loading="lazy">
+          <figcaption>laser333.png</figcaption>
+        </figure>
+        <figure>
+          <img src="laser3.png" alt="IonCore FiberCut laser platform side profile" loading="lazy">
+          <figcaption>laser3.png</figcaption>
+        </figure>
+      </div>
     </section>
 
     <section class="twoCol" id="capabilities">

@@ -8,20 +8,23 @@
     name="description"
     content="IonCore FiberCut M1 Pro is an industrial-grade mobile 1 kW fiber laser cutting platform with stabilized offboard power, dual-loop cooling, autofocus cutting head, tracked mobility, and field-ready serviceable modules."
   />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0a0f14;
+      --bg:#030712;
       --panel:#101823;
       --panel-2:#0f1c2a;
       --card:#131f2d;
       --card-2:#172435;
-      --text:#edf4fb;
-      --muted:#9db1c8;
-      --line:#24364a;
+      --text:#f5f8ff;
+      --muted:#b7c7e4;
+      --line:rgba(255,255,255,.12);
       --line-2:#2e4661;
-      --accent:#57a7ff;
-      --accent-2:#78d3ff;
-      --accent-soft:rgba(87,167,255,.16);
+      --accent:#6aff3b;
+      --accent-2:#9bff7b;
+      --accent-soft:rgba(106,255,59,.16);
       --success:#4fd27a;
       --warning:#ffcf66;
       --danger:#ff6f6f;
@@ -29,7 +32,7 @@
       --radius:18px;
       --radius-sm:12px;
       --max:1240px;
-      --sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --sans: 'Montserrat', Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     }
 
@@ -40,9 +43,9 @@
       font-family:var(--sans);
       color:var(--text);
       background:
-        radial-gradient(900px 500px at 15% -10%, rgba(87,167,255,.22), transparent 55%),
-        radial-gradient(700px 500px at 85% 0%, rgba(120,211,255,.12), transparent 50%),
-        linear-gradient(180deg, #091018 0%, #0a0f14 100%);
+        radial-gradient(900px 500px at 15% -10%, rgba(106,255,59,.22), transparent 55%),
+        radial-gradient(700px 500px at 85% 0%, rgba(17,32,61,.45), transparent 50%),
+        linear-gradient(180deg, #091018 0%, #030712 100%);
       line-height:1.5;
     }
 
@@ -82,11 +85,12 @@
       width:42px;
       height:42px;
       border-radius:14px;
-      background:
-        linear-gradient(145deg, rgba(87,167,255,.95), rgba(87,167,255,.24));
-      border:1px solid rgba(120,211,255,.35);
-      box-shadow:0 14px 34px rgba(87,167,255,.28);
+      background:rgba(106,255,59,.08);
+      border:1px solid rgba(106,255,59,.35);
+      box-shadow:0 14px 34px rgba(106,255,59,.28);
       flex:0 0 auto;
+      padding:6px;
+      object-fit:contain;
     }
 
     .brand-copy{
@@ -160,7 +164,7 @@
       min-height:32px;
       padding:0 12px;
       border-radius:999px;
-      border:1px solid rgba(87,167,255,.28);
+      border:1px solid rgba(106,255,59,.28);
       background:var(--accent-soft);
       color:#d7ebff;
       font-size:12px;
@@ -217,10 +221,10 @@
     }
 
     .btn.primary{
-      background:linear-gradient(135deg, rgba(87,167,255,.95), rgba(87,167,255,.24));
-      border-color:rgba(120,211,255,.45);
-      color:white;
-      box-shadow:0 14px 34px rgba(87,167,255,.22);
+      background:linear-gradient(135deg, rgba(106,255,59,.95), rgba(60,191,42,.35));
+      border-color:rgba(106,255,59,.45);
+      color:#04110b;
+      box-shadow:0 14px 34px rgba(106,255,59,.22);
     }
 
     .hero-metrics{
@@ -460,6 +464,24 @@
 
     .highlight strong{color:var(--text)}
 
+    .gallery{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
+
+    .gallery figure{margin:0}
+
+    .gallery img{
+      width:100%;
+      border-radius:12px;
+      border:1px solid var(--line);
+      box-shadow:0 12px 34px rgba(0,0,0,.28);
+    }
+
+    .gallery figcaption{margin-top:8px; color:var(--muted); font-size:12px}
+
     .footer{
       padding:30px 0 60px;
     }
@@ -485,6 +507,7 @@
       .hero{grid-template-columns:1fr}
       .two-col,.three-col{grid-template-columns:1fr}
       .modules,.options-grid{grid-template-columns:1fr}
+      .gallery{grid-template-columns:1fr}
     }
 
     @media (max-width: 720px){
@@ -501,13 +524,14 @@
   <header class="topbar">
     <div class="container nav">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true"></div>
+        <img class="brand-mark" src="battery.svg" alt="Ioncore Energy" />
         <div class="brand-copy">
           <strong>IONCORE</strong>
           <span>Industrial Mobile Direct-Energy Systems</span>
         </div>
       </div>
       <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Brochure Home</a>
         <a href="#overview">Overview</a>
         <a href="#system">System</a>
         <a href="#modules">Modules</a>
@@ -585,6 +609,21 @@
           </p>
         </div>
       </aside>
+    </section>
+
+    <section class="panel content-card" id="media">
+      <h2>IonCore FiberCut Visuals</h2>
+      <p>Updated with the latest IonCore laser imagery for this platform page.</p>
+      <div class="gallery">
+        <figure>
+          <img src="laser333.png" alt="IonCore FiberCut M1 Pro detailed laser assembly" loading="lazy">
+          <figcaption>laser333.png</figcaption>
+        </figure>
+        <figure>
+          <img src="laser3.png" alt="IonCore FiberCut M1 Pro mobile laser profile" loading="lazy">
+          <figcaption>laser3.png</figcaption>
+        </figure>
+      </div>
     </section>
 
     <section class="grid two-col" id="system">

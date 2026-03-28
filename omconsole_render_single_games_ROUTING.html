@@ -1423,6 +1423,14 @@ const state = {
     click: false,
     clickEdge: false,
     lastClick: false,
+    clickReleaseEdge: false,
+    dragActive: false,
+    dragMoved: false,
+    dragTarget: null,
+    dragStartX: 0,
+    dragStartY: 0,
+    dragLastX: 0,
+    dragLastY: 0,
     hoverTarget: null,
     hoverStartMs: 0
   },
@@ -4254,8 +4262,88 @@ function performClickAtCursor(){
   }catch(e){}
 }
 
+function dispatchPointerLike(type, target, x, y, buttons=0){
+  if(!target) return;
+  const common = {
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+    clientX: x,
+    clientY: y,
+    screenX: window.screenX + x,
+    screenY: window.screenY + y,
+    button: 0,
+    buttons
+  };
+  if(window.PointerEvent){
+    target.dispatchEvent(new PointerEvent(type, { ...common, pointerId: 1, pointerType: "mouse", isPrimary: true }));
+  }
+  const mouseType = type.replace("pointer", "mouse");
+  target.dispatchEvent(new MouseEvent(mouseType, common));
+}
+
+function startPinchInteractionAtCursor(){
+  if(!state.runtime.osEnabled) return;
+  const x = state.cursor.x, y = state.cursor.y;
+  const elAt = document.elementFromPoint(x, y);
+  if(!elAt || elAt.id === "cursor") return;
+
+  state.cursor.dragActive = true;
+  state.cursor.dragMoved = false;
+  state.cursor.dragTarget = elAt;
+  state.cursor.dragStartX = x;
+  state.cursor.dragStartY = y;
+  state.cursor.dragLastX = x;
+  state.cursor.dragLastY = y;
+
+  dispatchPointerLike("pointerdown", elAt, x, y, 1);
+}
+
+function updatePinchDragAtCursor(){
+  if(!state.cursor.dragActive || !state.runtime.osEnabled) return;
+  const x = state.cursor.x, y = state.cursor.y;
+  const dx = x - state.cursor.dragLastX;
+  const dy = y - state.cursor.dragLastY;
+  if(dx !== 0 || dy !== 0){
+    state.cursor.dragLastX = x;
+    state.cursor.dragLastY = y;
+    const movedSq = (x - state.cursor.dragStartX) ** 2 + (y - state.cursor.dragStartY) ** 2;
+    if(movedSq > 36) state.cursor.dragMoved = true; // 6px threshold
+    dispatchPointerLike("pointermove", document, x, y, 1);
+    if(state.cursor.dragTarget && state.cursor.dragTarget !== document){
+      dispatchPointerLike("pointermove", state.cursor.dragTarget, x, y, 1);
+    }
+  }
+}
+
+function endPinchInteractionAtCursor(){
+  if(!state.cursor.dragActive){
+    return;
+  }
+  const x = state.cursor.x, y = state.cursor.y;
+  const target = state.cursor.dragTarget || document.elementFromPoint(x, y);
+
+  dispatchPointerLike("pointerup", document, x, y, 0);
+  if(target && target !== document){
+    dispatchPointerLike("pointerup", target, x, y, 0);
+  }
+
+  if(target && !state.cursor.dragMoved){
+    try{ target.click(); }catch(e){}
+  }
+
+  state.cursor.dragActive = false;
+  state.cursor.dragMoved = false;
+  state.cursor.dragTarget = null;
+}
+
 function updateHoverClick(){
   if(!state.runtime.hoverEnabled || !state.runtime.osEnabled) {
+    state.cursor.hoverTarget = null;
+    state.cursor.hoverStartMs = 0;
+    return;
+  }
+  if(state.cursor.dragActive){
     state.cursor.hoverTarget = null;
     state.cursor.hoverStartMs = 0;
     return;
@@ -4658,8 +4746,15 @@ function tick(){
   state.cursor.lastClick = state.cursor.click;
   state.cursor.click = !!out.click;
   state.cursor.clickEdge = state.cursor.click && !state.cursor.lastClick;
+  state.cursor.clickReleaseEdge = !state.cursor.click && state.cursor.lastClick;
   if(state.cursor.clickEdge){
-    performClickAtCursor();
+    startPinchInteractionAtCursor();
+  }
+  if(state.cursor.dragActive && state.cursor.click){
+    updatePinchDragAtCursor();
+  }
+  if(state.cursor.clickReleaseEdge || (!state.runtime.osEnabled && state.cursor.dragActive)){
+    endPinchInteractionAtCursor();
   }
 
   // Hover click

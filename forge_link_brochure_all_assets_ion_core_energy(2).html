@@ -272,9 +272,9 @@
       <div class="card">
         <h3>Pricing (MSRP — premium tiers)</h3>
         <ul>
-          <li>ForgeLink Base — <strong>$18,000</strong></li>
-          <li>ForgeLink Pro — <strong>$22,500</strong></li>
-          <li>ForgeLink Ultra — <strong>$28,500</strong></li>
+          <li>ForgeLink Base — <strong>$45,000</strong></li>
+          <li>ForgeLink Pro — <strong>$56,250</strong></li>
+          <li>ForgeLink Ultra — <strong>$71,250</strong></li>
         </ul>
         <p class="small">Pricing reflects the high‑end of prior ranges and may vary by optics package, compliance, and integrator services.</p>
       </div>
@@ -341,13 +341,13 @@
     <div class="card">
       <table class="specs">
         <tr><th>Component</th><th>Qty</th><th>Unit (USD)</th><th>Est. Total</th></tr>
-        <tr><td>Battery modules (LTO/Li‑ion)</td><td>3</td><td>$500</td><td>$1,500</td></tr>
-        <tr><td>Cryogenic chambers & piping</td><td>1 set</td><td>$800</td><td>$800</td></tr>
-        <tr><td>Ytterbium laser core</td><td>1</td><td>$3,200</td><td>$3,200</td></tr>
-        <tr><td>Cooling system</td><td>1</td><td>$500</td><td>$500</td></tr>
-        <tr><td>Magnetic flywheel stabilizer</td><td>1</td><td>$1,000</td><td>$1,000</td></tr>
-        <tr><td>AI sensor grid + controller</td><td>1 set</td><td>$800</td><td>$800</td></tr>
-        <tr><th colspan="3">Manufacturing Total (Est.)</th><th>$7,800</th></tr>
+        <tr><td>Battery modules (LTO/Li‑ion)</td><td>3</td><td>$1250</td><td>$3,750</td></tr>
+        <tr><td>Cryogenic chambers & piping</td><td>1 set</td><td>$2000</td><td>$2000</td></tr>
+        <tr><td>Ytterbium laser core</td><td>1</td><td>$8,000</td><td>$8,000</td></tr>
+        <tr><td>Cooling system</td><td>1</td><td>$1250</td><td>$1250</td></tr>
+        <tr><td>Magnetic flywheel stabilizer</td><td>1</td><td>$2,500</td><td>$2,500</td></tr>
+        <tr><td>AI sensor grid + controller</td><td>1 set</td><td>$2000</td><td>$2000</td></tr>
+        <tr><th colspan="3">Manufacturing Total (Est.)</th><th>$19,500</th></tr>
       </table>
       <p class="small">Values are directional for planning and exclude compliance, fixtures, and volume discounts.</p>
     </div>
@@ -361,9 +361,9 @@
         <form id="orderForm">
           <label class="tag">Model</label>
           <select name="model" style="width:100%;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--line);color:var(--ink);margin:6px 0 10px">
-            <option>ForgeLink Base — $18,000</option>
-            <option>ForgeLink Pro — $22,500</option>
-            <option>ForgeLink Ultra — $28,500</option>
+            <option>ForgeLink Base — $45,000</option>
+            <option>ForgeLink Pro — $56,250</option>
+            <option>ForgeLink Ultra — $71,250</option>
           </select>
           <label class="tag">Quantity</label>
           <input type="number" name="qty" value="1" min="1" style="width:100%;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--line);color:var(--ink);margin:6px 0 10px"/>
@@ -456,9 +456,9 @@
       function buildCSV(){
         const rows = [
           ['Model','MSRP (USD)','Laser','Cooling','Use'],
-          ['ForgeLink Base','$18,000','Yb-fiber 1–3 kW','Micro-loop','Field repair / light cutting'],
-          ['ForgeLink Pro','$22,500','Yb-fiber 2–3 kW','Loop + adaptive optics','Industrial repair / fab'],
-          ['ForgeLink Ultra','$28,500','Yb-fiber 3–5 kW','Dual-loop + cryo assist','Bench/CNC station']
+          ['ForgeLink Base','$45,000','Yb-fiber 1–3 kW','Micro-loop','Field repair / light cutting'],
+          ['ForgeLink Pro','$56,250','Yb-fiber 2–3 kW','Loop + adaptive optics','Industrial repair / fab'],
+          ['ForgeLink Ultra','$71,250','Yb-fiber 3–5 kW','Dual-loop + cryo assist','Bench/CNC station']
         ];
         return 'data:text/csv;charset=utf-8,'+rows.map(r=>r.map(x=>`"${x}"`).join(',')).join('
 ');

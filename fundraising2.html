@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IonCore Energy | Unified Fundraising & Presale</title>
+  <meta name="description" content="IonCore Energy unified fundraising and presale page featuring portable, residential, commercial, and propulsion platforms." />
+  <style>
+    :root {
+      --bg: #07111d;
+      --bg2: #0b1728;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.11);
+      --text: #eef5ff;
+      --muted: #b8c6dc;
+      --accent: #58c9ff;
+      --accent2: #84ffbd;
+      --gold: #ffd166;
+      --gold2: #ffebad;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 18px;
+      --max: 1280px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(88,201,255,0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(132,255,189,0.08), transparent 25%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(92%, var(--max)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,17,29,0.84);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 0;
+      flex-wrap: wrap;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 1.15rem;
+      letter-spacing: .4px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-size: .96rem;
+      transition: .2s ease;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-weight: bold;
+      border: 1px solid transparent;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent), #88e0ff);
+      color: #05101b;
+      box-shadow: 0 8px 22px rgba(88,201,255,0.25);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .btn-gold {
+      background: linear-gradient(90deg, var(--gold), #ffe49a);
+      color: #181100;
+      box-shadow: 0 8px 22px rgba(255,209,102,0.22);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    section { padding: 74px 0; }
+    .hero { padding: 88px 0 58px; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .95fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--accent2);
+      font-size: .82rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: bold;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.4rem, 5vw, 4.6rem);
+      line-height: 1.02;
+    }
+
+    .hero p, .card p, .pricing-card p, .hero-card p, .meter-card p, .timeline-step p, .disclaimer {
+      color: var(--muted);
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      max-width: 760px;
+      margin: 0 0 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .stats {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 14px;
+    }
+
+    .stat, .hero-card, .card, .meter-card, .timeline-step, .pricing-card, .fund-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stat {
+      padding: 18px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.55rem;
+      color: var(--accent2);
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .hero-card, .card, .meter-card, .pricing-card { padding: 24px; }
+    .fund-box { padding: 28px; background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04)); }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+    }
+
+    .section-subtitle {
+      margin: 0 0 30px;
+      color: var(--muted);
+      max-width: 920px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(88,201,255,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(88,201,255,0.16);
+      font-size: .84rem;
+      font-weight: bold;
+    }
+
+    .tag-gold {
+      background: rgba(255,209,102,0.12);
+      color: var(--gold);
+      border: 1px solid rgba(255,209,102,0.18);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+    }
+
+    .feature-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+    }
+
+    .feature-list li:last-child { border-bottom: none; }
+    .highlight { color: var(--gold); font-weight: bold; }
+
+    .fund-highlight {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--gold);
+      margin: 10px 0 14px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .split div, .meta-box, .kpi, .logic-block {
+      background: var(--panel2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      color: var(--muted);
+    }
+
+    .meter-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+    .meter-card h3, .pricing-card h3, .logic-block h3 { margin-top: 0; }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: .94rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .meter-bar {
+      width: 100%;
+      height: 16px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 12px;
+    }
+
+    .meter-fill { height: 100%; border-radius: 999px; width: 0%; }
+    .gold { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+    .blue { background: linear-gradient(90deg, var(--accent), #8ee2ff); }
+    .green { background: linear-gradient(90deg, #62ffb4, #aafed3); }
+    .purple { background: linear-gradient(90deg, #b48cff, #7fdcff); }
+
+    .meter-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .meta-box strong, .kpi strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .price {
+      font-size: 2rem;
+      color: var(--gold);
+      font-weight: bold;
+      margin: 10px 0 12px;
+    }
+
+    .price-range {
+      color: var(--gold);
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin: 10px 0 12px;
+    }
+
+    .logic-block { margin-top: 24px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 24px; }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .timeline-step { padding: 20px; }
+
+    .timeline-step strong {
+      display: inline-block;
+      margin-bottom: 10px;
+      color: var(--accent2);
+      font-size: .85rem;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+    }
+
+    .cta {
+      text-align: center;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04));
+    }
+
+    .cta-box { max-width: 960px; margin: 0 auto; }
+
+    .disclaimer {
+      margin-top: 24px;
+      background: rgba(255,138,138,0.08);
+      border: 1px solid rgba(255,138,138,0.18);
+      color: #ffd4d4;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: .92rem;
+    }
+
+    .footer {
+      padding: 34px 0 50px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .footer-wrap {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 24px;
+    }
+
+    @media (max-width: 1120px) {
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .hero { padding-top: 58px; }
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
+        grid-template-columns: 1fr;
+      }
+      .nav { align-items: flex-start; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <strong>IonCore Energy</strong>
+        <span>Unified Fundraising, Presale, Energy Systems & Propulsion Platform</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#fundraise">Fundraise</a>
+        <a href="#progress">Progress</a>
+        <a href="#models">Models</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#propulsion">Propulsion</a>
+        <a href="#presale">Presale</a>
+        <a href="#contact" class="btn btn-secondary">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Unified Premium Platform</span>
+          <h1>Raise the company, launch the platform, and convert across energy and propulsion.</h1>
+          <p>
+            IonCore Energy is raising <strong>$200,000 USD</strong> to formalize business structure, sharpen prototypes,
+            improve launch materials, and activate a clearer presale path across a premium advanced systems lineup.
+            The page is structured to read as one unified platform rather than disconnected product blocks.
+          </p>
+          <p>
+            The lineup is organized into four premium lanes: <strong>portable hybrid systems</strong>,
+            <strong>luxury residential systems</strong>, <strong>commercial resilience systems</strong>, and
+            <strong>advanced propulsion programs</strong>. This keeps the site uniform while making the company feel
+            broader, more serious, and more investable.
+          </p>
+          <p>
+            The logic is simple: raise capital to strengthen trust, present a cleaner premium catalog,
+            then drive reservations, pilot interest, strategic conversations, and flagship placements.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#fundraise" class="btn btn-primary">View Fundraising Offer</a>
+            <a href="#models" class="btn btn-gold">Explore the Platform</a>
+            <a href="#presale" class="btn btn-secondary">See Presale Logic</a>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <strong>$200K</strong>
+              <span>Startup Raise Target</span>
+            </div>
+            <div class="stat">
+              <strong>4</strong>
+              <span>Premium Category Lanes</span>
+            </div>
+            <div class="stat">
+              <strong>2X Target</strong>
+              <span>Early Investor Return Objective</span>
+            </div>
+            <div class="stat">
+              <strong>Energy + Propulsion</strong>
+              <span>Portable, Residential, Commercial, Aerospace</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <span class="tag tag-gold">Unified Platform Logic</span>
+          <h3>Why this version reads better</h3>
+          <p>
+            Instead of looking like a mixed catalog, the page now reads like a premium advanced systems platform.
+            Each category has a distinct role while still fitting one shared brand language.
+          </p>
+          <ul class="feature-list">
+            <li><strong>Peak 30</strong> leads portable hybrid deployment</li>
+            <li><strong>FSCU</strong> anchors kinetic intelligence and self-charging systems</li>
+            <li><strong>Ioncore Round</strong> covers luxury residential and commercial resilience</li>
+            <li><strong>Engine Platform</strong> extends the brand into aerospace-grade propulsion</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="fundraise">
+      <div class="container">
+        <h2 class="section-title">Full Fundraising Offer</h2>
+        <p class="section-subtitle">
+          This round is designed to move IonCore Energy from concept-level positioning into formal business readiness,
+          stronger commercial presentation, and a more persuasive presale launch across multiple premium categories.
+        </p>
+
+        <div class="fund-box">
+          <span class="tag tag-gold">Current Raise</span>
+          <h3>IonCore Energy Startup Round</h3>
+          <div class="fund-highlight">$200,000 USD</div>
+          <p>
+            This capital is intended to build the foundation required for a serious market entry: business structure,
+            prototype advancement, investor materials, brand presentation, product visuals, launch documentation,
+            and presale execution systems.
+          </p>
+
+          <div class="split">
+            <div>
+              <strong>Business Structure</strong><br />
+              Company formation, operating framework, legal setup, administrative readiness, investor materials,
+              launch planning, and presale systems.
+            </div>
+            <div>
+              <strong>Prototype & Presentation Advancement</strong><br />
+              Product refinement, stronger technical presentation, commercial render quality, presale assets,
+              and launch-ready product storytelling.
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card">
+            <span class="tag">Investor Position</span>
+            <h3>2x target return structure</h3>
+            <p>
+              IonCore Energy is framing this raise around early-stage upside with a <strong>2x target return structure</strong>
+              tied to launch readiness, early traction, and the value of entering before broader public rollout.
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag">Alternative Incentive</span>
+            <h3>Qualifying free launch unit benefit</h3>
+            <p>
+              For qualifying early participants, IonCore Energy may also structure a <strong>launch-unit benefit</strong>
+              in place of a return path, subject to final allocation, product availability, and offering terms.
+            </p>
+          </div>
+        </div>
+
+        <div class="logic-block">
+          <h3>Fundraising logic</h3>
+          <p>
+            Investors are not only backing a prototype. They are backing the formation of a premium company with multiple
+            routes to traction: portable energy, luxury home installations, commercial hospitality deployment,
+            and executive-level propulsion partnerships.
+          </p>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi"><strong>Raise trust</strong><span>Formal structure makes the company feel real</span></div>
+          <div class="kpi"><strong>Sharpen value</strong><span>Focused categories improve premium positioning</span></div>
+          <div class="kpi"><strong>Drive demand</strong><span>Cleaner lineup makes presale easier to understand</span></div>
+          <div class="kpi"><strong>Support scale</strong><span>Residential, commercial, and aerospace add upside</span></div>
+        </div>
+
+        <div class="disclaimer">
+          Any “2x” language, free-unit incentives, and offering mechanics should be reviewed and finalized before public investment use.
+        </div>
+      </div>
+    </section>
+
+    <section id="progress">
+      <div class="container">
+        <h2 class="section-title">Fundraising and Conversion Flow</h2>
+        <p class="section-subtitle">
+          These meters separate startup capital from demand generation so visitors understand the company-building phase
+          versus the category conversion phase.
+        </p>
+
+        <div class="meter-grid">
+          <div class="meter-card">
+            <h3>Startup Round Progress</h3>
+            <p>Tracks the capital required to prepare the company and its launch systems.</p>
+            <div class="meter-label"><span>Raised So Far</span><span>$0 / $200,000</span></div>
+            <div class="meter-bar"><div class="meter-fill gold" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>$200,000</strong><span>Capital Goal</span></div>
+              <div class="meta-box"><strong>0%</strong><span>Goal Reached</span></div>
+            </div>
+          </div>
+
+          <div class="meter-card">
+            <h3>Peak 30 Presale Meter</h3>
+            <p>Tracks reservation demand for the flagship portable hybrid system.</p>
+            <div class="meter-label"><span>Units Reserved</span><span>0 / 1,000</span></div>
+            <div class="meter-bar"><div class="meter-fill blue" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>Portable Flagship</strong><span>Higher-end mobile power</span></div>
+              <div class="meta-box"><strong>1,000 Units</strong><span>Initial Goal</span></div>
+            </div>
+          </div>
+
+          <div class="meter-card">
+            <h3>Luxury Home Install Meter</h3>
+            <p>Tracks premium installation demand for residential clients and estates.</p>
+            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 250</span></div>
+            <div class="meter-bar"><div class="meter-fill green" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>Luxury Residential</strong><span>Design-forward resilience</span></div>
+              <div class="meta-box"><strong>250 Slots</strong><span>Initial Goal</span></div>
+            </div>
+          </div>
+
+          <div class="meter-card">
+            <h3>Hotel & Retail Meter</h3>
+            <p>Tracks commercial system reservation and pilot deployment demand.</p>
+            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 120</span></div>
+            <div class="meter-bar"><div class="meter-fill purple" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>Commercial Luxury</strong><span>High-load public spaces</span></div>
+              <div class="meta-box"><strong>120 Systems</strong><span>Initial Goal</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="logic-block">
+          <h3>Why this conversion flow works</h3>
+          <p>
+            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes.
+            That makes the site easier to understand for investors, buyers, and strategic partners.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="models">
+      <div class="container">
+        <h2 class="section-title">Unified Core Platform</h2>
+        <p class="section-subtitle">
+          The platform now presents four premium lanes: one portable flagship, one kinetic technology core,
+          one residential premium system, one commercial premium system, and one propulsion program family.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <span class="tag">Portable Flagship</span>
+            <h3>Peak 30</h3>
+            <p>
+              Peak 30 leads the portable side as the flagship hybrid kinetic system for field teams, film,
+              tactical operations, and advanced mobile deployment environments.
+            </p>
+            <ul class="feature-list">
+              <li>30 W continuous DC output with 60 W surge handling</li>
+              <li>Production-ready portable generator with 2-day shipping</li>
+              <li>Cleaner launch story through a real available product, not only a prototype</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Core Technology Platform</span>
+            <h3>Flywheel Self-Charging Unit</h3>
+            <p>
+              The FSCU acts as the visible technology spine of the IonCore story, supporting kinetic reserve,
+              magnetic suspension, rapid charging, and self-charging deployment narratives.
+            </p>
+            <ul class="feature-list">
+              <li>50,000+ RPM kinetic core</li>
+              <li>Qi 2.0 Magnetic and USB-C PD 3.1 delivery</li>
+              <li>Technology credibility for the broader platform</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Residential Premium</span>
+            <h3>Ioncore Round — Luxury Homes</h3>
+            <p>
+              The residential system is the design-first branch of the lineup, built for buyers who want resilience,
+              aesthetics, and premium installation value in one offering.
+            </p>
+            <ul class="feature-list">
+              <li>Luxury placement for estates and 2–3 bedroom homes</li>
+              <li>Premium alloy and ceramic finish language</li>
+              <li>High-value residential install positioning</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Commercial Premium</span>
+            <h3>Ioncore Round — Hotel & Retail</h3>
+            <p>
+              The commercial system gives IonCore a hospitality and retail story grounded in resilience,
+              demand-charge reduction, architectural finish quality, and high-load support.
+            </p>
+            <ul class="feature-list">
+              <li>Built for high-traffic, high-load environments</li>
+              <li>Scalable cluster logic improves credibility</li>
+              <li>Commercial resilience with premium appearance</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <h2 class="section-title">Detailed Pricing and Positioning</h2>
+        <p class="section-subtitle">
+          The pricing ladder moves from flagship portable power to kinetic reserve technology,
+          then into high-value residential and commercial systems.
+        </p>
+
+        <div class="grid-2">
+          <div class="pricing-card">
+            <span class="tag">Portable Flagship</span>
+            <h3>Peak 30 portable kinetic generator</h3>
+            <div class="price">$3,175 USD</div>
+            <p>
+              A production-ready portable generator engineered for clean DC delivery, dependable field performance,
+              and immediate mission use. This improves the launch by offering a real in-stock portable model
+              with faster delivery, stronger buyer confidence, and a more grounded entry point into the IonCore platform.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Output:</strong> 30 W continuous DC (12 V @ 2.5 A) with 60 W surge for 5 s</li>
+              <li><strong>Storage:</strong> ≈ 80 Wh deliverable energy with hybrid kinetic reserve</li>
+              <li><strong>Thermals:</strong> liquid micro-loop plus synchronized twin 40 mm active coolers</li>
+              <li><strong>Interfaces:</strong> 12 V barrel jack and USB-C PD for mission devices</li>
+              <li><strong>Availability:</strong> In stock, ships within 2 days</li>
+              <li><strong>SKU:</strong> PK30-BASIC</li>
+            </ul>
+          </div>
+
+          <div class="pricing-card">
+            <span class="tag">Core Kinetic Technology</span>
+            <h3>Flywheel Self-Charging Unit</h3>
+            <div class="price">From $1,748</div>
+            <p>
+              A precision-balanced kinetic storage platform for responsive, cable-light power delivery in mobile,
+              immersive, and resilient deployment scenarios.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Speed:</strong> 50,000+ RPM</li>
+              <li><strong>Burst:</strong> 2–5 kW burst</li>
+              <li><strong>Rapid Charge:</strong> ≤15 min to 80%</li>
+              <li><strong>Thermals:</strong> ≤40 °C graphene thermal stack</li>
+              <li><strong>Efficiency:</strong> 99.2% inverter efficiency</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="pricing-card">
+            <span class="tag tag-gold">Luxury Residential</span>
+            <h3>Ioncore Round — Luxury Homes</h3>
+            <div class="price">$87,250 Hardware</div>
+            <div class="price-range">$105,000 – $122,500 Turn-key Install</div>
+            <p>
+              A premium home energy installation built to combine power security, refined materials,
+              and high-end residential integration.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Capacity:</strong> 30–37 kWh usable capacity</li>
+              <li><strong>Continuous:</strong> 10–20 kW</li>
+              <li><strong>Surge:</strong> 30 kW</li>
+              <li><strong>Exterior:</strong> premium alloy and ceramic finishes</li>
+              <li><strong>Ideal For:</strong> estates and 2–3 bedroom homes</li>
+            </ul>
+          </div>
+
+          <div class="pricing-card">
+            <span class="tag tag-gold">Commercial Luxury</span>
+            <h3>Ioncore Round — Hotel & Retail</h3>
+            <div class="price-range">$137,500 – $162,500</div>
+            <p>
+              A scalable commercial cluster solution designed for premium hospitality and retail environments
+              that need resilience, load handling, and architectural presentation.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Capacity:</strong> 50–60 kWh scalable clusters</li>
+              <li><strong>Continuous:</strong> 20 kW</li>
+              <li><strong>Surge:</strong> 40 kW</li>
+              <li><strong>Value:</strong> reduces demand charges by 20–30%</li>
+              <li><strong>Built For:</strong> high-traffic, high-load facilities</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="logic-block">
+          <h3>Pricing logic</h3>
+          <p>
+            The pricing ladder avoids undermining the premium tone. It presents a flagship portable unit,
+            a visible technology core, a luxury home installation, and a commercial-grade system.
+            That creates a cleaner path from innovation to prestige to scale.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="propulsion">
+      <div class="container">
+        <h2 class="section-title">Advanced Propulsion Platform</h2>
+        <p class="section-subtitle">
+          The propulsion platform is presented as a fourth premium vertical within IonCore: separate from portable,
+          residential, and commercial energy systems, but aligned with the same themes of magnetic suspension,
+          regenerative recovery, precision control, and future-facing engineering.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <span class="tag tag-gold">Executive Program</span>
+            <h3>Engine Platform</h3>
+            <p>
+              Proposal aligned to mission. A superconducting propulsion stack designed to deliver supersonic thrust
+              with regenerative energy recovery, positioned for aviation partners seeking advanced performance envelopes
+              and collaborative program development.
+            </p>
+            <ul class="feature-list">
+              <li>Targets Mach 3.2+ envelopes</li>
+              <li>Magnetically suspended rotors producing up to 12,000 lbf</li>
+              <li>Regenerative conversion feeds onboard systems</li>
+              <li>Cryogenic loops stabilize superconductors</li>
+              <li>Program outlook modeled collaboratively with aviation partners</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Style Direction</span>
+            <h3>How the propulsion category fits the site</h3>
+            <p>
+              The propulsion section should feel like a strategic aerospace program rather than a retail card.
+              That keeps it visually consistent with the rest of the site while signaling that it belongs to a more
+              exclusive and higher-value partnership class.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Visual Tone:</strong> aerospace precision, executive engineering, high-performance systems</li>
+              <li><strong>Language Tone:</strong> program-led, partnership-led, technically disciplined</li>
+              <li><strong>Why it fits:</strong> extends IonCore from energy storage into motion and propulsion</li>
+              <li><strong>Uniformity Rule:</strong> same card system, stronger program wording</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="pricing-card">
+            <span class="tag">UAV Tier</span>
+            <h3>MI-MiniJet 200</h3>
+            <div class="price-range">$450,000 – $700,000</div>
+            <p>Entry propulsion tier aimed at drone and UAV applications with compact thrust delivery.</p>
+            <ul class="feature-list">
+              <li><strong>Application:</strong> Drone / UAV</li>
+              <li><strong>Top Speed:</strong> Mach 0.8</li>
+              <li><strong>Thrust Class:</strong> 150–300 lbf</li>
+              <li><strong>Estimated Weight:</strong> 48 kg</li>
+            </ul>
+          </div>
+
+          <div class="pricing-card">
+            <span class="tag">Commercial / Trainer Tier</span>
+            <h3>MI-Hybrid 800</h3>
+            <div class="price-range">$3.0M – $5.0M</div>
+            <p>Mid-tier propulsion configuration intended for commercial or trainer jet contexts.</p>
+            <ul class="feature-list">
+              <li><strong>Application:</strong> Commercial / Trainer Jet</li>
+              <li><strong>Top Speed:</strong> Mach 1.8</li>
+              <li><strong>Thrust Class:</strong> 2,000–4,000 lbf</li>
+              <li><strong>Estimated Weight:</strong> 460 kg</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card">
+            <span class="tag">Integrated Propulsion Intelligence</span>
+            <h3>System architecture</h3>
+            <ul class="feature-list">
+              <li>Active magnetic suspension for low-contact high-RPM operation</li>
+              <li>Cryogenic loop for superconducting stability</li>
+              <li>Regenerative conversion for onboard systems support</li>
+              <li>Adaptive control suite for thrust and stability management</li>
+              <li>Modular platform scales from UAV propulsion pods to crewed aircraft</li>
+            </ul>
+          </div>
+          <div class="card">
+            <span class="tag">Program Economics</span>
+            <h3>Strategic partnership logic</h3>
+            <ul class="feature-list">
+              <li><strong>Total program outlook:</strong> $3.5M – $10.0M per full-scale engine</li>
+              <li><strong>Suggested market price:</strong> $4.5M – $13.0M with service and performance guarantees</li>
+              <li><strong>Round type:</strong> Pre-Series A targeting strategic aerospace and defense partners</li>
+              <li><strong>Minimum entry commitment:</strong> $1,250,000</li>
+              <li><strong>Best CTA:</strong> Open propulsion brief / Request investor dossier / Discuss deployment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="presale">
+      <div class="container">
+        <h2 class="section-title">Unified Presale Logic</h2>
+        <p class="section-subtitle">
+          A presale page converts better when every category has a clear reason to exist and a clear buyer type.
+          This version is designed to feel focused, premium, and easier to trust.
+        </p>
+
+        <div class="grid-4">
+          <div class="card">
+            <span class="tag">Portable Conversion</span>
+            <h3>Peak 30 drives mobile prestige</h3>
+            <p>
+              Peak 30 stands alone as the portable flagship, improving clarity and making the mobile category feel
+              more intentional and more advanced.
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag">Residential Conversion</span>
+            <h3>Luxury Homes drives aspiration</h3>
+            <p>
+              The residential system creates a premium emotional anchor by selling utility, design, resilience,
+              and lifestyle in one offer.
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag">Commercial Conversion</span>
+            <h3>Hotel & Retail drives scale confidence</h3>
+            <p>
+              The commercial system proves IonCore can address serious facility needs, which raises confidence
+              across the whole platform.
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag tag-gold">Aerospace Conversion</span>
+            <h3>Propulsion drives strategic scale</h3>
+            <p>
+              The engine platform converts through executive briefs, deployment discussions, investor dossiers,
+              and partnership pathways rather than simple retail checkout.
+            </p>
+          </div>
+        </div>
+
+        <div class="fund-box" style="margin-top:28px;">
+          <span class="tag tag-gold">Presale Logic Summary</span>
+          <h3>Why this version is stronger</h3>
+          <p>
+            The page now has fewer distractions, clearer categories, and stronger business logic. Portable is led by one flagship.
+            Technology is represented by a true innovation core. Residential and commercial each own a distinct premium market.
+            Propulsion adds strategic scale and executive-level opportunity.
+          </p>
+          <p>
+            That makes the overall story easier to follow, easier to trust, and more likely to convert.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title">Launch Roadmap</h2>
+        <p class="section-subtitle">
+          This roadmap connects the capital raise to the unified platform and the presale rollout.
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <strong>Phase 1</strong>
+            <h4>Raise the company</h4>
+            <p>Complete the $200,000 round for business structure, product presentation, and presale readiness.</p>
+          </div>
+          <div class="timeline-step">
+            <strong>Phase 2</strong>
+            <h4>Sharpen the platform</h4>
+            <p>Focus the lineup around Peak 30, FSCU, Luxury Homes, Hotel & Retail, and the Engine Platform.</p>
+          </div>
+          <div class="timeline-step">
+            <strong>Phase 3</strong>
+            <h4>Open premium presale</h4>
+            <p>Activate reservations, consultations, pilot requests, executive briefs, and flagship first-wave interest.</p>
+          </div>
+          <div class="timeline-step">
+            <strong>Phase 4</strong>
+            <h4>Build first-wave momentum</h4>
+            <p>Use scarcity, premium positioning, and clean category logic to build trust, conversion, and strategic attention.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="contact">
+      <div class="container cta-box">
+        <h2 class="section-title">Secure your place in the IonCore launch</h2>
+        <p class="section-subtitle" style="margin-left:auto; margin-right:auto;">
+          Join the startup round, reserve premium presale access, open a residential or commercial consultation,
+          or start an executive propulsion conversation.
+        </p>
+        <div class="hero-actions" style="justify-content:center;">
+          <a href="mailto:info@ioncoreenergy.com" class="btn btn-primary">Join the Fundraising Round</a>
+          <a href="mailto:presale@ioncoreenergy.com" class="btn btn-gold">Reserve Presale Access</a>
+          <a href="#" class="btn btn-secondary">Open Propulsion Brief</a>
+          <a href="#" class="btn btn-secondary">Request Brochure Library</a>
+        </div>
+        <div class="disclaimer" style="text-align:left;">
+          Replace placeholder emails and finalize legal language around investment returns, free-unit benefits,
+          presale allocations, and aerospace program terms before launch.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-wrap">
+      <div>
+        <strong>IonCore Energy</strong><br />
+        Unified Fundraising + Presale + Propulsion Platform
+      </div>
+      <div>© 2026 IonCore Energy. All rights reserved.</div>
+    </div>
+  </footer>
+</body>
+</html>

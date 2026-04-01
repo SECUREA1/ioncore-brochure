@@ -459,6 +459,13 @@ main {
   margin-top: 32px;
 }
 
+.partner-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
 .engagement-counters {
   display: flex;
   flex-wrap: wrap;
@@ -2546,6 +2553,11 @@ main {
 
   .hero__actions {
     width: 100%;
+  }
+
+  .partner-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .btn-graphic {

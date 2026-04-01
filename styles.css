@@ -1550,6 +1550,29 @@ main {
   font-size: 0.95rem;
 }
 
+#fundraising .cta-panel {
+  grid-template-columns: 1fr;
+}
+
+#fundraising .cta-panel .hero__actions {
+  width: 100%;
+}
+
+#fundraising .cta-panel .hero__actions .btn {
+  flex: 1 1 220px;
+}
+
+@media (max-width: 720px) {
+  #fundraising .cta-panel {
+    padding: 24px;
+  }
+
+  #fundraising .cta-panel .hero__actions .btn {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
 .site-footer {
   padding: 64px 0 48px;
   border-top: 1px solid var(--border);

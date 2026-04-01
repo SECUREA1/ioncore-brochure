@@ -57,6 +57,21 @@
       flex-wrap: wrap;
     }
 
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.22);
+      object-fit: cover;
+      background: rgba(255,255,255,0.08);
+    }
+
     .brand strong {
       display: block;
       font-size: 1.15rem;
@@ -190,6 +205,38 @@
 
     .hero-card, .card, .meter-card, .pricing-card { padding: 24px; }
     .fund-box { padding: 28px; background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04)); }
+
+    .hero-image {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-card {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-card .caption {
+      padding: 16px 18px 18px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
 
     .section-title {
       margin: 0 0 10px;
@@ -394,8 +441,11 @@
   <header class="topbar">
     <div class="container nav">
       <div class="brand">
-        <strong>IonCore Energy</strong>
-        <span>Unified Fundraising, Presale, Energy Systems & Propulsion Platform</span>
+        <img src="ioncore.png" alt="IonCore Energy brand mark" />
+        <div>
+          <strong>IonCore Energy</strong>
+          <span>Unified Fundraising, Presale, Energy Systems & Propulsion Platform</span>
+        </div>
       </div>
       <nav class="nav-links">
         <a href="#fundraise">Fundraise</a>
@@ -414,11 +464,12 @@
       <div class="container hero-grid">
         <div>
           <span class="eyebrow">Unified Premium Platform</span>
-          <h1>Raise the company, launch the platform, and convert across energy and propulsion.</h1>
+          <h1>A formalized investor and customer platform for premium energy and propulsion programs.</h1>
           <p>
             IonCore Energy is raising <strong>$200,000 USD</strong> to formalize business structure, sharpen prototypes,
-            improve launch materials, and activate a clearer presale path across a premium advanced systems lineup.
-            The page is structured to read as one unified platform rather than disconnected product blocks.
+            elevate launch materials, and activate a disciplined presale path across a premium advanced systems lineup.
+            This page has been structured for high-level customer and investor review with cleaner language,
+            stronger brand continuity, and executive-grade presentation quality.
           </p>
           <p>
             The lineup is organized into four premium lanes: <strong>portable hybrid systems</strong>,
@@ -430,6 +481,10 @@
             The logic is simple: raise capital to strengthen trust, present a cleaner premium catalog,
             then drive reservations, pilot interest, strategic conversations, and flagship placements.
           </p>
+
+          <div class="hero-image">
+            <img src="powerplant3.png" alt="IonCore premium energy platform visual" />
+          </div>
 
           <div class="hero-actions">
             <a href="#fundraise" class="btn btn-primary">View Fundraising Offer</a>
@@ -614,6 +669,25 @@
     <section id="models">
       <div class="container">
         <h2 class="section-title">Unified Core Platform</h2>
+        <p class="section-subtitle">
+          Below is a branded visual lane designed for high-level customer review across portable, residential,
+          commercial, and propulsion categories.
+        </p>
+
+        <div class="grid-3" style="margin-bottom:24px;">
+          <article class="card image-card">
+            <img src="industrial.png" alt="IonCore commercial energy installation concept" />
+            <div class="caption">Commercial resilience systems with premium architectural fit and high-load support.</div>
+          </article>
+          <article class="card image-card">
+            <img src="home2.jpeg" alt="IonCore luxury residential energy concept" />
+            <div class="caption">Luxury residential deployment language for estates and executive homes.</div>
+          </article>
+          <article class="card image-card">
+            <img src="engine.png" alt="IonCore advanced propulsion engineering concept" />
+            <div class="caption">Advanced propulsion program visual aligned to aerospace partnership positioning.</div>
+          </article>
+        </div>
         <p class="section-subtitle">
           The platform now presents four premium lanes: one portable flagship, one kinetic technology core,
           one residential premium system, one commercial premium system, and one propulsion program family.

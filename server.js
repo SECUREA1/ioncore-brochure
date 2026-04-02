@@ -124,6 +124,13 @@ const BITCOIN_SETTLEMENT_WINDOW_MINUTES = Math.min(
   Math.max(Number.parseInt(process.env.IONCORE_BTC_SETTLEMENT_MINUTES || '45', 10) || 45, 10),
   180
 );
+const PAYPAL_CLIENT_ID = (process.env.PAYPAL_CLIENT_ID || '').trim();
+const PAYPAL_CLIENT_SECRET = (process.env.PAYPAL_CLIENT_SECRET || '').trim();
+const PAYPAL_MODE = (process.env.PAYPAL_MODE || 'sandbox').trim().toLowerCase() === 'live' ? 'live' : 'sandbox';
+const PAYPAL_API_BASE =
+  PAYPAL_MODE === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+const PAYPAL_CURRENCY = (process.env.PAYPAL_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
+const PAYPAL_ENABLED = Boolean(PAYPAL_CLIENT_ID && PAYPAL_CLIENT_SECRET);
 
 const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
@@ -166,6 +173,7 @@ const defaultStore = {
   gatewayUsers: {},
   magstripeTransactions: [],
   bitcoinTransactions: [],
+  paypalTransactions: [],
   marketplaceUploads: [],
   marketplaceBids: [],
   timepieceMintLedger: [],
@@ -187,6 +195,7 @@ async function loadStore() {
           : {},
       magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : [],
       bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
+      paypalTransactions: Array.isArray(parsed.paypalTransactions) ? parsed.paypalTransactions : [],
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
       timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : [],
@@ -983,6 +992,20 @@ function parseBtcAmount(amountRaw) {
   return 0;
 }
 
+function parseUsdAmount(amountRaw) {
+  if (typeof amountRaw === 'number') {
+    return amountRaw;
+  }
+  if (typeof amountRaw === 'string') {
+    const normalized = amountRaw.replace(/[^0-9.\-]/g, '');
+    if (!normalized) {
+      return 0;
+    }
+    return Number.parseFloat(normalized);
+  }
+  return 0;
+}
+
 function generateBitcoinInvoiceId() {
   const timestamp = Date.now().toString(36).toUpperCase();
   const randomChunk = Math.floor(Math.random() * 46656)
@@ -1042,6 +1065,90 @@ async function recordBitcoinTransaction(transaction) {
     console.error('Failed to store bitcoin transaction', error);
     throw error;
   }
+}
+
+async function recordPayPalTransaction(transaction) {
+  try {
+    if (!Array.isArray(store.paypalTransactions)) {
+      store.paypalTransactions = [];
+    }
+    const entryId = normalizeForStorage(transaction.entryId) || randomUUID();
+    const createdAt = new Date().toISOString();
+    const amount =
+      typeof transaction.amount === 'number' && Number.isFinite(transaction.amount)
+        ? Number(transaction.amount.toFixed(2))
+        : null;
+    const record = {
+      createdAt,
+      entryId,
+      orderId: normalizeForStorage(transaction.orderId),
+      captureId: normalizeForStorage(transaction.captureId),
+      donorName: normalizeForStorage(transaction.donorName),
+      donorEmail: normalizeForStorage(transaction.donorEmail),
+      amount,
+      currency: normalizeForStorage(transaction.currency || PAYPAL_CURRENCY),
+      projectReference: normalizeForStorage(transaction.projectReference),
+      status: normalizeForStorage(transaction.status) || 'created',
+      payerId: normalizeForStorage(transaction.payerId),
+      payerStatus: normalizeForStorage(transaction.payerStatus),
+      processor: 'paypal',
+      ipAddress: normalizeForStorage(transaction.ipAddress),
+      metadata:
+        transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : undefined
+    };
+
+    record.ledgerHash = computeTreasuryHash({
+      createdAt: record.createdAt,
+      entryId: record.entryId,
+      orderId: record.orderId,
+      captureId: record.captureId,
+      donorName: record.donorName,
+      donorEmail: record.donorEmail,
+      amount: record.amount,
+      currency: record.currency,
+      projectReference: record.projectReference,
+      status: record.status,
+      ipAddress: record.ipAddress
+    });
+
+    store.paypalTransactions.push(record);
+    await saveStore();
+    return record;
+  } catch (error) {
+    console.error('Failed to store PayPal transaction', error);
+    throw error;
+  }
+}
+
+function getPayPalBasicAuthHeader() {
+  const credentials = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
+  return `Basic ${credentials}`;
+}
+
+async function fetchPayPalAccessToken() {
+  if (!PAYPAL_ENABLED) {
+    throw new Error('PayPal credentials are not configured.');
+  }
+
+  const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: getPayPalBasicAuthHeader(),
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'grant_type=client_credentials'
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Unable to authorize with PayPal: ${response.status} ${detail}`);
+  }
+
+  const payload = await response.json();
+  if (!payload || typeof payload.access_token !== 'string' || !payload.access_token) {
+    throw new Error('PayPal access token response did not contain an access token.');
+  }
+  return payload.access_token;
 }
 
 async function recordChatLedgerEntry(entry) {
@@ -1435,6 +1542,193 @@ app.get('/api/payments/bitcoin/config', (req, res) => {
   });
 });
 
+app.get('/api/payments/paypal/config', (req, res) => {
+  res.json({
+    enabled: PAYPAL_ENABLED,
+    mode: PAYPAL_MODE,
+    clientId: PAYPAL_CLIENT_ID || null,
+    currency: PAYPAL_CURRENCY
+  });
+});
+
+app.post('/payments/paypal/order', async (req, res) => {
+  if (!PAYPAL_ENABLED) {
+    return res.status(503).json({
+      message: 'PayPal deposits are not configured yet. Add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET on the server.'
+    });
+  }
+
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const donorName = typeof body.donorName === 'string' ? body.donorName.trim() : '';
+  const donorEmail = typeof body.donorEmail === 'string' ? body.donorEmail.trim() : '';
+  const projectReference = typeof body.projectReference === 'string' ? body.projectReference.trim() : '';
+  const amount = parseUsdAmount(body.amount);
+
+  if (donorName.length < 2) {
+    return res.status(400).json({ message: 'Please provide the donor name for this PayPal deposit.' });
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ message: 'Please provide a valid positive USD amount.' });
+  }
+
+  if (amount > 1_000_000) {
+    return res.status(400).json({ message: 'Deposit amount exceeds the allowed maximum for a single transaction.' });
+  }
+
+  if (donorEmail) {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(donorEmail)) {
+      return res.status(400).json({ message: 'Provide a valid email address or leave the email field blank.' });
+    }
+  }
+
+  try {
+    const accessToken = await fetchPayPalAccessToken();
+    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [
+          {
+            amount: {
+              currency_code: PAYPAL_CURRENCY,
+              value: amount.toFixed(2)
+            },
+            custom_id: projectReference || 'IonCore-Startup-Round',
+            description: 'IonCore Energy fundraising deposit'
+          }
+        ],
+        payment_source: {
+          paypal: {
+            experience_context: {
+              brand_name: 'IonCore Energy',
+              user_action: 'PAY_NOW',
+              shipping_preference: 'NO_SHIPPING'
+            }
+          }
+        }
+      })
+    });
+
+    const payload = await response.json();
+    if (!response.ok || !payload?.id) {
+      return res.status(502).json({
+        message: 'PayPal order creation failed. Please verify your payment details and retry.',
+        detail: payload?.message || payload?.name || 'PayPal order create failed'
+      });
+    }
+
+    await recordPayPalTransaction({
+      entryId: `pp-order-${payload.id}`,
+      orderId: payload.id,
+      donorName,
+      donorEmail,
+      amount,
+      currency: PAYPAL_CURRENCY,
+      projectReference,
+      status: 'created',
+      ipAddress: req.ip,
+      metadata: {
+        mode: PAYPAL_MODE
+      }
+    });
+
+    return res.status(201).json({
+      orderId: payload.id,
+      status: payload.status || 'CREATED',
+      amount: Number(amount.toFixed(2)),
+      currency: PAYPAL_CURRENCY
+    });
+  } catch (error) {
+    console.error('Failed to create PayPal order', error);
+    return res.status(502).json({
+      message: 'Unable to start PayPal checkout right now. Please try again shortly.'
+    });
+  }
+});
+
+app.post('/payments/paypal/capture', async (req, res) => {
+  if (!PAYPAL_ENABLED) {
+    return res.status(503).json({ message: 'PayPal deposits are not enabled on this server.' });
+  }
+
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const orderId = typeof body.orderId === 'string' ? body.orderId.trim() : '';
+  const donorName = typeof body.donorName === 'string' ? body.donorName.trim() : '';
+  const donorEmail = typeof body.donorEmail === 'string' ? body.donorEmail.trim() : '';
+  const projectReference = typeof body.projectReference === 'string' ? body.projectReference.trim() : '';
+
+  if (!orderId) {
+    return res.status(400).json({ message: 'Missing PayPal order id for capture.' });
+  }
+
+  try {
+    const accessToken = await fetchPayPalAccessToken();
+    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify({})
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      return res.status(502).json({
+        message: 'PayPal capture failed. Please retry or use an alternate method.',
+        detail: payload?.message || payload?.name || 'PayPal capture failed'
+      });
+    }
+
+    const purchaseUnit = Array.isArray(payload.purchase_units) ? payload.purchase_units[0] : null;
+    const capture = purchaseUnit?.payments?.captures?.[0];
+    const payer = payload.payer || {};
+    const amountValue = parseUsdAmount(capture?.amount?.value ?? purchaseUnit?.amount?.value ?? 0);
+    const currency = capture?.amount?.currency_code || purchaseUnit?.amount?.currency_code || PAYPAL_CURRENCY;
+
+    await recordPayPalTransaction({
+      entryId: `pp-capture-${capture?.id || orderId}`,
+      orderId,
+      captureId: capture?.id || null,
+      donorName: donorName || `${payer?.name?.given_name || ''} ${payer?.name?.surname || ''}`.trim(),
+      donorEmail: donorEmail || payer?.email_address || '',
+      amount: amountValue,
+      currency,
+      projectReference,
+      status: capture?.status || payload.status || 'COMPLETED',
+      payerId: payer?.payer_id || null,
+      payerStatus: payer?.status || null,
+      ipAddress: req.ip,
+      metadata: {
+        mode: PAYPAL_MODE
+      }
+    });
+
+    return res.status(201).json({
+      message: 'PayPal deposit captured successfully.',
+      orderId,
+      captureId: capture?.id || null,
+      status: capture?.status || payload.status || 'COMPLETED',
+      amount: Number(amountValue.toFixed(2)),
+      currency,
+      payerEmail: payer?.email_address || donorEmail || undefined
+    });
+  } catch (error) {
+    console.error('Failed to capture PayPal order', error);
+    return res.status(502).json({
+      message: 'Unable to finalize PayPal capture right now. Please try again shortly.'
+    });
+  }
+});
+
 app.post('/payments/bitcoin', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const cardholder = typeof body.cardholder === 'string' ? body.cardholder.trim() : '';
@@ -1462,12 +1756,7 @@ app.post('/payments/bitcoin', async (req, res) => {
     return res.status(400).json({ message: 'Bitcoin amount exceeds the valid range.' });
   }
 
-  let usdAmount = 0;
-  if (typeof usdAmountRaw === 'number') {
-    usdAmount = usdAmountRaw;
-  } else if (typeof usdAmountRaw === 'string') {
-    usdAmount = Number.parseFloat(usdAmountRaw.replace(/[^0-9.\-]/g, ''));
-  }
+  const usdAmount = parseUsdAmount(usdAmountRaw);
 
   if (!Number.isFinite(usdAmount) || usdAmount <= 0) {
     return res.status(400).json({ message: 'Enter the USD invoice amount linked to this bitcoin transfer.' });
@@ -2187,6 +2476,7 @@ app.get('/api/admin/overview', async (req, res) => {
   const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
   const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
   const chatServerLedger = Array.isArray(store.chatServerLedger) ? store.chatServerLedger : [];
+  const paypalTransactions = Array.isArray(store.paypalTransactions) ? store.paypalTransactions : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
   let dataDirectoryUsage = { sizeBytes: 0, fileCount: 0 };
@@ -2279,6 +2569,18 @@ app.get('/api/admin/overview', async (req, res) => {
       detail: `BTC ${transaction.btcAmount != null ? transaction.btcAmount : ''} · USD ${
         transaction.usdAmount != null ? transaction.usdAmount : ''
       } · Status: ${transaction.status || 'pending'}`.trim(),
+      reference: transaction
+    });
+  }
+
+  for (const transaction of paypalTransactions) {
+    activityTimeline.push({
+      type: 'paypal-transaction',
+      timestamp: transaction.createdAt,
+      headline: transaction.donorName || transaction.orderId || 'PayPal payment',
+      detail: `${transaction.currency || ''} ${transaction.amount != null ? transaction.amount : ''} · Status: ${
+        transaction.status || 'pending'
+      }`.trim(),
       reference: transaction
     });
   }
@@ -2473,6 +2775,7 @@ app.get('/api/admin/overview', async (req, res) => {
       totalLoginEvents: store.loginEvents.length,
       totalStripeTransactions: store.magstripeTransactions.length,
       totalBitcoinTransactions: store.bitcoinTransactions.length,
+      totalPaypalTransactions: paypalTransactions.length,
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
       totalTimepieceMintIntents: timepieceMintLedger.length,
@@ -2483,6 +2786,7 @@ app.get('/api/admin/overview', async (req, res) => {
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
     magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
     bitcoinTransactions: sortByTimestampDesc(store.bitcoinTransactions, 'createdAt'),
+    paypalTransactions: sortByTimestampDesc(paypalTransactions, 'createdAt'),
     contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
     gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
     loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),

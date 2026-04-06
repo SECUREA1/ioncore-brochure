@@ -78,12 +78,15 @@
     .brand-copy { display:flex; flex-direction:column; gap:4px; }
     .brand-copy h1 { font-weight: 800; letter-spacing:.12em; font-size: 16px; margin:0; text-transform:uppercase; }
     .brand-copy p { margin:0; font-size:12px; color:var(--muted); letter-spacing:.01em; }
-    .header-controls { display:flex; flex-direction:column; gap:8px; flex:1; min-width:220px; }
-    .status { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .header-controls { display:flex; flex:1; min-width:220px; }
+    .status { display:flex; align-items:center; gap:8px; flex-wrap:wrap; width:100%; }
     .status .chip { flex:1 1 auto; justify-content:center; }
     header .chip { padding:4px 8px; }
     header .status.top { justify-content:flex-end; }
-    header .status.session { justify-content:flex-end; }
+    @media (min-width: 601px) {
+      .status.unified { flex-wrap:nowrap; justify-content:flex-end; }
+      .status.unified .chip { flex: 0 1 auto; }
+    }
     footer {
       display:flex;
       flex-direction:column;
@@ -431,7 +434,7 @@
         </div>
       </div>
       <div class="header-controls">
-        <div class="status top">
+        <div class="status top unified">
           <span class="chip" id="conn-chip" title="Connection status">
             <span class="dot off" id="conn-dot"></span>
             <span id="conn-label">Offline</span>
@@ -439,10 +442,8 @@
           <button class="chip" id="stream-code-btn" title="Copy stream code">🔑 Stream Code</button>
           <button class="chip" id="camera-flip-btn" title="Switch camera">🔁 Flip</button>
           <button class="chip" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
+          <button id="cc-settings" class="chip" title="More options">☰</button>
           <button id="mode-toggle" class="chip" title="Switch between cloud or local modes"></button>
-          <button id="cc-settings" class="chip" title="Caption settings">CC</button>
-        </div>
-        <div class="status session">
           <button class="chip" id="broadcast-btn" title="Go live">🎥 Live</button>
           <button class="chip" id="screen-share-btn" title="Share screen or window" hidden>🖥️ Share</button>
           <span class="chip" id="live-chip" title="Users online">

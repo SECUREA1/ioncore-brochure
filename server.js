@@ -405,10 +405,45 @@ const BRAND_BADGE_SNIPPET = `
   </a>
 `;
 
+const COPYRIGHT_SNIPPET = `
+  <style id="ioncore-copyright-notice-styles">
+    .ioncore-copyright-notice {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 9997;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(7, 12, 22, 0.84);
+      color: #dce6f8;
+      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.75rem;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+    @media (max-width: 640px) {
+      .ioncore-copyright-notice {
+        left: 12px;
+        bottom: 12px;
+        right: 12px;
+        border-radius: 14px;
+        text-align: center;
+      }
+    }
+  </style>
+  <aside class="ioncore-copyright-notice" id="ioncore-copyright-notice" aria-label="Copyright notice">
+    © Ioncore Energy. All rights reserved.
+  </aside>
+`;
+
 function applyIoncoreBranding(html) {
   let output = html;
   output = injectSnippetIntoHead(output, BRAND_HEAD_SNIPPET, 'ioncore-brand-icon');
   output = injectSnippetBeforeBodyClose(output, BRAND_BADGE_SNIPPET, 'ioncore-branding-badge');
+  output = injectSnippetBeforeBodyClose(output, COPYRIGHT_SNIPPET, 'ioncore-copyright-notice');
   return output;
 }
 

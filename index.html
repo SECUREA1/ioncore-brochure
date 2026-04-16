@@ -70,6 +70,12 @@
               </a>
             </div>
           </div>
+          <div class="engagement-counters" aria-live="polite">
+            <div class="counter-card tile-highlight" aria-label="Number of visitors currently viewing this experience">
+              <span class="counter-value" id="live-counter">0</span>
+              <span class="counter-label">Live viewers</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="index-hero__media" aria-hidden="true">
@@ -477,5 +483,95 @@
       </div>
     </div>
   </footer>
+  <script>
+    (function () {
+      const liveEl = document.getElementById('live-counter');
+      if (!liveEl || typeof fetch !== 'function') return;
+
+      let sessionId = null;
+      let pollTimer = null;
+      let stopped = false;
+      const pollIntervalMs = 15000;
+
+      function renderLive(data) {
+        if (!data || typeof data.live !== 'number' || Number.isNaN(data.live)) return;
+        liveEl.textContent = Math.max(0, data.live).toLocaleString();
+      }
+
+      async function pollLive() {
+        if (stopped) return;
+        try {
+          const endpoint = sessionId
+            ? `/metrics?sessionId=${encodeURIComponent(sessionId)}`
+            : '/metrics';
+          const response = await fetch(endpoint, { credentials: 'same-origin' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+
+          if (sessionId && payload && payload.sessionActive === false) {
+            sessionId = null;
+          }
+          renderLive(payload);
+        } catch (_error) {
+          // Keep last known value when metrics are unavailable.
+        } finally {
+          if (!stopped) pollTimer = window.setTimeout(pollLive, pollIntervalMs);
+        }
+      }
+
+      async function startSession() {
+        try {
+          const response = await fetch('/metrics/start', {
+            method: 'POST',
+            credentials: 'same-origin'
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : null;
+          renderLive(payload);
+        } catch (_error) {
+          sessionId = null;
+        }
+      }
+
+      function stopSession() {
+        if (!sessionId) return;
+        const payload = new URLSearchParams();
+        payload.set('sessionId', sessionId);
+        const body = payload.toString();
+
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/metrics/end', body);
+        } else {
+          fetch('/metrics/end', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            },
+            body
+          }).catch(function () {});
+        }
+      }
+
+      (async function init() {
+        await startSession();
+        pollLive();
+      })();
+
+      window.addEventListener('beforeunload', stopSession);
+      window.addEventListener('pagehide', stopSession);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          if (!sessionId) {
+            startSession();
+          }
+          if (!pollTimer) {
+            pollLive();
+          }
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

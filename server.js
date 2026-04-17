@@ -124,13 +124,6 @@ const BITCOIN_SETTLEMENT_WINDOW_MINUTES = Math.min(
   Math.max(Number.parseInt(process.env.IONCORE_BTC_SETTLEMENT_MINUTES || '45', 10) || 45, 10),
   180
 );
-const PAYPAL_CLIENT_ID = (process.env.PAYPAL_CLIENT_ID || '').trim();
-const PAYPAL_CLIENT_SECRET = (process.env.PAYPAL_CLIENT_SECRET || '').trim();
-const PAYPAL_MODE = (process.env.PAYPAL_MODE || 'sandbox').trim().toLowerCase() === 'live' ? 'live' : 'sandbox';
-const PAYPAL_API_BASE =
-  PAYPAL_MODE === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
-const PAYPAL_CURRENCY = (process.env.PAYPAL_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
-const PAYPAL_ENABLED = Boolean(PAYPAL_CLIENT_ID && PAYPAL_CLIENT_SECRET);
 
 const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
@@ -173,7 +166,6 @@ const defaultStore = {
   gatewayUsers: {},
   magstripeTransactions: [],
   bitcoinTransactions: [],
-  paypalTransactions: [],
   marketplaceUploads: [],
   marketplaceBids: [],
   timepieceMintLedger: [],
@@ -195,7 +187,6 @@ async function loadStore() {
           : {},
       magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : [],
       bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
-      paypalTransactions: Array.isArray(parsed.paypalTransactions) ? parsed.paypalTransactions : [],
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
       timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : [],
@@ -405,45 +396,10 @@ const BRAND_BADGE_SNIPPET = `
   </a>
 `;
 
-const COPYRIGHT_SNIPPET = `
-  <style id="ioncore-copyright-notice-styles">
-    .ioncore-copyright-notice {
-      position: fixed;
-      left: 16px;
-      bottom: 16px;
-      z-index: 9997;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: rgba(7, 12, 22, 0.84);
-      color: #dce6f8;
-      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 0.75rem;
-      line-height: 1.2;
-      letter-spacing: 0.03em;
-      backdrop-filter: blur(5px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-    }
-    @media (max-width: 640px) {
-      .ioncore-copyright-notice {
-        left: 12px;
-        bottom: 12px;
-        right: 12px;
-        border-radius: 14px;
-        text-align: center;
-      }
-    }
-  </style>
-  <aside class="ioncore-copyright-notice" id="ioncore-copyright-notice" aria-label="Copyright notice">
-    © Ioncore Energy. All rights reserved.
-  </aside>
-`;
-
 function applyIoncoreBranding(html) {
   let output = html;
   output = injectSnippetIntoHead(output, BRAND_HEAD_SNIPPET, 'ioncore-brand-icon');
   output = injectSnippetBeforeBodyClose(output, BRAND_BADGE_SNIPPET, 'ioncore-branding-badge');
-  output = injectSnippetBeforeBodyClose(output, COPYRIGHT_SNIPPET, 'ioncore-copyright-notice');
   return output;
 }
 
@@ -1027,20 +983,6 @@ function parseBtcAmount(amountRaw) {
   return 0;
 }
 
-function parseUsdAmount(amountRaw) {
-  if (typeof amountRaw === 'number') {
-    return amountRaw;
-  }
-  if (typeof amountRaw === 'string') {
-    const normalized = amountRaw.replace(/[^0-9.\-]/g, '');
-    if (!normalized) {
-      return 0;
-    }
-    return Number.parseFloat(normalized);
-  }
-  return 0;
-}
-
 function generateBitcoinInvoiceId() {
   const timestamp = Date.now().toString(36).toUpperCase();
   const randomChunk = Math.floor(Math.random() * 46656)
@@ -1100,90 +1042,6 @@ async function recordBitcoinTransaction(transaction) {
     console.error('Failed to store bitcoin transaction', error);
     throw error;
   }
-}
-
-async function recordPayPalTransaction(transaction) {
-  try {
-    if (!Array.isArray(store.paypalTransactions)) {
-      store.paypalTransactions = [];
-    }
-    const entryId = normalizeForStorage(transaction.entryId) || randomUUID();
-    const createdAt = new Date().toISOString();
-    const amount =
-      typeof transaction.amount === 'number' && Number.isFinite(transaction.amount)
-        ? Number(transaction.amount.toFixed(2))
-        : null;
-    const record = {
-      createdAt,
-      entryId,
-      orderId: normalizeForStorage(transaction.orderId),
-      captureId: normalizeForStorage(transaction.captureId),
-      donorName: normalizeForStorage(transaction.donorName),
-      donorEmail: normalizeForStorage(transaction.donorEmail),
-      amount,
-      currency: normalizeForStorage(transaction.currency || PAYPAL_CURRENCY),
-      projectReference: normalizeForStorage(transaction.projectReference),
-      status: normalizeForStorage(transaction.status) || 'created',
-      payerId: normalizeForStorage(transaction.payerId),
-      payerStatus: normalizeForStorage(transaction.payerStatus),
-      processor: 'paypal',
-      ipAddress: normalizeForStorage(transaction.ipAddress),
-      metadata:
-        transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : undefined
-    };
-
-    record.ledgerHash = computeTreasuryHash({
-      createdAt: record.createdAt,
-      entryId: record.entryId,
-      orderId: record.orderId,
-      captureId: record.captureId,
-      donorName: record.donorName,
-      donorEmail: record.donorEmail,
-      amount: record.amount,
-      currency: record.currency,
-      projectReference: record.projectReference,
-      status: record.status,
-      ipAddress: record.ipAddress
-    });
-
-    store.paypalTransactions.push(record);
-    await saveStore();
-    return record;
-  } catch (error) {
-    console.error('Failed to store PayPal transaction', error);
-    throw error;
-  }
-}
-
-function getPayPalBasicAuthHeader() {
-  const credentials = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
-  return `Basic ${credentials}`;
-}
-
-async function fetchPayPalAccessToken() {
-  if (!PAYPAL_ENABLED) {
-    throw new Error('PayPal credentials are not configured.');
-  }
-
-  const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      Authorization: getPayPalBasicAuthHeader(),
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials'
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Unable to authorize with PayPal: ${response.status} ${detail}`);
-  }
-
-  const payload = await response.json();
-  if (!payload || typeof payload.access_token !== 'string' || !payload.access_token) {
-    throw new Error('PayPal access token response did not contain an access token.');
-  }
-  return payload.access_token;
 }
 
 async function recordChatLedgerEntry(entry) {
@@ -1419,25 +1277,279 @@ function generateMeknxPassId() {
 }
 
 app.get('/login', async (req, res) => {
-  const queryNext = typeof req.query.next === 'string' ? req.query.next : '/webpage.html';
-  const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/webpage.html';
-  return res.redirect(safeNext);
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    const queryNext = typeof req.query.next === 'string' ? req.query.next : '/';
+    const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/';
+    return res.redirect(safeNext);
+  }
+  await sendHtml(res, path.join(__dirname, 'login.html'));
 });
 
 app.post('/login', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const username = typeof body.username === 'string' ? body.username.trim() : '';
+  const password = typeof body.password === 'string' ? body.password : '';
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
+  const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
   let nextPath = typeof body.next === 'string' ? body.next : '/webpage.html';
 
   if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
     nextPath = '/webpage.html';
   }
 
-  const sessionId = createAuthSession();
-  setSessionCookie(res, sessionId);
-  return res.json({
-    message: 'Authentication is no longer required. Redirecting to the requested page.',
-    redirect: nextPath
-  });
+  const method = walletAddress
+    ? 'wallet'
+    : !username && meknxPassId && !password
+      ? 'meknx'
+      : 'credentials';
+
+  const metadataBase = {
+    nextPath,
+    meknxStatus: body.meknxStatus,
+    meknxMintedAt: body.meknxMintedAt,
+    ioncTokens: body.ioncTokens,
+    ioncVerified: body.ioncVerified,
+    cardanoPolicyVerified: body.cardanoPolicyVerified,
+    cardanoPolicyId: body.cardanoPolicyId
+  };
+  const metadata = serializeMetadata(metadataBase);
+
+  const recordFailure = async (message, statusCode = 401) => {
+    await recordLoginEvent({
+      method,
+      username,
+      walletAddress,
+      walletProvider,
+      meknxPassId,
+      success: false,
+      metadata,
+      ipAddress: req.ip
+    });
+    clearSessionCookie(res);
+    return res
+      .status(statusCode)
+      .json({ message: message || 'Access denied. Invalid clearance credentials.' });
+  };
+
+  if (method === 'credentials') {
+    if (username === AUTH_USER && password === AUTH_PASS) {
+      await recordLoginEvent({
+        method,
+        username,
+        walletAddress,
+        walletProvider,
+        meknxPassId,
+        success: true,
+        metadata,
+        ipAddress: req.ip
+      });
+      const sessionId = createAuthSession();
+      setSessionCookie(res, sessionId);
+      return res.json({ redirect: nextPath });
+    }
+    return recordFailure();
+  }
+
+  if (method === 'wallet') {
+    if (!walletAddress) {
+      return recordFailure('Wallet session required for clearance validation. Connect a wallet and retry.');
+    }
+
+    if (!meknxPassId) {
+      return recordFailure('MEKNX clearance token required for wallet entry. Verify your pass before continuing.');
+    }
+
+    const meknxRecord = meknxRegistry.get(walletAddress);
+    const normalizedProvider = walletProvider
+      ? normalizeProvider(walletProvider)
+      : normalizeProvider(meknxRecord?.walletProvider || '');
+
+    if (!meknxRecord) {
+      return recordFailure(
+        'No MEKNX clearance found for this wallet. Mint or verify a MEKNX pass before requesting entry.',
+        403
+      );
+    }
+
+    if (meknxRecord.passId && meknxRecord.passId !== meknxPassId) {
+      return recordFailure('MEKNX pass mismatch detected. Re-verify your clearance token and try again.', 409);
+    }
+
+    if (!meknxRecord.passId) {
+      return recordFailure('MEKNX clearance token not yet minted for this wallet. Complete minting first.', 403);
+    }
+
+    const meknxStatusRaw = typeof body.meknxStatus === 'string' ? body.meknxStatus.trim().toLowerCase() : '';
+    const meknxStatus =
+      meknxStatusRaw === 'verified' || meknxStatusRaw === 'minted'
+        ? meknxStatusRaw
+        : meknxRecord.lastVerifiedAt
+        ? 'verified'
+        : 'minted';
+
+    const hasRecentVerification = Boolean(meknxRecord.lastVerifiedAt || meknxRecord.mintedAt);
+    if (!hasRecentVerification) {
+      return recordFailure('MEKNX clearance has not been verified recently. Re-run the MEKNX gate.', 403);
+    }
+
+    if (normalizedProvider === 'solana') {
+      const ioncVerified =
+        body.ioncVerified === true ||
+        body.ioncVerified === 'true' ||
+        body.ioncVerified === 1 ||
+        body.ioncVerified === '1';
+      const ioncTokens = Number.isFinite(body.ioncTokens) ? body.ioncTokens : Number(body.ioncTokens || 0);
+      const recordedTokens = Number.isFinite(meknxRecord.ioncTokens) ? meknxRecord.ioncTokens : 0;
+      if (!ioncVerified && (!ioncTokens || ioncTokens < 1)) {
+        return recordFailure('IONC verification required for Solana sessions. Confirm token holdings before entry.', 403);
+      }
+      if (!recordedTokens || recordedTokens < 1) {
+        return recordFailure('IONC access tokens not detected for this wallet. Mint or refresh MEKNX clearance first.', 403);
+      }
+    }
+
+    if (normalizedProvider === 'cardano') {
+      const policyVerified =
+        body.cardanoPolicyVerified === true ||
+        body.cardanoPolicyVerified === 'true' ||
+        body.cardanoPolicyVerified === 1 ||
+        body.cardanoPolicyVerified === '1';
+      if (!policyVerified) {
+        return recordFailure('Cardano policy verification required before entry. Confirm the policy and retry.', 403);
+      }
+      if (!meknxRecord.cardanoPolicyVerified || !meknxRecord.cardanoPolicyId) {
+        return recordFailure('Cardano policy not confirmed for this wallet. Complete policy verification and try again.', 403);
+      }
+      if (CARDANO_POLICY_ID && meknxRecord.cardanoPolicyId) {
+        const expectedPolicy = CARDANO_POLICY_ID.toLowerCase();
+        const recordedPolicy = meknxRecord.cardanoPolicyId.toLowerCase();
+        if (expectedPolicy && recordedPolicy !== expectedPolicy) {
+          return recordFailure('Recorded Cardano policy does not match the required asset. Re-verify the policy.', 403);
+        }
+      }
+    }
+
+    meknxRecord.walletProvider = normalizedProvider;
+    meknxRecord.lastLoginAt = new Date().toISOString();
+    meknxRegistry.set(walletAddress, meknxRecord);
+
+    const walletMetadata = serializeMetadata({
+      ...metadataBase,
+      walletLogin: {
+        provider: normalizedProvider,
+        meknxStatus,
+        meknxPassId,
+        meknxLastVerifiedAt: meknxRecord.lastVerifiedAt || null,
+        meknxMintedAt: meknxRecord.mintedAt || null,
+        ioncTokens: meknxRecord.ioncTokens || 0,
+        cardanoPolicyVerified: Boolean(meknxRecord.cardanoPolicyVerified),
+        cardanoPolicyId: meknxRecord.cardanoPolicyId || null
+      }
+    });
+
+    await recordLoginEvent({
+      method,
+      username,
+      walletAddress,
+      walletProvider: normalizedProvider,
+      meknxPassId,
+      success: true,
+      metadata: walletMetadata,
+      ipAddress: req.ip
+    });
+
+    const sessionId = createAuthSession();
+    setSessionCookie(res, sessionId);
+
+    return res.json({
+      redirect: nextPath,
+      wallet: {
+        address: walletAddress,
+        provider: normalizedProvider,
+        meknxPassId: meknxRecord.passId,
+        meknxStatus,
+        mintedAt: meknxRecord.mintedAt || null,
+        lastVerifiedAt: meknxRecord.lastVerifiedAt || null,
+        ioncTokens: meknxRecord.ioncTokens || 0,
+        cardanoPolicyVerified: Boolean(meknxRecord.cardanoPolicyVerified),
+        cardanoPolicyId: meknxRecord.cardanoPolicyId || null
+      }
+    });
+  }
+
+  if (method === 'meknx') {
+    if (!isThirdwebConfigured()) {
+      return recordFailure(
+        'MEKNX verification temporarily offline. Contact support for clearance.',
+        503
+      );
+    }
+
+    try {
+      const verification = await executeMeknxGate({
+        passId: meknxPassId,
+        walletAddress
+      });
+
+      if (!verification.authorized) {
+        const failureMessage =
+          verification.message || 'MEKNX contract denied this clearance request.';
+        return recordFailure(failureMessage, 403);
+      }
+
+      const enrichedMetadata = serializeMetadata({
+        ...metadataBase,
+        meknxContract: {
+          authorized: verification.authorized,
+          message: verification.message,
+          contractAddress: verification.contractAddress,
+          method: verification.method,
+          params: verification.params,
+          rawResult: verification.rawResult
+        }
+      });
+
+      await recordLoginEvent({
+        method,
+        username,
+        walletAddress,
+        walletProvider,
+        meknxPassId,
+        success: true,
+        metadata: enrichedMetadata,
+        ipAddress: req.ip
+      });
+
+      const sessionId = createAuthSession();
+      setSessionCookie(res, sessionId);
+
+      return res.json({
+        redirect: nextPath,
+        meknx: {
+          authorized: verification.authorized,
+          message: verification.message,
+          contractAddress: verification.contractAddress,
+          method: verification.method,
+          params: verification.params
+        }
+      });
+    } catch (error) {
+      const failureMessage =
+        error && typeof error.message === 'string'
+          ? error.message
+          : 'MEKNX contract verification failed. Try again shortly.';
+      return recordFailure(failureMessage, 502);
+    }
+  }
+
+  return recordFailure(
+    method === 'wallet'
+      ? 'Wallet verification not yet provisioned for automated vault entry.'
+      : 'MEKNX verification not yet provisioned for automated vault entry.'
+  );
 });
 
 app.post('/contact', async (req, res) => {
@@ -1577,193 +1689,6 @@ app.get('/api/payments/bitcoin/config', (req, res) => {
   });
 });
 
-app.get('/api/payments/paypal/config', (req, res) => {
-  res.json({
-    enabled: PAYPAL_ENABLED,
-    mode: PAYPAL_MODE,
-    clientId: PAYPAL_CLIENT_ID || null,
-    currency: PAYPAL_CURRENCY
-  });
-});
-
-app.post('/payments/paypal/order', async (req, res) => {
-  if (!PAYPAL_ENABLED) {
-    return res.status(503).json({
-      message: 'PayPal deposits are not configured yet. Add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET on the server.'
-    });
-  }
-
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const donorName = typeof body.donorName === 'string' ? body.donorName.trim() : '';
-  const donorEmail = typeof body.donorEmail === 'string' ? body.donorEmail.trim() : '';
-  const projectReference = typeof body.projectReference === 'string' ? body.projectReference.trim() : '';
-  const amount = parseUsdAmount(body.amount);
-
-  if (donorName.length < 2) {
-    return res.status(400).json({ message: 'Please provide the donor name for this PayPal deposit.' });
-  }
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return res.status(400).json({ message: 'Please provide a valid positive USD amount.' });
-  }
-
-  if (amount > 1_000_000) {
-    return res.status(400).json({ message: 'Deposit amount exceeds the allowed maximum for a single transaction.' });
-  }
-
-  if (donorEmail) {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(donorEmail)) {
-      return res.status(400).json({ message: 'Provide a valid email address or leave the email field blank.' });
-    }
-  }
-
-  try {
-    const accessToken = await fetchPayPalAccessToken();
-    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [
-          {
-            amount: {
-              currency_code: PAYPAL_CURRENCY,
-              value: amount.toFixed(2)
-            },
-            custom_id: projectReference || 'IonCore-Startup-Round',
-            description: 'IonCore Energy fundraising deposit'
-          }
-        ],
-        payment_source: {
-          paypal: {
-            experience_context: {
-              brand_name: 'IonCore Energy',
-              user_action: 'PAY_NOW',
-              shipping_preference: 'NO_SHIPPING'
-            }
-          }
-        }
-      })
-    });
-
-    const payload = await response.json();
-    if (!response.ok || !payload?.id) {
-      return res.status(502).json({
-        message: 'PayPal order creation failed. Please verify your payment details and retry.',
-        detail: payload?.message || payload?.name || 'PayPal order create failed'
-      });
-    }
-
-    await recordPayPalTransaction({
-      entryId: `pp-order-${payload.id}`,
-      orderId: payload.id,
-      donorName,
-      donorEmail,
-      amount,
-      currency: PAYPAL_CURRENCY,
-      projectReference,
-      status: 'created',
-      ipAddress: req.ip,
-      metadata: {
-        mode: PAYPAL_MODE
-      }
-    });
-
-    return res.status(201).json({
-      orderId: payload.id,
-      status: payload.status || 'CREATED',
-      amount: Number(amount.toFixed(2)),
-      currency: PAYPAL_CURRENCY
-    });
-  } catch (error) {
-    console.error('Failed to create PayPal order', error);
-    return res.status(502).json({
-      message: 'Unable to start PayPal checkout right now. Please try again shortly.'
-    });
-  }
-});
-
-app.post('/payments/paypal/capture', async (req, res) => {
-  if (!PAYPAL_ENABLED) {
-    return res.status(503).json({ message: 'PayPal deposits are not enabled on this server.' });
-  }
-
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const orderId = typeof body.orderId === 'string' ? body.orderId.trim() : '';
-  const donorName = typeof body.donorName === 'string' ? body.donorName.trim() : '';
-  const donorEmail = typeof body.donorEmail === 'string' ? body.donorEmail.trim() : '';
-  const projectReference = typeof body.projectReference === 'string' ? body.projectReference.trim() : '';
-
-  if (!orderId) {
-    return res.status(400).json({ message: 'Missing PayPal order id for capture.' });
-  }
-
-  try {
-    const accessToken = await fetchPayPalAccessToken();
-    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify({})
-    });
-
-    const payload = await response.json();
-    if (!response.ok) {
-      return res.status(502).json({
-        message: 'PayPal capture failed. Please retry or use an alternate method.',
-        detail: payload?.message || payload?.name || 'PayPal capture failed'
-      });
-    }
-
-    const purchaseUnit = Array.isArray(payload.purchase_units) ? payload.purchase_units[0] : null;
-    const capture = purchaseUnit?.payments?.captures?.[0];
-    const payer = payload.payer || {};
-    const amountValue = parseUsdAmount(capture?.amount?.value ?? purchaseUnit?.amount?.value ?? 0);
-    const currency = capture?.amount?.currency_code || purchaseUnit?.amount?.currency_code || PAYPAL_CURRENCY;
-
-    await recordPayPalTransaction({
-      entryId: `pp-capture-${capture?.id || orderId}`,
-      orderId,
-      captureId: capture?.id || null,
-      donorName: donorName || `${payer?.name?.given_name || ''} ${payer?.name?.surname || ''}`.trim(),
-      donorEmail: donorEmail || payer?.email_address || '',
-      amount: amountValue,
-      currency,
-      projectReference,
-      status: capture?.status || payload.status || 'COMPLETED',
-      payerId: payer?.payer_id || null,
-      payerStatus: payer?.status || null,
-      ipAddress: req.ip,
-      metadata: {
-        mode: PAYPAL_MODE
-      }
-    });
-
-    return res.status(201).json({
-      message: 'PayPal deposit captured successfully.',
-      orderId,
-      captureId: capture?.id || null,
-      status: capture?.status || payload.status || 'COMPLETED',
-      amount: Number(amountValue.toFixed(2)),
-      currency,
-      payerEmail: payer?.email_address || donorEmail || undefined
-    });
-  } catch (error) {
-    console.error('Failed to capture PayPal order', error);
-    return res.status(502).json({
-      message: 'Unable to finalize PayPal capture right now. Please try again shortly.'
-    });
-  }
-});
-
 app.post('/payments/bitcoin', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const cardholder = typeof body.cardholder === 'string' ? body.cardholder.trim() : '';
@@ -1791,7 +1716,12 @@ app.post('/payments/bitcoin', async (req, res) => {
     return res.status(400).json({ message: 'Bitcoin amount exceeds the valid range.' });
   }
 
-  const usdAmount = parseUsdAmount(usdAmountRaw);
+  let usdAmount = 0;
+  if (typeof usdAmountRaw === 'number') {
+    usdAmount = usdAmountRaw;
+  } else if (typeof usdAmountRaw === 'string') {
+    usdAmount = Number.parseFloat(usdAmountRaw.replace(/[^0-9.\-]/g, ''));
+  }
 
   if (!Number.isFinite(usdAmount) || usdAmount <= 0) {
     return res.status(400).json({ message: 'Enter the USD invoice amount linked to this bitcoin transfer.' });
@@ -2377,8 +2307,9 @@ function isPublicRoute(req) {
 
   if (isReadOnlyRequest) {
     const publicHtml = new Set([
-      '/',
       '/login',
+      '/login.html',
+      '/webpage-login.html',
       '/ioncore-contracting.html',
       '/IONCORECHAT',
       '/IONCORECHAT/',
@@ -2406,7 +2337,25 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  return next();
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  if (validateAuthSession(sessionId)) {
+    setSessionCookie(res, sessionId);
+    return next();
+  }
+
+  clearSessionCookie(res);
+  const accepts = req.headers.accept || '';
+  if (accepts.includes('text/html') || accepts.includes('*/*')) {
+    const nextPath = req.originalUrl || '/';
+    const encodedNext = encodeURIComponent(nextPath);
+    return res.redirect(`/login?next=${encodedNext}`);
+  }
+
+  return res.status(401).json({ message: 'Authentication required. Please sign in to continue.' });
 }
 
 async function getHtmlFiles(dir) {
@@ -2435,7 +2384,7 @@ app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {
-  res.redirect('/webpage.html');
+  await sendHtml(res, path.join(__dirname, 'webpage.html'));
 });
 
 app.get('/timepieces', async (req, res) => {
@@ -2511,7 +2460,6 @@ app.get('/api/admin/overview', async (req, res) => {
   const timepieceMintLedger = Array.isArray(store.timepieceMintLedger) ? store.timepieceMintLedger : [];
   const fileBroadcasts = Array.isArray(store.fileBroadcasts) ? store.fileBroadcasts : [];
   const chatServerLedger = Array.isArray(store.chatServerLedger) ? store.chatServerLedger : [];
-  const paypalTransactions = Array.isArray(store.paypalTransactions) ? store.paypalTransactions : [];
   const uploadMap = new Map(marketplaceUploads.map((upload) => [upload.id, upload]));
 
   let dataDirectoryUsage = { sizeBytes: 0, fileCount: 0 };
@@ -2604,18 +2552,6 @@ app.get('/api/admin/overview', async (req, res) => {
       detail: `BTC ${transaction.btcAmount != null ? transaction.btcAmount : ''} · USD ${
         transaction.usdAmount != null ? transaction.usdAmount : ''
       } · Status: ${transaction.status || 'pending'}`.trim(),
-      reference: transaction
-    });
-  }
-
-  for (const transaction of paypalTransactions) {
-    activityTimeline.push({
-      type: 'paypal-transaction',
-      timestamp: transaction.createdAt,
-      headline: transaction.donorName || transaction.orderId || 'PayPal payment',
-      detail: `${transaction.currency || ''} ${transaction.amount != null ? transaction.amount : ''} · Status: ${
-        transaction.status || 'pending'
-      }`.trim(),
       reference: transaction
     });
   }
@@ -2810,7 +2746,6 @@ app.get('/api/admin/overview', async (req, res) => {
       totalLoginEvents: store.loginEvents.length,
       totalStripeTransactions: store.magstripeTransactions.length,
       totalBitcoinTransactions: store.bitcoinTransactions.length,
-      totalPaypalTransactions: paypalTransactions.length,
       totalMarketplaceUploads: marketplaceUploads.length,
       totalMarketplaceBids: marketplaceBids.length,
       totalTimepieceMintIntents: timepieceMintLedger.length,
@@ -2821,7 +2756,6 @@ app.get('/api/admin/overview', async (req, res) => {
     gatewayUsers: sortByTimestampDesc(gatewayUsers, 'updatedAt', 'createdAt'),
     magstripeTransactions: sortByTimestampDesc(store.magstripeTransactions, 'createdAt'),
     bitcoinTransactions: sortByTimestampDesc(store.bitcoinTransactions, 'createdAt'),
-    paypalTransactions: sortByTimestampDesc(paypalTransactions, 'createdAt'),
     contactSubmissions: sortByTimestampDesc(store.contactSubmissions, 'createdAt'),
     gatewaySubmissions: sortByTimestampDesc(store.gatewaySubmissions, 'updatedAt', 'createdAt'),
     loginEvents: sortByTimestampDesc(store.loginEvents, 'createdAt'),

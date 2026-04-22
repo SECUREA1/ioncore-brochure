@@ -17,6 +17,16 @@
     uploads: [],
     bids: []
   };
+  const pageView = (() => {
+    const path = window.location.pathname.toLowerCase();
+    if (path.endsWith('/index.html') || path === '/' || path === '') {
+      return 'index';
+    }
+    if (path.endsWith('/webpage.html')) {
+      return 'marketplace';
+    }
+    return 'all';
+  })();
 
   const dedupeById = (records) => {
     const map = new Map();
@@ -47,6 +57,60 @@
     }
     const formatted = amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     return `${currency || ''} ${formatted}`.trim();
+  };
+
+  const inferMediaType = (url, providedType) => {
+    const normalizedType = typeof providedType === 'string' ? providedType.trim().toLowerCase() : '';
+    if (normalizedType) return normalizedType;
+    if (typeof url !== 'string') return 'link';
+    const lowered = url.toLowerCase();
+    if (/\.(png|jpe?g|gif|webp|svg|bmp|ico)(?:[\?#].*)?$/.test(lowered)) return 'image';
+    if (/\.(mp4|webm|ogg|mov|m4v)(?:[\?#].*)?$/.test(lowered)) return 'video';
+    if (/\.(mp3|wav|flac|m4a|aac|oga)(?:[\?#].*)?$/.test(lowered)) return 'audio';
+    if (/\.(html?)(?:[\?#].*)?$/.test(lowered)) return 'html';
+    return 'link';
+  };
+
+  const createMediaPreview = (url, providedType) => {
+    if (!url) return null;
+    const type = inferMediaType(url, providedType);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'marketplace-item__media';
+
+    if (type === 'image') {
+      const image = document.createElement('img');
+      image.src = url;
+      image.alt = 'Marketplace upload preview';
+      image.loading = 'lazy';
+      wrapper.appendChild(image);
+    } else if (type === 'video') {
+      const video = document.createElement('video');
+      video.src = url;
+      video.controls = true;
+      video.preload = 'metadata';
+      wrapper.appendChild(video);
+    } else if (type === 'audio') {
+      const audio = document.createElement('audio');
+      audio.src = url;
+      audio.controls = true;
+      audio.preload = 'metadata';
+      wrapper.appendChild(audio);
+    } else if (type === 'html') {
+      const frame = document.createElement('iframe');
+      frame.src = url;
+      frame.loading = 'lazy';
+      frame.title = 'Marketplace HTML preview';
+      frame.referrerPolicy = 'no-referrer';
+      wrapper.appendChild(frame);
+    }
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = 'Open media';
+    wrapper.appendChild(link);
+    return wrapper;
   };
 
   const updateAssetOptions = () => {
@@ -128,6 +192,16 @@
         updatedSpan.textContent = `Updated: ${formatDate(upload.updatedAt)}`;
         meta.appendChild(updatedSpan);
       }
+      if (upload.listingType) {
+        const typeSpan = document.createElement('span');
+        typeSpan.textContent = `Type: ${upload.listingType}`;
+        meta.appendChild(typeSpan);
+      }
+      if (Array.isArray(upload.displayTargets) && upload.displayTargets.length) {
+        const targetSpan = document.createElement('span');
+        targetSpan.textContent = `Visible on: ${upload.displayTargets.join(', ')}`;
+        meta.appendChild(targetSpan);
+      }
 
       card.appendChild(meta);
 
@@ -137,16 +211,9 @@
         card.appendChild(description);
       }
 
-      if (upload.mediaUrl) {
-        const media = document.createElement('div');
-        media.className = 'marketplace-item__media';
-        const link = document.createElement('a');
-        link.href = upload.mediaUrl;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.textContent = 'Open media';
-        media.appendChild(link);
-        card.appendChild(media);
+      const uploadMedia = createMediaPreview(upload.mediaUrl, upload.mediaType);
+      if (uploadMedia) {
+        card.appendChild(uploadMedia);
       }
 
       uploadsList.appendChild(card);
@@ -206,16 +273,9 @@
         card.appendChild(message);
       }
 
-      if (bid.assetMediaUrl) {
-        const media = document.createElement('div');
-        media.className = 'marketplace-item__media';
-        const link = document.createElement('a');
-        link.href = bid.assetMediaUrl;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.textContent = 'Open asset media';
-        media.appendChild(link);
-        card.appendChild(media);
+      const bidMedia = createMediaPreview(bid.assetMediaUrl, bid.assetMediaType);
+      if (bidMedia) {
+        card.appendChild(bidMedia);
       }
 
       bidsList.appendChild(card);
@@ -226,7 +286,8 @@
     const silent = Boolean(options.silent);
     if (!silent) setStatus(feedStatus, 'Synchronizing marketplace feed…', 'pending');
     try {
-      const response = await fetch('/api/marketplace', { headers: { Accept: 'application/json' } });
+      const endpoint = `/api/marketplace?view=${encodeURIComponent(pageView)}`;
+      const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
       if (!response.ok) throw new Error('Failed to load marketplace feed');
       const payload = await response.json();
       state.uploads = dedupeById(Array.isArray(payload.uploads) ? payload.uploads : []);
@@ -260,7 +321,10 @@
         username: String(formData.get('username') || '').trim(),
         walletAddress: String(formData.get('walletAddress') || '').trim(),
         mediaUrl: String(formData.get('mediaUrl') || '').trim(),
-        contact: String(formData.get('contact') || '').trim()
+        contact: String(formData.get('contact') || '').trim(),
+        listingType: String(formData.get('listingType') || 'general').trim().toLowerCase() || 'general',
+        displayTargets: formData.getAll('displayTargets').map((entry) => String(entry || '').trim().toLowerCase()),
+        mediaType: String(formData.get('mediaType') || '').trim().toLowerCase()
       };
 
       if (!payload.title) {

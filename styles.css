@@ -3913,6 +3913,35 @@ main {
   gap: 0.75rem;
 }
 
+.marketplace-visibility {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.marketplace-visibility legend {
+  padding: 0 0.3rem;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.marketplace-visibility label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.marketplace-visibility input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
 .marketplace-status {
   min-height: 1.3rem;
   font-size: 0.9rem;
@@ -3995,6 +4024,30 @@ main {
   color: var(--accent);
   font-weight: 600;
   text-decoration: none;
+}
+
+.marketplace-item__media {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.marketplace-item__media img,
+.marketplace-item__media video,
+.marketplace-item__media iframe {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(106, 255, 59, 0.18);
+  background: rgba(2, 6, 23, 0.78);
+}
+
+.marketplace-item__media img,
+.marketplace-item__media video {
+  max-height: 240px;
+  object-fit: cover;
+}
+
+.marketplace-item__media iframe {
+  min-height: 220px;
 }
 
 .marketplace-item__media a:hover {

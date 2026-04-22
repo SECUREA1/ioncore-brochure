@@ -2210,7 +2210,8 @@ app.post('/api/marketplace/bids', async (req, res) => {
   res.status(201).json({
     ...record,
     assetTitle: asset.title || null,
-    assetOwner: asset.username || asset.walletAddress || null
+    assetOwner: asset.username || asset.walletAddress || null,
+    assetMediaUrl: asset.mediaUrl || null
   });
 });
 
@@ -2270,7 +2271,8 @@ app.get('/api/marketplace', (req, res) => {
       createdAt: bid.createdAt,
       updatedAt: bid.updatedAt,
       assetTitle: asset?.title || null,
-      assetOwner: asset?.username || asset?.walletAddress || null
+      assetOwner: asset?.username || asset?.walletAddress || null,
+      assetMediaUrl: asset?.mediaUrl || null
     };
   });
 
@@ -2700,7 +2702,8 @@ app.get('/api/admin/overview', async (req, res) => {
       createdAt: bid.createdAt,
       updatedAt: bid.updatedAt,
       assetTitle: asset?.title || null,
-      assetOwner: asset?.username || asset?.walletAddress || null
+      assetOwner: asset?.username || asset?.walletAddress || null,
+      assetMediaUrl: asset?.mediaUrl || null
     };
   });
 

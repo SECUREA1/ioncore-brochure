@@ -206,6 +206,18 @@
         card.appendChild(message);
       }
 
+      if (bid.assetMediaUrl) {
+        const media = document.createElement('div');
+        media.className = 'marketplace-item__media';
+        const link = document.createElement('a');
+        link.href = bid.assetMediaUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Open asset media';
+        media.appendChild(link);
+        card.appendChild(media);
+      }
+
       bidsList.appendChild(card);
     }
   };

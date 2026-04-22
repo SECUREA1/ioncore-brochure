@@ -740,6 +740,68 @@ function sanitizeUrl(value) {
   return null;
 }
 
+function normalizeMarketplaceView(value) {
+  if (typeof value !== 'string') {
+    return 'all';
+  }
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'index' || normalized === 'marketplace') {
+    return normalized;
+  }
+  return 'all';
+}
+
+function normalizeDisplayTargets(rawTargets) {
+  const values = Array.isArray(rawTargets) ? rawTargets : [rawTargets];
+  const allowed = new Set(['index', 'marketplace']);
+  const targets = values
+    .flatMap((entry) => {
+      if (Array.isArray(entry)) {
+        return entry;
+      }
+      if (typeof entry === 'string') {
+        return entry.split(',');
+      }
+      return [];
+    })
+    .map((entry) => (typeof entry === 'string' ? entry.trim().toLowerCase() : ''))
+    .filter((entry) => allowed.has(entry));
+
+  if (!targets.length) {
+    return ['index', 'marketplace'];
+  }
+
+  return Array.from(new Set(targets));
+}
+
+function shouldDisplayUploadForView(upload, view) {
+  if (view !== 'index' && view !== 'marketplace') {
+    return true;
+  }
+  const targets = normalizeDisplayTargets(upload?.displayTargets);
+  return targets.includes(view);
+}
+
+function inferMediaTypeFromUrl(url) {
+  if (typeof url !== 'string' || !url) {
+    return 'link';
+  }
+  const lowered = url.toLowerCase();
+  if (/\.(png|jpe?g|gif|webp|svg|bmp|ico)(?:[\?#].*)?$/.test(lowered)) {
+    return 'image';
+  }
+  if (/\.(mp4|webm|ogg|mov|m4v)(?:[\?#].*)?$/.test(lowered)) {
+    return 'video';
+  }
+  if (/\.(mp3|wav|flac|m4a|aac|oga)(?:[\?#].*)?$/.test(lowered)) {
+    return 'audio';
+  }
+  if (/\.(html?)(?:[\?#].*)?$/.test(lowered)) {
+    return 'html';
+  }
+  return 'link';
+}
+
 function parseCurrencyAmount(raw) {
   if (typeof raw === 'number') {
     return Number.isFinite(raw) ? raw : 0;
@@ -2124,6 +2186,10 @@ app.post('/api/marketplace/uploads', async (req, res) => {
   const description = normalizeForStorage(body.description || body.summary || body.notes);
   const contact = normalizeForStorage(body.contact || body.email || body.link);
   const mediaUrl = sanitizeUrl(typeof body.mediaUrl === 'string' ? body.mediaUrl : body.previewUrl);
+  const listingType = normalizeForStorage(body.listingType || body.type || 'general') || 'general';
+  const displayTargets = normalizeDisplayTargets(body.displayTargets || body.visibility || body.views);
+  const mediaTypeRaw = normalizeForStorage(body.mediaType || body.assetType || '');
+  const mediaType = mediaTypeRaw || inferMediaTypeFromUrl(mediaUrl);
 
   if (!title) {
     return res.status(400).json({ message: 'Provide a title or label for this marketplace upload.' });
@@ -2138,6 +2204,9 @@ app.post('/api/marketplace/uploads', async (req, res) => {
     walletAddress,
     mediaUrl,
     contact,
+    listingType,
+    displayTargets,
+    mediaType,
     createdAt: now,
     updatedAt: now,
     lastBidAt: null
@@ -2216,18 +2285,24 @@ app.post('/api/marketplace/bids', async (req, res) => {
 });
 
 app.get('/api/marketplace', (req, res) => {
+  const view = normalizeMarketplaceView(typeof req.query.view === 'string' ? req.query.view : 'all');
   const uploads = Array.isArray(store.marketplaceUploads) ? store.marketplaceUploads : [];
   const bids = Array.isArray(store.marketplaceBids) ? store.marketplaceBids : [];
   const bidLookup = new Map();
+  const filteredUploads = uploads.filter((upload) => shouldDisplayUploadForView(upload, view));
+  const uploadIdsForView = new Set(filteredUploads.map((upload) => upload.id));
 
   for (const bid of bids) {
+    if (!uploadIdsForView.has(bid.assetId)) {
+      continue;
+    }
     if (!bidLookup.has(bid.assetId)) {
       bidLookup.set(bid.assetId, []);
     }
     bidLookup.get(bid.assetId).push(bid);
   }
 
-  const orderedUploads = sortByTimestampDesc(uploads, 'updatedAt', 'createdAt').map((upload) => {
+  const orderedUploads = sortByTimestampDesc(filteredUploads, 'updatedAt', 'createdAt').map((upload) => {
     const relatedBids = bidLookup.get(upload.id) || [];
     const highestBid = relatedBids.reduce((current, candidate) => {
       if (!candidate || typeof candidate.amount !== 'number') {
@@ -2246,6 +2321,9 @@ app.get('/api/marketplace', (req, res) => {
       username: upload.username,
       walletAddress: upload.walletAddress,
       mediaUrl: upload.mediaUrl,
+      mediaType: upload.mediaType || inferMediaTypeFromUrl(upload.mediaUrl),
+      listingType: upload.listingType || 'general',
+      displayTargets: normalizeDisplayTargets(upload.displayTargets),
       contact: upload.contact,
       createdAt: upload.createdAt,
       updatedAt: upload.updatedAt,
@@ -2256,8 +2334,10 @@ app.get('/api/marketplace', (req, res) => {
     };
   });
 
-  const uploadLookup = new Map(uploads.map((upload) => [upload.id, upload]));
-  const orderedBids = sortByTimestampDesc(bids, 'createdAt').map((bid) => {
+  const uploadLookup = new Map(filteredUploads.map((upload) => [upload.id, upload]));
+  const orderedBids = sortByTimestampDesc(bids, 'createdAt')
+    .filter((bid) => uploadIdsForView.has(bid.assetId))
+    .map((bid) => {
     const asset = uploadLookup.get(bid.assetId);
     return {
       id: bid.id,
@@ -2272,12 +2352,14 @@ app.get('/api/marketplace', (req, res) => {
       updatedAt: bid.updatedAt,
       assetTitle: asset?.title || null,
       assetOwner: asset?.username || asset?.walletAddress || null,
-      assetMediaUrl: asset?.mediaUrl || null
+      assetMediaUrl: asset?.mediaUrl || null,
+      assetMediaType: asset?.mediaType || inferMediaTypeFromUrl(asset?.mediaUrl || '')
     };
   });
 
   res.json({
     generatedAt: new Date().toISOString(),
+    view,
     uploads: orderedUploads,
     bids: orderedBids
   });

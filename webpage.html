@@ -463,6 +463,31 @@
             <label for="marketplace-media">Media URL
               <input id="marketplace-media" name="mediaUrl" type="url" placeholder="https://ioncore-energy.s3.amazonaws.com/demo.mp4">
             </label>
+            <div class="marketplace-form__row">
+              <label for="marketplace-listing-type">Listing type
+                <select id="marketplace-listing-type" name="listingType">
+                  <option value="general">General</option>
+                  <option value="product">Product</option>
+                  <option value="service">Service</option>
+                  <option value="media">Media</option>
+                </select>
+              </label>
+              <label for="marketplace-media-type">Media type
+                <select id="marketplace-media-type" name="mediaType">
+                  <option value="">Auto detect</option>
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
+                  <option value="audio">Audio</option>
+                  <option value="html">HTML post</option>
+                  <option value="link">Link</option>
+                </select>
+              </label>
+            </div>
+            <fieldset class="marketplace-visibility">
+              <legend>Show this post on</legend>
+              <label><input type="checkbox" name="displayTargets" value="index" checked> Index marketplace</label>
+              <label><input type="checkbox" name="displayTargets" value="marketplace" checked> Webpage marketplace</label>
+            </fieldset>
             <label for="marketplace-contact">Contact or handle
               <input id="marketplace-contact" name="contact" type="text" placeholder="you@enterprise.io">
             </label>

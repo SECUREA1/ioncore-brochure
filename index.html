@@ -146,6 +146,89 @@
         </tbody>
       </table>
     </section>
+
+    <section class="page-section" id="marketplace" style="margin-top:2rem;">
+      <span class="eyebrow">Marketplace Exchange</span>
+      <h2 class="section-title" style="margin:.5rem 0;">Marketplace feed synced with webpage.html</h2>
+      <p class="section-subtitle">Uploads and bids submitted here or on the marketplace page are shared together with one unified feed.</p>
+      <div class="marketplace-grid">
+        <article class="marketplace-card tile-highlight">
+          <h3>Share an upload</h3>
+          <form id="marketplace-upload-form" class="marketplace-form" novalidate>
+            <label for="marketplace-title">Title<span aria-hidden="true">*</span>
+              <input id="marketplace-title" name="title" type="text" placeholder="Cryogenic Cooling Suite" required>
+            </label>
+            <label for="marketplace-description">Description
+              <textarea id="marketplace-description" name="description" placeholder="Outline the value, deliverables, or attached media."></textarea>
+            </label>
+            <label for="marketplace-username">Creator name
+              <input id="marketplace-username" name="username" type="text" placeholder="Chaines">
+            </label>
+            <label for="marketplace-wallet">Wallet address
+              <input id="marketplace-wallet" name="walletAddress" type="text" placeholder="0xABC123…">
+            </label>
+            <label for="marketplace-media">Media URL
+              <input id="marketplace-media" name="mediaUrl" type="url" placeholder="https://example.com/demo.mp4">
+            </label>
+            <label for="marketplace-contact">Contact or handle
+              <input id="marketplace-contact" name="contact" type="text" placeholder="you@enterprise.io">
+            </label>
+            <div class="marketplace-form__actions">
+              <button type="submit" class="btn btn-primary">Submit upload</button>
+              <p class="marketplace-status" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </article>
+
+        <article class="marketplace-card tile-highlight">
+          <h3>Place a bid</h3>
+          <form id="marketplace-bid-form" class="marketplace-form" novalidate>
+            <label for="marketplace-asset">Upload<span aria-hidden="true">*</span>
+              <select id="marketplace-asset" name="assetId" required>
+                <option value="">Loading uploads…</option>
+              </select>
+            </label>
+            <label for="marketplace-bidder">Bidder name
+              <input id="marketplace-bidder" name="bidderName" type="text" placeholder="Ioncore Ventures">
+            </label>
+            <label for="marketplace-bid-wallet">Wallet address
+              <input id="marketplace-bid-wallet" name="bidderWallet" type="text" placeholder="0x4837F91B…">
+            </label>
+            <div class="marketplace-form__row">
+              <label for="marketplace-amount">Bid amount<span aria-hidden="true">*</span>
+                <input id="marketplace-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="2500" required>
+              </label>
+              <label for="marketplace-currency">Currency
+                <input id="marketplace-currency" name="currency" type="text" maxlength="6" placeholder="USD" value="USD">
+              </label>
+            </div>
+            <label for="marketplace-bid-contact">Contact or handle
+              <input id="marketplace-bid-contact" name="contact" type="text" placeholder="ops@partner.io">
+            </label>
+            <label for="marketplace-message">Message
+              <textarea id="marketplace-message" name="message" placeholder="Share delivery timelines, escrow steps, or partnership notes."></textarea>
+            </label>
+            <div class="marketplace-form__actions">
+              <button type="submit" class="btn btn-outline">Submit bid</button>
+              <p class="marketplace-status" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </article>
+      </div>
+      <div class="marketplace-feed-status marketplace-status" id="marketplace-feed-status" role="status" aria-live="polite"></div>
+      <div class="marketplace-stream">
+        <div class="marketplace-stream__column">
+          <h3>Community uploads</h3>
+          <div id="marketplace-uploads" class="marketplace-list"></div>
+        </div>
+        <div class="marketplace-stream__column">
+          <h3>Recent bids</h3>
+          <div id="marketplace-bids" class="marketplace-list"></div>
+        </div>
+      </div>
+    </section>
+
   </main>
+  <script src="marketplace-sync.js"></script>
 </body>
 </html>

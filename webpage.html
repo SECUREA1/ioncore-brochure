@@ -774,6 +774,16 @@
         bids: []
       };
 
+      const dedupeById = (records) => {
+        const map = new Map();
+        for (const record of records) {
+          if (!record || typeof record !== 'object') continue;
+          const key = typeof record.id === 'string' && record.id ? record.id : JSON.stringify(record);
+          map.set(key, record);
+        }
+        return Array.from(map.values());
+      };
+
       const setStatus = (element, message, variant) => {
         if (!element) return;
         element.textContent = message || '';
@@ -978,8 +988,8 @@
             throw new Error('Failed to load marketplace feed');
           }
           const payload = await response.json();
-          state.uploads = Array.isArray(payload.uploads) ? payload.uploads : [];
-          state.bids = Array.isArray(payload.bids) ? payload.bids : [];
+          state.uploads = dedupeById(Array.isArray(payload.uploads) ? payload.uploads : []);
+          state.bids = dedupeById(Array.isArray(payload.bids) ? payload.bids : []);
           renderUploads();
           renderBids();
           updateAssetOptions();
@@ -1116,6 +1126,14 @@
       renderUploads();
       renderBids();
       refreshMarketplace().catch(() => {});
+
+      window.setInterval(() => {
+        refreshMarketplace({ silent: true }).catch(() => {});
+      }, 12000);
+
+      window.addEventListener('focus', () => {
+        refreshMarketplace({ silent: true }).catch(() => {});
+      });
     })();
 
     (() => {

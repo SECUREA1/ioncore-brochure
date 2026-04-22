@@ -365,6 +365,19 @@
     }
 
     .logic-block { margin-top: 24px; }
+    .logic-block .reward-grid {
+      margin-top: 16px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .reward-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .reward-card strong { color: var(--gold2); display: block; margin-bottom: 6px; }
     .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 24px; }
 
     .timeline {
@@ -641,7 +654,9 @@
       <div class="container">
         <h2 class="section-title">Fundraising and Conversion Flow</h2>
         <p class="section-subtitle">
-          These meters separate startup capital from product demand and frame a stronger pitch: each launch lane targets 2,500 reservations for scale-ready market validation.
+          These meters separate startup capital from product demand and now include transparent sales-force rewards:
+          <strong>$200,000 sell-out pool</strong> for mobile, <strong>$500,000 sell-out pool</strong> for hotel models,
+          <strong>$100 per small unit</strong>, and <strong>$200 per larger commercial unit</strong>.
         </p>
 
         <div class="meter-grid">
@@ -663,29 +678,29 @@
             <div class="meter-bar"><div class="meter-fill blue" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Portable Flagship</strong><span>Higher-end mobile power</span></div>
-              <div class="meta-box"><strong>2,500 Units</strong><span>Pitch Goal</span></div>
+              <div class="meta-box"><strong>$200,000 Sell-Out Offer</strong><span>Mobile reward pool unlocked at 2,500 units</span></div>
             </div>
           </div>
 
           <div class="meter-card">
             <h3>Luxury Home Install Meter</h3>
             <p>Tracks premium installation demand for residential clients and estates.</p>
-            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 2,500</span></div>
+            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 1,000</span></div>
             <div class="meter-bar"><div class="meter-fill green" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Luxury Residential</strong><span>Design-forward resilience</span></div>
-              <div class="meta-box"><strong>2,500 Slots</strong><span>Pitch Goal</span></div>
+              <div class="meta-box"><strong>1,000 Slots</strong><span>Current premium installation goal</span></div>
             </div>
           </div>
 
           <div class="meter-card">
             <h3>Hotel & Retail Meter</h3>
             <p>Tracks commercial system reservation demand for hotels, retail, and scaled property portfolios.</p>
-            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 2,500</span></div>
+            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 1,000</span></div>
             <div class="meter-bar"><div class="meter-fill purple" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Commercial Luxury</strong><span>High-load public spaces</span></div>
-              <div class="meta-box"><strong>2,500 Systems</strong><span>Pitch Goal</span></div>
+              <div class="meta-box"><strong>$500,000 Sell-Out Offer</strong><span>Hotel reward pool unlocked at 1,000 systems</span></div>
             </div>
           </div>
         </div>
@@ -693,8 +708,31 @@
         <div class="logic-block">
           <h3>Why this conversion flow works</h3>
           <p>
-            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes, each aimed at 2,500 unit traction milestones.
-            That makes the site easier to understand for investors, buyers, and strategic partners while supporting a stronger scale narrative in the pitch.
+            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes with transparent compensation math.
+            This gives investors and sales teams one shared source of truth for conversion goals and payout visibility.
+          </p>
+          <div class="reward-grid">
+            <div class="reward-card">
+              <strong>Small Unit Reward (Peak 30)</strong>
+              $100 per unit × 2,500 units = <span class="highlight">$250,000</span> base sales payout.<br />
+              Sell-out pool adds <span class="highlight">$200,000</span>.<br />
+              <strong>Total at sell-out: $450,000</strong>
+            </div>
+            <div class="reward-card">
+              <strong>Larger Unit Reward (Hotel Models)</strong>
+              $200 per unit × 1,000 units = <span class="highlight">$200,000</span> base sales payout.<br />
+              Sell-out pool adds <span class="highlight">$500,000</span>.<br />
+              <strong>Total at sell-out: $700,000</strong>
+            </div>
+            <div class="reward-card">
+              <strong>Total Transparent Sales Force Reward</strong>
+              Combined sell-out payout visibility across small + larger units:<br />
+              <strong class="highlight">$1,150,000 total potential reward</strong><br />
+              (Base commissions + both sell-out pools)
+            </div>
+          </div>
+          <p>
+            Current reservation counts are at zero, so current earned payout displays at <strong>$0</strong>. As reservations move, this block can be updated in real time.
           </p>
         </div>
       </div>

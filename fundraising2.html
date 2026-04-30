@@ -365,19 +365,6 @@
     }
 
     .logic-block { margin-top: 24px; }
-    .logic-block .reward-grid {
-      margin-top: 16px;
-      display: grid;
-      gap: 14px;
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .reward-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 14px;
-    }
-    .reward-card strong { color: var(--gold2); display: block; margin-bottom: 6px; }
     .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 24px; }
 
     .timeline {
@@ -433,49 +420,15 @@
       padding-top: 24px;
     }
 
-    .deposit-shell {
-      display: grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap: 24px;
-      align-items: start;
-    }
-
-    .deposit-form { display: grid; gap: 14px; margin-top: 16px; }
-    .field label { display: block; margin-bottom: 6px; font-size: .9rem; color: var(--muted); }
-    .field input, .field textarea {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.05);
-      color: var(--text);
-      padding: 12px 14px;
-      font: inherit;
-    }
-    .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
-    .status {
-      margin-top: 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(132,255,189,0.2);
-      background: rgba(132,255,189,0.08);
-      color: #d4ffe8;
-      padding: 12px 14px;
-      display: none;
-    }
-    .status.error {
-      border-color: rgba(255,138,138,0.3);
-      background: rgba(255,138,138,0.08);
-      color: #ffd4d4;
-    }
-
     @media (max-width: 1120px) {
-      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
         grid-template-columns: 1fr 1fr;
       }
     }
 
     @media (max-width: 760px) {
       .hero { padding-top: 58px; }
-      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
         grid-template-columns: 1fr;
       }
       .nav { align-items: flex-start; }
@@ -500,8 +453,6 @@
         <a href="#models">Models</a>
         <a href="#pricing">Pricing</a>
         <a href="#propulsion">Propulsion</a>
-        <a href="#supersonic-logic">Supersonic Logic</a>
-        <a href="#deposits">Deposits</a>
         <a href="#contact" class="btn btn-secondary">Contact</a>
       </nav>
     </div>
@@ -654,9 +605,8 @@
       <div class="container">
         <h2 class="section-title">Fundraising and Conversion Flow</h2>
         <p class="section-subtitle">
-          These meters separate startup capital from product demand and now include transparent sales-force rewards:
-          <strong>$200,000 sell-out pool</strong> for mobile, <strong>$500,000 sell-out pool</strong> for hotel models,
-          <strong>$100 per small unit</strong>, and <strong>$200 per larger commercial unit</strong>.
+          These meters separate startup capital from demand generation so visitors understand the company-building phase
+          versus the category conversion phase.
         </p>
 
         <div class="meter-grid">
@@ -674,33 +624,33 @@
           <div class="meter-card">
             <h3>Peak 30 Presale Meter</h3>
             <p>Tracks reservation demand for the flagship portable hybrid system.</p>
-            <div class="meter-label"><span>Units Reserved</span><span>0 / 2,500</span></div>
+            <div class="meter-label"><span>Units Reserved</span><span>0 / 1,000</span></div>
             <div class="meter-bar"><div class="meter-fill blue" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Portable Flagship</strong><span>Higher-end mobile power</span></div>
-              <div class="meta-box"><strong>$200,000 Sell-Out Offer</strong><span>Mobile reward pool unlocked at 2,500 units</span></div>
+              <div class="meta-box"><strong>1,000 Units</strong><span>Initial Goal</span></div>
             </div>
           </div>
 
           <div class="meter-card">
             <h3>Luxury Home Install Meter</h3>
             <p>Tracks premium installation demand for residential clients and estates.</p>
-            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 1,000</span></div>
+            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 250</span></div>
             <div class="meter-bar"><div class="meter-fill green" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Luxury Residential</strong><span>Design-forward resilience</span></div>
-              <div class="meta-box"><strong>1,000 Slots</strong><span>Current premium installation goal</span></div>
+              <div class="meta-box"><strong>250 Slots</strong><span>Initial Goal</span></div>
             </div>
           </div>
 
           <div class="meter-card">
             <h3>Hotel & Retail Meter</h3>
-            <p>Tracks commercial system reservation demand for hotels, retail, and scaled property portfolios.</p>
-            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 1,000</span></div>
+            <p>Tracks commercial system reservation and pilot deployment demand.</p>
+            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 120</span></div>
             <div class="meter-bar"><div class="meter-fill purple" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Commercial Luxury</strong><span>High-load public spaces</span></div>
-              <div class="meta-box"><strong>$500,000 Sell-Out Offer</strong><span>Hotel reward pool unlocked at 1,000 systems</span></div>
+              <div class="meta-box"><strong>120 Systems</strong><span>Initial Goal</span></div>
             </div>
           </div>
         </div>
@@ -708,43 +658,8 @@
         <div class="logic-block">
           <h3>Why this conversion flow works</h3>
           <p>
-            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes with transparent compensation math.
-            This gives investors and sales teams one shared source of truth for conversion goals and payout visibility.
-          </p>
-          <p>
-            The <strong>$1,150,000 combined reward potential</strong> is intentionally positioned as both a community-growth and marketing engine.
-            Community ambassadors and field advocates can point to clear, milestone-based reward math, while marketing teams can build campaigns around
-            visible sell-out goals instead of vague promises. This creates one unified narrative: stronger community participation drives measurable momentum,
-            and measurable momentum improves investor confidence.
-          </p>
-          <div class="reward-grid">
-            <div class="reward-card">
-              <strong>Small Unit Reward (Peak 30)</strong>
-              $100 per unit × 2,500 units = <span class="highlight">$250,000</span> base sales payout.<br />
-              Sell-out pool adds <span class="highlight">$200,000</span>.<br />
-              <strong>Total at sell-out: $450,000</strong>
-            </div>
-            <div class="reward-card">
-              <strong>Larger Unit Reward (Hotel Models)</strong>
-              $200 per unit × 1,000 units = <span class="highlight">$200,000</span> base sales payout.<br />
-              Sell-out pool adds <span class="highlight">$500,000</span>.<br />
-              <strong>Total at sell-out: $700,000</strong>
-            </div>
-            <div class="reward-card">
-              <strong>Total Transparent Sales Force Reward</strong>
-              Combined sell-out payout visibility across small + larger units:<br />
-              <strong class="highlight">$1,150,000 total potential reward</strong><br />
-              (Base commissions + both sell-out pools)
-            </div>
-          </div>
-          <div class="kpi-row" style="margin-top:18px;">
-            <div class="kpi"><strong>Community Activation</strong><span>Members can track one shared reward target and referral mission</span></div>
-            <div class="kpi"><strong>Marketing Clarity</strong><span>Campaigns map directly to reward milestones and sell-out checkpoints</span></div>
-            <div class="kpi"><strong>Sales Alignment</strong><span>Sales teams, community advocates, and leadership use the same payout framework</span></div>
-            <div class="kpi"><strong>Fundraising Strength</strong><span>Investors see how adoption incentives support demand and conversion velocity</span></div>
-          </div>
-          <p>
-            Current reservation counts are at zero, so current earned payout displays at <strong>$0</strong>. As reservations move, this block can be updated in real time.
+            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes.
+            That makes the site easier to understand for investors, buyers, and strategic partners.
           </p>
         </div>
       </div>
@@ -1030,51 +945,6 @@
       </div>
     </section>
 
-    <section id="supersonic-logic">
-      <div class="container">
-        <h2 class="section-title">Supersonic Logic Engine</h2>
-        <p class="section-subtitle">
-          Reintroducing the conversion model from prior posts: each category has a clear buyer path, while the
-          propulsion lane drives executive-grade conversations around supersonic strategy and long-horizon partnerships.
-        </p>
-
-        <div class="grid-4">
-          <div class="card">
-            <span class="tag">Portable Conversion</span>
-            <h3>Peak 30 drives mobile prestige</h3>
-            <p>
-              Peak 30 stands alone as the portable flagship, improving clarity and making the mobile category feel
-              more intentional and more advanced.
-            </p>
-          </div>
-          <div class="card">
-            <span class="tag">Residential Conversion</span>
-            <h3>Luxury Homes drives aspiration</h3>
-            <p>
-              The residential system creates a premium emotional anchor by selling utility, design, resilience,
-              and lifestyle in one offer.
-            </p>
-          </div>
-          <div class="card">
-            <span class="tag">Commercial Conversion</span>
-            <h3>Hotel & Retail drives scale confidence</h3>
-            <p>
-              The commercial system proves IonCore can address serious facility needs, which raises confidence
-              across the whole platform.
-            </p>
-          </div>
-          <div class="card">
-            <span class="tag tag-gold">Aerospace Conversion</span>
-            <h3>Propulsion drives supersonic scale</h3>
-            <p>
-              The engine platform converts through executive briefs, deployment discussions, investor dossiers,
-              and partnership pathways rather than simple retail checkout.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section>
       <div class="container">
         <h2 class="section-title">Launch Roadmap</h2>
@@ -1103,63 +973,6 @@
             <h4>Build first-wave momentum</h4>
             <p>Use scarcity, premium positioning, and clean category logic to build trust, conversion, and strategic attention.</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="deposits">
-      <div class="container">
-        <h2 class="section-title">PayPal Startup Deposits</h2>
-        <p class="section-subtitle">
-          This deposit module is now wired for secure PayPal checkout order creation and server-side capture logging.
-          It gives contributors a clean, trusted payment path while preserving treasury records for admin review.
-        </p>
-        <div class="deposit-shell">
-          <article class="card">
-            <span class="tag tag-gold">Live Deposit Experience</span>
-            <h3>Contribute to the $200K startup round</h3>
-            <p>
-              Enter your contribution details, then complete checkout with PayPal. The backend records order and capture
-              events so your operations team has a cleaner funding ledger and reporting trail.
-            </p>
-            <form id="paypal-deposit-form" class="deposit-form">
-              <div class="field">
-                <label for="donorName">Contributor name</label>
-                <input id="donorName" name="donorName" required placeholder="Full name or organization" />
-              </div>
-              <div class="field">
-                <label for="donorEmail">Email (for confirmations)</label>
-                <input id="donorEmail" name="donorEmail" type="email" placeholder="name@company.com" />
-              </div>
-              <div class="field">
-                <label for="donationAmount">Deposit amount (USD)</label>
-                <input id="donationAmount" name="amount" type="number" min="25" step="0.01" value="5000" required />
-              </div>
-              <div class="field">
-                <label for="projectReference">Reference (optional)</label>
-                <input id="projectReference" name="projectReference" placeholder="Startup Round / Program name" />
-              </div>
-            </form>
-            <p class="deposit-note">Use PayPal sandbox credentials until your production API keys are live.</p>
-            <div id="paypal-button-wrap" style="margin-top:16px;"></div>
-            <div id="paypal-status" class="status" role="status" aria-live="polite"></div>
-          </article>
-
-          <article class="card">
-            <span class="tag">Backend Readiness</span>
-            <h3>What this implementation supports</h3>
-            <ul class="feature-list">
-              <li><strong>/api/payments/paypal/config:</strong> Publishes environment-safe checkout config.</li>
-              <li><strong>/payments/paypal/order:</strong> Creates server-side PayPal CAPTURE orders.</li>
-              <li><strong>/payments/paypal/capture:</strong> Captures and records finalized deposits.</li>
-              <li><strong>Ledger persistence:</strong> Writes transaction records into <code>gateway-store.json</code>.</li>
-              <li><strong>Admin analytics:</strong> Includes PayPal transactions in timeline and KPI counters.</li>
-            </ul>
-            <div class="disclaimer">
-              Before going live, set <strong>PAYPAL_CLIENT_ID</strong>, <strong>PAYPAL_CLIENT_SECRET</strong>,
-              and optionally <strong>PAYPAL_MODE=live</strong> on the server environment.
-            </div>
-          </article>
         </div>
       </div>
     </section>
@@ -1194,101 +1007,5 @@
       <div>© 2026 IonCore Energy. All rights reserved.</div>
     </div>
   </footer>
-  <script>
-    (() => {
-      const statusEl = document.getElementById('paypal-status');
-      const form = document.getElementById('paypal-deposit-form');
-      const buttonWrap = document.getElementById('paypal-button-wrap');
-
-      const setStatus = (message, isError = false) => {
-        if (!statusEl) return;
-        statusEl.textContent = message;
-        statusEl.style.display = message ? 'block' : 'none';
-        statusEl.classList.toggle('error', Boolean(isError));
-      };
-
-      const readFormData = () => {
-        const donorName = form?.donorName?.value?.trim() || '';
-        const donorEmail = form?.donorEmail?.value?.trim() || '';
-        const amount = Number.parseFloat(form?.amount?.value || '0');
-        const projectReference = form?.projectReference?.value?.trim() || '';
-        if (!donorName || !Number.isFinite(amount) || amount <= 0) {
-          throw new Error('Please enter contributor name and a valid positive deposit amount.');
-        }
-        return { donorName, donorEmail, amount, projectReference };
-      };
-
-      const loadPayPal = async () => {
-        const response = await fetch('/api/payments/paypal/config');
-        if (!response.ok) {
-          throw new Error('Unable to load PayPal configuration.');
-        }
-        const config = await response.json();
-        if (!config.enabled || !config.clientId) {
-          throw new Error('PayPal is not configured yet. Add server credentials to enable deposits.');
-        }
-
-        const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency || 'USD')}`;
-        script.async = true;
-        document.head.appendChild(script);
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = () => reject(new Error('Failed to load the PayPal SDK.'));
-        });
-      };
-
-      const initButtons = () => {
-        if (!window.paypal || !buttonWrap) {
-          setStatus('PayPal SDK is unavailable. Refresh and try again.', true);
-          return;
-        }
-        window.paypal.Buttons({
-          style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
-          createOrder: async () => {
-            try {
-              setStatus('');
-              const payload = readFormData();
-              const response = await fetch('/payments/paypal/order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              });
-              const result = await response.json();
-              if (!response.ok || !result.orderId) {
-                throw new Error(result.message || 'Unable to create PayPal order.');
-              }
-              return result.orderId;
-            } catch (error) {
-              setStatus(error.message || 'PayPal order creation failed.', true);
-              throw error;
-            }
-          },
-          onApprove: async (data) => {
-            try {
-              const payload = { orderId: data.orderID, ...readFormData() };
-              const response = await fetch('/payments/paypal/capture', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              });
-              const result = await response.json();
-              if (!response.ok) {
-                throw new Error(result.message || 'Unable to capture PayPal order.');
-              }
-              setStatus(`Deposit captured: ${result.currency} ${result.amount}. Reference ${result.captureId || result.orderId}.`);
-            } catch (error) {
-              setStatus(error.message || 'PayPal capture failed.', true);
-            }
-          },
-          onError: () => setStatus('PayPal checkout encountered an error. Please retry.', true)
-        }).render('#paypal-button-wrap');
-      };
-
-      loadPayPal().then(initButtons).catch((error) => {
-        setStatus(error.message || 'PayPal checkout unavailable.', true);
-      });
-    })();
-  </script>
 </body>
 </html>

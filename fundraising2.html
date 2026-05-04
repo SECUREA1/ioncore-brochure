@@ -420,15 +420,34 @@
       padding-top: 24px;
     }
 
+    .deposit-shell { display: grid; grid-template-columns: 1.05fr .95fr; gap: 24px; align-items: start; }
+    .deposit-form { display: grid; gap: 14px; margin-top: 16px; }
+    .field label { display: block; margin-bottom: 6px; font-size: .9rem; color: var(--muted); }
+    .field input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+    }
+    .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
+    .status {
+      margin-top: 14px; border-radius: 12px; border: 1px solid rgba(132,255,189,0.2);
+      background: rgba(132,255,189,0.08); color: #d4ffe8; padding: 12px 14px; display: none;
+    }
+    .status.error { border-color: rgba(255,138,138,0.3); background: rgba(255,138,138,0.08); color: #ffd4d4; }
+
     @media (max-width: 1120px) {
-      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
         grid-template-columns: 1fr 1fr;
       }
     }
 
     @media (max-width: 760px) {
       .hero { padding-top: 58px; }
-      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
         grid-template-columns: 1fr;
       }
       .nav { align-items: flex-start; }
@@ -605,8 +624,9 @@
       <div class="container">
         <h2 class="section-title">Fundraising and Conversion Flow</h2>
         <p class="section-subtitle">
-          These meters separate startup capital from demand generation so visitors understand the company-building phase
-          versus the category conversion phase.
+          These meters separate startup capital from product demand and include transparent rewards math. The operating
+          model below is structured to reach <strong>$300,000,000 in total projected sales</strong> across portable,
+          residential, commercial, and propulsion lanes.
         </p>
 
         <div class="meter-grid">
@@ -624,43 +644,68 @@
           <div class="meter-card">
             <h3>Peak 30 Presale Meter</h3>
             <p>Tracks reservation demand for the flagship portable hybrid system.</p>
-            <div class="meter-label"><span>Units Reserved</span><span>0 / 1,000</span></div>
+            <div class="meter-label"><span>Units Reserved</span><span>0 / 10,000</span></div>
             <div class="meter-bar"><div class="meter-fill blue" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Portable Flagship</strong><span>Higher-end mobile power</span></div>
-              <div class="meta-box"><strong>1,000 Units</strong><span>Initial Goal</span></div>
+              <div class="meta-box"><strong>$31.75M Target</strong><span>10,000 × $3,175</span></div>
             </div>
           </div>
 
           <div class="meter-card">
             <h3>Luxury Home Install Meter</h3>
             <p>Tracks premium installation demand for residential clients and estates.</p>
-            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 250</span></div>
+            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 1,000</span></div>
             <div class="meter-bar"><div class="meter-fill green" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Luxury Residential</strong><span>Design-forward resilience</span></div>
-              <div class="meta-box"><strong>250 Slots</strong><span>Initial Goal</span></div>
+              <div class="meta-box"><strong>$115M Target</strong><span>1,000 × $115,000 avg</span></div>
             </div>
           </div>
 
           <div class="meter-card">
             <h3>Hotel & Retail Meter</h3>
             <p>Tracks commercial system reservation and pilot deployment demand.</p>
-            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 120</span></div>
+            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 900</span></div>
             <div class="meter-bar"><div class="meter-fill purple" style="width:0%;"></div></div>
             <div class="meter-meta">
               <div class="meta-box"><strong>Commercial Luxury</strong><span>High-load public spaces</span></div>
-              <div class="meta-box"><strong>120 Systems</strong><span>Initial Goal</span></div>
+              <div class="meta-box"><strong>$130.5M Target</strong><span>900 × $145,000 avg</span></div>
             </div>
           </div>
         </div>
 
         <div class="logic-block">
-          <h3>Why this conversion flow works</h3>
+          <h3>300M sales model + rewards payout logic</h3>
           <p>
-            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes.
-            That makes the site easier to understand for investors, buyers, and strategic partners.
+            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes with
+            transparent sales and payout math. This gives investors and sales teams one shared source of truth for execution.
           </p>
+          <div class="reward-grid">
+            <div class="reward-card">
+              <strong>Revenue Lane Breakdown (Target = $300M)</strong>
+              Peak 30: 10,000 × $3,175 = <span class="highlight">$31.75M</span><br />
+              Luxury Homes: 1,000 × $115,000 avg = <span class="highlight">$115.00M</span><br />
+              Hotel & Retail: 900 × $145,000 avg = <span class="highlight">$130.50M</span><br />
+              Engine Platform: 5 × $4.55M avg = <span class="highlight">$22.75M</span><br />
+              <strong>Total projected sales: $300.00M</strong>
+            </div>
+            <div class="reward-card">
+              <strong>Rewards Payouts (Prompted into model)</strong>
+              Small unit payout: $100 × 10,000 = <span class="highlight">$1,000,000</span><br />
+              Mobile sell-out bonus pool = <span class="highlight">$200,000</span><br />
+              Larger unit payout: $200 × 1,900 = <span class="highlight">$380,000</span><br />
+              Hotel sell-out bonus pool = <span class="highlight">$500,000</span><br />
+              <strong>Total rewards payout potential: $2,080,000</strong>
+            </div>
+            <div class="reward-card">
+              <strong>Execution Sequence</strong>
+              1) Close the $200K startup round.<br />
+              2) Push portable velocity for top-of-funnel volume.<br />
+              3) Convert high-ticket residential and commercial installs.<br />
+              4) Close propulsion briefs as strategic upside to complete the $300M sales plan.
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -977,6 +1022,31 @@
       </div>
     </section>
 
+    <section id="deposits">
+      <div class="container">
+        <h2 class="section-title">PayPal Startup Deposits</h2>
+        <p class="section-subtitle">
+          This fundraising page includes PayPal checkout so contributors can fund the $200K startup round while your team
+          tracks order and capture events.
+        </p>
+        <div class="deposit-shell">
+          <article class="card">
+            <span class="tag tag-gold">Live Deposit Experience</span>
+            <h3>Contribute to the $200K startup round</h3>
+            <form id="paypal-deposit-form" class="deposit-form">
+              <div class="field"><label for="donorName">Contributor name</label><input id="donorName" name="donorName" required /></div>
+              <div class="field"><label for="donorEmail">Email</label><input id="donorEmail" name="donorEmail" type="email" /></div>
+              <div class="field"><label for="donationAmount">Deposit amount (USD)</label><input id="donationAmount" name="amount" type="number" min="25" step="0.01" value="5000" required /></div>
+              <div class="field"><label for="projectReference">Reference (optional)</label><input id="projectReference" name="projectReference" /></div>
+            </form>
+            <p class="deposit-note">Use PayPal sandbox credentials until production API keys are ready.</p>
+            <div id="paypal-button-wrap" style="margin-top:16px;"></div>
+            <div id="paypal-status" class="status" role="status" aria-live="polite"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="cta" id="contact">
       <div class="container cta-box">
         <h2 class="section-title">Secure your place in the IonCore launch</h2>
@@ -1007,5 +1077,50 @@
       <div>© 2026 IonCore Energy. All rights reserved.</div>
     </div>
   </footer>
+  <script>
+    (() => {
+      const statusEl = document.getElementById('paypal-status');
+      const form = document.getElementById('paypal-deposit-form');
+      const buttonWrap = document.getElementById('paypal-button-wrap');
+      if (!statusEl || !form || !buttonWrap) return;
+      const setStatus = (message, isError = false) => {
+        statusEl.textContent = message; statusEl.style.display = message ? 'block' : 'none';
+        statusEl.classList.toggle('error', Boolean(isError));
+      };
+      const readFormData = () => {
+        const donorName = form?.donorName?.value?.trim() || '';
+        const donorEmail = form?.donorEmail?.value?.trim() || '';
+        const amount = Number.parseFloat(form?.amount?.value || '0');
+        const projectReference = form?.projectReference?.value?.trim() || '';
+        if (!donorName || !Number.isFinite(amount) || amount <= 0) throw new Error('Please enter contributor name and valid amount.');
+        return { donorName, donorEmail, amount, projectReference };
+      };
+      const loadPayPal = async () => {
+        const response = await fetch('/api/payments/paypal/config');
+        if (!response.ok) throw new Error('Unable to load PayPal configuration.');
+        const config = await response.json();
+        if (!config.enabled || !config.clientId) throw new Error('PayPal is not configured yet.');
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency || 'USD')}`;
+        script.async = true; document.head.appendChild(script);
+        await new Promise((resolve, reject) => { script.onload = resolve; script.onerror = () => reject(new Error('Failed to load PayPal SDK.')); });
+      };
+      const initButtons = () => window.paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
+        createOrder: async () => {
+          const response = await fetch('/payments/paypal/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(readFormData()) });
+          const result = await response.json(); if (!response.ok || !result.orderId) throw new Error(result.message || 'Unable to create order.');
+          return result.orderId;
+        },
+        onApprove: async (data) => {
+          const response = await fetch('/payments/paypal/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.orderID, ...readFormData() }) });
+          const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Unable to capture order.');
+          setStatus(`Deposit captured: ${result.currency} ${result.amount}.`);
+        },
+        onError: () => setStatus('PayPal checkout encountered an error. Please retry.', true)
+      }).render('#paypal-button-wrap');
+      loadPayPal().then(initButtons).catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
+    })();
+  </script>
 </body>
 </html>

@@ -109,14 +109,16 @@
           </div>
           <div class="payment-section payment-section--paypal" data-payment-section="paypal" hidden>
             <div class="form-row">
-              <label>PayPal checkout for Peak 30</label>
-              <p class="form-help">Use the PayPal hosted button below to complete Peak 30 checkout directly.</p>
-              <div id="paypal-container-LHAZALYUB3NXS"></div>
+              <label for="paypal-product-select">Choose product for PayPal checkout</label>
+              <select id="paypal-product-select" name="paypal-product-select"></select>
+              <p class="form-help" id="paypal-help">Select a product to open the matching PayPal checkout popup.</p>
+              <button type="button" id="paypal-product-launch" class="btn btn-primary">Open PayPal for Selected Product</button>
             </div>
             <div class="form-row">
-              <label>PayPal checkout for Flywheel Self Charging Unit</label>
-              <p class="form-help">Use this Buy Now button for the Flywheel version checkout.</p>
-              <div>
+              <label>PayPal quick buttons (active)</label>
+              <p class="form-help">Legacy direct buttons remain available while all product codes are being connected.</p>
+              <div id="paypal-container-LHAZALYUB3NXS"></div>
+              <div style="margin-top:8px;">
                 <style>.pp-KQB5UWV4H74HQ{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
                 <form action="https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
                   <input class="pp-KQB5UWV4H74HQ" type="submit" value="Buy Now">
@@ -325,6 +327,13 @@
       const receiptCodeInput = form.querySelector('#receipt-code');
       const bitcoinHelp = form.querySelector('[data-bitcoin-help]');
       const isLocked = form.hasAttribute('data-locked');
+      const paypalProductSelect = form.querySelector('#paypal-product-select');
+      const paypalLaunchButton = form.querySelector('#paypal-product-launch');
+      const paypalHelp = form.querySelector('#paypal-help');
+      const paypalProductLinks = {
+        'PK30-BASE': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
+        'FSCU-BASE': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ'
+      };
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -434,6 +443,32 @@
         });
       };
 
+      const syncPayPalSelector = () => {
+        if (!paypalProductSelect || !productSelect) return;
+        paypalProductSelect.innerHTML = Array.from(productSelect.options).map((opt) => {
+          const link = paypalProductLinks[opt.value] || '';
+          const suffix = link ? ' (PayPal ready)' : ' (PayPal code pending)';
+          return `<option value="${opt.value}" data-link="${link}">${opt.textContent}${suffix}</option>`;
+        }).join('');
+        paypalProductSelect.value = productSelect.value;
+      };
+
+      const updatePayPalLaunchState = () => {
+        if (!paypalProductSelect || !paypalLaunchButton) return;
+        const selected = paypalProductSelect.selectedOptions[0];
+        const link = selected ? selected.getAttribute('data-link') : '';
+        const rawLabel = selected ? selected.textContent : 'selected product';
+        const productLabel = rawLabel.replace(/ \(PayPal.*\)$/, '');
+        const ready = Boolean(link);
+        paypalLaunchButton.disabled = !ready;
+        paypalLaunchButton.textContent = ready ? `Open PayPal: ${productLabel}` : `PayPal code pending: ${productLabel}`;
+        if (paypalHelp) {
+          paypalHelp.textContent = ready
+            ? `Ready: ${productLabel} has an active PayPal checkout.`
+            : `PayPal code pending for ${productLabel}. Send the PayPal button/link code to activate this product.`;
+        }
+      };
+
 
       const loadCatalog = async () => {
         try {
@@ -446,12 +481,34 @@
             const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
             if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
           };
-          productSelect.addEventListener('change', syncAmount);
+          productSelect.addEventListener('change', () => {
+            syncAmount();
+            syncPayPalSelector();
+            updatePayPalLaunchState();
+          });
           syncAmount();
+          syncPayPalSelector();
+          updatePayPalLaunchState();
         } catch (_) {}
       };
 
       loadCatalog();
+      syncPayPalSelector();
+      updatePayPalLaunchState();
+      if (paypalProductSelect) {
+        paypalProductSelect.addEventListener('change', updatePayPalLaunchState);
+      }
+      if (paypalLaunchButton) {
+        paypalLaunchButton.addEventListener('click', () => {
+          const selected = paypalProductSelect ? paypalProductSelect.selectedOptions[0] : null;
+          const link = selected ? selected.getAttribute('data-link') : '';
+          if (!link) {
+            setFeedback('PayPal code is not connected for this product yet.', 'error');
+            return;
+          }
+          window.open(link, '_blank', 'noopener');
+        });
+      }
 const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
       updatePaymentMethod(selectedMethod);
 

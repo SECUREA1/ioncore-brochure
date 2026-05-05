@@ -36,9 +36,9 @@
     <section class="container page-section page-section--tight checkout-hero">
       <div class="checkout-hero__content">
         <div>
-          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Open Fundraising Checkout · PayPal · Stripe · ETH · BTC · ADA</span>
+          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Open Fundraising Checkout · PayPal · Stripe · USDC · ETH · BTC · ADA</span>
           <h1 class="section-title">Open pre-seed and fundraising checkout with multi-rail payments.</h1>
-          <p class="section-subtitle">This page is now open for pre-seed reservations and all active fundraising products. Select a product, choose PayPal, Stripe, Ethereum, Bitcoin, or Cardano (ADA), and submit a purchase intent instantly.</p>
+          <p class="section-subtitle">This page is now open for pre-seed reservations and all active fundraising products. Select a product, choose PayPal, Stripe, USDC, Ethereum, Bitcoin, or Cardano (ADA), and submit a purchase intent instantly.</p>
         </div>
         <div class="checkout-hero__card" aria-hidden="true">
           <div class="checkout-card">
@@ -68,6 +68,10 @@
             <label class="payment-method-selector__option">
               <input type="radio" name="payment-method" value="paypal">
               PayPal
+            </label>
+            <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="usdc">
+              USDC
             </label>
             <label class="payment-method-selector__option">
               <input type="radio" name="payment-method" value="ethereum">
@@ -133,6 +137,75 @@
             <div class="form-row">
               <label for="btc-contact">Remitting Wallet Contact</label>
               <input type="text" id="btc-contact" name="btc-contact" placeholder="Telegram @handle or email" autocomplete="off">
+            </div>
+          </div>
+
+
+          <div class="payment-section payment-section--usdc" data-payment-section="usdc" hidden>
+            <div class="form-row">
+              <label for="usdc-wallet">Ioncore USDC Address (ERC-20)</label>
+              <div class="btc-wallet">
+                <input type="text" id="usdc-wallet" name="usdc-wallet" value="0xE916E16848acc2c5D06F3e3183116EE475a927f6" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <button type="button" class="btn btn-outline btn-compact" data-copy-target="usdc-wallet">Copy</button>
+              </div>
+              <p class="form-help">Send USDC on Ethereum mainnet only (ERC-20 contract: 0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48).</p>
+            </div>
+            <div class="form-row">
+              <label>USDC QR Code</label>
+              <img id="usdc-qr" alt="USDC deposit QR code" width="220" height="220">
+            </div>
+            <div class="form-row form-row--split">
+              <button type="button" class="btn btn-outline" data-wallet-launch="metamask-usdc">Open in MetaMask</button>
+              <button type="button" class="btn btn-outline" data-wallet-launch="walletconnect-usdc">Open Wallet URI</button>
+            </div>
+            <div class="form-row">
+              <label for="usdc-txid">USDC Transaction Hash</label>
+              <input type="text" id="usdc-txid" name="usdc-txid" placeholder="Paste tx hash after transfer" spellcheck="false">
+            </div>
+          </div>
+
+          <div class="payment-section payment-section--ethereum" data-payment-section="ethereum" hidden>
+            <div class="form-row">
+              <label for="eth-wallet">Ioncore ETH Address</label>
+              <div class="btc-wallet">
+                <input type="text" id="eth-wallet" name="eth-wallet" value="0x8ba1f109551bd432803012645ac136ddd64dba72" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <button type="button" class="btn btn-outline btn-compact" data-copy-target="eth-wallet">Copy</button>
+              </div>
+              <p class="form-help">Send only ETH on Ethereum mainnet. MetaMask deep-link and QR open the same destination.</p>
+            </div>
+            <div class="form-row">
+              <label>Ethereum QR Code</label>
+              <img id="eth-qr" alt="Ethereum deposit QR code" width="220" height="220">
+            </div>
+            <div class="form-row form-row--split">
+              <button type="button" class="btn btn-outline" data-wallet-launch="metamask">Open in MetaMask</button>
+              <button type="button" class="btn btn-outline" data-wallet-launch="walletconnect">Open Wallet URI</button>
+            </div>
+            <div class="form-row">
+              <label for="eth-txid">Ethereum Transaction Hash</label>
+              <input type="text" id="eth-txid" name="eth-txid" placeholder="Paste tx hash after broadcast" spellcheck="false">
+            </div>
+          </div>
+          <div class="payment-section payment-section--ada" data-payment-section="ada" hidden>
+            <div class="form-row">
+              <label for="ada-wallet">Ioncore ADA Address</label>
+              <div class="btc-wallet">
+                <input type="text" id="ada-wallet" name="ada-wallet" value="addr1q9p9v9x8f2j7n0kg5z4s6z7f8r9t0m1x2c3v4b5n6k7m8p" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <button type="button" class="btn btn-outline btn-compact" data-copy-target="ada-wallet">Copy</button>
+              </div>
+              <p class="form-help">Send only ADA on Cardano mainnet. Use Phantom (Cardano) or Lace wallet links below.</p>
+            </div>
+            <div class="form-row">
+              <label>Cardano QR Code</label>
+              <img id="ada-qr" alt="Cardano deposit QR code" width="220" height="220">
+            </div>
+            <div class="form-row form-row--split">
+              <button type="button" class="btn btn-outline" data-wallet-launch="phantom">Open in Phantom</button>
+              <button type="button" class="btn btn-outline" data-wallet-launch="lace">Open in Lace</button>
+            </div>
+            <div class="form-row">
+              <label for="ada-txid">Cardano Transaction Hash</label>
+              <input type="text" id="ada-txid" name="ada-txid" placeholder="Paste tx hash after broadcast" spellcheck="false">
             </div>
           </div>
           <div class="form-row">
@@ -212,13 +285,22 @@
       const paymentMethodInputs = Array.from(form.querySelectorAll('input[name="payment-method"]'));
       const paymentSections = {
         magstripe: form.querySelector('[data-payment-section="magstripe"]'),
-        bitcoin: form.querySelector('[data-payment-section="bitcoin"]')
+        bitcoin: form.querySelector('[data-payment-section="bitcoin"]'),
+        ethereum: form.querySelector('[data-payment-section="ethereum"]'),
+        ada: form.querySelector('[data-payment-section="ada"]'),
+        usdc: form.querySelector('[data-payment-section="usdc"]')
       };
       const productSelect = form.querySelector('#product-code');
       const amountInput = form.querySelector('#amount');
       const dynamicRequiredFields = Array.from(form.querySelectorAll('[data-required-when]'));
       const btcWalletInput = form.querySelector('#btc-wallet');
       const btcQrImage = form.querySelector('#btc-qr');
+      const usdcWalletInput = form.querySelector('#usdc-wallet');
+      const ethWalletInput = form.querySelector('#eth-wallet');
+      const adaWalletInput = form.querySelector('#ada-wallet');
+      const ethQrImage = form.querySelector('#eth-qr');
+      const adaQrImage = form.querySelector('#ada-qr');
+      const usdcQrImage = form.querySelector('#usdc-qr');
       const receiptCodeInput = form.querySelector('#receipt-code');
       const bitcoinHelp = form.querySelector('[data-bitcoin-help]');
       const isLocked = form.hasAttribute('data-locked');
@@ -258,6 +340,15 @@
         if (btcQrImage && btcWalletInput) {
           btcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`bitcoin:${btcWalletInput.value}`)}`;
         }
+        if (ethQrImage && ethWalletInput) {
+          ethQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`ethereum:${ethWalletInput.value}`)}`;
+        }
+        if (usdcQrImage && usdcWalletInput) {
+          usdcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`ethereum:${usdcWalletInput.value}`)}`;
+        }
+        if (adaQrImage && adaWalletInput) {
+          adaQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`web+cardano:${adaWalletInput.value}`)}`;
+        }
         if (bitcoinHelp) {
           const confirmations = Number.parseInt(config.confirmationsRequired, 10);
           const settlementMinutes = Number.parseInt(config.settlementWindowMinutes, 10);
@@ -292,15 +383,21 @@
       }
 
       const updatePaymentMethod = (method) => {
-        const isMagstripe = method === 'magstripe' || method === 'stripe' || method === 'paypal';
-        if (paymentSections.magstripe) {
-          paymentSections.magstripe.hidden = !isMagstripe;
-        }
-        if (paymentSections.bitcoin) {
-          paymentSections.bitcoin.hidden = isMagstripe;
-        }
+        const normalized = method === 'magstripe' ? 'stripe' : method;
+        const isCardRail = normalized === 'stripe' || normalized === 'paypal';
+        if (paymentSections.magstripe) paymentSections.magstripe.hidden = !isCardRail;
+        if (paymentSections.bitcoin) paymentSections.bitcoin.hidden = normalized !== 'bitcoin';
+        if (paymentSections.ethereum) paymentSections.ethereum.hidden = normalized !== 'ethereum';
+        if (paymentSections.ada) paymentSections.ada.hidden = normalized !== 'ada';
+        if (paymentSections.usdc) paymentSections.usdc.hidden = normalized !== 'usdc';
         if (submitButton) {
-          submitButton.textContent = isMagstripe ? 'Process Stripe Sale' : 'Generate Bitcoin Payment';
+          submitButton.textContent =
+            normalized === 'paypal' ? 'Continue to PayPal' :
+            normalized === 'stripe' ? 'Continue to Stripe' :
+            normalized === 'bitcoin' ? 'Submit Bitcoin Transfer' :
+            normalized === 'ethereum' ? 'Submit Ethereum Transfer' :
+            normalized === 'ada' ? 'Submit ADA Transfer' :
+            'Submit USDC Transfer';
         }
         dynamicRequiredFields.forEach((field) => {
           const requiredWhen = field.dataset.requiredWhen;
@@ -308,7 +405,7 @@
         });
       };
 
-      
+
       const loadCatalog = async () => {
         try {
           const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
@@ -370,6 +467,27 @@ const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value
         });
       });
 
+
+      form.querySelectorAll('[data-wallet-launch]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const walletType = button.getAttribute('data-wallet-launch');
+          const amount = Number(form.querySelector('#amount')?.value || 0);
+          const ethUri = `ethereum:${ethWalletInput?.value || ''}${amount > 0 ? `?value=${Math.round(amount * 1e18)}` : ''}`;
+          const usdcUri = `ethereum:${usdcWalletInput?.value || ''}${amount > 0 ? `?value=0&token=USDC&amount=${amount.toFixed(2)}` : ''}`;
+          const adaUri = `web+cardano:${adaWalletInput?.value || ''}${amount > 0 ? `?amount=${amount}` : ''}`;
+          const links = {
+            metamask: `https://metamask.app.link/send/${encodeURIComponent(ethUri)}`,
+            'metamask-usdc': `https://metamask.app.link/send/${encodeURIComponent(usdcUri)}`,
+            walletconnect: ethUri,
+            'walletconnect-usdc': usdcUri,
+            phantom: `https://phantom.app/ul/browse/${encodeURIComponent(adaUri)}`,
+            lace: adaUri
+          };
+          const target = links[walletType];
+          if (target) window.open(target, '_blank', 'noopener');
+        });
+      });
+
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!submitButton) {
@@ -392,7 +510,13 @@ const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value
           productCode: formData.get('product-code') || '',
           buyerName: formData.get('cardholder') || '',
           buyerEmail: '',
-          notes: formData.get('notes') || ''
+          notes: formData.get('notes') || '',
+          txid: formData.get('btc-txid') || formData.get('eth-txid') || formData.get('ada-txid') || formData.get('usdc-txid') || '',
+          destinationAddress:
+            paymentMethod === 'bitcoin' ? (btcWalletInput?.value || '') :
+            paymentMethod === 'ethereum' ? (ethWalletInput?.value || '') :
+            paymentMethod === 'ada' ? (adaWalletInput?.value || '') :
+            paymentMethod === 'usdc' ? (usdcWalletInput?.value || '') : ''
         });
 
         submitButton.disabled = true;
@@ -428,7 +552,7 @@ const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value
             receiptLines.push(result.message);
           }
 
-          if (paymentMethod === 'bitcoin') {
+          if (paymentMethod === 'bitcoin' || paymentMethod === 'ethereum' || paymentMethod === 'ada' || paymentMethod === 'usdc') {
             if (result.invoiceId) {
               receiptLines.push(`Invoice: ${result.invoiceId}`);
             }
@@ -450,7 +574,7 @@ const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value
                   : amountValue;
               receiptLines.push(`Amount: ${result.currency} ${formattedAmount}`);
             }
-            if (result.btcAmount !== undefined && result.btcAmount !== null && `${result.btcAmount}` !== '') {
+            if (paymentMethod === 'bitcoin' && result.btcAmount !== undefined && result.btcAmount !== null && `${result.btcAmount}` !== '') {
               receiptLines.push(`BTC: ${result.btcAmount}`);
             }
             if (result.transactionId) {

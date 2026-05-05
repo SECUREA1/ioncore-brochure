@@ -16,32 +16,32 @@ const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.h
 const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
 
 const TIMEPIECE_BITCOIN_SALES_SECTION = `
-<section id="ioncore-bitcoin-sales" style="margin:2rem auto;max-width:960px;padding:1.25rem;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(8,12,24,.9);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.35);font-family:inherit;">
-  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Bitcoin Sales Checkout</h2>
-  <p style="margin:0 0 .65rem;opacity:.92;">Send BTC on Bitcoin mainnet only. Use the receipt code shown below and include <strong>IONCORE SKU</strong> in your sales notes.</p>
+<section id="ioncore-usdc-sales" style="margin:2rem auto;max-width:960px;padding:1.25rem;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(8,12,24,.9);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.35);font-family:inherit;">
+  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">USDC Sales Checkout</h2>
+  <p style="margin:0 0 .65rem;opacity:.92;">Pay with USDC first for fastest settlement. Connect your wallet, approve USDC transfer, and confirm on-chain. Use the receipt code shown below and include <strong>IONCORE SKU</strong> in your sales notes.</p>
   <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:1rem;align-items:center;">
     <div>
-      <label for="ioncore-btc-wallet" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Ioncore BTC Wallet</label>
+      <label for="ioncore-usdc-wallet" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Ioncore USDC Wallet (ERC-20)</label>
       <div style="display:flex;gap:.5rem;align-items:center;">
-        <input id="ioncore-btc-wallet" type="text" readonly value="bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" />
-        <button type="button" id="ioncore-copy-btc" style="padding:.7rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Copy</button>
+        <input id="ioncore-usdc-wallet" type="text" readonly value="0xE916E16848acc2c5D06F3e3183116EE475a927f6" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" />
+        <button type="button" id="ioncore-copy-usdc" style="padding:.7rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Copy</button>
       </div>
       <p style="margin:.75rem 0 0;font-size:.92rem;"><strong>Receipt:</strong> <span id="ioncore-receipt-code">IONCORE-SKU-PENDING</span></p>
     </div>
     <div style="text-align:center;">
-      <img id="ioncore-btc-qr" alt="Ioncore Bitcoin QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=bitcoin%3Abc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd" />
+      <img id="ioncore-usdc-qr" alt="Ioncore USDC QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=ethereum%3A0xE916E16848acc2c5D06F3e3183116EE475a927f6" />
       <p style="margin:.55rem 0 0;font-size:.85rem;opacity:.85;">Scan to open in wallet</p>
     </div>
   </div>
 </section>
 <script>
 (function(){
-  const wallet = 'bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd';
+  const wallet = '0xE916E16848acc2c5D06F3e3183116EE475a927f6';
   const code = 'IONCORE-SKU-' + Date.now().toString(36).toUpperCase();
   const codeEl = document.getElementById('ioncore-receipt-code');
   if (codeEl) codeEl.textContent = code;
-  const copyBtn = document.getElementById('ioncore-copy-btc');
-  const walletInput = document.getElementById('ioncore-btc-wallet');
+  const copyBtn = document.getElementById('ioncore-copy-usdc');
+  const walletInput = document.getElementById('ioncore-usdc-wallet');
   if (walletInput) walletInput.value = wallet;
   if (copyBtn && walletInput) {
     copyBtn.addEventListener('click', async () => {
@@ -115,9 +115,10 @@ const SALES_PRODUCTS = {
 const SALES_WALLETS = {
   BTC: BITCOIN_ADDRESS,
   ETH: '0xE916E16848acc2c5D06F3e3183116EE475a927f6',
+  USDC: '0xE916E16848acc2c5D06F3e3183116EE475a927f6',
   ADA: 'DdzFFzCqrhstF7Vb9Ro5rmUX1hbQPg9XfnQoVPV81uteLyFK9GAXW2qUsFLhR7rUuNSqXtgkH33wBPvobNJQa3FMvx4WWyjX6eMd6s2tG'
 };
-const SALES_FX = { BTC: 95000, ETH: 3200, ADA: 0.68 };
+const SALES_FX = { USDC: 1, BTC: 95000, ETH: 3200, ADA: 0.68 };
 const salesCheckouts = new Map();
 const FUNDRAISING_PRODUCTS = [
   { code: 'PRESEED-250', name: 'Pre-Seed Access Note', usd: 250, category: 'Pre-Seed' },
@@ -1188,7 +1189,7 @@ function touchSession(sessionId) {
 async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
-    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-bitcoin-sales');
+    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-usdc-sales');
     html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch {
@@ -1443,7 +1444,7 @@ app.post('/api/sales/checkout-intent', async (req, res) => {
   const buyerEmail = typeof body.buyerEmail === 'string' ? body.buyerEmail.trim() : '';
   const product = SALES_PRODUCTS[productCode];
   if (!product) return res.status(400).json({ message: 'Invalid product selection.' });
-  if (!['BTC', 'ETH', 'ADA'].includes(currencyRaw)) return res.status(400).json({ message: 'Currency must be BTC, ETH, or ADA.' });
+  if (!['USDC', 'BTC', 'ETH', 'ADA'].includes(currencyRaw)) return res.status(400).json({ message: 'Currency must be USDC, BTC, ETH, or ADA.' });
   if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
   const usd = product.usd;
   const fx = SALES_FX[currencyRaw];
@@ -1451,6 +1452,11 @@ app.post('/api/sales/checkout-intent', async (req, res) => {
   const checkoutId = `SALE-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
   const checkout = { checkoutId, productCode, productName: product.name, currency: currencyRaw, usdAmount: usd, cryptoAmount, buyerName, buyerEmail, createdAt: new Date().toISOString(), status: 'intent-created' };
   salesCheckouts.set(checkoutId, checkout);
+  if (currencyRaw === 'USDC') {
+    const usdcAmount = Number(cryptoAmount.toFixed(2));
+    const uri = `ethereum:${SALES_WALLETS.USDC}?value=0&token=USDC&amount=${usdcAmount.toFixed(2)}&label=Ioncore%20${encodeURIComponent(productCode)}`;
+    return res.status(201).json({ ...checkout, currency: 'USDC', usdcAmount, to: SALES_WALLETS.USDC, tokenContract: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', chain: 'ethereum', uri });
+  }
   if (currencyRaw === 'ETH') {
     const valueWei = `0x${BigInt(Math.floor(cryptoAmount * 1e18)).toString(16)}`;
     return res.status(201).json({ ...checkout, to: SALES_WALLETS.ETH, valueWei });
@@ -2284,7 +2290,7 @@ app.get('/timepieces', async (req, res) => {
         html += ADMIN_PROMO_SECTION;
       }
     }
-    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-bitcoin-sales');
+    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-usdc-sales');
     html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch (err) {

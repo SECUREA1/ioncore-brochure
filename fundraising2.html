@@ -433,6 +433,28 @@
       font: inherit;
     }
     .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
+    .checkout {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: grid;
+      gap: 10px;
+    }
+    .checkout-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+    .checkout-row input, .checkout-row select {
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 8px 10px;
+    }
+    .micro { font-size: .82rem; color: var(--muted); }
+    .btc-address {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .8rem;
+      color: var(--accent2);
+      overflow-wrap: anywhere;
+    }
     .status {
       margin-top: 14px; border-radius: 12px; border: 1px solid rgba(132,255,189,0.2);
       background: rgba(132,255,189,0.08); color: #d4ffe8; padding: 12px 14px; display: none;
@@ -819,6 +841,17 @@
               <li><strong>Availability:</strong> In stock, ships within 2 days</li>
               <li><strong>SKU:</strong> PK30-BASIC</li>
             </ul>
+            <div class="checkout" data-model="peak30" data-price="3175">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="btc-address"></div>
+            </div>
           </div>
 
           <div class="pricing-card">
@@ -836,6 +869,17 @@
               <li><strong>Thermals:</strong> ≤40 °C graphene thermal stack</li>
               <li><strong>Efficiency:</strong> 99.2% inverter efficiency</li>
             </ul>
+            <div class="checkout" data-model="fscu" data-price="1748">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="btc-address"></div>
+            </div>
           </div>
         </div>
 
@@ -856,6 +900,17 @@
               <li><strong>Exterior:</strong> premium alloy and ceramic finishes</li>
               <li><strong>Ideal For:</strong> estates and 2–3 bedroom homes</li>
             </ul>
+            <div class="checkout" data-model="home" data-price="115000">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="btc-address"></div>
+            </div>
           </div>
 
           <div class="pricing-card">
@@ -873,6 +928,17 @@
               <li><strong>Value:</strong> reduces demand charges by 20–30%</li>
               <li><strong>Built For:</strong> high-traffic, high-load facilities</li>
             </ul>
+            <div class="checkout" data-model="commercial" data-price="145000">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="btc-address"></div>
+            </div>
           </div>
         </div>
 
@@ -1097,6 +1163,9 @@
       const statusEl = document.getElementById('paypal-status');
       const form = document.getElementById('paypal-deposit-form');
       const buttonWrap = document.getElementById('paypal-button-wrap');
+      const meterCards = document.querySelectorAll('.meter-card');
+      const progressState = { startupUsd: 0, peakUnits: 0, homeUnits: 0, commercialUnits: 0 };
+      const modelMap = { peak30: { unitKey: 'peakUnits', goal: 10000, card: 1 }, home: { unitKey: 'homeUnits', goal: 1000, card: 2 }, commercial: { unitKey: 'commercialUnits', goal: 900, card: 3 }, fscu: null };
       if (!statusEl || !form || !buttonWrap) return;
       const setStatus = (message, isError = false) => {
         statusEl.textContent = message; statusEl.style.display = message ? 'block' : 'none';
@@ -1110,6 +1179,35 @@
         if (!donorName || !Number.isFinite(amount) || amount <= 0) throw new Error('Please enter contributor name and valid amount.');
         return { donorName, donorEmail, amount, projectReference };
       };
+      const renderMeter = (cardIndex, current, goal, moneyText) => {
+        const card = meterCards[cardIndex]; if (!card) return;
+        const pct = Math.min((current / goal) * 100, 100);
+        const label = card.querySelector('.meter-label span:last-child');
+        const fill = card.querySelector('.meter-fill');
+        if (label) label.textContent = `${current.toLocaleString()} / ${goal.toLocaleString()}`;
+        if (fill) fill.style.width = `${pct}%`;
+        const reached = card.querySelector('.meta-box:last-child strong');
+        if (reached) reached.textContent = `${pct.toFixed(1)}%`;
+        if (moneyText) {
+          const m = card.querySelector('.meta-box:last-child span');
+          if (m) m.textContent = moneyText;
+        }
+      };
+      const refreshStartup = () => {
+        const card = meterCards[0]; if (!card) return;
+        const pct = Math.min((progressState.startupUsd / 2000000) * 100, 100);
+        card.querySelector('.meter-label span:last-child').textContent = `$${progressState.startupUsd.toLocaleString()} / $2,000,000`;
+        card.querySelector('.meter-fill').style.width = `${pct}%`;
+        card.querySelector('.meta-box:last-child strong').textContent = `${pct.toFixed(1)}%`;
+      };
+      const applyPurchase = (model, units, totalUsd, type) => {
+        progressState.startupUsd += totalUsd;
+        if (type === 'unit' && modelMap[model]) progressState[modelMap[model].unitKey] += units;
+        refreshStartup();
+        if (modelMap.peak30) renderMeter(1, progressState.peakUnits, 10000);
+        if (modelMap.home) renderMeter(2, progressState.homeUnits, 1000);
+        if (modelMap.commercial) renderMeter(3, progressState.commercialUnits, 900);
+      };
       const loadPayPal = async () => {
         const response = await fetch('/api/payments/paypal/config');
         if (!response.ok) throw new Error('Unable to load PayPal configuration.');
@@ -1119,6 +1217,13 @@
         script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency || 'USD')}`;
         script.async = true; document.head.appendChild(script);
         await new Promise((resolve, reject) => { script.onload = resolve; script.onerror = () => reject(new Error('Failed to load PayPal SDK.')); });
+      };
+      const readCheckoutData = (box) => {
+        const qty = Math.max(1, Number.parseInt(box.querySelector('.qty')?.value || '1', 10));
+        const purchaseType = box.querySelector('.purchase-type')?.value || 'unit';
+        const model = box.dataset.model;
+        const unitPrice = Number.parseFloat(box.dataset.price || '0');
+        return { qty, purchaseType, model, unitPrice, totalUsd: qty * unitPrice };
       };
       const initButtons = () => window.paypal.Buttons({
         style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
@@ -1130,11 +1235,52 @@
         onApprove: async (data) => {
           const response = await fetch('/payments/paypal/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.orderID, ...readFormData() }) });
           const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Unable to capture order.');
+          const amount = Number.parseFloat(result.amount || readFormData().amount);
+          progressState.startupUsd += amount;
+          refreshStartup();
           setStatus(`Deposit captured: ${result.currency} ${result.amount}.`);
         },
         onError: () => setStatus('PayPal checkout encountered an error. Please retry.', true)
       }).render('#paypal-button-wrap');
-      loadPayPal().then(initButtons).catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
+      const initModelCheckouts = () => {
+        document.querySelectorAll('.checkout').forEach((box) => {
+          const btcBtn = box.querySelector('.btc-buy');
+          const btcAddressEl = box.querySelector('.btc-address');
+          if (btcBtn) btcBtn.addEventListener('click', async () => {
+            try {
+              const payload = readCheckoutData(box);
+              const response = await fetch('/payments/bitcoin/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || 'Unable to start Bitcoin checkout.');
+              btcAddressEl.textContent = `Send BTC to: ${result.address} | Amount: ${result.btcAmount} BTC`;
+              applyPurchase(payload.model, payload.qty, payload.totalUsd, payload.purchaseType);
+              setStatus(`Bitcoin order opened for ${payload.model.toUpperCase()} (${payload.purchaseType}).`);
+            } catch (error) { setStatus(error.message || 'Bitcoin checkout unavailable.', true); }
+          });
+          if (window.paypal && box.querySelector('.paypal-inline')) {
+            window.paypal.Buttons({
+              style: { layout: 'horizontal', shape: 'pill', height: 35, label: 'paypal' },
+              createOrder: async () => {
+                const payload = readCheckoutData(box);
+                const response = await fetch('/payments/paypal/model-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const result = await response.json();
+                if (!response.ok || !result.orderId) throw new Error(result.message || 'Unable to create PayPal order.');
+                return result.orderId;
+              },
+              onApprove: async (data) => {
+                const payload = readCheckoutData(box);
+                const response = await fetch('/payments/paypal/model-capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.orderID, ...payload }) });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Unable to capture PayPal order.');
+                applyPurchase(payload.model, payload.qty, payload.totalUsd, payload.purchaseType);
+                setStatus(`PayPal purchase captured for ${payload.model.toUpperCase()} (${payload.purchaseType}).`);
+              },
+              onError: () => setStatus('PayPal model checkout encountered an error.', true)
+            }).render(box.querySelector('.paypal-inline'));
+          }
+        });
+      };
+      loadPayPal().then(() => { initButtons(); initModelCheckouts(); }).catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
     })();
   </script>
 

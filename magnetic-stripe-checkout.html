@@ -115,8 +115,8 @@
               <button type="button" id="paypal-product-launch" class="btn btn-primary">Open PayPal for Selected Product</button>
             </div>
             <div class="form-row">
-              <label>PayPal quick buttons (active)</label>
-              <p class="form-help">Legacy direct buttons remain available while all product codes are being connected.</p>
+              <label>PayPal quick buttons (coded links)</label>
+              <p class="form-help">All currently coded PayPal links remain available here, including the new KQB5UWV4H74HQ button.</p>
               <div id="paypal-container-LHAZALYUB3NXS"></div>
               <div style="margin-top:8px;">
                 <style>.pp-KQB5UWV4H74HQ{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
@@ -331,8 +331,13 @@
       const paypalLaunchButton = form.querySelector('#paypal-product-launch');
       const paypalHelp = form.querySelector('#paypal-help');
       const paypalProductLinks = {
-        'PK30-BASE': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
-        'FSCU-BASE': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ'
+        'PRESEED-250': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'PRESEED-1000': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'PRESEED-5000': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'FUND-PEAK30': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
+        'FUND-FSCU': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'FUND-HOME': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'FUND-HOTEL': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ'
       };
 
       const setFeedback = (message, variant) => {
@@ -447,7 +452,7 @@
         if (!paypalProductSelect || !productSelect) return;
         paypalProductSelect.innerHTML = Array.from(productSelect.options).map((opt) => {
           const link = paypalProductLinks[opt.value] || '';
-          const suffix = link ? ' (PayPal ready)' : ' (PayPal code pending)';
+          const suffix = link ? ' (PayPal ready)' : ' (PayPal unavailable)';
           return `<option value="${opt.value}" data-link="${link}">${opt.textContent}${suffix}</option>`;
         }).join('');
         paypalProductSelect.value = productSelect.value;
@@ -465,7 +470,7 @@
         if (paypalHelp) {
           paypalHelp.textContent = ready
             ? `Ready: ${productLabel} has an active PayPal checkout.`
-            : `PayPal code pending for ${productLabel}. Send the PayPal button/link code to activate this product.`;
+            : `PayPal is currently unavailable for ${productLabel}.`;
         }
       };
 
@@ -503,7 +508,7 @@
           const selected = paypalProductSelect ? paypalProductSelect.selectedOptions[0] : null;
           const link = selected ? selected.getAttribute('data-link') : '';
           if (!link) {
-            setFeedback('PayPal code is not connected for this product yet.', 'error');
+            setFeedback('PayPal is currently unavailable for this product.', 'error');
             return;
           }
           window.open(link, '_blank', 'noopener');

@@ -17,44 +17,76 @@ const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.
 
 const TIMEPIECE_BITCOIN_SALES_SECTION = `
 <section id="ioncore-usdc-sales" style="margin:2rem auto;max-width:960px;padding:1.25rem;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(8,12,24,.9);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.35);font-family:inherit;">
-  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">USDC Sales Checkout</h2>
-  <p style="margin:0 0 .65rem;opacity:.92;">Pay with USDC first for fastest settlement. Connect your wallet, approve USDC transfer, and confirm on-chain. Use the receipt code shown below and include <strong>IONCORE SKU</strong> in your sales notes.</p>
+  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Timepiece Checkout (Crypto Wallet)</h2>
+  <p style="margin:0 0 .65rem;opacity:.92;">Select your watch, choose wallet rail (USDC, ETH, BTC, ADA), then purchase using the same crypto flow as checkout. Submit your transfer hash to confirm and record settlement.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;align-items:end;margin-bottom:.85rem;">
+    <div><label for="ioncore-watch-product" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Watch</label><select id="ioncore-watch-product" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="TIME-APEX-X">Apex X Timepiece — $2,450</option><option value="TIME-CHRONO-S">Chrono S Timepiece — $3,200</option><option value="TIME-NOVA-R">Nova R Timepiece — $4,600</option></select></div>
+    <div><label for="ioncore-watch-currency" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Payment rail</label><select id="ioncore-watch-currency" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="USDC">USDC</option><option value="ETH">ETH</option><option value="BTC">BTC</option><option value="ADA">ADA</option></select></div>
+    <button type="button" id="ioncore-create-watch-intent" style="padding:.72rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Create checkout</button>
+  </div>
   <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:1rem;align-items:center;">
     <div>
-      <label for="ioncore-usdc-wallet" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Ioncore USDC Wallet (ERC-20)</label>
+      <label for="ioncore-wallet-address" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Settlement wallet</label>
       <div style="display:flex;gap:.5rem;align-items:center;">
-        <input id="ioncore-usdc-wallet" type="text" readonly value="0xE916E16848acc2c5D06F3e3183116EE475a927f6" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" />
-        <button type="button" id="ioncore-copy-usdc" style="padding:.7rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Copy</button>
+        <input id="ioncore-wallet-address" type="text" readonly value="" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" />
+        <button type="button" id="ioncore-copy-wallet" style="padding:.7rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Copy</button>
       </div>
       <p style="margin:.75rem 0 0;font-size:.92rem;"><strong>Receipt:</strong> <span id="ioncore-receipt-code">IONCORE-SKU-PENDING</span></p>
+      <p style="margin:.35rem 0 0;font-size:.85rem;opacity:.85;" id="ioncore-watch-amount">Create a checkout intent to generate transfer details.</p>
     </div>
     <div style="text-align:center;">
-      <img id="ioncore-usdc-qr" alt="Ioncore USDC QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=ethereum%3A0xE916E16848acc2c5D06F3e3183116EE475a927f6" />
+      <img id="ioncore-watch-qr" alt="Ioncore payment QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="" />
       <p style="margin:.55rem 0 0;font-size:.85rem;opacity:.85;">Scan to open in wallet</p>
     </div>
   </div>
+  <div style="display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:.6rem;align-items:end;margin-top:.9rem;">
+    <div><label for="ioncore-watch-tx" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Transfer hash / tx id</label><input id="ioncore-watch-tx" type="text" placeholder="Paste blockchain transfer id" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" /></div>
+    <button type="button" id="ioncore-submit-watch-payment" style="padding:.72rem .95rem;border:0;border-radius:10px;background:#6aff3b;color:#05121f;font-weight:700;cursor:pointer;">Confirm payment</button>
+  </div>
+  <p id="ioncore-watch-status" style="margin:.75rem 0 0;font-size:.92rem;opacity:.92;"></p>
 </section>
 <script>
 (function(){
-  const wallet = '0xE916E16848acc2c5D06F3e3183116EE475a927f6';
-  const code = 'IONCORE-SKU-' + Date.now().toString(36).toUpperCase();
-  const codeEl = document.getElementById('ioncore-receipt-code');
-  if (codeEl) codeEl.textContent = code;
-  const copyBtn = document.getElementById('ioncore-copy-usdc');
-  const walletInput = document.getElementById('ioncore-usdc-wallet');
-  if (walletInput) walletInput.value = wallet;
-  if (copyBtn && walletInput) {
-    copyBtn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(wallet);
-        copyBtn.textContent = 'Copied';
-        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1200);
-      } catch (_) {
-        walletInput.focus();
-        walletInput.select();
-      }
-    });
-  }
+  const byId = (id) => document.getElementById(id);
+  const state = { checkoutId: '', wallet: '', uri: '', currency: '' };
+  const product = byId('ioncore-watch-product');
+  const currency = byId('ioncore-watch-currency');
+  const walletInput = byId('ioncore-wallet-address');
+  const qr = byId('ioncore-watch-qr');
+  const status = byId('ioncore-watch-status');
+  const amount = byId('ioncore-watch-amount');
+  const receipt = byId('ioncore-receipt-code');
+  const tx = byId('ioncore-watch-tx');
+  const setStatus = (msg, error) => { if (status) { status.textContent = msg; status.style.color = error ? '#ff9f9f' : '#d9ffe8'; } };
+  byId('ioncore-copy-wallet')?.addEventListener('click', async () => {
+    if (!walletInput || !walletInput.value) return;
+    try { await navigator.clipboard.writeText(walletInput.value); setStatus('Wallet copied.'); } catch (_) { walletInput.focus(); walletInput.select(); }
+  });
+  byId('ioncore-create-watch-intent')?.addEventListener('click', async () => {
+    setStatus('Creating checkout intent...');
+    try {
+      const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: product.value, currency: currency.value, buyerName: 'Timepiece Customer', buyerEmail: '' }) });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.message || 'Unable to create checkout.');
+      state.checkoutId = data.checkoutId; state.wallet = data.to || ''; state.uri = data.uri || ''; state.currency = data.currency || currency.value;
+      if (walletInput) walletInput.value = state.wallet;
+      const amountValue = state.currency === 'USDC' ? data.usdcAmount : data.cryptoAmount;
+      if (amount) amount.textContent = 'Send ' + amountValue + ' ' + state.currency + ' to the selected wallet.';
+      if (receipt) receipt.textContent = state.checkoutId;
+      if (qr) qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=' + encodeURIComponent(state.uri || state.wallet);
+      setStatus('Checkout intent ready. Transfer with your wallet, then submit tx id.');
+    } catch (error) { setStatus(error.message || 'Could not create checkout intent.', true); }
+  });
+  byId('ioncore-submit-watch-payment')?.addEventListener('click', async () => {
+    if (!state.checkoutId) return setStatus('Create checkout intent first.', true);
+    if (!tx || !tx.value.trim()) return setStatus('Enter transfer hash / tx id.', true);
+    try {
+      const resp = await fetch('/api/sales/checkout-submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ checkoutId: state.checkoutId, txHash: tx.value.trim(), walletAddress: 'customer-wallet', walletProvider: state.currency }) });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.message || 'Payment confirmation failed.');
+      setStatus('Payment confirmed and transferred to selected wallet: ' + state.wallet);
+    } catch (error) { setStatus(error.message || 'Unable to confirm payment.', true); }
+  });
 })();
 </script>
 `;
@@ -110,7 +142,10 @@ const SALES_PRODUCTS = {
   'PK30-BASIC': { name: 'Peak 30 portable kinetic generator', usd: 3175 },
   'FSCU-BASE': { name: 'Flywheel Self-Charging Unit', usd: 1748 },
   'ION-HOME-LUX': { name: 'Ioncore Round Luxury Homes', usd: 105000 },
-  'ION-HOTEL-LUX': { name: 'Ioncore Round Hotel & Retail', usd: 137500 }
+  'ION-HOTEL-LUX': { name: 'Ioncore Round Hotel & Retail', usd: 137500 },
+  'TIME-APEX-X': { name: 'Apex X Timepiece', usd: 2450 },
+  'TIME-CHRONO-S': { name: 'Chrono S Timepiece', usd: 3200 },
+  'TIME-NOVA-R': { name: 'Nova R Timepiece', usd: 4600 }
 };
 const SALES_WALLETS = {
   BTC: BITCOIN_ADDRESS,

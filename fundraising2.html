@@ -433,6 +433,13 @@
       font: inherit;
     }
     .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
+    .pay-grid { display:grid; grid-template-columns: repeat(3,minmax(120px,1fr)); gap:8px; margin-top:10px; }
+    .pay-grid .btn { padding: 10px 12px; font-size:.86rem; text-align:center; }
+    .qr-modal { position: fixed; inset: 0; background: rgba(2,8,18,.82); display:none; align-items:center; justify-content:center; z-index: 1000; padding:16px; }
+    .qr-modal.open { display:flex; }
+    .qr-card { width:min(520px, 96vw); background: #0c1d31; border:1px solid var(--line); border-radius:16px; padding:18px; }
+    .qr-box { display:grid; place-items:center; background:#fff; border-radius:12px; padding:10px; margin:12px 0; }
+    .qr-box img { width: 220px; height: 220px; object-fit: contain; }
     .checkout {
       margin-top: 16px;
       padding-top: 14px;
@@ -850,6 +857,13 @@
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
               <div class="btc-address"></div>
             </div>
           </div>
@@ -878,6 +892,13 @@
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
               <div class="btc-address"></div>
             </div>
           </div>
@@ -909,6 +930,13 @@
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
               <div class="btc-address"></div>
             </div>
           </div>
@@ -937,6 +965,13 @@
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
               <div class="btc-address"></div>
             </div>
           </div>
@@ -1159,6 +1194,16 @@
       <div>© 2026 IonCore Energy. All rights reserved.</div>
     </div>
   </footer>
+  <div id="qr-modal" class="qr-modal" role="dialog" aria-modal="true" aria-label="Wallet QR payment">
+    <div class="qr-card">
+      <h3 style="margin:0;">Scan to send exact amount</h3>
+      <p id="qr-copy" class="micro" style="margin:6px 0 0;"></p>
+      <div class="qr-box"><img id="qr-image" alt="Wallet payment QR code" /></div>
+      <div class="hero-actions" style="margin-top:8px;">
+        <button id="qr-close" class="btn btn-secondary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
   <script>
     (() => {
       const statusEl = document.getElementById('paypal-status');
@@ -1244,6 +1289,16 @@
         onError: () => setStatus('PayPal checkout encountered an error. Please retry.', true)
       }).render('#paypal-button-wrap');
       const initModelCheckouts = () => {
+        const openQr = (uri, rail, amountUsd) => {
+          const q = document.getElementById('qr-modal');
+          const img = document.getElementById('qr-image');
+          const copy = document.getElementById('qr-copy');
+          if (!q || !img || !copy) return;
+          img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
+          copy.textContent = `${rail}: send exact USD equivalent of $${amountUsd.toLocaleString()} to the server wallet.`;
+          q.classList.add('open');
+        };
+        document.getElementById('qr-close')?.addEventListener('click', () => document.getElementById('qr-modal')?.classList.remove('open'));
         document.querySelectorAll('.checkout').forEach((box) => {
           const btcBtn = box.querySelector('.btc-buy');
           const btcAddressEl = box.querySelector('.btc-address');
@@ -1279,6 +1334,48 @@
               onError: () => setStatus('PayPal model checkout encountered an error.', true)
             }).render(box.querySelector('.paypal-inline'));
           }
+          box.querySelectorAll('.pay-rail').forEach((btn) => btn.addEventListener('click', async (ev) => {
+            ev.preventDefault();
+            const rail = btn.dataset.rail;
+            const payload = { ...readCheckoutData(box), currency: rail };
+            try {
+              if (rail === 'PAYPAL') {
+                setStatus('Use the PayPal button in this card to complete checkout.');
+                return;
+              }
+              if (rail === 'STRIPE') {
+                window.location.href = '/magnetic-stripe-checkout.html';
+                return;
+              }
+              const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: rail, buyerName: 'Card Checkout', buyerEmail: '' })});
+              const intent = await resp.json();
+              if (!resp.ok) throw new Error(intent.message || `Unable to open ${rail} checkout`);
+              if (rail === 'ETH') {
+                if (!window.ethereum) throw new Error('MetaMask was not detected.');
+                const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash, walletAddress:from, walletProvider:'metamask'})});
+                openQr(intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`, 'Ethereum / MetaMask', payload.totalUsd);
+                setStatus(`MetaMask opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
+              } else if (rail === 'ADA') {
+                const laceAvailable = Boolean(window.cardano?.lace);
+                const phantomAvailable = Boolean(window.solana?.isPhantom);
+                if (laceAvailable) await window.cardano.lace.enable();
+                else if (!phantomAvailable) throw new Error('Lace or Phantom wallet was not detected.');
+                window.open(intent.uri, '_self');
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'ada-uri', walletProvider:laceAvailable?'lace':'phantom'})});
+                openQr(intent.uri, laceAvailable ? 'Cardano / Lace' : 'Cardano / Phantom', payload.totalUsd);
+                setStatus(`${laceAvailable ? 'Lace' : 'Phantom'} opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
+              } else {
+                window.open(intent.uri, '_self');
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider:'bitcoin'})});
+                openQr(intent.uri, 'Bitcoin', payload.totalUsd);
+                setStatus(`Bitcoin wallet opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
+              }
+            } catch (error) {
+              setStatus(error.message || `Unable to open ${rail} checkout.`, true);
+            }
+          }));
         });
       };
       loadPayPal().then(() => { initButtons(); initModelCheckouts(); }).catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));

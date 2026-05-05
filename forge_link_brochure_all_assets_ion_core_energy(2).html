@@ -77,51 +77,33 @@
     </div>
   </section>
 
-  <!-- Founders Dual-Mint Selector (Top Bubbles) -->
-  <section id="founders-select" style="margin:16px auto 0;max-width:1200px;padding:16px;border:1px solid #1e2630;border-radius:18px;background:linear-gradient(180deg,#151a21,#0e1216)">
+  <!-- Timepiece Checkout Selector (Top Bubbles) -->
+  <section id="timepiece-checkout" style="margin:16px auto 0;max-width:1200px;padding:20px;border:1px solid #1e2630;border-radius:18px;background:linear-gradient(180deg,#151a21,#0e1216)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-      <h2 style="margin:0;font-size:22px;color:#e7ecf3">Be Part of History — Founders Mint (Nos. 1–100)</h2>
-      <div style="color:#9fb0c3;font-size:14px">Choose your collectible below, then mint.</div>
+      <h2 style="margin:0;font-size:22px;color:#e7ecf3">Timepiece Checkout — Complete Payment Structure</h2>
+      <div style="color:#9fb0c3;font-size:14px">Select a timepiece and complete checkout with your preferred payment rail.</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
-      <!-- Gold Founders bubble -->
-      <div id="bubble-gold" data-choice="gold" style="cursor:pointer;border:1px solid rgba(215,184,115,.45);border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,#1a1f26,#14191f)">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." alt="Founders Gold" style="width:160px;max-width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08)">
+      <label id="bubble-gold" style="cursor:pointer;border:1px solid rgba(215,184,115,.45);border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,#1a1f26,#14191f)">
+        <input type="radio" name="timepiece_pick" value="Gold Founders Edition" checked style="margin-top:2px">
         <div>
           <div style="font-weight:700;color:#e7ecf3">Gold Founders Edition</div>
-          <div style="color:#a8b3c0;font-size:14px">DLC titanium with gold highlights · Serialized 1–100</div>
-          <label style="display:inline-flex;align-items:center;margin-top:6px;gap:6px"><input type="radio" name="mint_pick" checked> <span style="color:#cfd6de">Select</span></label>
+          <div style="color:#a8b3c0;font-size:14px">DLC titanium with gold highlights · Limited run · $12,500</div>
         </div>
-      </div>
-      <!-- Flywheel caseback bubble -->
-      <div id="bubble-fly" data-choice="fly" style="cursor:pointer;border:1px solid rgba(95,226,155,.4);border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,#1a1f26,#14191f)">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." alt="Foundational Flywheel Caseback" style="width:160px;max-width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08)">
+      </label>
+      <label id="bubble-fly" style="cursor:pointer;border:1px solid rgba(95,226,155,.4);border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,#1a1f26,#14191f)">
+        <input type="radio" name="timepiece_pick" value="Foundational Flywheel Caseback" style="margin-top:2px">
         <div>
           <div style="font-weight:700;color:#e7ecf3">Foundational Flywheel Caseback</div>
-          <div style="color:#a8b3c0;font-size:14px">Exhibition energy core · Serialized 1–100</div>
-          <label style="display:inline-flex;align-items:center;margin-top:6px;gap:6px"><input type="radio" name="mint_pick"> <span style="color:#cfd6de">Select</span></label>
+          <div style="color:#a8b3c0;font-size:14px">Exhibition energy core caseback · Limited run · $9,800</div>
         </div>
-      </div>
+      </label>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-      <a id="mint-btn" href="#" style="display:inline-block;padding:10px 14px;border-radius:10px;background:#ff6a00;color:#111;font-weight:700">Mint Gold Founders</a>
-      <a href="#" style="display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid #1e2630;color:#e7ecf3">Download Mint Terms (PDF)</a>
+    <div class="downloads" style="margin-top:12px">
+      <a href="#purchase" class="btn" style="border:0">Open Full Checkout Form</a>
+      <a href="#" style="display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid #1e2630;color:#e7ecf3">Download Purchase Terms (PDF)</a>
       <a href="#featured" style="display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid #5fe29b;background:linear-gradient(180deg,#1f2a24,#152019);color:#c8ffe0">View Product Details</a>
     </div>
-    <script>
-      (function(){
-        const gold = document.getElementById('bubble-gold');
-        const fly  = document.getElementById('bubble-fly');
-        const radios = document.getElementsByName('mint_pick');
-        const btn  = document.getElementById('mint-btn');
-        function select(which){
-          if(which==='gold'){ radios[0].checked=true; btn.textContent='Mint Gold Founders'; }
-          else { radios[1].checked=true; btn.textContent='Mint Flywheel Foundational'; }
-        }
-        gold.addEventListener('click',()=>select('gold'));
-        fly.addEventListener('click',()=>select('fly'));
-      })();
-    </script>
   </section>
 
 
@@ -384,24 +366,25 @@
         </form>
       </div>
       <div class="card">
-        <h3>Founders Mint (1–100)</h3>
-        <p>Own a serialized, collectible access token for early hardware, firmware drops, and network privileges.</p>
+        <h3>Timepiece Checkout Summary</h3>
+        <p>Final review and payment confirmation for limited-edition timepiece purchases.</p>
         <div class="downloads">
-          <button id="connectWallet" class="btn" style="border:0">Connect Wallet</button>
-          <button id="mintNow" class="ghost btn" style="border:1px solid var(--line)">Mint Selected Edition</button>
-          <a href="#founders-select" class="btn" style="background:#1f2a24;color:#c8ffe0;border:1px solid #5fe29b">Choose Edition</a>
+          <span class="tag">Secure Checkout</span>
+          <span class="tag">Card, Wire, or BTC</span>
         </div>
-        <p class="small">Minting UI is a preview. Integration endpoints can be wired to your preferred chain or enterprise entitlement system.</p>
+        <ul style="color:var(--muted);line-height:1.5;padding-left:18px;margin:12px 0 0">
+          <li>Each checkout submits a payment request and issues invoice tracking immediately.</li>
+          <li>No wallet minting flow is required; this page is now payment-only.</li>
+          <li>Order confirmation and concierge fulfillment details are sent by email.</li>
+        </ul>
       </div>
     </div>
     <script>
       (function(){
         const f=document.getElementById('orderForm');
         const ack=document.getElementById('orderAck');
-        f.addEventListener('submit',e=>{e.preventDefault(); ack.style.display='block';});
-        document.getElementById('connectWallet').addEventListener('click',()=>alert('Wallet connect placeholder: inject your provider here.'));
-        document.getElementById('mintNow').addEventListener('click',()=>alert('Mint placeholder: route to your smart‑contract or entitlement service.'));
-      })();
+        f.addEventListener('submit',e=>{e.preventDefault(); const pick=(document.querySelector('input[name="timepiece_pick"]:checked')||{}).value||'Selected Timepiece'; ack.textContent=`Checkout started for ${pick}. Our team will send payment confirmation and fulfillment steps.`; ack.style.display='block';});
+              })();
     </script>
   </section>
 

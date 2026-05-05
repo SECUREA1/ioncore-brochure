@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://www.paypal.com/sdk/js?client-id=BAA609mUN-0_-rnZJDJU8MQQkMXQfQtjIqjtXPrmyjKoSRRuwSFT6r5EeMsbSHM80YZMY3vAmqNtmEUvds&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
 </head>
 <body>
   <header class="site-header container">
@@ -104,6 +105,13 @@
                 <label for="cvv">Security Code</label>
                 <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" data-required-when="magstripe">
               </div>
+            </div>
+          </div>
+          <div class="payment-section payment-section--paypal" data-payment-section="paypal" hidden>
+            <div class="form-row">
+              <label>PayPal checkout for Peak 30</label>
+              <p class="form-help">Use the PayPal hosted button below to complete Peak 30 checkout directly.</p>
+              <div id="paypal-container-LHAZALYUB3NXS"></div>
             </div>
           </div>
           <div class="payment-section payment-section--bitcoin" data-payment-section="bitcoin" hidden>
@@ -288,7 +296,8 @@
         bitcoin: form.querySelector('[data-payment-section="bitcoin"]'),
         ethereum: form.querySelector('[data-payment-section="ethereum"]'),
         ada: form.querySelector('[data-payment-section="ada"]'),
-        usdc: form.querySelector('[data-payment-section="usdc"]')
+        usdc: form.querySelector('[data-payment-section="usdc"]'),
+        paypal: form.querySelector('[data-payment-section="paypal"]')
       };
       const productSelect = form.querySelector('#product-code');
       const amountInput = form.querySelector('#amount');
@@ -378,19 +387,27 @@
           });
       }
 
+      if (window.paypal && window.paypal.HostedButtons) {
+        window.paypal.HostedButtons({ hostedButtonId: 'LHAZALYUB3NXS' }).render('#paypal-container-LHAZALYUB3NXS').catch(() => {
+          setFeedback('PayPal button failed to load. Please refresh and try again.', 'error');
+        });
+      }
+
       if (isLocked) {
         return;
       }
 
       const updatePaymentMethod = (method) => {
         const normalized = method === 'magstripe' ? 'stripe' : method;
-        const isCardRail = normalized === 'stripe' || normalized === 'paypal';
+        const isCardRail = normalized === 'stripe';
         if (paymentSections.magstripe) paymentSections.magstripe.hidden = !isCardRail;
+        if (paymentSections.paypal) paymentSections.paypal.hidden = normalized !== 'paypal';
         if (paymentSections.bitcoin) paymentSections.bitcoin.hidden = normalized !== 'bitcoin';
         if (paymentSections.ethereum) paymentSections.ethereum.hidden = normalized !== 'ethereum';
         if (paymentSections.ada) paymentSections.ada.hidden = normalized !== 'ada';
         if (paymentSections.usdc) paymentSections.usdc.hidden = normalized !== 'usdc';
         if (submitButton) {
+          submitButton.hidden = normalized === 'paypal';
           submitButton.textContent =
             normalized === 'paypal' ? 'Continue to PayPal' :
             normalized === 'stripe' ? 'Continue to Stripe' :

@@ -1533,6 +1533,27 @@ app.post('/api/sales/confirm', async (req, res) => {
   return res.json({ message: 'Sales payment submitted and recorded.', checkout });
 });
 
+app.get('/api/sales/summary', (req, res) => {
+  const checkoutSales = Array.from(salesCheckouts.values()).filter((item) => item.status === 'payment-submitted');
+  const checkoutRevenueUsd = checkoutSales.reduce((sum, item) => sum + (Number(item.usdAmount) || 0), 0);
+  const paypalRevenueUsd = store.paypalOrders.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const magstripeRevenueUsd = store.magstripeTransactions.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const bitcoinRevenueUsd = store.bitcoinTransactions.reduce((sum, item) => sum + (Number(item.usdAmount) || 0), 0);
+  res.json({
+    totals: {
+      salesCount: checkoutSales.length + store.paypalOrders.length + store.magstripeTransactions.length + store.bitcoinTransactions.length + timepieceMintLedger.length,
+      revenueUsd: checkoutRevenueUsd + paypalRevenueUsd + magstripeRevenueUsd + bitcoinRevenueUsd
+    },
+    channels: {
+      cryptoCheckouts: checkoutSales.length,
+      paypalOrders: store.paypalOrders.length,
+      stripeOrders: store.magstripeTransactions.length,
+      bitcoinOrders: store.bitcoinTransactions.length,
+      timepieceMints: timepieceMintLedger.length
+    }
+  });
+});
+
 app.get('/api/payments/bitcoin/config', (req, res) => {
   res.json({
     btcAddress: BITCOIN_ADDRESS,

@@ -1273,12 +1273,13 @@
         script.async = true; document.head.appendChild(script);
         await new Promise((resolve, reject) => { script.onload = resolve; script.onerror = () => reject(new Error('Failed to load PayPal SDK.')); });
       };
+      const checkoutProductCodes = { peak30: 'PK30-BASIC', fscu: 'FSCU-BASE', home: 'ION-HOME-LUX', commercial: 'ION-HOTEL-LUX' };
       const readCheckoutData = (box) => {
         const qty = Math.max(1, Number.parseInt(box.querySelector('.qty')?.value || '1', 10));
         const purchaseType = box.querySelector('.purchase-type')?.value || 'unit';
         const model = box.dataset.model;
         const unitPrice = Number.parseFloat(box.dataset.price || '0');
-        return { qty, purchaseType, model, unitPrice, totalUsd: qty * unitPrice };
+        return { qty, purchaseType, model, productCode: checkoutProductCodes[model] || 'PK30-BASIC', unitPrice, totalUsd: qty * unitPrice };
       };
       const initButtons = () => window.paypal.Buttons({
         style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
@@ -1358,7 +1359,7 @@
                 window.location.href = '/magnetic-stripe-checkout.html';
                 return;
               }
-              const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: rail, buyerName: 'Card Checkout', buyerEmail: '' })});
+              const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.productCode, currency: rail, buyerName: 'Card Checkout', buyerEmail: '' })});
               const intent = await resp.json();
               if (!resp.ok) throw new Error(intent.message || `Unable to open ${rail} checkout`);
               if (rail === 'USDC') {
@@ -1373,7 +1374,8 @@
                 const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});
                 await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash, walletAddress:from, walletProvider:'metamask'})});
-                openQr(intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`, 'Ethereum / MetaMask', payload.totalUsd);
+                const ethUri = intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`;
+                openQr(ethUri, 'Ethereum / MetaMask', payload.totalUsd);
                 setStatus(`MetaMask opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
               } else if (rail === 'ADA') {
                 const laceAvailable = Boolean(window.cardano?.lace);
@@ -1471,8 +1473,12 @@
           } else if (intent.currency === 'ETH') {
             if (!window.ethereum) throw new Error('MetaMask is not available in this browser.');
             const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            window.open(intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`, '_self');
             const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});
             await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash, walletAddress:from, walletProvider:'metamask'})});
+            const q = document.getElementById('qr-modal'); const img = document.getElementById('qr-image'); const copy = document.getElementById('qr-copy');
+            const ethUri = intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`;
+            if (q && img && copy) { img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(ethUri)}`; copy.textContent = `ETH: send exact USD equivalent of $${intent.usdAmount.toLocaleString()} to ${intent.to}.`; q.classList.add('open'); }
             setStatus(`Payment sent. ETH tx: ${txHash}`);
           } else if (intent.currency === 'ADA') {
             const laceAvailable = Boolean(window.cardano?.lace);

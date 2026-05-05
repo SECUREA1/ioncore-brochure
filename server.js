@@ -48,7 +48,7 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
 <script>
 (function(){
   const byId = (id) => document.getElementById(id);
-  const state = { checkoutId: '', wallet: '', uri: '', currency: '' };
+  const state = { checkoutId: '', wallet: '', uri: '', currency: '', model: '' };
   const product = byId('ioncore-watch-product');
   const currency = byId('ioncore-watch-currency');
   const walletInput = byId('ioncore-wallet-address');
@@ -65,10 +65,20 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
   byId('ioncore-create-watch-intent')?.addEventListener('click', async () => {
     setStatus('Creating checkout intent...');
     try {
-      const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: product.value, currency: currency.value, buyerName: 'Timepiece Customer', buyerEmail: '' }) });
+      const selectedRail = currency.value;
+      state.model = product.value;
+      if (selectedRail === 'PAYPAL') {
+        window.location.href = '/magnetic-stripe-checkout.html';
+        return setStatus('Opening PayPal checkout page. Select PayPal in payment rail to finish purchase.');
+      }
+      if (selectedRail === 'STRIPE') {
+        window.location.href = '/magnetic-stripe-checkout.html';
+        return setStatus('Opening Stripe checkout page. Select Stripe in payment rail to finish purchase.');
+      }
+      const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: product.value, currency: selectedRail, buyerName: 'Timepiece Customer', buyerEmail: '' }) });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.message || 'Unable to create checkout.');
-      state.checkoutId = data.checkoutId; state.wallet = data.to || ''; state.uri = data.uri || ''; state.currency = data.currency || currency.value;
+      state.checkoutId = data.checkoutId; state.wallet = data.to || ''; state.uri = data.uri || ''; state.currency = data.currency || selectedRail;
       if (walletInput) walletInput.value = state.wallet;
       const amountValue = state.currency === 'USDC' ? data.usdcAmount : data.cryptoAmount;
       if (amount) amount.textContent = 'Send ' + amountValue + ' ' + state.currency + ' to the selected wallet.';
@@ -78,7 +88,7 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
     } catch (error) { setStatus(error.message || 'Could not create checkout intent.', true); }
   });
   byId('ioncore-submit-watch-payment')?.addEventListener('click', async () => {
-    if (!state.checkoutId) return setStatus('Create checkout intent first.', true);
+    if (!state.checkoutId) return setStatus('Create checkout intent first (crypto rails only).', true);
     if (!tx || !tx.value.trim()) return setStatus('Enter transfer hash / tx id.', true);
     try {
       const resp = await fetch('/api/sales/checkout-submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ checkoutId: state.checkoutId, txHash: tx.value.trim(), walletAddress: 'customer-wallet', walletProvider: state.currency }) });

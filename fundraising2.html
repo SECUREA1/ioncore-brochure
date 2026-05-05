@@ -435,6 +435,11 @@
     .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
     .pay-grid { display:grid; grid-template-columns: repeat(3,minmax(120px,1fr)); gap:8px; margin-top:10px; }
     .pay-grid .btn { padding: 10px 12px; font-size:.86rem; text-align:center; }
+    .pay-grid .pay-rail.active {
+      border-color: rgba(72, 213, 255, 0.9);
+      box-shadow: 0 0 0 2px rgba(72, 213, 255, 0.25);
+      background: rgba(72, 213, 255, 0.15);
+    }
     .qr-modal { position: fixed; inset: 0; background: rgba(2,8,18,.82); display:none; align-items:center; justify-content:center; z-index: 1000; padding:16px; }
     .qr-modal.open { display:flex; }
     .qr-card { width:min(520px, 96vw); background: #0c1d31; border:1px solid var(--line); border-radius:16px; padding:18px; }
@@ -850,7 +855,7 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="reserve">Reserve unit</option><option value="investment">Early investment</option></select>
                 <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
               </div>
               <div class="paypal-inline"></div>
@@ -885,7 +890,7 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="reserve">Reserve unit</option><option value="investment">Early investment</option></select>
                 <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
               </div>
               <div class="paypal-inline"></div>
@@ -923,7 +928,7 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="reserve">Reserve unit</option><option value="investment">Early investment</option></select>
                 <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
               </div>
               <div class="paypal-inline"></div>
@@ -958,7 +963,7 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
+                <select class="purchase-type"><option value="unit">Buy unit</option><option value="reserve">Reserve unit</option><option value="investment">Early investment</option></select>
                 <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
               </div>
               <div class="paypal-inline"></div>
@@ -1336,6 +1341,8 @@
           }
           box.querySelectorAll('.pay-rail').forEach((btn) => btn.addEventListener('click', async (ev) => {
             ev.preventDefault();
+            box.querySelectorAll('.pay-rail').forEach((candidate) => candidate.classList.remove('active'));
+            btn.classList.add('active');
             const rail = btn.dataset.rail;
             const payload = { ...readCheckoutData(box), currency: rail };
             try {
@@ -1378,7 +1385,10 @@
           }));
         });
       };
-      loadPayPal().then(() => { initButtons(); initModelCheckouts(); }).catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
+      initModelCheckouts();
+      loadPayPal()
+        .then(() => { initButtons(); })
+        .catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
     })();
   </script>
 

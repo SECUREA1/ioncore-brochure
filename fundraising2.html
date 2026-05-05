@@ -549,8 +549,8 @@
               <span>Premium Category Lanes</span>
             </div>
             <div class="stat">
-              <strong>2X Target</strong>
-              <span>Early Investor Return Objective</span>
+              <strong>8% Annual / Equity</strong>
+              <span>Investor return pathways</span>
             </div>
             <div class="stat">
               <strong>Energy + Propulsion</strong>
@@ -609,18 +609,16 @@
         <div class="grid-2" style="margin-top:24px;">
           <div class="card">
             <span class="tag">Investor Position</span>
-            <h3>2X value-creation target (milestone based)</h3>
+            <h3>Investor return options: equity shares or 8% annual</h3>
             <p>
-              The objective is to <strong>double enterprise value</strong> by hitting measurable milestones: validated pilots,
-              contracted revenue pathways, and governance maturity that supports higher valuation financing rounds.
+              Investors may choose a return path as <strong>equity shares in the $2,000,000 raise at a $300,000,000 company valuation</strong> or an <strong>8% annual return structure</strong>, finalized in legal offering documents.
             </p>
           </div>
           <div class="card">
             <span class="tag">Capital Strategy</span>
-            <h3>Dual-track raise with IPO optionality</h3>
+            <h3>Flexible participation: product purchase or stock participation</h3>
             <p>
-              Structure this phase as private capital first (strategic investors + compliant offering path), then evaluate
-              an <strong>IPO track only after traction, audit readiness, and regulatory prerequisites are met</strong>.
+              Participants can either <strong>purchase an operating unit</strong> or <strong>buy into stock participation</strong> in the current $2,000,000 raise. Terms and allocation are subject to final subscription documents.
             </p>
           </div>
         </div>
@@ -640,7 +638,7 @@
         </div>
 
         <div class="disclaimer">
-          Any return language, incentive benefits, debt/equity terms, and future IPO references must be reviewed by licensed securities counsel before public use.
+          All equity, annual-return, tax, and shipping language must be reviewed by licensed securities and tax counsel before public use.
         </div>
       </div>
     </section>
@@ -1148,10 +1146,12 @@
     <section id="crypto-sales">
       <div class="container">
         <h2 class="section-title">Direct Crypto Sales Checkout</h2>
-        <p class="section-subtitle">Select a product and payment rail (USDC first, then Ethereum, Bitcoin, Cardano, Stripe, or PayPal). Connect wallet, approve transfer, and scan QR if needed.</p>
+        <p class="section-subtitle">Choose a purchase path (unit purchase or stock participation), select payment rail (USDC first), and complete checkout. Unit purchases include a 15% tax and shipping contingency.</p>
         <article class="card" style="max-width:860px;margin:0 auto;">
           <form id="crypto-sales-form" class="deposit-form">
-            <div class="field"><label for="saleProduct">Product</label><select id="saleProduct" name="productCode" required><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option></select></div>
+            <div class="field"><label for="salePurchasePath">Purchase path</label><select id="salePurchasePath" name="purchasePath" required><option value="UNIT">Purchase a unit</option><option value="STOCK">Buy into $2M stock raise</option></select></div>
+            <div class="field"><label for="saleProduct">Product or stock ticket</label><select id="saleProduct" name="productCode" required><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option><option value="STOCK-25000" data-price="25000">Stock participation ticket — $25,000</option></select></div>
+            <div class="field"><label for="saleReturnType">Return preference (stock path)</label><select id="saleReturnType" name="returnType" required><option value="SHARES">Shares at $300M valuation</option><option value="ANNUAL_8">8% annual return</option></select></div>
             <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="USDC">USDC (MetaMask / WalletConnect)</option><option value="ETH">Ethereum (MetaMask)</option><option value="BTC">Bitcoin</option><option value="ADA">Cardano (Lace / Phantom handoff)</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
             <div class="field"><label for="saleBuyer">Buyer name</label><input id="saleBuyer" name="buyerName" required /></div>
             <div class="field"><label for="saleEmail">Buyer email</label><input id="saleEmail" name="buyerEmail" type="email" /></div>
@@ -1382,18 +1382,35 @@
     })();
   </script>
 
+  <script>
     (() => {
       const form = document.getElementById('crypto-sales-form');
       const product = document.getElementById('saleProduct');
+      const pathSelect = document.getElementById('salePurchasePath');
+      const returnType = document.getElementById('saleReturnType');
       const currency = document.getElementById('saleCurrency');
       const amount = document.getElementById('saleAmount');
       const status = document.getElementById('crypto-sale-status');
       const btn = document.getElementById('begin-crypto-sale');
-      if (!form || !product || !currency || !amount || !status || !btn) return;
+      if (!form || !product || !pathSelect || !returnType || !currency || !amount || !status || !btn) return;
       const unifiedStatus = document.getElementById('unified-sales-status');
       const setStatus = (msg,err=false)=>{ status.textContent=msg; status.style.display=msg?'block':'none'; status.classList.toggle('error',!!err); };
-      const syncAmount = () => { amount.value = `$${Number(product.selectedOptions[0]?.dataset?.price||0).toLocaleString()} USD`; };
-      syncAmount(); product.addEventListener('change', syncAmount);
+      const syncFormByPath = () => {
+        const isStock = pathSelect.value === 'STOCK';
+        returnType.disabled = !isStock;
+        if (!isStock) returnType.value = 'SHARES';
+      };
+      const withContingency = (base) => Math.round(base * 1.15 * 100) / 100;
+      const syncAmount = () => {
+        const base = Number(product.selectedOptions[0]?.dataset?.price||0);
+        const isStock = pathSelect.value === 'STOCK';
+        const total = isStock ? base : withContingency(base);
+        amount.value = `$${total.toLocaleString()} USD`;
+      };
+      syncFormByPath();
+      syncAmount();
+      product.addEventListener('change', syncAmount);
+      pathSelect.addEventListener('change', ()=>{ syncFormByPath(); syncAmount(); });
       const refreshUnifiedSales = async () => {
         if (!unifiedStatus) return;
         try {
@@ -1408,7 +1425,7 @@
       refreshUnifiedSales();
       btn.addEventListener('click', async () => {
         try {
-          const payload = {productCode: product.value, currency: currency.value, buyerName: form.saleBuyer.value.trim(), buyerEmail: form.saleEmail.value.trim()};
+          const payload = {productCode: product.value, purchasePath: pathSelect.value, returnType: returnType.value, currency: currency.value, buyerName: form.saleBuyer.value.trim(), buyerEmail: form.saleEmail.value.trim()};
           if (!payload.buyerName) throw new Error('Buyer name is required.');
           if (payload.currency === 'PAYPAL') {
             document.getElementById('deposits')?.scrollIntoView({ behavior: 'smooth' });
@@ -1428,7 +1445,8 @@
             await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'usdc-wallet-uri-opened', walletAddress:from, walletProvider:'metamask'})});
             const q = document.getElementById('qr-modal'); const img = document.getElementById('qr-image'); const copy = document.getElementById('qr-copy');
             if (q && img && copy) { img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(intent.uri)}`; copy.textContent = `USDC: send $${intent.usdAmount.toLocaleString()} (${intent.usdcAmount} USDC) to designated wallet.`; q.classList.add('open'); }
-            setStatus(`USDC wallet prompt opened. Confirm ${intent.usdcAmount} USDC transfer to ${intent.to}.`);
+            const returnLabel = payload.purchasePath === 'STOCK' ? (payload.returnType === 'SHARES' ? 'shares' : '8% annual return') : 'unit purchase';
+            setStatus(`USDC wallet prompt opened. Confirm ${intent.usdcAmount} USDC transfer to ${intent.to}. Return path: ${returnLabel}.`);
           } else if (intent.currency === 'ETH') {
             if (!window.ethereum) throw new Error('MetaMask is not available in this browser.');
             const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -1453,6 +1471,7 @@
         } catch (e) { setStatus(e.message || 'Checkout failed.', true); }
       });
     })();
+  </script>
 
 </body>
 </html>

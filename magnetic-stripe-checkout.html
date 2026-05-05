@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Process magnetic stripe card payments for Ioncore Energy deployments.">
-  <title>Ioncore Energy | Magnetic Stripe Checkout</title>
+  <title>Ioncore Energy | Stripe Checkout</title>
   <link rel="icon" type="image/svg+xml" href="battery.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,9 +36,9 @@
     <section class="container page-section page-section--tight checkout-hero">
       <div class="checkout-hero__content">
         <div>
-          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Magnetic Stripe &amp; Bitcoin Checkout</span>
-          <h1 class="section-title">Capture point-of-sale transactions or raise instant Bitcoin requests.</h1>
-          <p class="section-subtitle">Use our secure checkout to book deposits, finalize project invoices, and reconcile sales instantly with the Ioncore operations team—whether the customer pays by card or on-chain.</p>
+          <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Open Fundraising Checkout · PayPal · Stripe · ETH · BTC · ADA</span>
+          <h1 class="section-title">Open pre-seed and fundraising checkout with multi-rail payments.</h1>
+          <p class="section-subtitle">This page is now open for pre-seed reservations and all active fundraising products. Select a product, choose PayPal, Stripe, Ethereum, Bitcoin, or Cardano (ADA), and submit a purchase intent instantly.</p>
         </div>
         <div class="checkout-hero__card" aria-hidden="true">
           <div class="checkout-card">
@@ -56,18 +56,30 @@
 
     <section class="container page-section--tight checkout-grid">
       <div class="checkout-panel checkout-panel--locked">
-        <h2>Sales Checkout</h2>
-        <p class="checkout-panel__subtitle">Select the customer&apos;s payment method and capture the transaction details for immediate processing.</p>
+        <h2>Pre-Seed & Fundraising Checkout</h2>
+        <p class="checkout-panel__subtitle">Choose a fundraising product, then complete checkout on the selected payment rail.</p>
         <form class="checkout-form" novalidate>
           <fieldset class="form-row payment-method-selector">
             <legend>Payment Method</legend>
             <label class="payment-method-selector__option">
               <input type="radio" name="payment-method" value="magstripe" checked>
-              Magnetic Stripe
+              Stripe
+            </label>
+            <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="paypal">
+              PayPal
+            </label>
+            <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="ethereum">
+              Ethereum
             </label>
             <label class="payment-method-selector__option">
               <input type="radio" name="payment-method" value="bitcoin">
               Bitcoin
+            </label>
+            <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="ada">
+              ADA
             </label>
           </fieldset>
           <div class="form-row">
@@ -124,14 +136,18 @@
             </div>
           </div>
           <div class="form-row">
-            <label for="amount">Charge Amount (USD)</label>
-            <input type="number" id="amount" name="amount" placeholder="25000" min="1" step="0.01" required>
+            <label for="product-code">Fundraising Product</label>
+            <select id="product-code" name="product-code" required></select>
+          </div>
+          <div class="form-row">
+            <label for="amount">Product Price (USD)</label>
+            <input type="number" id="amount" name="amount" placeholder="25000" min="1" step="0.01" required readonly>
           </div>
           <div class="form-row">
             <label for="notes">Project Reference</label>
             <textarea id="notes" name="notes" rows="3" placeholder="Hybrid flywheel deployment – Phase 1 deposit"></textarea>
           </div>
-          <button class="btn btn-primary checkout-form__submit" type="submit">Process Magnetic Stripe Sale</button>
+          <button class="btn btn-primary checkout-form__submit" type="submit">Process Stripe Sale</button>
           <div class="checkout-form__feedback" role="status" aria-live="polite"></div>
           <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete. Bitcoin submissions log the wallet destination and are confirmed on-chain prior to equipment release.</p>
         </form>
@@ -148,7 +164,7 @@
           <li><span>Verify the swiped data before submitting to ensure the cardholder name and amount match the signed work order.</span></li>
           <li><span>Use the notes field to identify the project stage—deposit, milestone, or final commissioning payment.</span></li>
           <li><span>Send the confirmation email from the Ioncore CRM within 15 minutes of approval.</span></li>
-          <li><span>For Bitcoin, request on-chain confirmation or a transaction ID before releasing equipment or closing the service ticket.</span></li>
+          <li><span>For crypto rails (ETH/BTC/ADA), send only on native mainnet and include the generated order ID in transfer notes.</span></li>
         </ul>
         <div class="checkout-sidebar__cta">
           <h4>Need help?</h4>
@@ -204,6 +220,8 @@
         magstripe: form.querySelector('[data-payment-section="magstripe"]'),
         bitcoin: form.querySelector('[data-payment-section="bitcoin"]')
       };
+      const productSelect = form.querySelector('#product-code');
+      const amountInput = form.querySelector('#amount');
       const dynamicRequiredFields = Array.from(form.querySelectorAll('[data-required-when]'));
       const btcWalletInput = form.querySelector('#btc-wallet');
       const btcQrImage = form.querySelector('#btc-qr');
@@ -280,7 +298,7 @@
       }
 
       const updatePaymentMethod = (method) => {
-        const isMagstripe = method === 'magstripe';
+        const isMagstripe = method === 'magstripe' || method === 'stripe' || method === 'paypal';
         if (paymentSections.magstripe) {
           paymentSections.magstripe.hidden = !isMagstripe;
         }
@@ -288,7 +306,7 @@
           paymentSections.bitcoin.hidden = isMagstripe;
         }
         if (submitButton) {
-          submitButton.textContent = isMagstripe ? 'Process Magnetic Stripe Sale' : 'Generate Bitcoin Payment';
+          submitButton.textContent = isMagstripe ? 'Process Stripe Sale' : 'Generate Bitcoin Payment';
         }
         dynamicRequiredFields.forEach((field) => {
           const requiredWhen = field.dataset.requiredWhen;
@@ -296,7 +314,25 @@
         });
       };
 
-      const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'magstripe';
+      
+      const loadCatalog = async () => {
+        try {
+          const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
+          const data = await response.json();
+          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) return;
+          productSelect.innerHTML = data.products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
+          const syncAmount = () => {
+            const selected = productSelect.selectedOptions[0];
+            const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
+            if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+          };
+          productSelect.addEventListener('change', syncAmount);
+          syncAmount();
+        } catch (_) {}
+      };
+
+      loadCatalog();
+const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
       updatePaymentMethod(selectedMethod);
 
       paymentMethodInputs.forEach((input) => {
@@ -355,29 +391,19 @@
           projectReference: formData.get('notes') || ''
         };
 
-        let endpoint = '/payments/magnetic-stripe';
+        let endpoint = '/api/fundraising/checkout';
 
-        if (paymentMethod === 'bitcoin') {
-          endpoint = '/payments/bitcoin';
-          Object.assign(payload, {
-            btcWallet: formData.get('btc-wallet') || '',
-            btcAmount: formData.get('btc-amount') || '',
-            transactionId: formData.get('btc-txid') || '',
-            remittingContact: formData.get('btc-contact') || ''
-          });
-        } else {
-          Object.assign(payload, {
-            cardNumber: formData.get('card-number') || '',
-            expiry: formData.get('expiry') || '',
-            cvv: formData.get('cvv') || ''
-          });
-        }
+        Object.assign(payload, {
+          paymentRail: paymentMethod === 'magstripe' ? 'stripe' : paymentMethod,
+          productCode: formData.get('product-code') || '',
+          buyerName: formData.get('cardholder') || '',
+          buyerEmail: '',
+          notes: formData.get('notes') || ''
+        });
 
         submitButton.disabled = true;
         setFeedback(
-          paymentMethod === 'bitcoin'
-            ? 'Creating bitcoin payment record…'
-            : 'Authorizing magnetic stripe sale…',
+          'Creating fundraising pre-sale order…',
           null
         );
 
@@ -464,7 +490,7 @@
 
           setFeedback(receiptLines.join(' • '), 'success');
 
-          form.reset();
+          if (result.orderId) { form.querySelector('#receipt-code').value = result.orderId; } form.reset();
           const nextMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
           updatePaymentMethod(nextMethod);
         } catch (error) {

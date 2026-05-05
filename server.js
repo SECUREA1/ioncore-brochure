@@ -184,6 +184,15 @@ const SALES_WALLETS = {
 };
 const SALES_FX = { BTC: 95000, ETH: 3200, ADA: 0.68 };
 const salesCheckouts = new Map();
+const FUNDRAISING_PRODUCTS = [
+  { code: 'PRESEED-250', name: 'Pre-Seed Access Note', usd: 250, category: 'Pre-Seed' },
+  { code: 'PRESEED-1000', name: 'Pre-Seed Builder Unit', usd: 1000, category: 'Pre-Seed' },
+  { code: 'PRESEED-5000', name: 'Pre-Seed Accelerator Bundle', usd: 5000, category: 'Pre-Seed' },
+  { code: 'FUND-PEAK30', name: 'Peak 30 Portable Generator Presale', usd: 3175, category: 'Hardware' },
+  { code: 'FUND-FSCU', name: 'Flywheel Self-Charging Unit Presale', usd: 1748, category: 'Hardware' },
+  { code: 'FUND-HOME', name: 'Ioncore Round Luxury Home Presale', usd: 105000, category: 'Infrastructure' },
+  { code: 'FUND-HOTEL', name: 'Ioncore Round Hotel & Retail Presale', usd: 137500, category: 'Infrastructure' }
+];
 
 const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
@@ -226,6 +235,7 @@ const defaultStore = {
   gatewayUsers: {},
   magstripeTransactions: [],
   bitcoinTransactions: [],
+  fundraisingOrders: [],
   marketplaceUploads: [],
   marketplaceBids: [],
   timepieceMintLedger: [],
@@ -247,6 +257,7 @@ async function loadStore() {
           : {},
       magstripeTransactions: Array.isArray(parsed.magstripeTransactions) ? parsed.magstripeTransactions : [],
       bitcoinTransactions: Array.isArray(parsed.bitcoinTransactions) ? parsed.bitcoinTransactions : [],
+      fundraisingOrders: Array.isArray(parsed.fundraisingOrders) ? parsed.fundraisingOrders : [],
       marketplaceUploads: Array.isArray(parsed.marketplaceUploads) ? parsed.marketplaceUploads : [],
       marketplaceBids: Array.isArray(parsed.marketplaceBids) ? parsed.marketplaceBids : [],
       timepieceMintLedger: Array.isArray(parsed.timepieceMintLedger) ? parsed.timepieceMintLedger : [],
@@ -1560,6 +1571,83 @@ app.get('/api/payments/bitcoin/config', (req, res) => {
     confirmationsRequired: BITCOIN_CONFIRMATIONS_REQUIRED,
     settlementWindowMinutes: BITCOIN_SETTLEMENT_WINDOW_MINUTES
   });
+});
+
+app.get('/api/fundraising/catalog', (req, res) => {
+  res.json({
+    products: FUNDRAISING_PRODUCTS,
+    rails: {
+      paypal: { enabled: true, label: 'PayPal Checkout' },
+      stripe: { enabled: true, label: 'Stripe Card Checkout' },
+      ethereum: { enabled: true, wallet: SALES_WALLETS.ETH, fx: SALES_FX.ETH },
+      bitcoin: { enabled: true, wallet: SALES_WALLETS.BTC, fx: SALES_FX.BTC },
+      ada: { enabled: true, wallet: SALES_WALLETS.ADA, fx: SALES_FX.ADA }
+    }
+  });
+});
+
+app.post('/api/fundraising/checkout', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const productCode = typeof body.productCode === 'string' ? body.productCode.trim().toUpperCase() : '';
+  const paymentRail = typeof body.paymentRail === 'string' ? body.paymentRail.trim().toLowerCase() : '';
+  const buyerName = typeof body.buyerName === 'string' ? body.buyerName.trim() : '';
+  const buyerEmail = typeof body.buyerEmail === 'string' ? body.buyerEmail.trim() : '';
+  const notes = typeof body.notes === 'string' ? body.notes.trim() : '';
+  const product = FUNDRAISING_PRODUCTS.find((item) => item.code === productCode);
+
+  if (!product) return res.status(400).json({ message: 'Select a valid fundraising product.' });
+  if (!['paypal', 'stripe', 'ethereum', 'bitcoin', 'ada'].includes(paymentRail)) {
+    return res.status(400).json({ message: 'Payment rail must be PayPal, Stripe, Ethereum, Bitcoin, or ADA.' });
+  }
+  if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
+
+  const orderId = `ION-FUND-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
+  const record = {
+    orderId,
+    productCode: product.code,
+    productName: product.name,
+    category: product.category,
+    amountUsd: product.usd,
+    paymentRail,
+    buyerName,
+    buyerEmail,
+    notes,
+    status: 'created',
+    createdAt: new Date().toISOString(),
+    ipAddress: req.ip
+  };
+
+  if (paymentRail === 'ethereum') record.cryptoAmount = Number((product.usd / SALES_FX.ETH).toFixed(8));
+  if (paymentRail === 'bitcoin') record.cryptoAmount = Number((product.usd / SALES_FX.BTC).toFixed(8));
+  if (paymentRail === 'ada') record.cryptoAmount = Number((product.usd / SALES_FX.ADA).toFixed(6));
+
+  store.fundraisingOrders.push(record);
+  await enqueueStoreSave();
+
+  const response = {
+    message: 'Pre-sale order created. Complete payment on the selected rail to finalize allocation.',
+    orderId,
+    product: { code: product.code, name: product.name, usd: product.usd, category: product.category },
+    paymentRail,
+    amountUsd: product.usd
+  };
+
+  if (paymentRail === 'paypal') {
+    response.checkoutUrl = `https://www.paypal.com/checkoutnow?token=${encodeURIComponent(orderId)}`;
+  } else if (paymentRail === 'stripe') {
+    response.checkoutUrl = `/payments/magnetic-stripe?orderId=${encodeURIComponent(orderId)}`;
+  } else if (paymentRail === 'ethereum') {
+    response.wallet = SALES_WALLETS.ETH;
+    response.cryptoAmount = record.cryptoAmount;
+  } else if (paymentRail === 'bitcoin') {
+    response.wallet = SALES_WALLETS.BTC;
+    response.cryptoAmount = record.cryptoAmount;
+  } else if (paymentRail === 'ada') {
+    response.wallet = SALES_WALLETS.ADA;
+    response.cryptoAmount = record.cryptoAmount;
+  }
+
+  return res.status(201).json(response);
 });
 
 app.post('/payments/bitcoin', async (req, res) => {

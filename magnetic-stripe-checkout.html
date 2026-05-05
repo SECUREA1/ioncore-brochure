@@ -337,8 +337,29 @@
         'FUND-PEAK30': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
         'FUND-FSCU': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
         'FUND-HOME': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'FUND-HOTEL': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ'
+        'FUND-HOTEL': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'PK30-BASIC': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
+        'FSCU-BASE': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'ION-HOME-LUX': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'ION-HOTEL-LUX': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
+        'TIME-APEX-X': '',
+        'TIME-CHRONO-S': '',
+        'TIME-NOVA-R': '',
+        'STOCK-25000': ''
       };
+      const fallbackCatalog = [
+        { code: 'PRESEED-250', usd: 250, name: 'Pre-Seed Access Note' },
+        { code: 'PRESEED-1000', usd: 1000, name: 'Pre-Seed Builder Unit' },
+        { code: 'PRESEED-5000', usd: 5000, name: 'Pre-Seed Accelerator Bundle' },
+        { code: 'PK30-BASIC', usd: 3175, name: 'Peak 30 portable kinetic generator' },
+        { code: 'FSCU-BASE', usd: 1748, name: 'Flywheel Self-Charging Unit' },
+        { code: 'ION-HOME-LUX', usd: 105000, name: 'Ioncore Round Luxury Home Presale' },
+        { code: 'ION-HOTEL-LUX', usd: 137500, name: 'Ioncore Round Hotel & Retail Presale' },
+        { code: 'TIME-APEX-X', usd: 2450, name: 'Apex X Timepiece' },
+        { code: 'TIME-CHRONO-S', usd: 3200, name: 'Chrono S Timepiece' },
+        { code: 'TIME-NOVA-R', usd: 4600, name: 'Nova R Timepiece' },
+        { code: 'STOCK-25000', usd: 25000, name: 'Stock participation ticket' }
+      ];
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -475,26 +496,36 @@
       };
 
 
+      const renderCatalog = (products) => {
+        if (!productSelect || !Array.isArray(products) || !products.length) return;
+        productSelect.innerHTML = products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
+        const syncAmount = () => {
+          const selected = productSelect.selectedOptions[0];
+          const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
+          if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+        };
+        productSelect.addEventListener('change', () => {
+          syncAmount();
+          syncPayPalSelector();
+          updatePayPalLaunchState();
+        });
+        syncAmount();
+        syncPayPalSelector();
+        updatePayPalLaunchState();
+      };
+
       const loadCatalog = async () => {
         try {
           const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
           const data = await response.json();
-          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) return;
-          productSelect.innerHTML = data.products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
-          const syncAmount = () => {
-            const selected = productSelect.selectedOptions[0];
-            const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
-            if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
-          };
-          productSelect.addEventListener('change', () => {
-            syncAmount();
-            syncPayPalSelector();
-            updatePayPalLaunchState();
-          });
-          syncAmount();
-          syncPayPalSelector();
-          updatePayPalLaunchState();
-        } catch (_) {}
+          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) {
+            renderCatalog(fallbackCatalog);
+            return;
+          }
+          renderCatalog(data.products);
+        } catch (_) {
+          renderCatalog(fallbackCatalog);
+        }
       };
 
       loadCatalog();
@@ -514,7 +545,7 @@
           window.open(link, '_blank', 'noopener');
         });
       }
-const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
+      const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
       updatePaymentMethod(selectedMethod);
 
       paymentMethodInputs.forEach((input) => {

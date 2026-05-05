@@ -55,12 +55,12 @@
     </section>
 
     <section class="container page-section--tight checkout-grid">
-      <div class="checkout-panel checkout-panel--locked">
+      <div class="checkout-panel">
         <h2>Pre-Seed & Fundraising Checkout</h2>
         <p class="checkout-panel__subtitle">Choose a fundraising product, then complete checkout on the selected payment rail.</p>
         <form class="checkout-form" novalidate>
           <fieldset class="form-row payment-method-selector">
-            <legend>Payment Method</legend>
+            <legend>All Payment Types</legend>
             <label class="payment-method-selector__option">
               <input type="radio" name="payment-method" value="magstripe" checked>
               Stripe
@@ -151,12 +151,6 @@
           <div class="checkout-form__feedback" role="status" aria-live="polite"></div>
           <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete. Bitcoin submissions log the wallet destination and are confirmed on-chain prior to equipment release.</p>
         </form>
-        <div class="checkout-panel__lock" role="alert" aria-live="assertive" hidden>
-          <span class="checkout-panel__lock-badge"><i class="fa-solid fa-lock"></i> Locked for updates</span>
-          <p class="checkout-panel__lock-title">Stripe and Bitcoin capture is temporarily offline.</p>
-          <p class="checkout-panel__lock-text">We&apos;re deploying a processor upgrade and have paused all in-browser payment submissions until the new release is verified.</p>
-          <p class="checkout-panel__lock-contact">Email <a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a> or message the deployment desk on Telegram for manual assistance.</p>
-        </div>
       </div>
       <aside class="checkout-sidebar">
         <h3>Checkout guidance</h3>

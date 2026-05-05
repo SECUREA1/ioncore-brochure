@@ -74,6 +74,10 @@
               Ethereum
             </label>
             <label class="payment-method-selector__option">
+              <input type="radio" name="payment-method" value="usdc">
+              USDC
+            </label>
+            <label class="payment-method-selector__option">
               <input type="radio" name="payment-method" value="bitcoin">
               Bitcoin
             </label>
@@ -104,7 +108,7 @@
           </div>
           <div class="payment-section payment-section--bitcoin" data-payment-section="bitcoin" hidden>
             <div class="form-row">
-              <label for="btc-wallet">Ioncore BTC Address</label>
+              <label for="btc-wallet" id="crypto-wallet-label">Ioncore BTC Address</label>
               <div class="btc-wallet">
                 <input type="text" id="btc-wallet" name="btc-wallet" value="bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
                 <button type="button" class="btn btn-outline btn-compact" data-copy-target="btc-wallet">Copy</button>
@@ -112,7 +116,7 @@
               <p class="form-help" data-bitcoin-help>Send only BTC on the Bitcoin network. Initiate the transfer before submitting the transaction record.</p>
             </div>
             <div class="form-row">
-              <label>Bitcoin QR Code</label>
+              <label id="crypto-qr-label">Bitcoin QR Code</label>
               <img id="btc-qr" alt="Bitcoin deposit QR code for Ioncore settlement wallet" width="220" height="220">
             </div>
             <div class="form-row">
@@ -221,7 +225,39 @@
       const btcQrImage = form.querySelector('#btc-qr');
       const receiptCodeInput = form.querySelector('#receipt-code');
       const bitcoinHelp = form.querySelector('[data-bitcoin-help]');
+      const cryptoWalletLabel = form.querySelector('#crypto-wallet-label');
+      const cryptoQrLabel = form.querySelector('#crypto-qr-label');
       const isLocked = form.hasAttribute('data-locked');
+      const cryptoPaymentConfig = {
+        bitcoin: {
+          walletLabel: 'Ioncore BTC Address',
+          qrLabel: 'Bitcoin QR Code',
+          helpText: 'Send only BTC on the Bitcoin network. Provide the TXID after broadcast so we can confirm 2 confirmations (~45 min settlement).',
+          address: 'bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd',
+          paymentUri: (address) => `bitcoin:${address}`
+        },
+        ethereum: {
+          walletLabel: 'Ioncore ETH Address',
+          qrLabel: 'Ethereum QR Code',
+          helpText: 'Send only ETH on Ethereum mainnet and submit the transaction hash after broadcast.',
+          address: '0x9e79a22a8f6f6adf8a9124f5a20629f7d76f75bb',
+          paymentUri: (address) => `ethereum:${address}`
+        },
+        usdc: {
+          walletLabel: 'Ioncore USDC Address (ERC-20)',
+          qrLabel: 'USDC QR Code',
+          helpText: 'Send only USDC on Ethereum (ERC-20) and include your order ID in the transfer memo where supported.',
+          address: '0x9e79a22a8f6f6adf8a9124f5a20629f7d76f75bb',
+          paymentUri: (address) => `ethereum:${address}`
+        },
+        ada: {
+          walletLabel: 'Ioncore ADA Address',
+          qrLabel: 'Cardano (ADA) QR Code',
+          helpText: 'Send only ADA on the Cardano mainnet and submit the transaction hash after broadcast.',
+          address: 'addr1q9m2zzqwwa6ywcjvhe7l2u6f8f3f7qmkx2w2u5st0x3u9h4q9f8l6r9k8d8u0g5ah4a9g8a5f9f4n8h0k2xj7w6a3u9q7q4s5',
+          paymentUri: (address) => address
+        }
+      };
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -273,8 +309,29 @@
           }
         }
       };
+      const applyCryptoPaymentDetails = (method) => {
+        const paymentConfig = cryptoPaymentConfig[method] || cryptoPaymentConfig.bitcoin;
+        if (cryptoWalletLabel) {
+          cryptoWalletLabel.textContent = paymentConfig.walletLabel;
+        }
+        if (cryptoQrLabel) {
+          cryptoQrLabel.textContent = paymentConfig.qrLabel;
+        }
+        if (btcWalletInput) {
+          btcWalletInput.value = paymentConfig.address;
+          btcWalletInput.setAttribute('value', paymentConfig.address);
+        }
+        if (bitcoinHelp) {
+          bitcoinHelp.textContent = paymentConfig.helpText;
+        }
+        if (btcQrImage && btcWalletInput) {
+          btcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(paymentConfig.paymentUri(btcWalletInput.value))}`;
+          btcQrImage.alt = `${paymentConfig.qrLabel} for Ioncore settlement wallet`;
+        }
+      };
 
       applyBitcoinConfig({ btcAddress: btcWalletInput ? btcWalletInput.value : '' });
+      applyCryptoPaymentDetails('bitcoin');
 
       if (!isLocked) {
         fetch('/api/payments/bitcoin/config', { cache: 'no-store' })
@@ -300,7 +357,10 @@
           paymentSections.bitcoin.hidden = isMagstripe;
         }
         if (submitButton) {
-          submitButton.textContent = isMagstripe ? 'Process Stripe Sale' : 'Generate Bitcoin Payment';
+          submitButton.textContent = isMagstripe ? 'Process Stripe Sale' : 'Generate Crypto Payment';
+        }
+        if (!isMagstripe) {
+          applyCryptoPaymentDetails(method);
         }
         dynamicRequiredFields.forEach((field) => {
           const requiredWhen = field.dataset.requiredWhen;

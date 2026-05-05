@@ -435,6 +435,11 @@
     .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
     .pay-grid { display:grid; grid-template-columns: repeat(3,minmax(120px,1fr)); gap:8px; margin-top:10px; }
     .pay-grid .btn { padding: 10px 12px; font-size:.86rem; text-align:center; }
+    .pay-grid .pay-rail.active {
+      border-color: rgba(72, 213, 255, 0.9);
+      box-shadow: 0 0 0 2px rgba(72, 213, 255, 0.25);
+      background: rgba(72, 213, 255, 0.15);
+    }
     .qr-modal { position: fixed; inset: 0; background: rgba(2,8,18,.82); display:none; align-items:center; justify-content:center; z-index: 1000; padding:16px; }
     .qr-modal.open { display:flex; }
     .qr-card { width:min(520px, 96vw); background: #0c1d31; border:1px solid var(--line); border-radius:16px; padding:18px; }
@@ -850,8 +855,8 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
-                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+                <select class="purchase-type"><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary buy-now">Buy now</button>
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
@@ -861,6 +866,7 @@
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
               </div>
               <div class="btc-address"></div>
             </div>
@@ -885,8 +891,8 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
-                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+                <select class="purchase-type"><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary buy-now">Buy now</button>
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
@@ -896,6 +902,7 @@
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
               </div>
               <div class="btc-address"></div>
             </div>
@@ -923,8 +930,8 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
-                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+                <select class="purchase-type"><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary buy-now">Buy now</button>
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
@@ -934,6 +941,7 @@
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
               </div>
               <div class="btc-address"></div>
             </div>
@@ -958,8 +966,8 @@
               <strong>Buy options</strong>
               <div class="checkout-row">
                 <input type="number" min="1" value="1" class="qty" />
-                <select class="purchase-type"><option value="unit">Buy unit</option><option value="investment">Early investment</option></select>
-                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+                <select class="purchase-type"><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary buy-now">Buy now</button>
               </div>
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
@@ -969,6 +977,7 @@
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
               </div>
               <div class="btc-address"></div>
             </div>
@@ -1266,7 +1275,7 @@
       };
       const readCheckoutData = (box) => {
         const qty = Math.max(1, Number.parseInt(box.querySelector('.qty')?.value || '1', 10));
-        const purchaseType = box.querySelector('.purchase-type')?.value || 'unit';
+        const purchaseType = box.querySelector('.purchase-type')?.value || 'reserve';
         const model = box.dataset.model;
         const unitPrice = Number.parseFloat(box.dataset.price || '0');
         return { qty, purchaseType, model, unitPrice, totalUsd: qty * unitPrice };
@@ -1300,18 +1309,57 @@
         };
         document.getElementById('qr-close')?.addEventListener('click', () => document.getElementById('qr-modal')?.classList.remove('open'));
         document.querySelectorAll('.checkout').forEach((box) => {
-          const btcBtn = box.querySelector('.btc-buy');
+          const defaultRailBtn = box.querySelector('.pay-rail[data-rail="USDC"]') || box.querySelector('.pay-rail[data-rail="ETH"]');
+          if (defaultRailBtn) defaultRailBtn.classList.add('active');
+          const buyNowBtn = box.querySelector('.buy-now');
           const btcAddressEl = box.querySelector('.btc-address');
-          if (btcBtn) btcBtn.addEventListener('click', async () => {
+          const runRailCheckout = async (rail) => {
+            const payload = { ...readCheckoutData(box), currency: rail };
+            if (rail === 'PAYPAL') {
+              const paypalContainer = box.querySelector('.paypal-inline');
+              const paypalButton = paypalContainer?.querySelector('iframe, button, .paypal-button, [data-funding-source]');
+              if (!window.paypal || !paypalContainer || !paypalButton) throw new Error('PayPal is unavailable in this card right now.');
+              paypalButton.click();
+              setStatus('PayPal checkout opened. Complete payment to secure your reserve.');
+              return;
+            }
+            if (rail === 'STRIPE') {
+              window.location.href = '/magnetic-stripe-checkout.html';
+              return;
+            }
+            const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: rail, buyerName: 'Card Checkout', buyerEmail: '' })});
+            const intent = await resp.json();
+            if (!resp.ok) throw new Error(intent.message || `Unable to open ${rail} checkout`);
+            if (rail === 'ETH' || rail === 'USDC') {
+              if (!window.ethereum) throw new Error('MetaMask was not detected.');
+              const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+              window.open(intent.uri, '_self');
+              await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:from, walletProvider:'metamask'})});
+              openQr(intent.uri, rail === 'USDC' ? 'USDC / MetaMask' : 'Ethereum / MetaMask', payload.totalUsd);
+              setStatus(`${rail} wallet opened. Confirm payment in wallet to secure your reserve.`);
+            } else if (rail === 'ADA') {
+              const laceAvailable = Boolean(window.cardano?.lace);
+              const phantomAvailable = Boolean(window.solana?.isPhantom);
+              if (laceAvailable) await window.cardano.lace.enable();
+              else if (!phantomAvailable) throw new Error('Lace or Phantom wallet was not detected.');
+              window.open(intent.uri, '_self');
+              await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'ada-uri', walletProvider:laceAvailable?'lace':'phantom'})});
+              openQr(intent.uri, laceAvailable ? 'Cardano / Lace' : 'Cardano / Phantom', payload.totalUsd);
+              setStatus(`${laceAvailable ? 'Lace' : 'Phantom'} opened. Confirm payment in wallet to secure your reserve.`);
+            } else {
+              window.open(intent.uri, '_self');
+              await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider:'bitcoin'})});
+              if (btcAddressEl && intent.address && intent.btcAmount) btcAddressEl.textContent = `Send BTC to: ${intent.address} | Amount: ${intent.btcAmount} BTC`;
+              openQr(intent.uri, 'Bitcoin', payload.totalUsd);
+              setStatus('Bitcoin wallet opened. Confirm payment in wallet to secure your reserve.');
+            }
+            applyPurchase(payload.model, payload.qty, payload.totalUsd, 'reserve');
+          };
+          if (buyNowBtn) buyNowBtn.addEventListener('click', async () => {
             try {
-              const payload = readCheckoutData(box);
-              const response = await fetch('/payments/bitcoin/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-              const result = await response.json();
-              if (!response.ok) throw new Error(result.message || 'Unable to start Bitcoin checkout.');
-              btcAddressEl.textContent = `Send BTC to: ${result.address} | Amount: ${result.btcAmount} BTC`;
-              applyPurchase(payload.model, payload.qty, payload.totalUsd, payload.purchaseType);
-              setStatus(`Bitcoin order opened for ${payload.model.toUpperCase()} (${payload.purchaseType}).`);
-            } catch (error) { setStatus(error.message || 'Bitcoin checkout unavailable.', true); }
+              const selectedRail = box.querySelector('.pay-rail.active')?.dataset.rail || 'USDC';
+              await runRailCheckout(selectedRail);
+            } catch (error) { setStatus(error.message || 'Buy now checkout unavailable.', true); }
           });
           if (window.paypal && box.querySelector('.paypal-inline')) {
             window.paypal.Buttons({
@@ -1336,49 +1384,21 @@
           }
           box.querySelectorAll('.pay-rail').forEach((btn) => btn.addEventListener('click', async (ev) => {
             ev.preventDefault();
+            box.querySelectorAll('.pay-rail').forEach((candidate) => candidate.classList.remove('active'));
+            btn.classList.add('active');
             const rail = btn.dataset.rail;
-            const payload = { ...readCheckoutData(box), currency: rail };
             try {
-              if (rail === 'PAYPAL') {
-                setStatus('Use the PayPal button in this card to complete checkout.');
-                return;
-              }
-              if (rail === 'STRIPE') {
-                window.location.href = '/magnetic-stripe-checkout.html';
-                return;
-              }
-              const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: rail, buyerName: 'Card Checkout', buyerEmail: '' })});
-              const intent = await resp.json();
-              if (!resp.ok) throw new Error(intent.message || `Unable to open ${rail} checkout`);
-              if (rail === 'ETH') {
-                if (!window.ethereum) throw new Error('MetaMask was not detected.');
-                const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});
-                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash, walletAddress:from, walletProvider:'metamask'})});
-                openQr(intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`, 'Ethereum / MetaMask', payload.totalUsd);
-                setStatus(`MetaMask opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
-              } else if (rail === 'ADA') {
-                const laceAvailable = Boolean(window.cardano?.lace);
-                const phantomAvailable = Boolean(window.solana?.isPhantom);
-                if (laceAvailable) await window.cardano.lace.enable();
-                else if (!phantomAvailable) throw new Error('Lace or Phantom wallet was not detected.');
-                window.open(intent.uri, '_self');
-                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'ada-uri', walletProvider:laceAvailable?'lace':'phantom'})});
-                openQr(intent.uri, laceAvailable ? 'Cardano / Lace' : 'Cardano / Phantom', payload.totalUsd);
-                setStatus(`${laceAvailable ? 'Lace' : 'Phantom'} opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
-              } else {
-                window.open(intent.uri, '_self');
-                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider:'bitcoin'})});
-                openQr(intent.uri, 'Bitcoin', payload.totalUsd);
-                setStatus(`Bitcoin wallet opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
-              }
+              await runRailCheckout(rail);
             } catch (error) {
               setStatus(error.message || `Unable to open ${rail} checkout.`, true);
             }
           }));
         });
       };
-      loadPayPal().then(() => { initButtons(); initModelCheckouts(); }).catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
+      initModelCheckouts();
+      loadPayPal()
+        .then(() => { initButtons(); })
+        .catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
     })();
   </script>
 

@@ -1522,7 +1522,8 @@ app.get('/api/fundraising/catalog', (req, res) => {
       stripe: { enabled: true, label: 'Stripe Card Checkout' },
       ethereum: { enabled: true, wallet: SALES_WALLETS.ETH, fx: SALES_FX.ETH },
       bitcoin: { enabled: true, wallet: SALES_WALLETS.BTC, fx: SALES_FX.BTC },
-      ada: { enabled: true, wallet: SALES_WALLETS.ADA, fx: SALES_FX.ADA }
+      ada: { enabled: true, wallet: SALES_WALLETS.ADA, fx: SALES_FX.ADA },
+      usdc: { enabled: true, wallet: SALES_WALLETS.USDC, fx: SALES_FX.USDC || 1, token: 'USDC', network: 'ethereum' }
     }
   });
 });
@@ -1537,8 +1538,8 @@ app.post('/api/fundraising/checkout', async (req, res) => {
   const product = FUNDRAISING_PRODUCTS.find((item) => item.code === productCode);
 
   if (!product) return res.status(400).json({ message: 'Select a valid fundraising product.' });
-  if (!['paypal', 'stripe', 'ethereum', 'bitcoin', 'ada'].includes(paymentRail)) {
-    return res.status(400).json({ message: 'Payment rail must be PayPal, Stripe, Ethereum, Bitcoin, or ADA.' });
+  if (!['paypal', 'stripe', 'ethereum', 'bitcoin', 'ada', 'usdc'].includes(paymentRail)) {
+    return res.status(400).json({ message: 'Payment rail must be PayPal, Stripe, Ethereum, Bitcoin, ADA, or USDC.' });
   }
   if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
 
@@ -1561,6 +1562,7 @@ app.post('/api/fundraising/checkout', async (req, res) => {
   if (paymentRail === 'ethereum') record.cryptoAmount = Number((product.usd / SALES_FX.ETH).toFixed(8));
   if (paymentRail === 'bitcoin') record.cryptoAmount = Number((product.usd / SALES_FX.BTC).toFixed(8));
   if (paymentRail === 'ada') record.cryptoAmount = Number((product.usd / SALES_FX.ADA).toFixed(6));
+  if (paymentRail === 'usdc') record.cryptoAmount = Number(product.usd.toFixed(2));
 
   store.fundraisingOrders.push(record);
   await enqueueStoreSave();
@@ -1586,6 +1588,11 @@ app.post('/api/fundraising/checkout', async (req, res) => {
   } else if (paymentRail === 'ada') {
     response.wallet = SALES_WALLETS.ADA;
     response.cryptoAmount = record.cryptoAmount;
+  } else if (paymentRail === 'usdc') {
+    response.wallet = SALES_WALLETS.USDC;
+    response.cryptoAmount = record.cryptoAmount;
+    response.token = 'USDC';
+    response.network = 'ethereum';
   }
 
   return res.status(201).json(response);

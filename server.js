@@ -20,7 +20,7 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
   <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Timepiece Checkout (Crypto Wallet)</h2>
   <p style="margin:0 0 .65rem;opacity:.92;">Select your watch, choose wallet rail (USDC, ETH, BTC, ADA), then purchase using the same crypto flow as checkout. Submit your transfer hash to confirm and record settlement.</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;align-items:end;margin-bottom:.85rem;">
-    <div><label for="ioncore-watch-product" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Watch</label><select id="ioncore-watch-product" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="TIME-APEX-X">Apex X Timepiece — $2,450</option><option value="TIME-CHRONO-S">Chrono S Timepiece — $3,200</option><option value="TIME-NOVA-R">Nova R Timepiece — $4,600</option></select></div>
+    <div><label for="ioncore-watch-product" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Watch</label><select id="ioncore-watch-product" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="TIME-APEX-X">Apex X Timepiece — $4,900</option><option value="TIME-CHRONO-S">Chrono S Timepiece — $6,400</option><option value="TIME-NOVA-R">Nova R Timepiece — $9,200</option></select></div>
     <div><label for="ioncore-watch-currency" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Payment rail</label><select id="ioncore-watch-currency" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="USDC">USDC</option><option value="ETH">ETH</option><option value="BTC">BTC</option><option value="ADA">ADA</option></select></div>
     <button type="button" id="ioncore-create-watch-intent" style="padding:.72rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Create checkout</button>
   </div>
@@ -143,9 +143,9 @@ const SALES_PRODUCTS = {
   'FSCU-BASE': { name: 'Flywheel Self-Charging Unit', usd: 1748 },
   'ION-HOME-LUX': { name: 'Ioncore Round Luxury Homes', usd: 105000 },
   'ION-HOTEL-LUX': { name: 'Ioncore Round Hotel & Retail', usd: 137500 },
-  'TIME-APEX-X': { name: 'Apex X Timepiece', usd: 2450 },
-  'TIME-CHRONO-S': { name: 'Chrono S Timepiece', usd: 3200 },
-  'TIME-NOVA-R': { name: 'Nova R Timepiece', usd: 4600 }
+  'TIME-APEX-X': { name: 'Apex X Timepiece', usd: 4900 },
+  'TIME-CHRONO-S': { name: 'Chrono S Timepiece', usd: 6400 },
+  'TIME-NOVA-R': { name: 'Nova R Timepiece', usd: 9200 }
 };
 const SALES_WALLETS = {
   BTC: BITCOIN_ADDRESS,

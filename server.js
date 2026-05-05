@@ -169,6 +169,22 @@ const BITCOIN_SETTLEMENT_WINDOW_MINUTES = Math.min(
   180
 );
 
+
+
+const SALES_PRODUCTS = {
+  'PK30-BASIC': { name: 'Peak 30 portable kinetic generator', usd: 3175 },
+  'FSCU-BASE': { name: 'Flywheel Self-Charging Unit', usd: 1748 },
+  'ION-HOME-LUX': { name: 'Ioncore Round Luxury Homes', usd: 105000 },
+  'ION-HOTEL-LUX': { name: 'Ioncore Round Hotel & Retail', usd: 137500 }
+};
+const SALES_WALLETS = {
+  BTC: BITCOIN_ADDRESS,
+  ETH: '0xE916E16848acc2c5D06F3e3183116EE475a927f6',
+  ADA: 'DdzFFzCqrhstF7Vb9Ro5rmUX1hbQPg9XfnQoVPV81uteLyFK9GAXW2qUsFLhR7rUuNSqXtgkH33wBPvobNJQa3FMvx4WWyjX6eMd6s2tG'
+};
+const SALES_FX = { BTC: 95000, ETH: 3200, ADA: 0.68 };
+const salesCheckouts = new Map();
+
 const DATA_DIR = path.join(__dirname, 'data');
 await fs.mkdir(DATA_DIR, { recursive: true });
 
@@ -1470,6 +1486,51 @@ app.post('/gateway', async (req, res) => {
     delayMs: 1400,
     expiresAt
   });
+});
+
+
+app.post('/api/sales/checkout-intent', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const productCode = typeof body.productCode === 'string' ? body.productCode.trim() : '';
+  const currencyRaw = typeof body.currency === 'string' ? body.currency.trim().toUpperCase() : '';
+  const buyerName = typeof body.buyerName === 'string' ? body.buyerName.trim() : '';
+  const buyerEmail = typeof body.buyerEmail === 'string' ? body.buyerEmail.trim() : '';
+  const product = SALES_PRODUCTS[productCode];
+  if (!product) return res.status(400).json({ message: 'Invalid product selection.' });
+  if (!['BTC', 'ETH', 'ADA'].includes(currencyRaw)) return res.status(400).json({ message: 'Currency must be BTC, ETH, or ADA.' });
+  if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
+  const usd = product.usd;
+  const fx = SALES_FX[currencyRaw];
+  const cryptoAmount = usd / fx;
+  const checkoutId = `SALE-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
+  const checkout = { checkoutId, productCode, productName: product.name, currency: currencyRaw, usdAmount: usd, cryptoAmount, buyerName, buyerEmail, createdAt: new Date().toISOString(), status: 'intent-created' };
+  salesCheckouts.set(checkoutId, checkout);
+  if (currencyRaw === 'ETH') {
+    const valueWei = `0x${BigInt(Math.floor(cryptoAmount * 1e18)).toString(16)}`;
+    return res.status(201).json({ ...checkout, to: SALES_WALLETS.ETH, valueWei });
+  }
+  const uri = currencyRaw === 'BTC'
+    ? `bitcoin:${SALES_WALLETS.BTC}?amount=${cryptoAmount.toFixed(8)}&label=Ioncore%20${encodeURIComponent(productCode)}`
+    : `web+cardano:${SALES_WALLETS.ADA}?amount=${cryptoAmount.toFixed(6)}&label=Ioncore%20${encodeURIComponent(productCode)}`;
+  return res.status(201).json({ ...checkout, uri, to: SALES_WALLETS[currencyRaw] });
+});
+
+app.post('/api/sales/confirm', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const checkoutId = typeof body.checkoutId === 'string' ? body.checkoutId.trim() : '';
+  const txHash = typeof body.txHash === 'string' ? body.txHash.trim() : '';
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProvider = typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '';
+  if (!checkoutId || !salesCheckouts.has(checkoutId)) return res.status(404).json({ message: 'Checkout not found.' });
+  if (!txHash) return res.status(400).json({ message: 'Transaction reference is required.' });
+  const checkout = salesCheckouts.get(checkoutId);
+  checkout.status = 'payment-submitted';
+  checkout.txHash = txHash;
+  checkout.walletAddress = walletAddress;
+  checkout.walletProvider = walletProvider;
+  checkout.confirmedAt = new Date().toISOString();
+  salesCheckouts.set(checkoutId, checkout);
+  return res.json({ message: 'Sales payment submitted and recorded.', checkout });
 });
 
 app.get('/api/payments/bitcoin/config', (req, res) => {

@@ -115,7 +115,7 @@ const BRAND = {
 };
 
 const BITCOIN_ADDRESS =
-  (process.env.IONCORE_BTC_ADDRESS || 'bc1qioncoreenergy0u0ytsc4p58u4k3p9l4f3d9s7').trim();
+  (process.env.IONCORE_BTC_ADDRESS || 'bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd').trim();
 const BITCOIN_CONFIRMATIONS_REQUIRED = Math.min(
   Math.max(Number.parseInt(process.env.IONCORE_BTC_CONFIRMATIONS || '2', 10) || 2, 1),
   6
@@ -1480,6 +1480,7 @@ app.post('/payments/bitcoin', async (req, res) => {
   }
 
   const invoiceId = generateBitcoinInvoiceId();
+  const receiptCode = `IONCORE SKU-${invoiceId}`;
   const settlementEta = `~${BITCOIN_SETTLEMENT_WINDOW_MINUTES} minutes after ${BITCOIN_CONFIRMATIONS_REQUIRED} confirmation${
     BITCOIN_CONFIRMATIONS_REQUIRED === 1 ? '' : 's'
   }`;
@@ -1506,6 +1507,7 @@ app.post('/payments/bitcoin', async (req, res) => {
   return res.status(201).json({
     message: 'Bitcoin payment logged. Awaiting network confirmations.',
     invoiceId,
+    receiptCode,
     btcAddress: BITCOIN_ADDRESS,
     btcAmount: Number(btcAmount.toFixed(8)),
     amount: Number(usdAmount.toFixed(2)),

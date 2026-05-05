@@ -14,7 +14,8 @@
   </header>
   <main class="features">
     <div class="feature-card">
-      <h2>ForgeLink Direct Sales</h2><p>Use fundraising2 checkout for wallet-connect purchases with exact BTC / ETH / ADA amounts.</p><a class="footer-btn" href="/fundraising2.html#crypto-sales">Open Wallet Checkout</a>
+      <h2>ForgeLink Direct Sales</h2><p>Use fundraising2 checkout for ETH, BTC, ADA, Stripe, or PayPal purchases with MetaMask, Lace, or Phantom wallet support.</p><a class="footer-btn" href="/fundraising2.html#crypto-sales">Open Wallet Checkout</a>
+      <p id="forgelink-sales" style="margin-top:10px;font-size:.95rem;opacity:.86;"></p>
     </div>
     <div class="feature-card">
       <h2>Stay Tuned</h2>
@@ -29,5 +30,19 @@
       &copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.
     </div>
   </footer>
+  <script>
+    (async () => {
+      const el = document.getElementById('forgelink-sales');
+      if (!el) return;
+      try {
+        const resp = await fetch('/api/sales/summary');
+        const data = await resp.json();
+        if (!resp.ok) throw new Error('summary unavailable');
+        el.textContent = `Unified sales tally: ${data.totals.salesCount.toLocaleString()} orders • $${Number(data.totals.revenueUsd || 0).toLocaleString()} USD tracked.`;
+      } catch (_) {
+        el.textContent = 'Unified sales tally will appear once the server sync endpoint is available.';
+      }
+    })();
+  </script>
 </body>
 </html>

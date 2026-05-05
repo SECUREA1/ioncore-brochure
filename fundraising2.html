@@ -1161,7 +1161,7 @@
             <div class="field"><label for="salePurchasePath">Purchase path</label><select id="salePurchasePath" name="purchasePath" required><option value="UNIT">Purchase a unit</option><option value="STOCK">Buy into $2M stock raise</option></select></div>
             <div class="field"><label for="saleProduct">Product or stock ticket</label><select id="saleProduct" name="productCode" required><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option><option value="STOCK-25000" data-price="25000">Stock participation ticket — $25,000</option></select></div>
             <div class="field"><label for="saleReturnType">Return preference (stock path)</label><select id="saleReturnType" name="returnType" required><option value="SHARES">Shares at $300M valuation</option><option value="ANNUAL_8">8% annual return</option></select></div>
-            <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="USDC">USDC (MetaMask / WalletConnect)</option><option value="ETH">Ethereum (MetaMask)</option><option value="BTC">Bitcoin</option><option value="ADA">Cardano (Lace / Phantom handoff)</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
+            <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="USDC">USDC (MetaMask / WalletConnect)</option><option value="ETH">Ethereum (MetaMask)</option><option value="BTC">Bitcoin (Phantom recommended)</option><option value="ADA">Cardano (Lace / Phantom handoff)</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
             <div class="field"><label for="saleBuyer">Buyer name</label><input id="saleBuyer" name="buyerName" required /></div>
             <div class="field"><label for="saleEmail">Buyer email</label><input id="saleEmail" name="buyerEmail" type="email" /></div>
             <div class="field"><label>Exact amount</label><input id="saleAmount" readonly /></div>
@@ -1484,9 +1484,18 @@
             await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:`${walletProvider}-session`, walletProvider})});
             setStatus(`${laceAvailable ? 'Lace' : 'Phantom'} opened with exact ADA amount. Confirm payment in wallet.`);
           } else {
+            const phantomAvailable = Boolean(window.solana?.isPhantom);
+            if (phantomAvailable) {
+              try {
+                await window.solana.connect({ onlyIfTrusted: false });
+              } catch (_) {
+                throw new Error('Phantom connection was cancelled. Re-open Phantom and approve the session to continue the BTC transfer.');
+              }
+            }
             window.open(intent.uri, '_self');
-            await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider:'bitcoin'})});
-            setStatus('Bitcoin wallet opened with exact BTC amount. Confirm payment in wallet.');
+            const walletProvider = phantomAvailable ? 'phantom-bitcoin' : 'bitcoin';
+            await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider})});
+            setStatus(`${phantomAvailable ? 'Phantom' : 'Bitcoin'} wallet opened with exact BTC amount. Confirm transfer in wallet to finish checkout.`);
           }
           refreshUnifiedSales();
         } catch (e) { setStatus(e.message || 'Checkout failed.', true); }

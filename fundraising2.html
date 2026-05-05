@@ -856,6 +856,7 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
@@ -891,6 +892,7 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
@@ -929,6 +931,7 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
@@ -964,6 +967,7 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
                 <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
@@ -1350,7 +1354,14 @@
               const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: rail, buyerName: 'Card Checkout', buyerEmail: '' })});
               const intent = await resp.json();
               if (!resp.ok) throw new Error(intent.message || `Unable to open ${rail} checkout`);
-              if (rail === 'ETH') {
+              if (rail === 'USDC') {
+                if (!window.ethereum) throw new Error('MetaMask was not detected.');
+                const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                window.open(intent.uri, '_self');
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'usdc-wallet-uri-opened', walletAddress:from, walletProvider:'metamask'})});
+                openQr(intent.uri, 'USDC / MetaMask', payload.totalUsd);
+                setStatus(`USDC wallet opened. Confirm ${intent.usdcAmount} USDC transfer to ${intent.to}.`);
+              } else if (rail === 'ETH') {
                 if (!window.ethereum) throw new Error('MetaMask was not detected.');
                 const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});

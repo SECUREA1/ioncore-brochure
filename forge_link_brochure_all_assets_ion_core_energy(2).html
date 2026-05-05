@@ -367,6 +367,12 @@
           </select>
           <label class="tag">Quantity</label>
           <input type="number" name="qty" value="1" min="1" style="width:100%;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--line);color:var(--ink);margin:6px 0 10px"/>
+          <label class="tag">Payment Method</label>
+          <select name="payment" style="width:100%;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--line);color:var(--ink);margin:6px 0 10px">
+            <option>Bank Wire (USD)</option>
+            <option>Bitcoin (BTC)</option>
+          </select>
+          <p class="small" style="margin:0 0 10px">Bitcoin payments are accepted for all ForgeLink products (Base, Pro, and Ultra).</p>
           <label class="tag">Contact Email</label>
           <input type="email" name="email" placeholder="you@domain.com" required style="width:100%;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--line);color:var(--ink);margin:6px 0 10px"/>
           <label style="display:flex;gap:8px;align-items:center;margin-top:6px"><input type="checkbox" required/> <span class="small">I acknowledge Class‑4 laser safety requirements and agree to NDA terms for engineering previews.</span></label>

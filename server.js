@@ -14,6 +14,50 @@ const PORT = process.env.PORT || 3000;
 
 const TIMEPIECES_ZIP = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html.zip';
 const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.html';
+
+const TIMEPIECE_BITCOIN_SALES_SECTION = `
+<section id="ioncore-bitcoin-sales" style="margin:2rem auto;max-width:960px;padding:1.25rem;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(8,12,24,.9);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.35);font-family:inherit;">
+  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Bitcoin Sales Checkout</h2>
+  <p style="margin:0 0 .65rem;opacity:.92;">Send BTC on Bitcoin mainnet only. Use the receipt code shown below and include <strong>IONCORE SKU</strong> in your sales notes.</p>
+  <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:1rem;align-items:center;">
+    <div>
+      <label for="ioncore-btc-wallet" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Ioncore BTC Wallet</label>
+      <div style="display:flex;gap:.5rem;align-items:center;">
+        <input id="ioncore-btc-wallet" type="text" readonly value="bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" />
+        <button type="button" id="ioncore-copy-btc" style="padding:.7rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Copy</button>
+      </div>
+      <p style="margin:.75rem 0 0;font-size:.92rem;"><strong>Receipt:</strong> <span id="ioncore-receipt-code">IONCORE-SKU-PENDING</span></p>
+    </div>
+    <div style="text-align:center;">
+      <img id="ioncore-btc-qr" alt="Ioncore Bitcoin QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=bitcoin%3Abc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd" />
+      <p style="margin:.55rem 0 0;font-size:.85rem;opacity:.85;">Scan to open in wallet</p>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  const wallet = 'bc1qnpcr70yxttt5c25wy40ankavv36wdm9tzvv0yd';
+  const code = 'IONCORE-SKU-' + Date.now().toString(36).toUpperCase();
+  const codeEl = document.getElementById('ioncore-receipt-code');
+  if (codeEl) codeEl.textContent = code;
+  const copyBtn = document.getElementById('ioncore-copy-btc');
+  const walletInput = document.getElementById('ioncore-btc-wallet');
+  if (walletInput) walletInput.value = wallet;
+  if (copyBtn && walletInput) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(wallet);
+        copyBtn.textContent = 'Copied';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1200);
+      } catch (_) {
+        walletInput.focus();
+        walletInput.select();
+      }
+    });
+  }
+})();
+</script>
+`;
 const ADMIN_PROMO_SECTION = `
   <section id="admin-control-hub" style="position:relative;margin:80px auto;max-width:960px;padding:56px 48px;border-radius:28px;background:rgba(9,16,29,0.9);box-shadow:0 32px 80px rgba(3,7,18,0.56);border:1px solid rgba(106,255,59,0.22);overflow:hidden;">
     <div style="position:absolute;inset:auto -60px -120px auto;width:360px;height:360px;background:radial-gradient(circle,rgba(106,255,59,0.16)0%,rgba(106,255,59,0)68%);"></div>
@@ -1182,6 +1226,7 @@ function touchSession(sessionId) {
 async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
+    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-bitcoin-sales');
     html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch {
@@ -2133,6 +2178,7 @@ app.get('/timepieces', async (req, res) => {
       }
     }
     html = injectSnippetBeforeBodyClose(html, TIMEPIECE_LOCK_OVERLAY, 'timepiece-lock-overlay');
+    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-bitcoin-sales');
     html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch (err) {

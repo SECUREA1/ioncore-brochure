@@ -387,6 +387,27 @@
         }
       };
 
+
+      const createInstantSignature = (payload) => {
+        const core = [
+          payload.productCode || 'UNKNOWN',
+          payload.paymentRail || 'unknown',
+          payload.amount || '',
+          payload.cardholder || '',
+          Date.now().toString(36)
+        ].join('|');
+        let hash = 0;
+        for (let i = 0; i < core.length; i += 1) {
+          hash = (hash << 5) - hash + core.charCodeAt(i);
+          hash |= 0;
+        }
+        const signature = `SIG-${Math.abs(hash).toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+        return {
+          signature,
+          createdAt: new Date().toISOString()
+        };
+      };
+
       if (isLocked) {
         setFeedback(
           'Checkout is temporarily offline while we complete the payment gateway upgrade. Email ioncoreenergy@gmail.com for manual processing.',
@@ -700,7 +721,8 @@
           buyerName: formData.get('cardholder') || '',
           buyerEmail: '',
           notes: formData.get('notes') || '',
-          oneSignatureOneTransaction: Boolean(formData.get('one-signature-toggle')), 
+          oneSignatureOneTransaction: Boolean(formData.get('one-signature-toggle')),
+          instantSignatureRequested: Boolean(formData.get('one-signature-toggle')), 
           txid: formData.get('btc-txid') || formData.get('eth-txid') || formData.get('ada-txid') || formData.get('usdc-txid') || '',
           destinationAddress:
             paymentMethod === 'bitcoin' ? (btcWalletInput?.value || '') :
@@ -708,6 +730,8 @@
             paymentMethod === 'ada' ? (adaWalletInput?.value || '') :
             paymentMethod === 'usdc' ? (usdcWalletInput?.value || '') : ''
         });
+
+        const instantSignature = createInstantSignature(payload);
 
         submitButton.disabled = true;
         setFeedback(
@@ -743,6 +767,12 @@
           }
 
           if (paymentMethod === 'bitcoin' || paymentMethod === 'ethereum' || paymentMethod === 'ada' || paymentMethod === 'usdc') {
+            if (result.wallet) {
+              receiptLines.push(`Wallet: ${result.wallet}`);
+            }
+            if (result.cryptoAmount !== undefined && result.cryptoAmount !== null) {
+              receiptLines.push(`Crypto amount: ${result.cryptoAmount}`);
+            }
             if (result.invoiceId) {
               receiptLines.push(`Invoice: ${result.invoiceId}`);
             }
@@ -794,6 +824,11 @@
                   : amountValue;
               receiptLines.push(`Amount: ${result.currency} ${formattedAmount}`);
             }
+          }
+
+          if (oneSignatureToggle?.checked) {
+            receiptLines.push(`Instant signature: ${instantSignature.signature}`);
+            receiptLines.push(`Signed at: ${instantSignature.createdAt}`);
           }
 
           setFeedback(receiptLines.join(' • '), 'success');

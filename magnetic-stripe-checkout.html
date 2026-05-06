@@ -156,6 +156,10 @@
               <label for="btc-txid">Bitcoin Transaction ID</label>
               <input type="text" id="btc-txid" name="btc-txid" placeholder="Paste TXID after broadcast" spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
             </div>
+            <div class="form-row form-row--split">
+              <button type="button" class="btn btn-outline" data-wallet-launch="bitcoin-wallet-uri">Open Wallet URI</button>
+              <button type="button" class="btn btn-outline" data-wallet-launch="bitcoin-trust">Open in Trust Wallet</button>
+            </div>
             <div class="form-row">
               <label for="btc-contact">Remitting Wallet Contact</label>
               <input type="text" id="btc-contact" name="btc-contact" placeholder="Telegram @handle or email" autocomplete="off">
@@ -190,7 +194,7 @@
             <div class="form-row">
               <label for="eth-wallet">Ioncore ETH Address</label>
               <div class="btc-wallet">
-                <input type="text" id="eth-wallet" name="eth-wallet" value="0x8ba1f109551bd432803012645ac136ddd64dba72" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <input type="text" id="eth-wallet" name="eth-wallet" value="0xE916E16848acc2c5D06F3e3183116EE475a927f6" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
                 <button type="button" class="btn btn-outline btn-compact" data-copy-target="eth-wallet">Copy</button>
               </div>
               <p class="form-help">Send only ETH on Ethereum mainnet. MetaMask deep-link and QR open the same destination.</p>
@@ -212,7 +216,7 @@
             <div class="form-row">
               <label for="ada-wallet">Ioncore ADA Address</label>
               <div class="btc-wallet">
-                <input type="text" id="ada-wallet" name="ada-wallet" value="addr1q9p9v9x8f2j7n0kg5z4s6z7f8r9t0m1x2c3v4b5n6k7m8p" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <input type="text" id="ada-wallet" name="ada-wallet" value="DdzFFzCqrhstF7Vb9Ro5rmUX1hbQPg9XfnQoVPV81uteLyFK9GAXW2qUsFLhR7rUuNSqXtgkH33wBPvobNJQa3FMvx4WWyjX6eMd6s2tG" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
                 <button type="button" class="btn btn-outline btn-compact" data-copy-target="ada-wallet">Copy</button>
               </div>
               <p class="form-help">Send only ADA on Cardano mainnet. Use Phantom (Cardano) or Lace wallet links below.</p>
@@ -634,11 +638,14 @@
           const ethUri = `ethereum:${ethWalletInput?.value || ''}${amount > 0 ? `?value=${Math.round(amount * 1e18)}` : ''}`;
           const usdcUri = `ethereum:${usdcWalletInput?.value || ''}${amount > 0 ? `?value=0&token=USDC&amount=${amount.toFixed(2)}` : ''}`;
           const adaUri = `web+cardano:${adaWalletInput?.value || ''}${amount > 0 ? `?amount=${amount}` : ''}`;
+          const btcUri = `bitcoin:${btcWalletInput?.value || ''}${amount > 0 ? `?amount=${amount}` : ''}`;
           const links = {
             metamask: `https://metamask.app.link/send/${encodeURIComponent(ethUri)}`,
             'metamask-usdc': `https://metamask.app.link/send/${encodeURIComponent(usdcUri)}`,
             walletconnect: ethUri,
             'walletconnect-usdc': usdcUri,
+            'bitcoin-wallet-uri': btcUri,
+            'bitcoin-trust': `https://link.trustwallet.com/send?coin=0&address=${encodeURIComponent(btcWalletInput?.value || '')}${amount > 0 ? `&amount=${encodeURIComponent(amount.toFixed(8))}` : ''}`,
             phantom: `https://phantom.app/ul/browse/${encodeURIComponent(adaUri)}`,
             lace: adaUri
           };

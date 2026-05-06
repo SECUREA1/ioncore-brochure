@@ -496,6 +496,40 @@
       };
 
 
+      const normalizeCatalogProducts = (products) => {
+        if (!Array.isArray(products)) return [];
+        return products
+          .map((item) => {
+            const code = (item && (item.code || item.productCode || item.id || item.sku || item.value || '')).toString().trim();
+            const usdRaw = item && (item.usd ?? item.priceUsd ?? item.amountUsd ?? item.price ?? item.amount);
+            const usd = Number(usdRaw);
+            const name = (item && (item.name || item.label || item.title || item.productName || code || 'Fundraising Product')).toString().trim();
+            if (!code || !Number.isFinite(usd) || usd <= 0) return null;
+            return { code, usd, name };
+          })
+          .filter(Boolean);
+      };
+
+      const syncCryptoArtifacts = () => {
+        const amount = Number(form.querySelector('#amount')?.value || 0);
+        if (btcQrImage && btcWalletInput) {
+          const btcUri = `bitcoin:${btcWalletInput.value}${amount > 0 ? `?amount=${amount}` : ''}`;
+          btcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(btcUri)}`;
+        }
+        if (ethQrImage && ethWalletInput) {
+          const ethUri = `ethereum:${ethWalletInput.value}${amount > 0 ? `?value=${Math.round(amount * 1e18)}` : ''}`;
+          ethQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ethUri)}`;
+        }
+        if (usdcQrImage && usdcWalletInput) {
+          const usdcUri = `ethereum:${usdcWalletInput.value}${amount > 0 ? `?value=0&token=USDC&amount=${amount.toFixed(2)}` : ''}`;
+          usdcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(usdcUri)}`;
+        }
+        if (adaQrImage && adaWalletInput) {
+          const adaUri = `web+cardano:${adaWalletInput.value}${amount > 0 ? `?amount=${amount}` : ''}`;
+          adaQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(adaUri)}`;
+        }
+      };
+
       const renderCatalog = (products) => {
         if (!productSelect || !Array.isArray(products) || !products.length) return;
         productSelect.innerHTML = products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
@@ -503,6 +537,7 @@
           const selected = productSelect.selectedOptions[0];
           const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
           if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+          syncCryptoArtifacts();
         };
         productSelect.addEventListener('change', () => {
           syncAmount();
@@ -518,11 +553,12 @@
         try {
           const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
           const data = await response.json();
-          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) {
+          const normalizedProducts = normalizeCatalogProducts(data && data.products);
+          if (!response.ok || !productSelect || !normalizedProducts.length) {
             renderCatalog(fallbackCatalog);
             return;
           }
-          renderCatalog(data.products);
+          renderCatalog(normalizedProducts);
         } catch (_) {
           renderCatalog(fallbackCatalog);
         }
@@ -531,6 +567,10 @@
       loadCatalog();
       syncPayPalSelector();
       updatePayPalLaunchState();
+      syncCryptoArtifacts();
+      if (amountInput) {
+        amountInput.addEventListener('input', syncCryptoArtifacts);
+      }
       if (paypalProductSelect) {
         paypalProductSelect.addEventListener('change', updatePayPalLaunchState);
       }

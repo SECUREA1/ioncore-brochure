@@ -473,40 +473,10 @@
     }
     .status.error { border-color: rgba(255,138,138,0.3); background: rgba(255,138,138,0.08); color: #ffd4d4; }
 
-
-    .design-gallery {
-      margin-top: 28px;
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 16px;
-    }
-
-    .design-tile {
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.03);
-    }
-
-    .design-tile img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      display: block;
-    }
-
-    .design-tile span {
-      display: block;
-      padding: 10px 12px;
-      font-size: .86rem;
-      color: var(--muted);
-    }
-
     @media (max-width: 1120px) {
       .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
         grid-template-columns: 1fr 1fr;
       }
-      .design-gallery { grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
 
     @media (max-width: 760px) {
@@ -514,7 +484,6 @@
       .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
         grid-template-columns: 1fr;
       }
-      .design-gallery { grid-template-columns: 1fr; }
       .nav { align-items: flex-start; }
       .hero-actions { flex-direction: column; align-items: stretch; }
       .btn { text-align: center; }
@@ -535,7 +504,6 @@
         <a href="#fundraise">Fundraise</a>
         <a href="#progress">Progress</a>
         <a href="#models">Models</a>
-        <a href="#designs">Designs</a>
         <a href="#pricing">Pricing</a>
         <a href="#propulsion">Propulsion</a>
         <a href="#contact" class="btn btn-secondary">Contact</a>
@@ -853,29 +821,6 @@
               <li>Commercial resilience with premium appearance</li>
             </ul>
           </article>
-        </div>
-      </div>
-    </section>
-
-
-
-    <section id="designs">
-      <div class="container">
-        <h2 class="section-title">Expanded Design Showcase</h2>
-        <p class="section-subtitle">
-          Additional visual treatments are now included so investors can quickly see the breadth of IonCore's design language
-          across propulsion concepts, premium power products, and brand-forward mechanical details.
-        </p>
-
-        <div class="design-gallery">
-          <figure class="design-tile"><img src="forgelink (15).png" alt="Forgelink propulsion concept render" /><span>Forgelink propulsion concept language.</span></figure>
-          <figure class="design-tile"><img src="hybrid flywheel.png" alt="Hybrid flywheel design render" /><span>Hybrid flywheel architecture view.</span></figure>
-          <figure class="design-tile"><img src="LAMP.png" alt="Compact kinetic lamp system render" /><span>Compact kinetic system styling.</span></figure>
-          <figure class="design-tile"><img src="50mm.png" alt="Precision component close-up" /><span>Precision component and materials detail.</span></figure>
-          <figure class="design-tile"><img src="peak30.png" alt="Peak 30 product visual" /><span>Peak 30 flagship portable visual.</span></figure>
-          <figure class="design-tile"><img src="forgelink (9).png" alt="Engine platform concept artwork" /><span>Engine platform concept exploration.</span></figure>
-          <figure class="design-tile"><img src="industrial1.png" alt="Commercial deployment render" /><span>Commercial deployment rendering.</span></figure>
-          <figure class="design-tile"><img src="IMG_2637.jpeg" alt="Prototype detail photography" /><span>Prototype detail photography.</span></figure>
         </div>
       </div>
     </section>

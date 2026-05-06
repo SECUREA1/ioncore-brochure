@@ -305,6 +305,16 @@
       const bitcoinHelp = form.querySelector('[data-bitcoin-help]');
       const isLocked = form.hasAttribute('data-locked');
 
+      const PAYPAL_CHECKOUT_LINKS = {
+        default: 'https://www.paypal.com/ncp/payment/PEAK30MODEL',
+        peak30: 'https://www.paypal.com/ncp/payment/PEAK30MODEL'
+      };
+
+      const resolvePaypalCheckoutUrl = () => {
+        const selectedCode = (productSelect?.value || '').toLowerCase();
+        return PAYPAL_CHECKOUT_LINKS[selectedCode] || PAYPAL_CHECKOUT_LINKS.default;
+      };
+
       const setFeedback = (message, variant) => {
         if (!feedback) {
           return;
@@ -496,6 +506,18 @@ const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value
 
         const formData = new FormData(form);
         const paymentMethod = formData.get('payment-method') || 'magstripe';
+
+        if (paymentMethod === 'paypal') {
+          const paypalUrl = resolvePaypalCheckoutUrl();
+          if (paypalUrl) {
+            window.open(paypalUrl, '_blank', 'noopener');
+            setFeedback('Opening PayPal checkout for the selected fundraising product.', 'success');
+          } else {
+            setFeedback('PayPal checkout is not configured for this product yet. Please choose another payment rail or contact support.', 'error');
+          }
+          return;
+        }
+
         const payload = {
           paymentMethod,
           cardholder: formData.get('cardholder') || '',

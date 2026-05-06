@@ -232,7 +232,7 @@
           </div>
           <div class="form-row">
             <label for="product-code">Fundraising Product</label>
-            <select id="product-code" name="product-code" required></select>
+            <select id="product-code" name="product-code" required><option value="PRESEED-250" data-usd="250">Pre-Seed Access Note — USD 250</option><option value="PRESEED-1000" data-usd="1000">Pre-Seed Builder Unit — USD 1000</option><option value="PRESEED-5000" data-usd="5000">Pre-Seed Accelerator Bundle — USD 5000</option><option value="PK30-BASIC" data-usd="3175">Peak 30 portable kinetic generator — USD 3175</option><option value="FSCU-BASE" data-usd="1748">Flywheel Self-Charging Unit — USD 1748</option><option value="ION-HOME-LUX" data-usd="105000">Ioncore Round Luxury Home Presale — USD 105000</option><option value="ION-HOTEL-LUX" data-usd="137500">Ioncore Round Hotel & Retail Presale — USD 137500</option><option value="TIME-APEX-X" data-usd="2450">Apex X Timepiece — USD 2450</option><option value="TIME-CHRONO-S" data-usd="3200">Chrono S Timepiece — USD 3200</option><option value="TIME-NOVA-R" data-usd="4600">Nova R Timepiece — USD 4600</option><option value="STOCK-25000" data-usd="25000">Stock participation ticket — USD 25000</option></select>
           </div>
           <div class="form-row">
             <label for="amount">Product Price (USD)</label>
@@ -473,7 +473,7 @@
         if (!paypalProductSelect || !productSelect) return;
         paypalProductSelect.innerHTML = Array.from(productSelect.options).map((opt) => {
           const link = paypalProductLinks[opt.value] || '';
-          const suffix = link ? ' (PayPal ready)' : ' (PayPal unavailable)';
+          const suffix = link ? ' (PayPal ready)' : ' (Coming soon)';
           return `<option value="${opt.value}" data-link="${link}">${opt.textContent}${suffix}</option>`;
         }).join('');
         paypalProductSelect.value = productSelect.value;
@@ -487,11 +487,11 @@
         const productLabel = rawLabel.replace(/ \(PayPal.*\)$/, '');
         const ready = Boolean(link);
         paypalLaunchButton.disabled = !ready;
-        paypalLaunchButton.textContent = ready ? `Open PayPal: ${productLabel}` : `PayPal code pending: ${productLabel}`;
+        paypalLaunchButton.textContent = ready ? `Open PayPal: ${productLabel}` : `Coming soon: ${productLabel}`;
         if (paypalHelp) {
           paypalHelp.textContent = ready
             ? `Ready: ${productLabel} has an active PayPal checkout.`
-            : `PayPal is currently unavailable for ${productLabel}.`;
+            : `Coming soon: PayPal code is not live yet for ${productLabel}.`;
         }
       };
 

@@ -496,6 +496,41 @@
       };
 
 
+      const normalizeCatalogProducts = (products) => {
+        if (!Array.isArray(products)) return [];
+        return products
+          .map((product) => {
+            if (!product || typeof product !== 'object') return null;
+            const code = product.code || product.productCode || product.id || '';
+            const usdRaw = product.usd ?? product.amountUsd ?? product.priceUsd ?? product.amount ?? '';
+            const usd = Number(usdRaw);
+            const name = product.name || product.title || product.label || code;
+            if (!code || !Number.isFinite(usd) || !name) return null;
+            return { code, usd, name };
+          })
+          .filter(Boolean);
+      };
+
+      const refreshWalletQRCodes = () => {
+        const amount = Number(form.querySelector('#amount')?.value || 0);
+        if (btcQrImage && btcWalletInput) {
+          const btcUri = `bitcoin:${btcWalletInput.value}${amount > 0 ? `?amount=${amount}` : ''}`;
+          btcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(btcUri)}`;
+        }
+        if (ethQrImage && ethWalletInput) {
+          const ethUri = `ethereum:${ethWalletInput.value}${amount > 0 ? `?value=${Math.round(amount * 1e18)}` : ''}`;
+          ethQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ethUri)}`;
+        }
+        if (usdcQrImage && usdcWalletInput) {
+          const usdcUri = `ethereum:${usdcWalletInput.value}${amount > 0 ? `?value=0&token=USDC&amount=${amount.toFixed(2)}` : ''}`;
+          usdcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(usdcUri)}`;
+        }
+        if (adaQrImage && adaWalletInput) {
+          const adaUri = `web+cardano:${adaWalletInput.value}${amount > 0 ? `?amount=${amount}` : ''}`;
+          adaQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(adaUri)}`;
+        }
+      };
+
       const renderCatalog = (products) => {
         if (!productSelect || !Array.isArray(products) || !products.length) return;
         productSelect.innerHTML = products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
@@ -503,6 +538,7 @@
           const selected = productSelect.selectedOptions[0];
           const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
           if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+          refreshWalletQRCodes();
         };
         productSelect.addEventListener('change', () => {
           syncAmount();
@@ -518,11 +554,12 @@
         try {
           const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
           const data = await response.json();
-          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) {
+          const normalizedProducts = normalizeCatalogProducts(data?.products);
+          if (!response.ok || !normalizedProducts.length || !productSelect) {
             renderCatalog(fallbackCatalog);
             return;
           }
-          renderCatalog(data.products);
+          renderCatalog(normalizedProducts);
         } catch (_) {
           renderCatalog(fallbackCatalog);
         }
@@ -730,8 +767,26 @@
 
           setFeedback(receiptLines.join(' • '), 'success');
 
-          if (result.orderId) { form.querySelector('#receipt-code').value = result.orderId; } form.reset();
+          if (result.orderId && receiptCodeInput) {
+            receiptCodeInput.value = result.orderId;
+            receiptCodeInput.setAttribute('value', result.orderId);
+          }
+          const preservedMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
+          form.reset();
+          const preservedInput = form.querySelector(`input[name="payment-method"][value="${preservedMethod}"]`);
+          if (preservedInput) preservedInput.checked = true;
           const nextMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
+          if (productSelect && productSelect.options.length > 0) {
+            const firstOption = productSelect.options[0];
+            productSelect.value = firstOption.value;
+            if (amountInput) {
+              const usd = Number(firstOption.getAttribute('data-usd'));
+              amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+            }
+            syncPayPalSelector();
+            updatePayPalLaunchState();
+          }
+          refreshWalletQRCodes();
           updatePaymentMethod(nextMethod);
         } catch (error) {
           setFeedback(

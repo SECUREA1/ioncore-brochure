@@ -1448,8 +1448,19 @@
           const payload = {productCode: product.value, purchasePath: pathSelect.value, returnType: returnType.value, currency: currency.value, buyerName: form.saleBuyer.value.trim(), buyerEmail: form.saleEmail.value.trim()};
           if (!payload.buyerName) throw new Error('Buyer name is required.');
           if (payload.currency === 'PAYPAL') {
-            document.getElementById('deposits')?.scrollIntoView({ behavior: 'smooth' });
-            setStatus('Use the PayPal deposit checkout directly above to complete this product purchase.');
+            const paypalPayload = {
+              model: payload.productCode,
+              purchaseType: payload.purchasePath === 'STOCK' ? 'stock' : 'unit',
+              quantity: 1,
+              buyerName: payload.buyerName,
+              buyerEmail: payload.buyerEmail
+            };
+            const paypalResp = await fetch('/payments/paypal/model-order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(paypalPayload)});
+            const paypalData = await paypalResp.json();
+            if (!paypalResp.ok) throw new Error(paypalData.message || 'Unable to start PayPal checkout.');
+            const paypalUrl = paypalData.approveUrl || (paypalData.orderId ? `https://www.paypal.com/checkoutnow?token=${encodeURIComponent(paypalData.orderId)}` : '');
+            if (!paypalUrl) throw new Error('PayPal order created but no approval link was returned.');
+            window.location.href = paypalUrl;
             return;
           }
           if (payload.currency === 'STRIPE') {

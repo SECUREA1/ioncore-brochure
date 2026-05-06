@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link id="ioncore-brand-icon" rel="icon" type="image/svg+xml" href="/battery.svg">
-  <link rel="apple-touch-icon" href="/battery.svg">
-  <meta name="theme-color" content="#6aff3b">
-
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Process magnetic stripe card payments for Ioncore Energy deployments.">
@@ -15,7 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://www.paypal.com/sdk/js?client-id=BAA609mUN-0_-rnZJDJU8MQQkMXQfQtjIqjtXPrmyjKoSRRuwSFT6r5EeMsbSHM80YZMY3vAmqNtmEUvds&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
 </head>
 <body>
   <header class="site-header container">
@@ -91,13 +86,6 @@
               ADA
             </label>
           </fieldset>
-          <div class="form-row one-signature-toggle">
-            <label class="toggle-control" for="one-signature-toggle">
-              <input type="checkbox" id="one-signature-toggle" name="one-signature-toggle" checked>
-              <span>One signature · One transaction</span>
-            </label>
-            <p class="form-help" id="one-signature-status">Completed flow enabled: one signature and one transaction.</p>
-          </div>
           <div class="form-row">
             <label for="cardholder">Customer Name</label>
             <input type="text" id="cardholder" name="cardholder" placeholder="Alex Johnson" required>
@@ -115,27 +103,6 @@
               <div>
                 <label for="cvv">Security Code</label>
                 <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" data-required-when="magstripe">
-              </div>
-            </div>
-          </div>
-          <div class="payment-section payment-section--paypal" data-payment-section="paypal" hidden>
-            <div class="form-row">
-              <label for="paypal-product-select">Choose product for PayPal checkout</label>
-              <select id="paypal-product-select" name="paypal-product-select"></select>
-              <p class="form-help" id="paypal-help">Select a product to open the matching PayPal checkout popup.</p>
-              <button type="button" id="paypal-product-launch" class="btn btn-primary">Open PayPal for Selected Product</button>
-            </div>
-            <div class="form-row">
-              <label>PayPal quick buttons (coded links)</label>
-              <p class="form-help">All currently coded PayPal links remain available here, including the new KQB5UWV4H74HQ button.</p>
-              <div id="paypal-container-LHAZALYUB3NXS"></div>
-              <div style="margin-top:8px;">
-                <style>.pp-KQB5UWV4H74HQ{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
-                <form action="https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
-                  <input class="pp-KQB5UWV4H74HQ" type="submit" value="Buy Now">
-                  <img src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg" alt="cards">
-                  <section style="font-size:0.75rem;">Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"></section>
-                </form>
               </div>
             </div>
           </div>
@@ -166,10 +133,6 @@
             <div class="form-row">
               <label for="btc-txid">Bitcoin Transaction ID</label>
               <input type="text" id="btc-txid" name="btc-txid" placeholder="Paste TXID after broadcast" spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
-            </div>
-            <div class="form-row form-row--split">
-              <button type="button" class="btn btn-outline" data-wallet-launch="bitcoin-wallet-uri">Open Wallet URI</button>
-              <button type="button" class="btn btn-outline" data-wallet-launch="bitcoin-trust">Open in Trust Wallet</button>
             </div>
             <div class="form-row">
               <label for="btc-contact">Remitting Wallet Contact</label>
@@ -205,7 +168,7 @@
             <div class="form-row">
               <label for="eth-wallet">Ioncore ETH Address</label>
               <div class="btc-wallet">
-                <input type="text" id="eth-wallet" name="eth-wallet" value="0xE916E16848acc2c5D06F3e3183116EE475a927f6" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <input type="text" id="eth-wallet" name="eth-wallet" value="0x8ba1f109551bd432803012645ac136ddd64dba72" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
                 <button type="button" class="btn btn-outline btn-compact" data-copy-target="eth-wallet">Copy</button>
               </div>
               <p class="form-help">Send only ETH on Ethereum mainnet. MetaMask deep-link and QR open the same destination.</p>
@@ -227,7 +190,7 @@
             <div class="form-row">
               <label for="ada-wallet">Ioncore ADA Address</label>
               <div class="btc-wallet">
-                <input type="text" id="ada-wallet" name="ada-wallet" value="DdzFFzCqrhstF7Vb9Ro5rmUX1hbQPg9XfnQoVPV81uteLyFK9GAXW2qUsFLhR7rUuNSqXtgkH33wBPvobNJQa3FMvx4WWyjX6eMd6s2tG" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
+                <input type="text" id="ada-wallet" name="ada-wallet" value="addr1q9p9v9x8f2j7n0kg5z4s6z7f8r9t0m1x2c3v4b5n6k7m8p" readonly spellcheck="false" autocapitalize="none" autocomplete="off" autocorrect="off">
                 <button type="button" class="btn btn-outline btn-compact" data-copy-target="ada-wallet">Copy</button>
               </div>
               <p class="form-help">Send only ADA on Cardano mainnet. Use Phantom (Cardano) or Lace wallet links below.</p>
@@ -247,7 +210,7 @@
           </div>
           <div class="form-row">
             <label for="product-code">Fundraising Product</label>
-            <select id="product-code" name="product-code" required><option value="PRESEED-250" data-usd="250">Pre-Seed Access Note — USD 250</option><option value="PRESEED-1000" data-usd="1000">Pre-Seed Builder Unit — USD 1000</option><option value="PRESEED-5000" data-usd="5000">Pre-Seed Accelerator Bundle — USD 5000</option><option value="PK30-BASIC" data-usd="3175">Peak 30 portable kinetic generator — USD 3175</option><option value="FSCU-BASE" data-usd="1748">Flywheel Self-Charging Unit — USD 1748</option><option value="ION-HOME-LUX" data-usd="105000">Ioncore Round Luxury Home Presale — USD 105000</option><option value="ION-HOTEL-LUX" data-usd="137500">Ioncore Round Hotel & Retail Presale — USD 137500</option><option value="TIME-APEX-X" data-usd="2450">Apex X Timepiece — USD 2450</option><option value="TIME-CHRONO-S" data-usd="3200">Chrono S Timepiece — USD 3200</option><option value="TIME-NOVA-R" data-usd="4600">Nova R Timepiece — USD 4600</option><option value="STOCK-25000" data-usd="25000">Stock participation ticket — USD 25000</option></select>
+            <select id="product-code" name="product-code" required></select>
           </div>
           <div class="form-row">
             <label for="amount">Product Price (USD)</label>
@@ -325,8 +288,7 @@
         bitcoin: form.querySelector('[data-payment-section="bitcoin"]'),
         ethereum: form.querySelector('[data-payment-section="ethereum"]'),
         ada: form.querySelector('[data-payment-section="ada"]'),
-        usdc: form.querySelector('[data-payment-section="usdc"]'),
-        paypal: form.querySelector('[data-payment-section="paypal"]')
+        usdc: form.querySelector('[data-payment-section="usdc"]')
       };
       const productSelect = form.querySelector('#product-code');
       const amountInput = form.querySelector('#amount');
@@ -342,41 +304,6 @@
       const receiptCodeInput = form.querySelector('#receipt-code');
       const bitcoinHelp = form.querySelector('[data-bitcoin-help]');
       const isLocked = form.hasAttribute('data-locked');
-      const paypalProductSelect = form.querySelector('#paypal-product-select');
-      const paypalLaunchButton = form.querySelector('#paypal-product-launch');
-      const paypalHelp = form.querySelector('#paypal-help');
-      const oneSignatureToggle = form.querySelector('#one-signature-toggle');
-      const oneSignatureStatus = form.querySelector('#one-signature-status');
-      const paypalProductLinks = {
-        'PRESEED-250': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'PRESEED-1000': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'PRESEED-5000': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'FUND-PEAK30': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
-        'FUND-FSCU': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'FUND-HOME': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'FUND-HOTEL': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'PK30-BASIC': 'https://www.paypal.com/ncp/payment/LHAZALYUB3NXS',
-        'FSCU-BASE': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'ION-HOME-LUX': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'ION-HOTEL-LUX': 'https://www.paypal.com/ncp/payment/KQB5UWV4H74HQ',
-        'TIME-APEX-X': '',
-        'TIME-CHRONO-S': '',
-        'TIME-NOVA-R': '',
-        'STOCK-25000': ''
-      };
-      const fallbackCatalog = [
-        { code: 'PRESEED-250', usd: 250, name: 'Pre-Seed Access Note' },
-        { code: 'PRESEED-1000', usd: 1000, name: 'Pre-Seed Builder Unit' },
-        { code: 'PRESEED-5000', usd: 5000, name: 'Pre-Seed Accelerator Bundle' },
-        { code: 'PK30-BASIC', usd: 3175, name: 'Peak 30 portable kinetic generator' },
-        { code: 'FSCU-BASE', usd: 1748, name: 'Flywheel Self-Charging Unit' },
-        { code: 'ION-HOME-LUX', usd: 105000, name: 'Ioncore Round Luxury Home Presale' },
-        { code: 'ION-HOTEL-LUX', usd: 137500, name: 'Ioncore Round Hotel & Retail Presale' },
-        { code: 'TIME-APEX-X', usd: 2450, name: 'Apex X Timepiece' },
-        { code: 'TIME-CHRONO-S', usd: 3200, name: 'Chrono S Timepiece' },
-        { code: 'TIME-NOVA-R', usd: 4600, name: 'Nova R Timepiece' },
-        { code: 'STOCK-25000', usd: 25000, name: 'Stock participation ticket' }
-      ];
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -389,27 +316,6 @@
         } else if (variant === 'error') {
           feedback.classList.add('is-error');
         }
-      };
-
-
-      const createInstantSignature = (payload) => {
-        const core = [
-          payload.productCode || 'UNKNOWN',
-          payload.paymentRail || 'unknown',
-          payload.amount || '',
-          payload.cardholder || '',
-          Date.now().toString(36)
-        ].join('|');
-        let hash = 0;
-        for (let i = 0; i < core.length; i += 1) {
-          hash = (hash << 5) - hash + core.charCodeAt(i);
-          hash |= 0;
-        }
-        const signature = `SIG-${Math.abs(hash).toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-        return {
-          signature,
-          createdAt: new Date().toISOString()
-        };
       };
 
       if (isLocked) {
@@ -472,27 +378,19 @@
           });
       }
 
-      if (window.paypal && window.paypal.HostedButtons) {
-        window.paypal.HostedButtons({ hostedButtonId: 'LHAZALYUB3NXS' }).render('#paypal-container-LHAZALYUB3NXS').catch(() => {
-          setFeedback('PayPal button failed to load. Please refresh and try again.', 'error');
-        });
-      }
-
       if (isLocked) {
         return;
       }
 
       const updatePaymentMethod = (method) => {
         const normalized = method === 'magstripe' ? 'stripe' : method;
-        const isCardRail = normalized === 'stripe';
+        const isCardRail = normalized === 'stripe' || normalized === 'paypal';
         if (paymentSections.magstripe) paymentSections.magstripe.hidden = !isCardRail;
-        if (paymentSections.paypal) paymentSections.paypal.hidden = normalized !== 'paypal';
         if (paymentSections.bitcoin) paymentSections.bitcoin.hidden = normalized !== 'bitcoin';
         if (paymentSections.ethereum) paymentSections.ethereum.hidden = normalized !== 'ethereum';
         if (paymentSections.ada) paymentSections.ada.hidden = normalized !== 'ada';
         if (paymentSections.usdc) paymentSections.usdc.hidden = normalized !== 'usdc';
         if (submitButton) {
-          submitButton.hidden = normalized === 'paypal';
           submitButton.textContent =
             normalized === 'paypal' ? 'Continue to PayPal' :
             normalized === 'stripe' ? 'Continue to Stripe' :
@@ -507,134 +405,25 @@
         });
       };
 
-      const syncPayPalSelector = () => {
-        if (!paypalProductSelect || !productSelect) return;
-        paypalProductSelect.innerHTML = Array.from(productSelect.options).map((opt) => {
-          const link = paypalProductLinks[opt.value] || '';
-          const suffix = link ? ' (PayPal ready)' : ' (Coming soon)';
-          return `<option value="${opt.value}" data-link="${link}">${opt.textContent}${suffix}</option>`;
-        }).join('');
-        paypalProductSelect.value = productSelect.value;
-      };
-
-      const updatePayPalLaunchState = () => {
-        if (!paypalProductSelect || !paypalLaunchButton) return;
-        const selected = paypalProductSelect.selectedOptions[0];
-        const link = selected ? selected.getAttribute('data-link') : '';
-        const rawLabel = selected ? selected.textContent : 'selected product';
-        const productLabel = rawLabel.replace(/ \(PayPal.*\)$/, '');
-        const ready = Boolean(link);
-        paypalLaunchButton.disabled = !ready;
-        paypalLaunchButton.textContent = ready ? `Open PayPal: ${productLabel}` : `Coming soon: ${productLabel}`;
-        if (paypalHelp) {
-          paypalHelp.textContent = ready
-            ? `Ready: ${productLabel} has an active PayPal checkout.`
-            : `Coming soon: PayPal code is not live yet for ${productLabel}.`;
-        }
-      };
-
-
-
-      const syncOneSignatureStatus = () => {
-        if (!oneSignatureStatus || !oneSignatureToggle) return;
-        oneSignatureStatus.textContent = oneSignatureToggle.checked
-          ? 'Completed flow enabled: one signature and one transaction.'
-          : 'Standard flow enabled: separate authorization and transaction review.';
-      };
-
-      const normalizeCatalogProducts = (products) => {
-        if (!Array.isArray(products)) return [];
-        return products
-          .map((product) => {
-            if (!product || typeof product !== 'object') return null;
-            const code = product.code || product.productCode || product.id || '';
-            const usdRaw = product.usd ?? product.amountUsd ?? product.priceUsd ?? product.amount ?? '';
-            const usd = Number(usdRaw);
-            const name = product.name || product.title || product.label || code;
-            if (!code || !Number.isFinite(usd) || !name) return null;
-            return { code, usd, name };
-          })
-          .filter(Boolean);
-      };
-
-      const refreshWalletQRCodes = () => {
-        const amount = Number(form.querySelector('#amount')?.value || 0);
-        if (btcQrImage && btcWalletInput) {
-          const btcUri = `bitcoin:${btcWalletInput.value}${amount > 0 ? `?amount=${amount}` : ''}`;
-          btcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(btcUri)}`;
-        }
-        if (ethQrImage && ethWalletInput) {
-          const ethUri = `ethereum:${ethWalletInput.value}${amount > 0 ? `?value=${Math.round(amount * 1e18)}` : ''}`;
-          ethQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ethUri)}`;
-        }
-        if (usdcQrImage && usdcWalletInput) {
-          const usdcUri = `ethereum:${usdcWalletInput.value}${amount > 0 ? `?value=0&token=USDC&amount=${amount.toFixed(2)}` : ''}`;
-          usdcQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(usdcUri)}`;
-        }
-        if (adaQrImage && adaWalletInput) {
-          const adaUri = `web+cardano:${adaWalletInput.value}${amount > 0 ? `?amount=${amount}` : ''}`;
-          adaQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(adaUri)}`;
-        }
-      };
-
-      const renderCatalog = (products) => {
-        if (!productSelect || !Array.isArray(products) || !products.length) return;
-        productSelect.innerHTML = products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
-        const syncAmount = () => {
-          const selected = productSelect.selectedOptions[0];
-          const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
-          if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
-          refreshWalletQRCodes();
-        };
-        productSelect.addEventListener('change', () => {
-          syncAmount();
-          syncPayPalSelector();
-          updatePayPalLaunchState();
-        });
-        syncAmount();
-        syncPayPalSelector();
-        updatePayPalLaunchState();
-      };
 
       const loadCatalog = async () => {
         try {
           const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
           const data = await response.json();
-          const normalizedProducts = normalizeCatalogProducts(data?.products);
-          if (!response.ok || !normalizedProducts.length || !productSelect) {
-            renderCatalog(fallbackCatalog);
-            return;
-          }
-          renderCatalog(normalizedProducts);
-        } catch (_) {
-          renderCatalog(fallbackCatalog);
-        }
+          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) return;
+          productSelect.innerHTML = data.products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
+          const syncAmount = () => {
+            const selected = productSelect.selectedOptions[0];
+            const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
+            if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+          };
+          productSelect.addEventListener('change', syncAmount);
+          syncAmount();
+        } catch (_) {}
       };
 
       loadCatalog();
-      syncPayPalSelector();
-      updatePayPalLaunchState();
-      if (paypalProductSelect) {
-        paypalProductSelect.addEventListener('change', updatePayPalLaunchState);
-      }
-      if (paypalLaunchButton) {
-        paypalLaunchButton.addEventListener('click', () => {
-          const selected = paypalProductSelect ? paypalProductSelect.selectedOptions[0] : null;
-          const link = selected ? selected.getAttribute('data-link') : '';
-          if (!link) {
-            setFeedback('PayPal is currently unavailable for this product.', 'error');
-            return;
-          }
-          window.open(link, '_blank', 'noopener');
-        });
-      }
-
-      syncOneSignatureStatus();
-      if (oneSignatureToggle) {
-        oneSignatureToggle.addEventListener('change', syncOneSignatureStatus);
-      }
-
-      const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
+const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
       updatePaymentMethod(selectedMethod);
 
       paymentMethodInputs.forEach((input) => {
@@ -686,14 +475,11 @@
           const ethUri = `ethereum:${ethWalletInput?.value || ''}${amount > 0 ? `?value=${Math.round(amount * 1e18)}` : ''}`;
           const usdcUri = `ethereum:${usdcWalletInput?.value || ''}${amount > 0 ? `?value=0&token=USDC&amount=${amount.toFixed(2)}` : ''}`;
           const adaUri = `web+cardano:${adaWalletInput?.value || ''}${amount > 0 ? `?amount=${amount}` : ''}`;
-          const btcUri = `bitcoin:${btcWalletInput?.value || ''}${amount > 0 ? `?amount=${amount}` : ''}`;
           const links = {
             metamask: `https://metamask.app.link/send/${encodeURIComponent(ethUri)}`,
             'metamask-usdc': `https://metamask.app.link/send/${encodeURIComponent(usdcUri)}`,
             walletconnect: ethUri,
             'walletconnect-usdc': usdcUri,
-            'bitcoin-wallet-uri': btcUri,
-            'bitcoin-trust': `https://link.trustwallet.com/send?coin=0&address=${encodeURIComponent(btcWalletInput?.value || '')}${amount > 0 ? `&amount=${encodeURIComponent(amount.toFixed(8))}` : ''}`,
             phantom: `https://phantom.app/ul/browse/${encodeURIComponent(adaUri)}`,
             lace: adaUri
           };
@@ -725,8 +511,6 @@
           buyerName: formData.get('cardholder') || '',
           buyerEmail: '',
           notes: formData.get('notes') || '',
-          oneSignatureOneTransaction: Boolean(formData.get('one-signature-toggle')),
-          instantSignatureRequested: Boolean(formData.get('one-signature-toggle')), 
           txid: formData.get('btc-txid') || formData.get('eth-txid') || formData.get('ada-txid') || formData.get('usdc-txid') || '',
           destinationAddress:
             paymentMethod === 'bitcoin' ? (btcWalletInput?.value || '') :
@@ -734,8 +518,6 @@
             paymentMethod === 'ada' ? (adaWalletInput?.value || '') :
             paymentMethod === 'usdc' ? (usdcWalletInput?.value || '') : ''
         });
-
-        const instantSignature = createInstantSignature(payload);
 
         submitButton.disabled = true;
         setFeedback(
@@ -771,12 +553,6 @@
           }
 
           if (paymentMethod === 'bitcoin' || paymentMethod === 'ethereum' || paymentMethod === 'ada' || paymentMethod === 'usdc') {
-            if (result.wallet) {
-              receiptLines.push(`Wallet: ${result.wallet}`);
-            }
-            if (result.cryptoAmount !== undefined && result.cryptoAmount !== null) {
-              receiptLines.push(`Crypto amount: ${result.cryptoAmount}`);
-            }
             if (result.invoiceId) {
               receiptLines.push(`Invoice: ${result.invoiceId}`);
             }
@@ -830,33 +606,10 @@
             }
           }
 
-          if (oneSignatureToggle?.checked) {
-            receiptLines.push(`Instant signature: ${instantSignature.signature}`);
-            receiptLines.push(`Signed at: ${instantSignature.createdAt}`);
-          }
-
           setFeedback(receiptLines.join(' • '), 'success');
 
-          if (result.orderId && receiptCodeInput) {
-            receiptCodeInput.value = result.orderId;
-            receiptCodeInput.setAttribute('value', result.orderId);
-          }
-          const preservedMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
-          form.reset();
-          const preservedInput = form.querySelector(`input[name="payment-method"][value="${preservedMethod}"]`);
-          if (preservedInput) preservedInput.checked = true;
+          if (result.orderId) { form.querySelector('#receipt-code').value = result.orderId; } form.reset();
           const nextMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
-          if (productSelect && productSelect.options.length > 0) {
-            const firstOption = productSelect.options[0];
-            productSelect.value = firstOption.value;
-            if (amountInput) {
-              const usd = Number(firstOption.getAttribute('data-usd'));
-              amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
-            }
-            syncPayPalSelector();
-            updatePayPalLaunchState();
-          }
-          refreshWalletQRCodes();
           updatePaymentMethod(nextMethod);
         } catch (error) {
           setFeedback(
@@ -869,143 +622,5 @@
       });
     });
   </script>
-
-<section id="ioncore-usdc-sales" style="margin:2rem auto;max-width:960px;padding:1.25rem;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(8,12,24,.9);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.35);font-family:inherit;">
-  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Timepiece Checkout (Crypto Wallet)</h2>
-  <p style="margin:0 0 .65rem;opacity:.92;">Select your watch, choose wallet rail (USDC, ETH, BTC, ADA), then purchase using the same crypto flow as checkout. Submit your transfer hash to confirm and record settlement.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;align-items:end;margin-bottom:.85rem;">
-    <div><label for="ioncore-watch-product" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Watch</label><select id="ioncore-watch-product" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="TIME-APEX-X">Apex X Timepiece — $4,900</option><option value="TIME-CHRONO-S">Chrono S Timepiece — $6,400</option><option value="TIME-NOVA-R">Nova R Timepiece — $9,200</option></select></div>
-    <div><label for="ioncore-watch-currency" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Payment rail</label><select id="ioncore-watch-currency" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="USDC">USDC</option><option value="ETH">ETH</option><option value="BTC">BTC</option><option value="ADA">ADA</option></select></div>
-    <button type="button" id="ioncore-create-watch-intent" style="padding:.72rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Create checkout</button>
-  </div>
-  <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:1rem;align-items:center;">
-    <div>
-      <label for="ioncore-wallet-address" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Settlement wallet</label>
-      <div style="display:flex;gap:.5rem;align-items:center;">
-        <input id="ioncore-wallet-address" type="text" readonly value="" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" />
-        <button type="button" id="ioncore-copy-wallet" style="padding:.7rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Copy</button>
-      </div>
-      <p style="margin:.75rem 0 0;font-size:.92rem;"><strong>Receipt:</strong> <span id="ioncore-receipt-code">IONCORE-SKU-PENDING</span></p>
-      <p style="margin:.35rem 0 0;font-size:.85rem;opacity:.85;" id="ioncore-watch-amount">Create a checkout intent to generate transfer details.</p>
-    </div>
-    <div style="text-align:center;">
-      <img id="ioncore-watch-qr" alt="Ioncore payment QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="" />
-      <p style="margin:.55rem 0 0;font-size:.85rem;opacity:.85;">Scan to open in wallet</p>
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:.6rem;align-items:end;margin-top:.9rem;">
-    <div><label for="ioncore-watch-tx" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Transfer hash / tx id</label><input id="ioncore-watch-tx" type="text" placeholder="Paste blockchain transfer id" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;" /></div>
-    <button type="button" id="ioncore-submit-watch-payment" style="padding:.72rem .95rem;border:0;border-radius:10px;background:#6aff3b;color:#05121f;font-weight:700;cursor:pointer;">Confirm payment</button>
-  </div>
-  <p id="ioncore-watch-status" style="margin:.75rem 0 0;font-size:.92rem;opacity:.92;"></p>
-</section>
-<script>
-(function(){
-  const byId = (id) => document.getElementById(id);
-  const state = { checkoutId: '', wallet: '', uri: '', currency: '', model: '' };
-  const product = byId('ioncore-watch-product');
-  const currency = byId('ioncore-watch-currency');
-  const walletInput = byId('ioncore-wallet-address');
-  const qr = byId('ioncore-watch-qr');
-  const status = byId('ioncore-watch-status');
-  const amount = byId('ioncore-watch-amount');
-  const receipt = byId('ioncore-receipt-code');
-  const tx = byId('ioncore-watch-tx');
-  const setStatus = (msg, error) => { if (status) { status.textContent = msg; status.style.color = error ? '#ff9f9f' : '#d9ffe8'; } };
-  byId('ioncore-copy-wallet')?.addEventListener('click', async () => {
-    if (!walletInput || !walletInput.value) return;
-    try { await navigator.clipboard.writeText(walletInput.value); setStatus('Wallet copied.'); } catch (_) { walletInput.focus(); walletInput.select(); }
-  });
-  byId('ioncore-create-watch-intent')?.addEventListener('click', async () => {
-    setStatus('Creating checkout intent...');
-    try {
-      const selectedRail = currency.value;
-      state.model = product.value;
-      if (selectedRail === 'PAYPAL') {
-        window.location.href = '/magnetic-stripe-checkout.html';
-        return setStatus('Opening PayPal checkout page. Select PayPal in payment rail to finish purchase.');
-      }
-      if (selectedRail === 'STRIPE') {
-        window.location.href = '/magnetic-stripe-checkout.html';
-        return setStatus('Opening Stripe checkout page. Select Stripe in payment rail to finish purchase.');
-      }
-      const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: product.value, currency: selectedRail, buyerName: 'Timepiece Customer', buyerEmail: '' }) });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.message || 'Unable to create checkout.');
-      state.checkoutId = data.checkoutId; state.wallet = data.to || ''; state.uri = data.uri || ''; state.currency = data.currency || selectedRail;
-      if (walletInput) walletInput.value = state.wallet;
-      const amountValue = state.currency === 'USDC' ? data.usdcAmount : data.cryptoAmount;
-      if (amount) amount.textContent = 'Send ' + amountValue + ' ' + state.currency + ' to the selected wallet.';
-      if (receipt) receipt.textContent = state.checkoutId;
-      if (qr) qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=' + encodeURIComponent(state.uri || state.wallet);
-      setStatus('Checkout intent ready. Transfer with your wallet, then submit tx id.');
-    } catch (error) { setStatus(error.message || 'Could not create checkout intent.', true); }
-  });
-  byId('ioncore-submit-watch-payment')?.addEventListener('click', async () => {
-    if (!state.checkoutId) return setStatus('Create checkout intent first (crypto rails only).', true);
-    if (!tx || !tx.value.trim()) return setStatus('Enter transfer hash / tx id.', true);
-    try {
-      const resp = await fetch('/api/sales/checkout-submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ checkoutId: state.checkoutId, txHash: tx.value.trim(), walletAddress: 'customer-wallet', walletProvider: state.currency }) });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.message || 'Payment confirmation failed.');
-      setStatus('Payment confirmed and transferred to selected wallet: ' + state.wallet);
-    } catch (error) { setStatus(error.message || 'Unable to confirm payment.', true); }
-  });
-})();
-</script>
-
-  <style id="ioncore-branding-badge-styles">
-    .ioncore-branding-badge {
-      position: fixed;
-      top: 18px;
-      right: 18px;
-      z-index: 9998;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(7, 12, 22, 0.86);
-      border: 1px solid rgba(106, 255, 59, 0.35);
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
-      color: #f5f8ff;
-      text-decoration: none;
-      font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      backdrop-filter: blur(6px);
-    }
-    .ioncore-branding-badge__mark {
-      width: 28px;
-      height: 28px;
-      filter: drop-shadow(0 0 10px rgba(106, 255, 59, 0.55));
-    }
-    .ioncore-branding-badge__text {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-    }
-    .ioncore-branding-badge__name {
-      font-weight: 800;
-      letter-spacing: 0.02em;
-    }
-    .ioncore-branding-badge__tagline {
-      font-size: 0.78rem;
-      color: #b2c5df;
-      letter-spacing: 0.04em;
-    }
-    @media (max-width: 640px) {
-      .ioncore-branding-badge {
-        top: auto;
-        bottom: 16px;
-        right: 16px;
-      }
-    }
-  </style>
-  <a href="/" class="ioncore-branding-badge" id="ioncore-branding-badge" aria-label="Ioncore Energy homepage">
-    <img class="ioncore-branding-badge__mark" src="/battery.svg" alt="Ioncore Energy">
-    <span class="ioncore-branding-badge__text">
-      <strong class="ioncore-branding-badge__name">Ioncore Energy</strong>
-      <small class="ioncore-branding-badge__tagline">Magnetic Inertia Systems</small>
-    </span>
-  </a>
 </body>
 </html>

@@ -29,6 +29,10 @@
     .split { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     .callout { padding: 16px; border-radius: 12px; background: rgba(106, 255, 59, 0.08); border: 1px solid rgba(106,255,59,0.24); color: var(--text-high); box-shadow: 0 18px 44px rgba(8, 16, 35, 0.42); }
     .callout h3 { margin-top: 0; }
+    form label { display: flex; flex-direction: column; gap: 6px; color: var(--text-high); font-weight: 600; }
+    input, select, textarea { border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-high); padding: 10px 12px; font: inherit; }
+    textarea { resize: vertical; margin-top: 6px; }
+    button.cta-btn { border: 0; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -375,6 +379,153 @@
       </ul>
     </li>
   </ul>
+
+  <h2>Ambassador &amp; Partner Grants Program (Application Portal)</h2>
+  <p>This application is designed for sales ambassadors, construction/integration partners, and strategic platform collaborators seeking grant rewards, co-marketing support, deployment credits, and structured partnership tracks tied to Ioncore valuation growth and index-product expansion.</p>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <h4>Program Objective</h4>
+      <p>Accelerate revenue conversion across portable, residential, commercial, and engine platform lanes while rewarding verified market execution.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Funding Windows</h4>
+      <p>Rolling reviews with monthly decision cycles, milestone-based disbursement, and KPI-gated follow-on grant unlocks.</p>
+    </div>
+    <div class="stat-card">
+      <h4>Strategic Alignment</h4>
+      <p>Scoring model integrates projected sales impact, deployment readiness, ESG contribution, and partner governance maturity.</p>
+    </div>
+  </div>
+
+  <h3>Grant Tracks &amp; Reward Framework</h3>
+  <table>
+    <thead>
+      <tr><th>Track</th><th>Who Should Apply</th><th>Reward Type</th><th>Typical Range</th><th>Core KPI</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Sales Velocity Grant</td><td>Ambassadors, channel teams, wholesalers</td><td>Cash grant + sell-out bonus pool access</td><td>USD 25k–250k</td><td>Qualified pipeline + closed revenue</td></tr>
+      <tr><td>Build &amp; Construction Grant</td><td>EPC firms, installers, microgrid integrators</td><td>Deployment credits + workforce stipend</td><td>USD 75k–500k</td><td>On-time site commissioning</td></tr>
+      <tr><td>Index Product Launch Grant</td><td>Partners commercializing bundled offerings</td><td>Co-marketing MDF + product rebate</td><td>USD 50k–350k</td><td>Bundle adoption + retention rate</td></tr>
+      <tr><td>Strategic Partnership Grant</td><td>Institutional/OEM/infra partners</td><td>Milestone grant + advisory warrants (subject to approval)</td><td>USD 250k–2M</td><td>Multi-site contract value creation</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Detailed Application Form</h3>
+  <form class="stat-card" action="mailto:ioncoreenergy@gmail.com" method="post" enctype="text/plain">
+    <h4>1) Applicant Identity</h4>
+    <div class="split">
+      <label>Legal Entity / Applicant Name<br><input type="text" name="applicant_name" required></label>
+      <label>Contact Person<br><input type="text" name="contact_person" required></label>
+      <label>Email<br><input type="email" name="email" required></label>
+      <label>Phone<br><input type="tel" name="phone" required></label>
+      <label>Country / Region<br><input type="text" name="region" required></label>
+      <label>Website / Portfolio URL<br><input type="url" name="website"></label>
+    </div>
+
+    <h4>2) Applicant Type &amp; Grant Selection</h4>
+    <div class="split">
+      <label>Applicant Type<br>
+        <select name="applicant_type" required>
+          <option value="">Select</option>
+          <option>Sales Ambassador</option>
+          <option>Wholesaler / Bulk Distributor</option>
+          <option>Construction / EPC Partner</option>
+          <option>Technology / OEM Partner</option>
+          <option>Strategic Investor-Partner</option>
+        </select>
+      </label>
+      <label>Primary Grant Track<br>
+        <select name="grant_track" required>
+          <option value="">Select</option>
+          <option>Sales Velocity Grant</option>
+          <option>Build &amp; Construction Grant</option>
+          <option>Index Product Launch Grant</option>
+          <option>Strategic Partnership Grant</option>
+        </select>
+      </label>
+      <label>Requested Grant Amount (USD)<br><input type="number" name="requested_amount_usd" min="10000" step="1000" required></label>
+      <label>Co-Investment / Matching Capital (USD)<br><input type="number" name="matching_capital_usd" min="0" step="1000"></label>
+    </div>
+
+    <h4>3) Revenue Lane Plan (Target Reference: USD 300M)</h4>
+    <div class="split">
+      <label>Peak 30 Unit Commitment<br><input type="number" name="peak30_units" min="0" placeholder="e.g., 10000"></label>
+      <label>Luxury Homes Unit Commitment<br><input type="number" name="luxury_units" min="0" placeholder="e.g., 1000"></label>
+      <label>Hotel &amp; Retail Unit Commitment<br><input type="number" name="hotel_units" min="0" placeholder="e.g., 900"></label>
+      <label>Engine Platform Contracts<br><input type="number" name="engine_contracts" min="0" placeholder="e.g., 5"></label>
+    </div>
+
+    <h4>4) Build / Construct Execution Scope</h4>
+    <div class="split">
+      <label>Deployment Type<br>
+        <select name="deployment_type" required>
+          <option value="">Select</option>
+          <option>Sales-Only (No Build Scope)</option>
+          <option>Install + Commission</option>
+          <option>Full EPC + O&amp;M</option>
+          <option>Hybrid (Sales + Install)</option>
+        </select>
+      </label>
+      <label>Estimated Sites in 12 Months<br><input type="number" name="site_count_12m" min="0"></label>
+      <label>Average Project Value (USD)<br><input type="number" name="avg_project_value" min="0" step="1000"></label>
+      <label>Expected Time-to-Commission (days)<br><input type="number" name="commission_days" min="0"></label>
+    </div>
+
+    <h4>5) Partnership &amp; Valuation Alignment</h4>
+    <div class="split">
+      <label>Partnership Model<br>
+        <select name="partnership_model" required>
+          <option value="">Select</option>
+          <option>Referral + Revenue Share</option>
+          <option>Territory Channel Partnership</option>
+          <option>JV / Project SPV</option>
+          <option>Strategic OEM / Licensing</option>
+        </select>
+      </label>
+      <label>Projected 24-Month Revenue Influence (USD)<br><input type="number" name="revenue_influence_24m" min="0" step="10000"></label>
+      <label>Expected Contribution to Valuation Narrative<br>
+        <select name="valuation_contribution">
+          <option>Pipeline Growth</option>
+          <option>Recurring Revenue Quality</option>
+          <option>Margin Expansion</option>
+          <option>Geographic Expansion</option>
+          <option>IP / Moat Strengthening</option>
+        </select>
+      </label>
+      <label>Preferred Reward Structure<br>
+        <select name="reward_structure" required>
+          <option value="">Select</option>
+          <option>Cash Grant Tranches</option>
+          <option>Deployment Credits</option>
+          <option>Rebate + Sell-Out Bonuses</option>
+          <option>Mixed (Cash + Credits)</option>
+        </select>
+      </label>
+    </div>
+
+    <h4>6) Compliance, ESG &amp; Readiness</h4>
+    <div class="split">
+      <label><input type="checkbox" name="nda_ready" value="yes"> NDA/Data Room Ready</label>
+      <label><input type="checkbox" name="esg_reporting" value="yes"> ESG Reporting Capability Available</label>
+      <label><input type="checkbox" name="safety_compliance" value="yes"> Safety/Regulatory Compliance Team in Place</label>
+      <label><input type="checkbox" name="monthly_kpi" value="yes"> Able to Submit Monthly KPI Pack</label>
+    </div>
+
+    <label>Project Narrative, Milestones, and Grant Use Plan<br>
+      <textarea name="narrative" rows="7" placeholder="Describe sales strategy, construction capacity, partnership structure, requested rewards, and milestone schedule." required></textarea>
+    </label>
+
+    <label>Risk Mitigation Plan<br>
+      <textarea name="risk_mitigation" rows="5" placeholder="Address technology, market adoption, supply chain, and regulatory risk controls." required></textarea>
+    </label>
+
+    <div class="cta-buttons">
+      <button class="cta-btn" type="submit">Submit Grant Application</button>
+      <a href="mailto:ioncoreenergy@gmail.com?subject=Grant%20Program%20Questions" class="cta-btn secondary">Ask Program Questions</a>
+    </div>
+  </form>
+
 </main>
 <footer id="contact">
   <h3>Ready to Energize Your Future?</h3>

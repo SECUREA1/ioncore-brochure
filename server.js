@@ -1324,10 +1324,17 @@ function touchSession(sessionId) {
   return true;
 }
 
+function shouldInjectWatchCheckout(filePath) {
+  const name = path.basename(filePath).toLowerCase();
+  return name === 'webpage.html' || name === 'index.html';
+}
+
 async function sendHtml(res, filePath) {
   try {
     let html = await fs.readFile(filePath, 'utf8');
-    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-usdc-sales');
+    if (shouldInjectWatchCheckout(filePath)) {
+      html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-usdc-sales');
+    }
     html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch {
@@ -2444,7 +2451,9 @@ app.get('/timepieces', async (req, res) => {
         html += ADMIN_PROMO_SECTION;
       }
     }
-    html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-usdc-sales');
+    if (shouldInjectWatchCheckout(TIMEPIECES_HTML)) {
+      html = injectSnippetBeforeBodyClose(html, TIMEPIECE_BITCOIN_SALES_SECTION, 'ioncore-usdc-sales');
+    }
     html = applyIoncoreBranding(html);
     res.type('html').send(html);
   } catch (err) {

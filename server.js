@@ -52,7 +52,7 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
 <script>
 (function(){
   const byId = (id) => document.getElementById(id);
-  const state = { checkoutId: '', wallet: '', uri: '', currency: '', model: '' };
+  const state = { checkoutId: '', wallet: '', uri: '', currency: '', model: '', amount: '' };
   const product = byId('ioncore-watch-product');
   const currency = byId('ioncore-watch-currency');
   const walletInput = byId('ioncore-wallet-address');
@@ -61,7 +61,10 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
   const amount = byId('ioncore-watch-amount');
   const receipt = byId('ioncore-receipt-code');
   const tx = byId('ioncore-watch-tx');
+  const submitBtn = byId('ioncore-submit-watch-payment');
   const setStatus = (msg, error) => { if (status) { status.textContent = msg; status.style.color = error ? '#ff9f9f' : '#d9ffe8'; } };
+  const setSubmitEnabled = (enabled) => { if (submitBtn) submitBtn.disabled = !enabled; };
+  setSubmitEnabled(false);
   const loadMarketRates = async () => {
     try {
       const resp = await fetch('/api/sales/market-rates');
@@ -88,6 +91,9 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
   loadMarketRates();
 
   byId('ioncore-create-watch-intent')?.addEventListener('click', async () => {
+    setSubmitEnabled(false);
+    state.checkoutId = '';
+    if (tx) tx.value = '';
     setStatus('Creating checkout intent...');
     try {
       const selectedRail = currency.value;
@@ -106,11 +112,15 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
       state.checkoutId = data.checkoutId; state.wallet = data.to || ''; state.uri = data.uri || ''; state.currency = data.currency || selectedRail;
       if (walletInput) walletInput.value = state.wallet;
       const amountValue = state.currency === 'USDC' ? data.usdcAmount : data.cryptoAmount;
-      if (amount) amount.textContent = 'Send ' + amountValue + ' ' + state.currency + ' to the selected wallet.';
+      state.amount = amountValue;
+      if (amount) amount.textContent = 'Send ' + amountValue + ' ' + state.currency + ' to the selected wallet for ' + (product?.selectedOptions?.[0]?.textContent || 'selected watch') + '.';
       if (receipt) receipt.textContent = state.checkoutId;
       if (qr) qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=' + encodeURIComponent(state.uri || state.wallet);
-      setStatus('Checkout intent ready. Transfer with your wallet, then submit tx id.');
-    } catch (error) { setStatus(error.message || 'Could not create checkout intent.', true); }
+      setSubmitEnabled(true);
+      if (state.uri) window.open(state.uri, '_blank', 'noopener,noreferrer');
+      if (tx) tx.focus();
+      setStatus('Checkout ready: ' + (product?.selectedOptions?.[0]?.textContent || state.model) + ' via ' + state.currency + '. Transfer ' + amountValue + ' and submit your tx id to confirm settlement.');
+    } catch (error) { setSubmitEnabled(false); setStatus(error.message || 'Could not create checkout intent.', true); }
   });
   byId('ioncore-submit-watch-payment')?.addEventListener('click', async () => {
     if (!state.checkoutId) return setStatus('Create checkout intent first (crypto rails only).', true);

@@ -36,7 +36,7 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
     </div>
     <div style="text-align:center;">
       <img id="ioncore-watch-qr" alt="Ioncore payment QR" width="220" height="220" style="max-width:100%;height:auto;border-radius:14px;background:#fff;padding:.4rem;" src="" />
-      <p style="margin:.55rem 0 0;font-size:.85rem;opacity:.85;">Scan to open in wallet</p>
+      <p style="margin:.55rem 0 .45rem;font-size:.85rem;opacity:.85;">Scan to open in wallet</p><button type="button" id="ioncore-open-wallet" style="padding:.6rem .85rem;border:0;border-radius:10px;background:#9d7bff;color:#fff;cursor:pointer;">Click &amp; sign transfer</button>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:.6rem;align-items:end;margin-top:.9rem;">
@@ -62,9 +62,25 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
   const receipt = byId('ioncore-receipt-code');
   const tx = byId('ioncore-watch-tx');
   const submitBtn = byId('ioncore-submit-watch-payment');
+  const openWalletBtn = byId('ioncore-open-wallet');
   const setStatus = (msg, error) => { if (status) { status.textContent = msg; status.style.color = error ? '#ff9f9f' : '#d9ffe8'; } };
   const setSubmitEnabled = (enabled) => { if (submitBtn) submitBtn.disabled = !enabled; };
   setSubmitEnabled(false);
+
+  const openWalletForSigning = () => {
+    if (!state.checkoutId) {
+      setStatus('Create checkout intent first to generate wallet transfer details.', true);
+      return;
+    }
+    if (!state.uri && !state.wallet) {
+      setStatus('Wallet transfer details are missing. Create a new checkout intent.', true);
+      return;
+    }
+    const target = state.uri || state.wallet;
+    window.open(target, '_blank', 'noopener,noreferrer');
+    setStatus('Wallet opened. Review transfer details, sign in your wallet, then paste the tx id to confirm settlement.');
+  };
+
   const loadMarketRates = async () => {
     try {
       const resp = await fetch('/api/sales/market-rates');
@@ -81,6 +97,9 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
       }
     } catch (_) {}
   };
+
+  openWalletBtn?.addEventListener('click', openWalletForSigning);
+  qr?.addEventListener('click', openWalletForSigning);
 
   byId('ioncore-copy-wallet')?.addEventListener('click', async () => {
     if (!walletInput || !walletInput.value) return;
@@ -115,7 +134,7 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
       state.amount = amountValue;
       if (amount) amount.textContent = 'Send ' + amountValue + ' ' + state.currency + ' to the selected wallet for ' + (product?.selectedOptions?.[0]?.textContent || 'selected watch') + '.';
       if (receipt) receipt.textContent = state.checkoutId;
-      if (qr) qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=' + encodeURIComponent(state.uri || state.wallet);
+      if (qr) { qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=' + encodeURIComponent(state.uri || state.wallet); qr.style.cursor = 'pointer'; qr.title = 'Click to open wallet transfer'; }
       setSubmitEnabled(true);
       if (state.uri) window.open(state.uri, '_blank', 'noopener,noreferrer');
       if (tx) tx.focus();

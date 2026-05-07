@@ -11,6 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .wallet-modal{position:fixed;inset:0;background:rgba(2,8,18,.84);display:none;align-items:center;justify-content:center;z-index:1200;padding:16px;}
+    .wallet-modal.open{display:flex;}
+    .wallet-modal__card{width:min(560px,96vw);background:#0c1d31;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:18px;color:#eaf2ff;}
+    .wallet-modal__qr{display:grid;place-items:center;background:#fff;border-radius:12px;padding:10px;margin:12px 0;}
+    .wallet-modal__qr img{width:220px;height:220px;object-fit:contain;}
+    .wallet-modal__actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  </style>
 </head>
 <body>
   <header class="site-header container">
@@ -273,6 +282,19 @@
       </div>
     </div>
   </footer>
+  
+  <div id="wallet-modal" class="wallet-modal" role="dialog" aria-modal="true" aria-label="Crypto wallet payment">
+    <div class="wallet-modal__card">
+      <h3 id="wallet-modal-title">Wallet Payment</h3>
+      <p id="wallet-modal-copy" class="form-help">Open your wallet and confirm transfer.</p>
+      <div class="wallet-modal__qr"><img id="wallet-modal-qr" alt="Wallet payment QR"></div>
+      <div class="wallet-modal__actions">
+        <button id="wallet-modal-open" type="button" class="btn btn-primary">Open Wallet to Confirm</button>
+        <button id="wallet-modal-close" type="button" class="btn btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.querySelector('.checkout-form');
@@ -339,6 +361,22 @@
         ada: 'ada'
       };
       const requestedMethod = railAlias[queryRail] || null;
+      let activeWalletLaunch = null;
+
+
+      const openWalletModal = ({ rail, uri, launchUrl, amountLabel, to }) => {
+        const modal = document.getElementById('wallet-modal');
+        const title = document.getElementById('wallet-modal-title');
+        const copy = document.getElementById('wallet-modal-copy');
+        const qr = document.getElementById('wallet-modal-qr');
+        const openBtn = document.getElementById('wallet-modal-open');
+        if (!modal || !title || !copy || !qr || !openBtn) return;
+        title.textContent = `${rail} Wallet Checkout`;
+        copy.textContent = `Send ${amountLabel} to ${to}. Scan QR or tap open wallet, then confirm payment in your wallet.`;
+        qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
+        activeWalletLaunch = launchUrl;
+        modal.classList.add('open');
+      };
 
       const setFeedback = (message, variant) => {
         if (!feedback) {
@@ -473,6 +511,14 @@
       const selectedInput = paymentMethodInputs.find((input) => input.value === selectedMethod);
       if (selectedInput) selectedInput.checked = true;
       updatePaymentMethod(selectedMethod);
+      document.getElementById('wallet-modal-close')?.addEventListener('click', () => document.getElementById('wallet-modal')?.classList.remove('open'));
+      document.getElementById('wallet-modal-open')?.addEventListener('click', () => {
+        if (activeWalletLaunch) {
+          window.open(activeWalletLaunch, '_blank', 'noopener');
+          setFeedback('Wallet opened. Confirm payment and send funds to the displayed Ioncore wallet.', 'success');
+        }
+      });
+
       if (queryPurchaseType === 'reserve') {
         setFeedback('Reserve checkout ready. Confirm customer details, then continue payment.', 'success');
       }
@@ -535,7 +581,12 @@
             lace: adaUri
           };
           const target = links[walletType];
-          if (target) window.open(target, '_blank', 'noopener');
+          if (!target) return;
+          const rail = walletType.includes('usdc') ? 'USDC' : walletType === 'metamask' || walletType === 'walletconnect' ? 'ETH' : walletType === 'phantom' || walletType === 'lace' ? 'ADA' : 'Wallet';
+          const to = rail === 'USDC' ? (usdcWalletInput?.value || '') : rail === 'ETH' ? (ethWalletInput?.value || '') : (adaWalletInput?.value || '');
+          const amountLabel = amount > 0 ? `$${amount.toFixed(2)} equivalent` : 'the exact invoice amount';
+          const qrUri = rail === 'USDC' ? usdcUri : rail === 'ETH' ? ethUri : adaUri;
+          openWalletModal({ rail, uri: qrUri, launchUrl: target, amountLabel, to });
         });
       });
 

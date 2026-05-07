@@ -1325,7 +1325,12 @@
                 return;
               }
               if (selectedRail === 'STRIPE') {
-                window.location.href = '/magnetic-stripe-checkout.html';
+                const checkoutParams = new URLSearchParams({
+                  product: payload.model,
+                  rail: 'stripe',
+                  purchaseType: 'reserve'
+                });
+                window.location.href = `/magnetic-stripe-checkout.html?${checkoutParams.toString()}`;
                 return;
               }
               const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: selectedRail, buyerName: 'Card Checkout', buyerEmail: '' })});

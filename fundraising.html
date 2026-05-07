@@ -1,388 +1,1511 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ioncore Platform Update: Fundraising & Growth Plan (May 2026)</title>
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IonCore Energy | Investor Fundraising Platform</title>
+  <meta name="description" content="IonCore Energy investor fundraising platform featuring portable, residential, commercial, and propulsion programs." />
   <style>
-    :root { --card-bg: rgba(255, 255, 255, 0.06); }
-    main { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-    main h2 { color: var(--accent); margin-top: 40px; }
-    main h3 { color: var(--accent); margin-top: 24px; }
-    table { width: 100%; border-collapse: collapse; margin: 1em 0 1.5em; }
-    th, td { border: 1px solid rgba(255,255,255,0.15); padding: 0.5em; text-align: left; }
-    th { background-color: var(--card-bg); color: var(--accent); }
-    ul, ol { margin: 0.5em 0 1em 1.5em; }
-    .pill-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
-    .pill { border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 10px 14px; background: rgba(255,255,255,0.04); color: var(--text-med); font-weight: 600; }
-    .pill strong { color: var(--text-high); }
-    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(106, 255, 59, 0.12); color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .cta-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-    .cta-btn.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.16); color: var(--text-high); }
-    .cta-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin: 20px 0; }
-    .stat-card { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 40px rgba(0,0,0,0.24); }
-    .stat-card h4 { margin: 0 0 8px; color: var(--accent); }
-    .stat-card p { margin: 0; }
-    .split { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .callout { padding: 16px; border-radius: 12px; background: rgba(106, 255, 59, 0.08); border: 1px solid rgba(106,255,59,0.24); color: var(--text-high); box-shadow: 0 18px 44px rgba(8, 16, 35, 0.42); }
-    .callout h3 { margin-top: 0; }
+    :root {
+      --bg: #07111d;
+      --bg2: #0b1728;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.11);
+      --text: #eef5ff;
+      --muted: #b8c6dc;
+      --accent: #58c9ff;
+      --accent2: #84ffbd;
+      --gold: #ffd166;
+      --gold2: #ffebad;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 18px;
+      --max: 1280px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(88,201,255,0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(132,255,189,0.08), transparent 25%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(92%, var(--max)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,17,29,0.84);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 0;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.22);
+      object-fit: cover;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 1.15rem;
+      letter-spacing: .4px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-size: .96rem;
+      transition: .2s ease;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-weight: bold;
+      border: 1px solid transparent;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent), #88e0ff);
+      color: #05101b;
+      box-shadow: 0 8px 22px rgba(88,201,255,0.25);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .btn-gold {
+      background: linear-gradient(90deg, var(--gold), #ffe49a);
+      color: #181100;
+      box-shadow: 0 8px 22px rgba(255,209,102,0.22);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    section { padding: 74px 0; }
+    .hero { padding: 88px 0 58px; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .95fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--accent2);
+      font-size: .82rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: bold;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.4rem, 5vw, 4.6rem);
+      line-height: 1.02;
+    }
+
+    .hero p, .card p, .pricing-card p, .hero-card p, .meter-card p, .timeline-step p, .disclaimer {
+      color: var(--muted);
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      max-width: 760px;
+      margin: 0 0 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .stats {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 14px;
+    }
+
+    .stat, .hero-card, .card, .meter-card, .timeline-step, .pricing-card, .fund-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stat {
+      padding: 18px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.55rem;
+      color: var(--accent2);
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .hero-card, .card, .meter-card, .pricing-card { padding: 24px; }
+    .fund-box { padding: 28px; background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04)); }
+
+    .hero-image {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-card {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-card .caption {
+      padding: 16px 18px 18px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+    }
+
+    .section-subtitle {
+      margin: 0 0 30px;
+      color: var(--muted);
+      max-width: 920px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(88,201,255,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(88,201,255,0.16);
+      font-size: .84rem;
+      font-weight: bold;
+    }
+
+    .tag-gold {
+      background: rgba(255,209,102,0.12);
+      color: var(--gold);
+      border: 1px solid rgba(255,209,102,0.18);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+    }
+
+    .feature-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+    }
+
+    .feature-list li:last-child { border-bottom: none; }
+    .highlight { color: var(--gold); font-weight: bold; }
+
+    .fund-highlight {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--gold);
+      margin: 10px 0 14px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .split div, .meta-box, .kpi, .logic-block {
+      background: var(--panel2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      color: var(--muted);
+    }
+
+    .meter-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+    .meter-card h3, .pricing-card h3, .logic-block h3 { margin-top: 0; }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: .94rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .meter-bar {
+      width: 100%;
+      height: 16px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 12px;
+    }
+
+    .meter-fill { height: 100%; border-radius: 999px; width: 0%; }
+    .gold { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+    .blue { background: linear-gradient(90deg, var(--accent), #8ee2ff); }
+    .green { background: linear-gradient(90deg, #62ffb4, #aafed3); }
+    .purple { background: linear-gradient(90deg, #b48cff, #7fdcff); }
+
+    .meter-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .meta-box strong, .kpi strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .price {
+      font-size: 2rem;
+      color: var(--gold);
+      font-weight: bold;
+      margin: 10px 0 12px;
+    }
+
+    .price-range {
+      color: var(--gold);
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin: 10px 0 12px;
+    }
+
+    .logic-block { margin-top: 24px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 24px; }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .timeline-step { padding: 20px; }
+
+    .timeline-step strong {
+      display: inline-block;
+      margin-bottom: 10px;
+      color: var(--accent2);
+      font-size: .85rem;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+    }
+
+    .cta {
+      text-align: center;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04));
+    }
+
+    .cta-box { max-width: 960px; margin: 0 auto; }
+
+    .disclaimer {
+      margin-top: 24px;
+      background: rgba(255,138,138,0.08);
+      border: 1px solid rgba(255,138,138,0.18);
+      color: #ffd4d4;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: .92rem;
+    }
+
+    .footer {
+      padding: 34px 0 50px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .footer-wrap {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 24px;
+    }
+
+    .deposit-shell { display: grid; grid-template-columns: 1.05fr .95fr; gap: 24px; align-items: start; }
+    .deposit-form { display: grid; gap: 14px; margin-top: 16px; }
+    .field label { display: block; margin-bottom: 6px; font-size: .9rem; color: var(--muted); }
+    .field input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+    }
+    .deposit-note { margin: 10px 0 0; font-size: .9rem; color: var(--muted); }
+    .pay-grid { display:grid; grid-template-columns: repeat(3,minmax(120px,1fr)); gap:8px; margin-top:10px; }
+    .pay-grid .btn { padding: 10px 12px; font-size:.86rem; text-align:center; }
+    .pay-grid .pay-rail.active {
+      border-color: rgba(72, 213, 255, 0.9);
+      box-shadow: 0 0 0 2px rgba(72, 213, 255, 0.25);
+      background: rgba(72, 213, 255, 0.15);
+    }
+    .qr-modal { position: fixed; inset: 0; background: rgba(2,8,18,.82); display:none; align-items:center; justify-content:center; z-index: 1000; padding:16px; }
+    .qr-modal.open { display:flex; }
+    .qr-card { width:min(520px, 96vw); background: #0c1d31; border:1px solid var(--line); border-radius:16px; padding:18px; }
+    .qr-box { display:grid; place-items:center; background:#fff; border-radius:12px; padding:10px; margin:12px 0; }
+    .qr-box img { width: 220px; height: 220px; object-fit: contain; }
+    .checkout {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: grid;
+      gap: 10px;
+    }
+    .checkout-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+    .checkout-row input, .checkout-row select {
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 8px 10px;
+    }
+    .micro { font-size: .82rem; color: var(--muted); }
+    .btc-address {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .8rem;
+      color: var(--accent2);
+      overflow-wrap: anywhere;
+    }
+    .status {
+      margin-top: 14px; border-radius: 12px; border: 1px solid rgba(132,255,189,0.2);
+      background: rgba(132,255,189,0.08); color: #d4ffe8; padding: 12px 14px; display: none;
+    }
+    .status.error { border-color: rgba(255,138,138,0.3); background: rgba(255,138,138,0.08); color: #ffd4d4; }
+
+    @media (max-width: 1120px) {
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .hero { padding-top: 58px; }
+      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row, .deposit-shell {
+        grid-template-columns: 1fr;
+      }
+      .nav { align-items: flex-start; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn { text-align: center; }
+    }
   </style>
 </head>
 <body>
-<header>
-  <h1>Ioncore Platform Update &amp; Fundraising Model</h1>
-  <div class="cta-buttons">
-    <a href="webpage.html" class="cta-btn">Back to Home</a>
-    <a href="mailto:ioncoreenergy@gmail.com?subject=Investor%20Data%20Room%20Request" class="cta-btn secondary">Request Data Room</a>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <img src="ioncore.png" alt="IonCore Energy brand mark" />
+        <div>
+          <strong>IonCore Energy</strong>
+          <span>Investor Fundraising, Energy Systems & Propulsion Platform</span>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#fundraise">Fundraise</a>
+        <a href="#progress">Progress</a>
+        <a href="#models">Models</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#propulsion">Propulsion</a>
+        <a href="#contact" class="btn btn-secondary">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Investor-Ready Platform</span>
+          <h1>An investor-ready fundraising platform for premium energy and propulsion programs.</h1>
+          <p>
+            IonCore Energy is raising <strong>$2,000,000 USD</strong> to formalize business structure, sharpen prototypes,
+            elevate launch materials, and activate a disciplined go-to-market path across a premium advanced systems lineup.
+            This page has been structured for high-level customer and investor review with cleaner language,
+            stronger brand continuity, and executive-grade presentation quality.
+          </p>
+          <p>
+            The lineup is organized into four premium lanes: <strong>portable hybrid systems</strong>,
+            <strong>luxury residential systems</strong>, <strong>commercial resilience systems</strong>, and
+            <strong>advanced propulsion programs</strong>. This keeps the site uniform while making the company feel
+            broader, more serious, and more investable.
+          </p>
+          <p>
+            The logic is simple: raise capital to strengthen trust, present a cleaner premium catalog,
+            then drive qualified demand, pilot interest, strategic conversations, and flagship placements.
+          </p>
+
+          <div class="hero-image">
+            <img src="powerplant3.png" alt="IonCore premium energy platform visual" />
+          </div>
+
+          <div class="hero-actions">
+            <a href="#fundraise" class="btn btn-primary">View Fundraising Offer</a>
+            <a href="#models" class="btn btn-gold">Explore the Platform</a>
+            <a href="#progress" class="btn btn-secondary">See Demand Logic</a>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <strong>$2M</strong>
+              <span>Startup Raise Target</span>
+            </div>
+            <div class="stat">
+              <strong>4</strong>
+              <span>Premium Category Lanes</span>
+            </div>
+            <div class="stat">
+              <strong>8% Annual / Equity</strong>
+              <span>Investor return pathways</span>
+            </div>
+            <div class="stat">
+              <strong>Energy + Propulsion</strong>
+              <span>Portable, Residential, Commercial, Aerospace</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <span class="tag tag-gold">Unified Platform Logic</span>
+          <h3>Why this version reads better</h3>
+          <p>
+            Instead of looking like a mixed catalog, the page now reads like a premium advanced systems platform.
+            Each category has a distinct role while still fitting one shared brand language.
+          </p>
+          <ul class="feature-list">
+            <li><strong>Peak 30</strong> leads portable hybrid deployment</li>
+            <li><strong>FSCU</strong> anchors kinetic intelligence and self-charging systems</li>
+            <li><strong>Ioncore Round</strong> covers luxury residential and commercial resilience</li>
+            <li><strong>Engine Platform</strong> extends the brand into aerospace-grade propulsion</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="fundraise">
+      <div class="container">
+        <h2 class="section-title">Full Fundraising Offer</h2>
+        <p class="section-subtitle">
+          This round is designed to move IonCore Energy from concept-level positioning into formal business readiness,
+          stronger commercial presentation, and a more persuasive market launch across multiple premium categories.
+        </p>
+
+        <div class="fund-box">
+          <span class="tag tag-gold">Strategic Raise</span>
+          <h3>IonCore Energy Growth Round (Pre-IPO Readiness)</h3>
+          <div class="fund-highlight">$2,000,000 USD</div>
+          <p>
+            This capital is intended to build a financeable company with institutional-grade readiness: legal and reporting infrastructure, prototype validation, commercial launch systems, and data-room quality investor documentation.
+          </p>
+
+          <div class="split">
+            <div>
+              <strong>Phase 1 — Governance & Compliance</strong><br />
+              Financial controls, audited-ready bookkeeping, legal structure, board formation, risk disclosures,
+              and investor reporting workflow.
+            </div>
+            <div>
+              <strong>Phase 2 — Revenue Validation</strong><br />
+              Pilot deployments, strategic channel partnerships, backlog conversion programs, and launch metrics
+              that support future institutional or public-market financing.
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card">
+            <span class="tag">Investor Position</span>
+            <h3>Investor return options: equity shares or 8% annual</h3>
+            <p>
+              Investors may choose a return path as <strong>equity shares in the $2,000,000 raise at a $300,000,000 company valuation</strong> or an <strong>8% annual return structure</strong>, finalized in legal offering documents.
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag">Capital Strategy</span>
+            <h3>Flexible participation: product purchase or stock participation</h3>
+            <p>
+              Participants can either <strong>purchase an operating unit</strong> or <strong>buy into stock participation</strong> in the current $2,000,000 raise. Terms and allocation are subject to final subscription documents.
+            </p>
+          </div>
+        </div>
+
+        <div class="logic-block">
+          <h3>Fundraising logic</h3>
+          <p>
+            Investors are backing a staged capital plan: build compliance and reporting discipline, prove repeatable demand in high-margin lanes, then pursue larger financing options (including IPO readiness) from a stronger negotiating position.
+          </p>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi"><strong>Institutional trust</strong><span>Audit-ready controls and governance reduce investor risk</span></div>
+          <div class="kpi"><strong>Valuation leverage</strong><span>Milestone execution supports higher next-round pricing</span></div>
+          <div class="kpi"><strong>Demand proof</strong><span>Pilots and contracts convert story into financeable traction</span></div>
+          <div class="kpi"><strong>IPO optionality</strong><span>Only pursued after compliance, revenue quality, and timing align</span></div>
+        </div>
+
+        <div class="disclaimer">
+          All equity, annual-return, tax, and shipping language must be reviewed by licensed securities and tax counsel before public use.
+        </div>
+      </div>
+    </section>
+
+    <section id="progress">
+      <div class="container">
+        <h2 class="section-title">Fundraising and Conversion Flow</h2>
+        <p class="section-subtitle">
+          These meters separate startup capital from product demand and include transparent wholesaler and bulk-deal pricing math. The operating
+          model below is structured to reach <strong>$300,000,000 in total projected sales</strong> across portable,
+          residential, commercial, and propulsion lanes.
+        </p>
+
+        <div class="meter-grid">
+          <div class="meter-card">
+            <h3>Startup Round Progress</h3>
+            <p>Tracks the capital required to prepare the company and its launch systems.</p>
+            <div class="meter-label"><span>Raised So Far</span><span>$0 / $2,000,000</span></div>
+            <div class="meter-bar"><div class="meter-fill gold" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>$2,000,000</strong><span>Capital Goal</span></div>
+              <div class="meta-box"><strong>0%</strong><span>Goal Reached</span></div>
+            </div>
+          </div>
+
+          <div class="meter-card">
+            <h3>Peak 30 Presale Meter</h3>
+            <p>Tracks reservation demand for the flagship portable hybrid system.</p>
+            <div class="meter-label"><span>Units Reserved</span><span>0 / 10,000</span></div>
+            <div class="meter-bar"><div class="meter-fill blue" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>Portable Flagship</strong><span>Higher-end mobile power</span></div>
+              <div class="meta-box"><strong>$31.75M Target</strong><span>10,000 × $3,175</span></div>
+            </div>
+          </div>
+
+          <div class="meter-card">
+            <h3>Luxury Home Install Meter</h3>
+            <p>Tracks premium installation demand for residential clients and estates.</p>
+            <div class="meter-label"><span>Install Slots Reserved</span><span>0 / 1,000</span></div>
+            <div class="meter-bar"><div class="meter-fill green" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>Luxury Residential</strong><span>Design-forward resilience</span></div>
+              <div class="meta-box"><strong>$115M Target</strong><span>1,000 × $115,000 avg</span></div>
+            </div>
+          </div>
+
+          <div class="meter-card">
+            <h3>Hotel & Retail Meter</h3>
+            <p>Tracks commercial system reservation and pilot deployment demand.</p>
+            <div class="meter-label"><span>Commercial Systems Reserved</span><span>0 / 900</span></div>
+            <div class="meter-bar"><div class="meter-fill purple" style="width:0%;"></div></div>
+            <div class="meter-meta">
+              <div class="meta-box"><strong>Commercial Luxury</strong><span>High-load public spaces</span></div>
+              <div class="meta-box"><strong>$130.5M Target</strong><span>900 × $145,000 avg</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="logic-block">
+          <h3>300M sales model + wholesaler and bulk-deal allocation logic</h3>
+          <p>
+            The page now separates funding, portable demand, residential demand, and commercial demand into clear lanes with
+            transparent sales and payout math. This gives investors and sales teams one shared source of truth for execution.
+          </p>
+          <div class="reward-grid">
+            <div class="reward-card">
+              <strong>Revenue Lane Breakdown (Target = $300M)</strong>
+              Peak 30: 10,000 × $3,175 = <span class="highlight">$31.75M</span><br />
+              Luxury Homes: 1,000 × $115,000 avg = <span class="highlight">$115.00M</span><br />
+              Hotel & Retail: 900 × $145,000 avg = <span class="highlight">$130.50M</span><br />
+              Engine Platform: 5 × $4.55M avg = <span class="highlight">$22.75M</span><br />
+              <strong>Total projected sales: $300.00M</strong>
+            </div>
+            <div class="reward-card">
+              <strong>Wholesaler &amp; Bulk-Deal Allocations (Modeled)</strong>
+              Small unit payout: $100 × 10,000 = <span class="highlight">$1,000,000</span><br />
+              Mobile sell-out bonus pool = <span class="highlight">$2,000,000</span><br />
+              Larger unit payout: $200 × 1,900 = <span class="highlight">$380,000</span><br />
+              Hotel sell-out bonus pool = <span class="highlight">$500,000</span><br />
+              <strong>Total wholesaler and bulk-deal allocation potential: $2,080,000</strong>
+            </div>
+            <div class="reward-card">
+              <strong>Execution Sequence</strong>
+              1) Close the $2M startup round.<br />
+              2) Push portable velocity for top-of-funnel volume.<br />
+              3) Convert high-ticket residential and commercial installs.<br />
+              4) Close propulsion briefs as strategic upside to complete the $300M sales plan.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="models">
+      <div class="container">
+        <h2 class="section-title">Unified Core Platform</h2>
+        <p class="section-subtitle">
+          Below is a branded visual lane designed for high-level customer review across portable, residential,
+          commercial, and propulsion categories.
+        </p>
+
+        <div class="grid-3" style="margin-bottom:24px;">
+          <article class="card image-card">
+            <img src="industrial.png" alt="IonCore commercial energy installation concept" />
+            <div class="caption">Commercial resilience systems with premium architectural fit and high-load support.</div>
+          </article>
+          <article class="card image-card">
+            <img src="home2.jpeg" alt="IonCore luxury residential energy concept" />
+            <div class="caption">Luxury residential deployment language for estates and executive homes.</div>
+          </article>
+          <article class="card image-card">
+            <img src="engine.png" alt="IonCore advanced propulsion engineering concept" />
+            <div class="caption">Advanced propulsion program visual aligned to aerospace partnership positioning.</div>
+          </article>
+        </div>
+        <p class="section-subtitle">
+          The platform now presents four premium lanes: one portable flagship, one kinetic technology core,
+          one residential premium system, one commercial premium system, and one propulsion program family.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <span class="tag">Portable Flagship</span>
+            <h3>Peak 30</h3>
+            <p>
+              Peak 30 leads the portable side as the flagship hybrid kinetic system for field teams, film,
+              tactical operations, and advanced mobile deployment environments.
+            </p>
+            <ul class="feature-list">
+              <li>30 W continuous DC output with 60 W surge handling</li>
+              <li>Production-ready portable generator with 2-day shipping</li>
+              <li>Cleaner launch story through a real available product, not only a prototype</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Core Technology Platform</span>
+            <h3>Flywheel Self-Charging Unit</h3>
+            <p>
+              The FSCU acts as the visible technology spine of the IonCore story, supporting kinetic reserve,
+              magnetic suspension, rapid charging, and self-charging deployment narratives.
+            </p>
+            <ul class="feature-list">
+              <li>50,000+ RPM kinetic core</li>
+              <li>Qi 2.0 Magnetic and USB-C PD 3.1 delivery</li>
+              <li>Technology credibility for the broader platform</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Residential Premium</span>
+            <h3>Ioncore Round — Luxury Homes</h3>
+            <p>
+              The residential system is the design-first branch of the lineup, built for buyers who want resilience,
+              aesthetics, and premium installation value in one offering.
+            </p>
+            <ul class="feature-list">
+              <li>Luxury placement for estates and 2–3 bedroom homes</li>
+              <li>Premium alloy and ceramic finish language</li>
+              <li>High-value residential install positioning</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Commercial Premium</span>
+            <h3>Ioncore Round — Hotel & Retail</h3>
+            <p>
+              The commercial system gives IonCore a hospitality and retail story grounded in resilience,
+              demand-charge reduction, architectural finish quality, and high-load support.
+            </p>
+            <ul class="feature-list">
+              <li>Built for high-traffic, high-load environments</li>
+              <li>Scalable cluster logic improves credibility</li>
+              <li>Commercial resilience with premium appearance</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <h2 class="section-title">Detailed Pricing and Positioning</h2>
+        <p class="section-subtitle">
+          The pricing ladder moves from flagship portable power to kinetic reserve technology,
+          then into high-value residential and commercial systems.
+        </p>
+
+        <div class="grid-2">
+          <div class="pricing-card">
+            <span class="tag">Portable Flagship</span>
+            <h3>Peak 30 portable kinetic generator</h3>
+            <div class="price">$3,175 USD</div>
+            <p>
+              A production-ready portable generator engineered for clean DC delivery, dependable field performance,
+              and immediate mission use. This improves the launch by offering a real in-stock portable model
+              with faster delivery, stronger buyer confidence, and a more grounded entry point into the IonCore platform.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Output:</strong> 30 W continuous DC (12 V @ 2.5 A) with 60 W surge for 5 s</li>
+              <li><strong>Storage:</strong> ≈ 80 Wh deliverable energy with hybrid kinetic reserve</li>
+              <li><strong>Thermals:</strong> liquid micro-loop plus synchronized twin 40 mm active coolers</li>
+              <li><strong>Interfaces:</strong> 12 V barrel jack and USB-C PD for mission devices</li>
+              <li><strong>Availability:</strong> In stock, ships within 2 days</li>
+              <li><strong>SKU:</strong> PK30-BASIC</li>
+            </ul>
+            <div class="checkout" data-model="peak30" data-price="3175">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type" disabled><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
+              <div class="btc-address"></div>
+            </div>
+          </div>
+
+          <div class="pricing-card">
+            <span class="tag">Core Kinetic Technology</span>
+            <h3>Flywheel Self-Charging Unit</h3>
+            <div class="price">From $1,748</div>
+            <p>
+              A precision-balanced kinetic storage platform for responsive, cable-light power delivery in mobile,
+              immersive, and resilient deployment scenarios.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Speed:</strong> 50,000+ RPM</li>
+              <li><strong>Burst:</strong> 2–5 kW burst</li>
+              <li><strong>Rapid Charge:</strong> ≤15 min to 80%</li>
+              <li><strong>Thermals:</strong> ≤40 °C graphene thermal stack</li>
+              <li><strong>Efficiency:</strong> 99.2% inverter efficiency</li>
+            </ul>
+            <div class="checkout" data-model="fscu" data-price="1748">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type" disabled><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
+              <div class="btc-address"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="pricing-card">
+            <span class="tag tag-gold">Luxury Residential</span>
+            <h3>Ioncore Round — Luxury Homes</h3>
+            <div class="price">$87,250 Hardware</div>
+            <div class="price-range">$105,000 – $122,500 Turn-key Install</div>
+            <p>
+              A premium home energy installation built to combine power security, refined materials,
+              and high-end residential integration.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Capacity:</strong> 30–37 kWh usable capacity</li>
+              <li><strong>Continuous:</strong> 10–20 kW</li>
+              <li><strong>Surge:</strong> 30 kW</li>
+              <li><strong>Exterior:</strong> premium alloy and ceramic finishes</li>
+              <li><strong>Ideal For:</strong> estates and 2–3 bedroom homes</li>
+            </ul>
+            <div class="checkout" data-model="home" data-price="115000">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type" disabled><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
+              <div class="btc-address"></div>
+            </div>
+          </div>
+
+          <div class="pricing-card">
+            <span class="tag tag-gold">Commercial Luxury</span>
+            <h3>Ioncore Round — Hotel & Retail</h3>
+            <div class="price-range">$137,500 – $162,500</div>
+            <p>
+              A scalable commercial cluster solution designed for premium hospitality and retail environments
+              that need resilience, load handling, and architectural presentation.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Capacity:</strong> 50–60 kWh scalable clusters</li>
+              <li><strong>Continuous:</strong> 20 kW</li>
+              <li><strong>Surge:</strong> 40 kW</li>
+              <li><strong>Value:</strong> reduces demand charges by 20–30%</li>
+              <li><strong>Built For:</strong> high-traffic, high-load facilities</li>
+            </ul>
+            <div class="checkout" data-model="commercial" data-price="145000">
+              <strong>Buy options</strong>
+              <div class="checkout-row">
+                <input type="number" min="1" value="1" class="qty" />
+                <select class="purchase-type" disabled><option value="reserve" selected>Reserve unit</option></select>
+                <button class="btn btn-secondary btc-buy">Buy with Bitcoin</button>
+              </div>
+              <div class="paypal-inline"></div>
+              <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
+              <div class="pay-grid">
+                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
+                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
+                <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
+                <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
+                <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
+              </div>
+              <div class="btc-address"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="logic-block">
+          <h3>Pricing logic</h3>
+          <p>
+            The pricing ladder avoids undermining the premium tone. It presents a flagship portable unit,
+            a visible technology core, a luxury home installation, and a commercial-grade system.
+            That creates a cleaner path from innovation to prestige to scale.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="propulsion">
+      <div class="container">
+        <h2 class="section-title">Advanced Propulsion Platform</h2>
+        <p class="section-subtitle">
+          The propulsion platform is presented as a fourth premium vertical within IonCore: separate from portable,
+          residential, and commercial energy systems, but aligned with the same themes of magnetic suspension,
+          regenerative recovery, precision control, and future-facing engineering.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <span class="tag tag-gold">Executive Program</span>
+            <h3>Engine Platform</h3>
+            <p>
+              Proposal aligned to mission. A superconducting propulsion stack designed to deliver supersonic thrust
+              with regenerative energy recovery, positioned for aviation partners seeking advanced performance envelopes
+              and collaborative program development.
+            </p>
+            <ul class="feature-list">
+              <li>Targets Mach 3.2+ envelopes</li>
+              <li>Magnetically suspended rotors producing up to 12,000 lbf</li>
+              <li>Regenerative conversion feeds onboard systems</li>
+              <li>Cryogenic loops stabilize superconductors</li>
+              <li>Program outlook modeled collaboratively with aviation partners</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="tag">Style Direction</span>
+            <h3>How the propulsion category fits the site</h3>
+            <p>
+              The propulsion section should feel like a strategic aerospace program rather than a retail card.
+              That keeps it visually consistent with the rest of the site while signaling that it belongs to a more
+              exclusive and higher-value partnership class.
+            </p>
+            <ul class="feature-list">
+              <li><strong>Visual Tone:</strong> aerospace precision, executive engineering, high-performance systems</li>
+              <li><strong>Language Tone:</strong> program-led, partnership-led, technically disciplined</li>
+              <li><strong>Why it fits:</strong> extends IonCore from energy storage into motion and propulsion</li>
+              <li><strong>Uniformity Rule:</strong> same card system, stronger program wording</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="pricing-card">
+            <span class="tag">UAV Tier</span>
+            <h3>MI-MiniJet 200</h3>
+            <div class="price-range">$450,000 – $700,000</div>
+            <p>Entry propulsion tier aimed at drone and UAV applications with compact thrust delivery.</p>
+            <ul class="feature-list">
+              <li><strong>Application:</strong> Drone / UAV</li>
+              <li><strong>Top Speed:</strong> Mach 0.8</li>
+              <li><strong>Thrust Class:</strong> 150–300 lbf</li>
+              <li><strong>Estimated Weight:</strong> 48 kg</li>
+            </ul>
+          </div>
+
+          <div class="pricing-card">
+            <span class="tag">Commercial / Trainer Tier</span>
+            <h3>MI-Hybrid 800</h3>
+            <div class="price-range">$3.0M – $5.0M</div>
+            <p>Mid-tier propulsion configuration intended for commercial or trainer jet contexts.</p>
+            <ul class="feature-list">
+              <li><strong>Application:</strong> Commercial / Trainer Jet</li>
+              <li><strong>Top Speed:</strong> Mach 1.8</li>
+              <li><strong>Thrust Class:</strong> 2,000–4,000 lbf</li>
+              <li><strong>Estimated Weight:</strong> 460 kg</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card">
+            <span class="tag">Integrated Propulsion Intelligence</span>
+            <h3>System architecture</h3>
+            <ul class="feature-list">
+              <li>Active magnetic suspension for low-contact high-RPM operation</li>
+              <li>Cryogenic loop for superconducting stability</li>
+              <li>Regenerative conversion for onboard systems support</li>
+              <li>Adaptive control suite for thrust and stability management</li>
+              <li>Modular platform scales from UAV propulsion pods to crewed aircraft</li>
+            </ul>
+          </div>
+          <div class="card">
+            <span class="tag">Program Economics</span>
+            <h3>Strategic partnership logic</h3>
+            <ul class="feature-list">
+              <li><strong>Total program outlook:</strong> $3.5M – $10.0M per full-scale engine</li>
+              <li><strong>Suggested market price:</strong> $4.5M – $13.0M with service and performance guarantees</li>
+              <li><strong>Round type:</strong> Pre-Series A targeting strategic aerospace and defense partners</li>
+              <li><strong>Minimum entry commitment:</strong> $1,250,000</li>
+              <li><strong>Best CTA:</strong> Open propulsion brief / Request investor dossier / Discuss deployment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title">Launch Roadmap</h2>
+        <p class="section-subtitle">
+          This roadmap connects the capital raise to the unified platform and market rollout.
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <strong>Phase 1</strong>
+            <h4>Raise the company</h4>
+            <p>Complete the $2,000,000 round for business structure, product presentation, and market readiness.</p>
+          </div>
+          <div class="timeline-step">
+            <strong>Phase 2</strong>
+            <h4>Sharpen the platform</h4>
+            <p>Focus the lineup around Peak 30, FSCU, Luxury Homes, Hotel & Retail, and the Engine Platform.</p>
+          </div>
+          <div class="timeline-step">
+            <strong>Phase 3</strong>
+            <h4>Open premium market engagement</h4>
+            <p>Activate reservations, consultations, pilot requests, executive briefs, and flagship first-wave interest.</p>
+          </div>
+          <div class="timeline-step">
+            <strong>Phase 4</strong>
+            <h4>Build first-wave momentum</h4>
+            <p>Use scarcity, premium positioning, and clean category logic to build trust, conversion, and strategic attention.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="deposits">
+      <div class="container">
+        <h2 class="section-title">PayPal Startup Deposits</h2>
+        <p class="section-subtitle">
+          This fundraising page includes PayPal checkout so contributors can fund the $2M strategic round while your team
+          tracks order and capture events.
+        </p>
+        <div class="deposit-shell">
+          <article class="card">
+            <span class="tag tag-gold">Live Deposit Experience</span>
+            <h3>Contribute to the $2M strategic round</h3>
+            <form id="paypal-deposit-form" class="deposit-form">
+              <div class="field"><label for="donorName">Contributor name</label><input id="donorName" name="donorName" required /></div>
+              <div class="field"><label for="donorEmail">Email</label><input id="donorEmail" name="donorEmail" type="email" /></div>
+              <div class="field"><label for="donationAmount">Deposit amount (USD)</label><input id="donationAmount" name="amount" type="number" min="25" step="0.01" value="5000" required /></div>
+              <div class="field"><label for="projectReference">Reference (optional)</label><input id="projectReference" name="projectReference" /></div>
+            </form>
+            <p class="deposit-note">Use PayPal sandbox credentials until production API keys are ready.</p>
+            <div id="paypal-button-wrap" style="margin-top:16px;"></div>
+            <div id="paypal-status" class="status" role="status" aria-live="polite"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="crypto-sales">
+      <div class="container">
+        <h2 class="section-title">Direct Crypto Sales Checkout</h2>
+        <p class="section-subtitle">Choose a purchase path (unit purchase or stock participation), select payment rail (USDC first), and complete checkout. Unit purchases include a 15% tax and shipping contingency.</p>
+        <article class="card" style="max-width:860px;margin:0 auto;">
+          <form id="crypto-sales-form" class="deposit-form">
+            <div class="field"><label for="salePurchasePath">Purchase path</label><select id="salePurchasePath" name="purchasePath" required><option value="UNIT">Purchase a unit</option><option value="STOCK">Buy into $2M stock raise</option></select></div>
+            <div class="field"><label for="saleProduct">Product or stock ticket</label><select id="saleProduct" name="productCode" required><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option><option value="TIME-APEX-X" data-price="2450">Apex X Timepiece — $2,450</option><option value="TIME-CHRONO-S" data-price="3200">Chrono S Timepiece — $3,200</option><option value="TIME-NOVA-R" data-price="4600">Nova R Timepiece — $4,600</option><option value="STOCK-25000" data-price="25000">Stock participation ticket — $25,000</option></select></div>
+            <div class="field"><label for="saleReturnType">Return preference (stock path)</label><select id="saleReturnType" name="returnType" required><option value="SHARES">Shares at $300M valuation</option><option value="ANNUAL_8">8% annual return</option></select></div>
+            <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="USDC">USDC (MetaMask / WalletConnect)</option><option value="ETH">Ethereum (MetaMask)</option><option value="BTC">Bitcoin (Phantom recommended)</option><option value="ADA">Cardano (Lace / Phantom handoff)</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
+            <div class="field"><label for="saleBuyer">Buyer name</label><input id="saleBuyer" name="buyerName" required /></div>
+            <div class="field"><label for="saleEmail">Buyer email</label><input id="saleEmail" name="buyerEmail" type="email" /></div>
+            <div class="field"><label>Exact amount</label><input id="saleAmount" readonly /></div>
+          </form>
+          <div class="hero-actions" style="margin-top:14px;"><button id="begin-crypto-sale" class="btn btn-primary" type="button">Connect Wallet & Send</button></div>
+          <div id="crypto-sale-status" class="status" role="status" aria-live="polite"></div>
+          <div id="unified-sales-status" class="micro" style="margin-top:12px;"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta" id="contact">
+      <div class="container cta-box">
+        <h2 class="section-title">Secure your place in the IonCore launch</h2>
+        <p class="section-subtitle" style="margin-left:auto; margin-right:auto;">
+          Join the startup round, open a residential or commercial consultation,
+          or start an executive propulsion conversation.
+        </p>
+        <div class="hero-actions" style="justify-content:center;">
+          <a href="mailto:info@ioncoreenergy.com" class="btn btn-primary">Join the Fundraising Round</a>
+          <a href="mailto:partners@ioncoreenergy.com" class="btn btn-gold">Open Partner Conversation</a>
+          <a href="#" class="btn btn-secondary">Open Propulsion Brief</a>
+          <a href="#" class="btn btn-secondary">Request Brochure Library</a>
+        </div>
+        <div class="disclaimer" style="text-align:left;">
+          Replace placeholder emails and finalize legal language around investment returns, free-unit benefits,
+          allocation mechanics, and aerospace program terms before launch.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-wrap">
+      <div>
+        <strong>IonCore Energy</strong><br />
+        Fundraising + Energy + Propulsion Platform
+      </div>
+      <div>© 2026 IonCore Energy. All rights reserved.</div>
+    </div>
+  </footer>
+  <div id="qr-modal" class="qr-modal" role="dialog" aria-modal="true" aria-label="Wallet QR payment">
+    <div class="qr-card">
+      <h3 style="margin:0;">Scan to send exact amount</h3>
+      <p id="qr-copy" class="micro" style="margin:6px 0 0;"></p>
+      <div class="qr-box"><img id="qr-image" alt="Wallet payment QR code" /></div>
+      <div class="hero-actions" style="margin-top:8px;">
+        <button id="qr-close" class="btn btn-secondary" type="button">Close</button>
+      </div>
+    </div>
   </div>
-  <div class="pill-row">
-    <div class="pill"><strong>Round:</strong> $25M Growth Round</div>
-    <div class="pill"><strong>Instrument:</strong> Preferred Equity w/ 1x non-participating</div>
-    <div class="pill"><strong>Pre-Money Valuation:</strong> $138M</div>
-    <div class="pill"><strong>Minimum Check:</strong> $750k (lead sought at $10M+)</div>
-  </div>
-</header>
-<main>
-  <div class="callout">
-    <div class="badge">Why Now</div>
-    <p>As of May 2026, demand for resilient, zero-emission backup is accelerating across healthcare, AI data infrastructure, and high-load facilities. Ioncore’s magnetic inertia platform pairs battery-speed response with turbine-grade lifespan, positioning the company as a modern critical-power alternative where downtime is unacceptable.</p>
-  </div>
+  <script>
+    (() => {
+      const statusEl = document.getElementById('paypal-status');
+      const form = document.getElementById('paypal-deposit-form');
+      const buttonWrap = document.getElementById('paypal-button-wrap');
+      const meterCards = document.querySelectorAll('.meter-card');
+      const progressState = { startupUsd: 0, peakUnits: 0, homeUnits: 0, commercialUnits: 0 };
+      const modelMap = { peak30: { unitKey: 'peakUnits', goal: 10000, card: 1 }, home: { unitKey: 'homeUnits', goal: 1000, card: 2 }, commercial: { unitKey: 'commercialUnits', goal: 900, card: 3 }, fscu: null };
+      if (!statusEl || !form || !buttonWrap) return;
+      const setStatus = (message, isError = false) => {
+        statusEl.textContent = message; statusEl.style.display = message ? 'block' : 'none';
+        statusEl.classList.toggle('error', Boolean(isError));
+      };
+      const readFormData = () => {
+        const donorName = form?.donorName?.value?.trim() || '';
+        const donorEmail = form?.donorEmail?.value?.trim() || '';
+        const amount = Number.parseFloat(form?.amount?.value || '0');
+        const projectReference = form?.projectReference?.value?.trim() || '';
+        if (!donorName || !Number.isFinite(amount) || amount <= 0) throw new Error('Please enter contributor name and valid amount.');
+        return { donorName, donorEmail, amount, projectReference };
+      };
+      const renderMeter = (cardIndex, current, goal, moneyText) => {
+        const card = meterCards[cardIndex]; if (!card) return;
+        const pct = Math.min((current / goal) * 100, 100);
+        const label = card.querySelector('.meter-label span:last-child');
+        const fill = card.querySelector('.meter-fill');
+        if (label) label.textContent = `${current.toLocaleString()} / ${goal.toLocaleString()}`;
+        if (fill) fill.style.width = `${pct}%`;
+        const reached = card.querySelector('.meta-box:last-child strong');
+        if (reached) reached.textContent = `${pct.toFixed(1)}%`;
+        if (moneyText) {
+          const m = card.querySelector('.meta-box:last-child span');
+          if (m) m.textContent = moneyText;
+        }
+      };
+      const refreshStartup = () => {
+        const card = meterCards[0]; if (!card) return;
+        const pct = Math.min((progressState.startupUsd / 2000000) * 100, 100);
+        card.querySelector('.meter-label span:last-child').textContent = `$${progressState.startupUsd.toLocaleString()} / $2,000,000`;
+        card.querySelector('.meter-fill').style.width = `${pct}%`;
+        card.querySelector('.meta-box:last-child strong').textContent = `${pct.toFixed(1)}%`;
+      };
+      const applyPurchase = (model, units, totalUsd, type) => {
+        progressState.startupUsd += totalUsd;
+        if (type === 'unit' && modelMap[model]) progressState[modelMap[model].unitKey] += units;
+        refreshStartup();
+        if (modelMap.peak30) renderMeter(1, progressState.peakUnits, 10000);
+        if (modelMap.home) renderMeter(2, progressState.homeUnits, 1000);
+        if (modelMap.commercial) renderMeter(3, progressState.commercialUnits, 900);
+      };
+      const loadPayPal = async () => {
+        const response = await fetch('/api/payments/paypal/config');
+        if (!response.ok) throw new Error('Unable to load PayPal configuration.');
+        const config = await response.json();
+        if (!config.enabled || !config.clientId) throw new Error('PayPal is not configured yet.');
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency || 'USD')}`;
+        script.async = true; document.head.appendChild(script);
+        await new Promise((resolve, reject) => { script.onload = resolve; script.onerror = () => reject(new Error('Failed to load PayPal SDK.')); });
+      };
+      const readCheckoutData = (box) => {
+        const qty = Math.max(1, Number.parseInt(box.querySelector('.qty')?.value || '1', 10));
+        const purchaseType = box.querySelector('.purchase-type')?.value || 'reserve';
+        const model = box.dataset.model;
+        const unitPrice = Number.parseFloat(box.dataset.price || '0');
+        return { qty, purchaseType, model, unitPrice, totalUsd: qty * unitPrice };
+      };
+      const initButtons = () => window.paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal' },
+        createOrder: async () => {
+          const response = await fetch('/payments/paypal/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(readFormData()) });
+          const result = await response.json(); if (!response.ok || !result.orderId) throw new Error(result.message || 'Unable to create order.');
+          return result.orderId;
+        },
+        onApprove: async (data) => {
+          const response = await fetch('/payments/paypal/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.orderID, ...readFormData() }) });
+          const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Unable to capture order.');
+          const amount = Number.parseFloat(result.amount || readFormData().amount);
+          progressState.startupUsd += amount;
+          refreshStartup();
+          setStatus(`Deposit captured: ${result.currency} ${result.amount}.`);
+        },
+        onError: () => setStatus('PayPal checkout encountered an error. Please retry.', true)
+      }).render('#paypal-button-wrap');
+      const initModelCheckouts = () => {
+        const openQr = (uri, rail, amountUsd) => {
+          const q = document.getElementById('qr-modal');
+          const img = document.getElementById('qr-image');
+          const copy = document.getElementById('qr-copy');
+          if (!q || !img || !copy) return;
+          img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(uri)}`;
+          copy.textContent = `${rail}: send exact USD equivalent of $${amountUsd.toLocaleString()} to the server wallet.`;
+          q.classList.add('open');
+        };
+        document.getElementById('qr-close')?.addEventListener('click', () => document.getElementById('qr-modal')?.classList.remove('open'));
+        document.querySelectorAll('.checkout').forEach((box) => {
+          let selectedRail = 'BTC';
+          const btcBtn = box.querySelector('.btc-buy');
+          const btcAddressEl = box.querySelector('.btc-address');
+          const applyRailCta = (rail) => {
+            selectedRail = rail;
+            if (btcBtn) btcBtn.textContent = `Reserve with ${rail === 'PAYPAL' ? 'PayPal' : rail === 'STRIPE' ? 'Stripe' : rail}`;
+          };
+          applyRailCta(selectedRail);
+          if (btcBtn) btcBtn.addEventListener('click', async () => {
+            try {
+              const payload = { ...readCheckoutData(box), currency: selectedRail, purchaseType: 'reserve' };
+              if (selectedRail === 'PAYPAL') {
+                setStatus('Use the PayPal button in this card to complete reserve checkout.');
+                return;
+              }
+              if (selectedRail === 'STRIPE') {
+                const checkoutParams = new URLSearchParams({
+                  product: payload.model,
+                  rail: 'stripe',
+                  purchaseType: 'reserve'
+                });
+                window.location.href = `/magnetic-stripe-checkout.html?${checkoutParams.toString()}`;
+                return;
+              }
+              const resp = await fetch('/api/sales/checkout-intent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productCode: payload.model, currency: selectedRail, buyerName: 'Card Checkout', buyerEmail: '' })});
+              const intent = await resp.json();
+              if (!resp.ok) throw new Error(intent.message || `Unable to open ${selectedRail} checkout`);
+              if (selectedRail === 'USDC') {
+                if (!window.ethereum) throw new Error('MetaMask was not detected.');
+                const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                window.open(intent.uri, '_self');
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'usdc-wallet-uri-opened', walletAddress:from, walletProvider:'metamask'})});
+                openQr(intent.uri, 'USDC / MetaMask', payload.totalUsd);
+                setStatus(`USDC wallet opened. Confirm ${intent.usdcAmount} USDC transfer to ${intent.to}.`);
+              } else if (selectedRail === 'ETH') {
+                if (!window.ethereum) throw new Error('MetaMask was not detected.');
+                const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash, walletAddress:from, walletProvider:'metamask'})});
+                openQr(intent.uri || `ethereum:${intent.to}?value=${intent.valueWei}`, 'Ethereum / MetaMask', payload.totalUsd);
+                setStatus(`MetaMask opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
+              } else if (selectedRail === 'ADA') {
+                const laceAvailable = Boolean(window.cardano?.lace);
+                const phantomAvailable = Boolean(window.solana?.isPhantom);
+                if (laceAvailable) await window.cardano.lace.enable();
+                else if (!phantomAvailable) throw new Error('Lace or Phantom wallet was not detected.');
+                window.open(intent.uri, '_self');
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'ada-uri', walletProvider:laceAvailable?'lace':'phantom'})});
+                openQr(intent.uri, laceAvailable ? 'Cardano / Lace' : 'Cardano / Phantom', payload.totalUsd);
+                setStatus(`${laceAvailable ? 'Lace' : 'Phantom'} opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
+              } else {
+                window.open(intent.uri, '_self');
+                await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider:'bitcoin'})});
+                openQr(intent.uri, 'Bitcoin', payload.totalUsd);
+                if (btcAddressEl && intent.to && intent.btcAmount) btcAddressEl.textContent = `Send BTC to: ${intent.to} | Amount: ${intent.btcAmount} BTC`;
+                setStatus(`Bitcoin wallet opened. Send exact USD equivalent ($${payload.totalUsd.toLocaleString()}).`);
+              }
+              applyPurchase(payload.model, payload.qty, payload.totalUsd, payload.purchaseType);
+              setStatus(`Reserve checkout opened for ${payload.model.toUpperCase()} via ${selectedRail}.`);
+            } catch (error) { setStatus(error.message || 'Bitcoin checkout unavailable.', true); }
+          });
+          if (window.paypal && box.querySelector('.paypal-inline')) {
+            window.paypal.Buttons({
+              style: { layout: 'horizontal', shape: 'pill', height: 35, label: 'paypal' },
+              createOrder: async () => {
+                const payload = readCheckoutData(box);
+                const response = await fetch('/payments/paypal/model-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const result = await response.json();
+                if (!response.ok || !result.orderId) throw new Error(result.message || 'Unable to create PayPal order.');
+                return result.orderId;
+              },
+              onApprove: async (data) => {
+                const payload = readCheckoutData(box);
+                const response = await fetch('/payments/paypal/model-capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.orderID, ...payload }) });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Unable to capture PayPal order.');
+                applyPurchase(payload.model, payload.qty, payload.totalUsd, payload.purchaseType);
+                setStatus(`PayPal purchase captured for ${payload.model.toUpperCase()} (${payload.purchaseType}).`);
+              },
+              onError: () => setStatus('PayPal model checkout encountered an error.', true)
+            }).render(box.querySelector('.paypal-inline'));
+          }
+          box.querySelectorAll('.pay-rail').forEach((btn) => btn.addEventListener('click', async (ev) => {
+            ev.preventDefault();
+            box.querySelectorAll('.pay-rail').forEach((candidate) => candidate.classList.remove('active'));
+            btn.classList.add('active');
+            applyRailCta(btn.dataset.rail || 'BTC');
+            setStatus(`Payment option selected: ${selectedRail}. Click “${btcBtn?.textContent || 'Reserve'}” to continue.`);
+          }));
+        });
+      };
+      initModelCheckouts();
+      loadPayPal()
+        .then(() => { initButtons(); })
+        .catch((error) => setStatus(error.message || 'PayPal checkout unavailable.', true));
+    })();
+  </script>
 
-  <h2>Executive Summary</h2>
-  <h3>Platform Status — May 2026</h3>
-  <div class="split">
-    <div class="stat-card">
-      <h4>Commercial Readiness</h4>
-      <p>Core hardware is out of pure R&amp;D and in structured customer deployment with formal SLA tracking.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Software Layer</h4>
-      <p>Monitoring, alerting, and remote performance analytics are now productized for operator and investor reporting.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Scale Readiness</h4>
-      <p>Supply-chain and manufacturing playbooks are being standardized to support repeatable multi-site rollouts.</p>
-    </div>
-  </div>
-  <h3>Vision &amp; Mission</h3>
-  <p>Build the most trusted platform for resilient clean power by commercializing modular magnetic inertia systems for facilities that cannot fail.</p>
-  <h3>Value Proposition</h3>
-  <ul>
-    <li><strong>Ultra-High Efficiency:</strong> Magnetic inertia storage with near-zero degradation over time.</li>
-    <li><strong>Grid Independence:</strong> Seamless backup or off-grid operation, eliminating costly downtime.</li>
-    <li><strong>Modular &amp; Scalable:</strong> Systems from 100 kW (residential) up to multi-MW (commercial/industrial).</li>
-    <li><strong>Environmental Leadership:</strong> Significant CO₂ reduction and compliance with LEED, BREEAM, and other certifications.</li>
-  </ul>
-  <h3>Fundraising Ask</h3>
-  <ul>
-    <li><strong>Total Raise:</strong> USD 25 million growth round</li>
-    <li><strong>Use of Proceeds:</strong> Expand deployments, increase manufacturing throughput, complete certifications, and scale recurring revenue infrastructure.</li>
-    <li><strong>Target Close:</strong> Q3 2026</li>
-    <li><strong>Current Commitments:</strong> USD 11.5M indicated across strategic and climate-focused investors.</li>
-  </ul>
+  <script>
+    (() => {
+      const form = document.getElementById('crypto-sales-form');
+      const product = document.getElementById('saleProduct');
+      const pathSelect = document.getElementById('salePurchasePath');
+      const returnType = document.getElementById('saleReturnType');
+      const currency = document.getElementById('saleCurrency');
+      const amount = document.getElementById('saleAmount');
+      const status = document.getElementById('crypto-sale-status');
+      const btn = document.getElementById('begin-crypto-sale');
+      if (!form || !product || !pathSelect || !returnType || !currency || !amount || !status || !btn) return;
+      const unifiedStatus = document.getElementById('unified-sales-status');
+      const setStatus = (msg,err=false)=>{ status.textContent=msg; status.style.display=msg?'block':'none'; status.classList.toggle('error',!!err); };
+      const syncFormByPath = () => {
+        const isStock = pathSelect.value === 'STOCK';
+        returnType.disabled = !isStock;
+        if (!isStock) returnType.value = 'SHARES';
+      };
+      const withContingency = (base) => Math.round(base * 1.15 * 100) / 100;
+      const syncAmount = () => {
+        const base = Number(product.selectedOptions[0]?.dataset?.price||0);
+        const isStock = pathSelect.value === 'STOCK';
+        const total = isStock ? base : withContingency(base);
+        amount.value = `$${total.toLocaleString()} USD`;
+      };
+      syncFormByPath();
+      syncAmount();
+      product.addEventListener('change', syncAmount);
+      pathSelect.addEventListener('change', ()=>{ syncFormByPath(); syncAmount(); });
+      const refreshUnifiedSales = async () => {
+        if (!unifiedStatus) return;
+        try {
+          const resp = await fetch('/api/sales/summary');
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || 'Summary unavailable');
+          unifiedStatus.textContent = `Unified sales tally: ${data.totals.salesCount.toLocaleString()} total sales • $${Number(data.totals.revenueUsd || 0).toLocaleString()} USD tracked (fundraising, ForgeLink, and timepiece flows).`;
+        } catch (_) {
+          unifiedStatus.textContent = 'Unified sales tally will appear when the server summary endpoint is available.';
+        }
+      };
+      refreshUnifiedSales();
+      btn.addEventListener('click', async () => {
+        try {
+          const payload = {productCode: product.value, purchasePath: pathSelect.value, returnType: returnType.value, currency: currency.value, buyerName: form.saleBuyer.value.trim(), buyerEmail: form.saleEmail.value.trim()};
+          if (!payload.buyerName) throw new Error('Buyer name is required.');
+          if (payload.currency === 'PAYPAL') {
+            document.getElementById('deposits')?.scrollIntoView({ behavior: 'smooth' });
+            setStatus('Use the PayPal deposit checkout directly above to complete this product purchase.');
+            return;
+          }
+          if (payload.currency === 'STRIPE') {
+            window.location.href = '/magnetic-stripe-checkout.html';
+            return;
+          }
+          const resp = await fetch('/api/sales/checkout-intent', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+          const intent = await resp.json(); if (!resp.ok) throw new Error(intent.message || 'Unable to start checkout.');
+          if (intent.currency === 'USDC') {
+            if (!window.ethereum) throw new Error('MetaMask is not available in this browser.');
+            const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            window.open(intent.uri, '_self');
+            await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'usdc-wallet-uri-opened', walletAddress:from, walletProvider:'metamask'})});
+            const q = document.getElementById('qr-modal'); const img = document.getElementById('qr-image'); const copy = document.getElementById('qr-copy');
+            if (q && img && copy) { img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(intent.uri)}`; copy.textContent = `USDC: send $${intent.usdAmount.toLocaleString()} (${intent.usdcAmount} USDC) to designated wallet.`; q.classList.add('open'); }
+            const returnLabel = payload.purchasePath === 'STOCK' ? (payload.returnType === 'SHARES' ? 'shares' : '8% annual return') : 'unit purchase';
+            setStatus(`USDC wallet prompt opened. Confirm ${intent.usdcAmount} USDC transfer to ${intent.to}. Return path: ${returnLabel}.`);
+          } else if (intent.currency === 'ETH') {
+            if (!window.ethereum) throw new Error('MetaMask is not available in this browser.');
+            const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params:[{from,to:intent.to,value:intent.valueWei}]});
+            await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash, walletAddress:from, walletProvider:'metamask'})});
+            setStatus(`Payment sent. ETH tx: ${txHash}`);
+          } else if (intent.currency === 'ADA') {
+            const laceAvailable = Boolean(window.cardano?.lace);
+            const phantomAvailable = Boolean(window.solana?.isPhantom);
+            if (laceAvailable) await window.cardano.lace.enable();
+            else if (!phantomAvailable) throw new Error('Lace or Phantom wallet was not detected.');
+            window.open(intent.uri, '_self');
+            const walletProvider = laceAvailable ? 'lace' : 'phantom';
+            await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:`${walletProvider}-session`, walletProvider})});
+            setStatus(`${laceAvailable ? 'Lace' : 'Phantom'} opened with exact ADA amount. Confirm payment in wallet.`);
+          } else {
+            const phantomAvailable = Boolean(window.solana?.isPhantom);
+            if (phantomAvailable) {
+              try {
+                await window.solana.connect({ onlyIfTrusted: false });
+              } catch (_) {
+                throw new Error('Phantom connection was cancelled. Re-open Phantom and approve the session to continue the BTC transfer.');
+              }
+            }
+            window.open(intent.uri, '_self');
+            const walletProvider = phantomAvailable ? 'phantom-bitcoin' : 'bitcoin';
+            await fetch('/api/sales/confirm', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({checkoutId:intent.checkoutId, txHash:'wallet-uri-opened', walletAddress:'btc-uri', walletProvider})});
+            setStatus(`${phantomAvailable ? 'Phantom' : 'Bitcoin'} wallet opened with exact BTC amount. Confirm transfer in wallet to finish checkout.`);
+          }
+          refreshUnifiedSales();
+        } catch (e) { setStatus(e.message || 'Checkout failed.', true); }
+      });
+    })();
+  </script>
 
-  <h2>Investment Snapshot</h2>
-  <div class="stat-grid">
-    <div class="stat-card">
-      <h4>Customer Pipeline</h4>
-      <p>18 qualified deals (&gt;$72M TCV) across healthcare, data centers, logistics, and EV charging—7 in commercial negotiation.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Unit Economics</h4>
-      <p>Blended 44% gross margin on initial commercial runs; path to 57% through supplier consolidation and assembly automation.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Resilience Advantage</h4>
-      <p>Sub-1 ms response + 20-year design life yields &gt;30% lower TCO vs. lithium for critical-load backup scenarios.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Climate Impact</h4>
-      <p>Each MW replaces ~1,200 tons CO₂ annually versus diesel, supporting Scope 1 reduction targets and ESG procurement mandates.</p>
-    </div>
-  </div>
-
-  <h2>Traction &amp; Milestones</h2>
-  <table>
-    <thead>
-      <tr><th>Date</th><th>Milestone</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Q1 2024</td><td>Completed lab-scale prototype testing (99% round-trip efficiency)</td></tr>
-      <tr><td>Q3 2024</td><td>Secured first Letter of Intent (LOI) from a major hospital chain</td></tr>
-      <tr><td>Q1 2025</td><td>Demonstrated continuous 48-hour off-grid operation in pilot site</td></tr>
-      <tr><td>Q2 2025</td><td>Filed two additional patents on cooling and control algorithms</td></tr>
-      <tr><td>Q4 2025</td><td>Commissioned first 250 kW commercial installation and launched paid leasing pilot</td></tr>
-      <tr><td>Q1 2026</td><td>Expanded to three live customer sites with remote monitoring and SLA reporting</td></tr>
-      <tr><td>Q2 2026</td><td>Entered certification validation phase and initiated regional partner onboarding</td></tr>
-    </tbody>
-  </table>
-
-  <h2>Market Analysis</h2>
-  <h3>Total Addressable Market (TAM)</h3>
-  <ul>
-    <li>Global energy storage market: USD 500 billion by 2030.</li>
-    <li>Critical-power UPS (healthcare/comms): USD 40 billion by 2027.</li>
-    <li>EV charging infrastructure: USD 30 billion by 2028.</li>
-  </ul>
-  <h3>Serviceable Obtainable Market (SOM)</h3>
-  <p>Current focus (2026–2028): North American healthcare + data centers + critical commercial real estate (~USD 7 billion).</p>
-  <h3>Customer Personas</h3>
-  <ul>
-    <li><strong>Hospital Facility Director</strong> – Prioritizes zero downtime; budgets &gt; USD 1 million per site.</li>
-    <li><strong>Commercial Real Estate Owner</strong> – Seeks sustainable certifications; ROI in 3–5 years.</li>
-    <li><strong>EV Charging Network Operator</strong> – Needs reliable peak-demand support; flexible financing.</li>
-  </ul>
-  <h3>Competitive Matrix</h3>
-  <table>
-    <thead>
-      <tr><th>Feature</th><th>Magnetic Inertia</th><th>Lithium-Ion Batteries</th><th>Flywheels</th><th>Diesel Generators</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Round-Trip Efficiency</td><td>98–99%</td><td>85–90%</td><td>85–95%</td><td>N/A</td></tr>
-      <tr><td>Cycle Life</td><td>&gt; 50 000 cycles</td><td>~ 3 000 cycles</td><td>~ 20 000</td><td>N/A</td></tr>
-      <tr><td>Carbon Emissions</td><td>Zero</td><td>Low (manufacturing)</td><td>Zero</td><td>High</td></tr>
-      <tr><td>Maintenance Interval</td><td>5 years</td><td>1–2 years</td><td>3 years</td><td>6 months</td></tr>
-      <tr><td>Scalability</td><td>Modules to MW</td><td>Modules to MW</td><td>Limited</td><td>Unlimited</td></tr>
-    </tbody>
-  </table>
-
-  <h2>Product Description</h2>
-  <h3>System Architecture</h3>
-  <ul>
-    <li><strong>Rotor &amp; Stator Assembly:</strong> High-flux magnetic materials for energy capture.</li>
-    <li><strong>Active Thermal Management:</strong> Closed-loop liquid cooling with real-time monitoring.</li>
-    <li><strong>Power Electronics Module:</strong> Bidirectional converters with &lt; 1 ms response.</li>
-  </ul>
-  <h3>Key Benefits</h3>
-  <ul>
-    <li><strong>Reliability:</strong> Guaranteed 99.9% uptime.</li>
-    <li><strong>Low OPEX:</strong> 30–50% lower maintenance vs. battery alternatives.</li>
-    <li><strong>Long Lifespan:</strong> 20+ year design life with minimal performance decay.</li>
-  </ul>
-  <h3>Use Cases</h3>
-  <ul>
-    <li>Hospital Backup Power: Critical equipment support during grid outages.</li>
-    <li>Data Centre UPS: Seamless switchover to prevent data loss.</li>
-    <li>EV Fast-Charging Hubs: Smooth peak-shaving to avoid utility demand charges.</li>
-    <li>Islanding Microgrids: Support for remote sites where diesel is constrained or banned.</li>
-    <li>Defense &amp; Civil Resilience: Hardened storage for base operations and emergency shelters.</li>
-  </ul>
-
-  <h3>Deployment Playbook</h3>
-  <div class="split">
-    <div class="stat-card">
-      <h4>Rapid Pilots</h4>
-      <p>90-day pilot template with pre-engineered interconnects and remote monitoring to prove ROI fast.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Financing Flexibility</h4>
-      <p>Blend of capex sales, PPAs, and energy-as-a-service, letting customers choose opex vs. capex.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Scalable Stack</h4>
-      <p>Standardized 100 kW blocks networked via microgrid controller; MW-scale deployments in weeks.</p>
-    </div>
-  </div>
-
-  <h2>Business Model</h2>
-  <h3>Revenue Streams</h3>
-  <ul>
-    <li>Direct Sales: One-time hardware + installation fees.</li>
-    <li>Leasing &amp; Power-Purchase Agreements (PPAs): 5–10 year contracts, minimal upfront cost for clients.</li>
-    <li>Service &amp; Maintenance: Tiered SLAs, remote monitoring subscriptions.</li>
-    <li>Technology Licensing: Regional OEM partnerships for international expansion.</li>
-  </ul>
-  <h3>Pricing Illustration</h3>
-  <table>
-    <thead>
-      <tr><th>Model</th><th>Capacity</th><th>Purchase Price</th><th>Lease PPA Rate</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Residential</td><td>100 kW</td><td>USD 120 000</td><td>USD 2.50/kWh over 7 yrs</td></tr>
-      <tr><td>Commercial Small</td><td>250 kW</td><td>USD 280 000</td><td>USD 2.20/kWh over 10 yrs</td></tr>
-      <tr><td>Data Centre</td><td>1 MW</td><td>USD 1 million</td><td>USD 1.80/kWh over 10 yrs</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Capital Efficiency Logic</h3>
-  <ul>
-    <li><strong>Hardware Reuse:</strong> Shared rotor/stator platform across 100 kW–1 MW SKUs keeps tooling costs low.</li>
-    <li><strong>Service Attach:</strong> 35–45% of customers opt into premium SLA subscriptions within 12 months.</li>
-    <li><strong>Asset-Backed Leases:</strong> Residual value on 20-year assets supports low-cost project finance structures.</li>
-  </ul>
-
-  <h2>Marketing &amp; Sales Strategy</h2>
-  <h3>Brand Positioning</h3>
-  <p>“The world’s cleanest, most reliable energy storage.” Leverage case studies and performance data to build credibility.</p>
-  <h3>Go-to-Market Phases</h3>
-  <ol>
-    <li><strong>Phase 1 (Completed in 2025):</strong> Pilot installs with LOI customers and operating-data publication.</li>
-    <li><strong>Phase 2 (2026):</strong> Revenue conversion from pilots, partner onboarding, and channel-led expansion.</li>
-    <li><strong>Phase 3 (2027+):</strong> Cross-border licensing and multi-region deployment at MW scale.</li>
-  </ol>
-
-  <h2>Operational Plan</h2>
-  <h3>Manufacturing</h3>
-  <ul>
-    <li><strong>Facility:</strong> 15 000 ft² automated line in Ontario, Canada.</li>
-    <li><strong>Capacity:</strong> 5 MW modules per quarter; scalable via robotic cells.</li>
-  </ul>
-  <h3>Supply Chain</h3>
-  <ul>
-    <li>Dual-sourcing critical components (magnets, power electronics) to mitigate disruption.</li>
-    <li>Vendor scorecards to monitor quality, lead-times, and ESG compliance.</li>
-  </ul>
-  <h3>R&amp;D Roadmap</h3>
-  <ul>
-    <li><strong>2026:</strong> Finalize Gen-2 controls stack with enhanced telemetry and digital twin simulation.</li>
-    <li><strong>2027:</strong> Integrate AI-based predictive maintenance and automated anomaly response.</li>
-  </ul>
-
-  <h2>Funding Timeline &amp; Catalysts</h2>
-  <ol>
-    <li><strong>Q2 2026 (Current):</strong> Final diligence with lead investors and project-finance partners.</li>
-    <li><strong>Q3 2026:</strong> Close growth round and expand manufacturing cell capacity.</li>
-    <li><strong>Q4 2026:</strong> Convert active pilots to long-term service and lease agreements.</li>
-    <li><strong>2027:</strong> Launch OEM licensing program and target 55%+ gross margin.</li>
-  </ol>
-
-  <h2>Investor Alignment</h2>
-  <div class="stat-grid">
-    <div class="stat-card">
-      <h4>Governance</h4>
-      <p>Quarterly board with climate/infra expertise; independent seat reserved for lead investor.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Reporting</h4>
-      <p>Monthly KPI pack covering uptime, backlog conversion, burn, and cash runway; portal access for LPs.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Compliance</h4>
-      <p>ISO 9001 manufacturing in process; UL 9540 + CE/CSA roadmap underwritten by third-party labs.</p>
-    </div>
-  </div>
-
-  <h2>Financial Plan</h2>
-  <h3>Use of Proceeds</h3>
-  <table>
-    <thead>
-      <tr><th>Category</th><th>Amount (USD)</th><th>% of Raise</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Manufacturing Scale-Up</td><td>4 000 000</td><td>40%</td></tr>
-      <tr><td>Pilot Project Deployment</td><td>2 000 000</td><td>20%</td></tr>
-      <tr><td>R&amp;D &amp; IP Protection</td><td>2 000 000</td><td>20%</td></tr>
-      <tr><td>Sales &amp; Marketing</td><td>1 500 000</td><td>15%</td></tr>
-      <tr><td>Working Capital</td><td>500 000</td><td>5%</td></tr>
-    </tbody>
-  </table>
-  <h3>5-Year Financial Projections</h3>
-  <p>Revenue: USD 50 million<br>EBITDA margin: 25% by Year 5<br>Break-Even: Mid-Year 3</p>
-
-  <h3>Capital Deployment Roadmap</h3>
-  <div class="split">
-    <div class="stat-card">
-      <h4>Manufacturing</h4>
-      <p>Automate rotor balancing and stator winding to double throughput while holding workforce flat.</p>
-    </div>
-    <div class="stat-card">
-      <h4>Pilots to Recurring</h4>
-      <p>Convert 4 paid pilots into 8-year PPAs; target 75% conversion through performance guarantees.</p>
-    </div>
-    <div class="stat-card">
-      <h4>IP &amp; Moat</h4>
-      <p>Expand patent family to include control firmware and thermal topologies; initiate trade-secret program.</p>
-    </div>
-  </div>
-
-  <h2>ESG Impact</h2>
-  <ul>
-    <li><strong>Carbon Reduction:</strong> Each 1 MW system offsets ~1 200 tons CO₂ per year vs. diesel.</li>
-    <li><strong>Circular Design:</strong> 90%+ recyclable materials; take-back program for end-of-life units.</li>
-    <li><strong>Community Engagement:</strong> Job creation in advanced manufacturing hub; STEM partnerships with local colleges.</li>
-  </ul>
-
-  <h2>Intellectual Property &amp; Regulatory Strategy</h2>
-  <ul>
-    <li><strong>Patents Filed:</strong>
-      <ul>
-        <li>Magnetic rotor geometry (2024, PCT pending).</li>
-        <li>Advanced thermal management (2025, PCT filed).</li>
-      </ul>
-    </li>
-    <li><strong>Regulatory Pathway:</strong>
-      <ul>
-        <li>UL 9540 testing in progress.</li>
-        <li>CE and CSA certifications targeted for Q2 2026.</li>
-      </ul>
-    </li>
-  </ul>
-
-  <h2>Team &amp; Advisors</h2>
-  <h3>Leadership</h3>
-  <ul>
-    <li><strong>CEO:</strong> 15 years in clean-tech scale-ups; ex-VP at a Fortune 500 energy firm.</li>
-    <li><strong>CTO:</strong> PhD in Electromechanical Systems; 20+ patents in power electronics.</li>
-    <li><strong>COO:</strong> Supply-chain veteran with global manufacturing experience.</li>
-  </ul>
-  <h3>Advisory Board</h3>
-  <ul>
-    <li>Senior advisor from DOE’s Advanced Manufacturing Office.</li>
-    <li>Former VP of Product at a leading battery-storage company.</li>
-    <li>Finance expert from a Tier-1 VC firm specializing in energy.</li>
-  </ul>
-
-  <h2>Investor Opportunity &amp; Exit Strategy</h2>
-  <h3>Return Drivers</h3>
-  <ul>
-    <li>Rapid market growth in grid-scale storage and EV charging.</li>
-    <li>Recurring revenue from leases and service contracts.</li>
-    <li>High-margin aftermarket service business.</li>
-  </ul>
-  <h3>Exit Pathways</h3>
-  <ul>
-    <li><strong>Strategic M&amp;A:</strong> Acquisition by major OEM (e.g., GE, Siemens, ABB) seeking storage tech.</li>
-    <li><strong>IPO:</strong> North American exchange listing once revenues exceed USD 100 million.</li>
-    <li><strong>Private Secondary:</strong> Liquidity events for early backers via later-stage secondary offerings.</li>
-  </ul>
-
-  <h2>Risk Analysis</h2>
-  <table>
-    <thead>
-      <tr><th>Risk Category</th><th>Mitigation</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Technology</td><td>Rigorous pilot validations; third-party testing partnerships.</td></tr>
-      <tr><td>Market Adoption</td><td>Early adopter incentives; strong case-study evidence; referral discounts.</td></tr>
-      <tr><td>Supply Chain</td><td>Dual-sourcing; buffer stock; long-term supply contracts.</td></tr>
-      <tr><td>Regulatory</td><td>Early engagement with cert bodies; dedicated compliance team.</td></tr>
-    </tbody>
-  </table>
-
-  <h2>Appendices &amp; Next Steps</h2>
-  <ul>
-    <li>Detailed Technical Specs and Performance Data available on NDA.</li>
-    <li>Pilot Site Proposals ready for client sign-off.</li>
-    <li>Term Sheet draft available for interested investors.</li>
-    <li>Next Steps:
-      <ul>
-        <li>Schedule deep-dive technical review with your engineering team.</li>
-        <li>Review and agree on term sheet.</li>
-        <li>Finalize pilot deployment contracts and manufacturing ramp plan.</li>
-      </ul>
-    </li>
-  </ul>
-</main>
-<footer id="contact">
-  <h3>Ready to Energize Your Future?</h3>
-  <p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p>
-  <a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a>
-  <div class="copyright">
-    &copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.
-  </div>
-</footer>
 </body>
 </html>

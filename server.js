@@ -62,10 +62,31 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
   const receipt = byId('ioncore-receipt-code');
   const tx = byId('ioncore-watch-tx');
   const setStatus = (msg, error) => { if (status) { status.textContent = msg; status.style.color = error ? '#ff9f9f' : '#d9ffe8'; } };
+  const loadMarketRates = async () => {
+    try {
+      const resp = await fetch('/api/sales/market-rates');
+      const data = await resp.json();
+      if (!resp.ok || !data || !data.rates) return;
+      const selectedOption = product?.selectedOptions?.[0];
+      const usdMatch = selectedOption?.textContent?.match(/\$([\d,]+)/);
+      const usd = usdMatch ? Number(usdMatch[1].replace(/,/g, '')) : NaN;
+      const rail = currency?.value || 'USDC';
+      const rate = Number(data.rates[rail]);
+      if (amount && Number.isFinite(usd) && Number.isFinite(rate) && rate > 0) {
+        const precision = rail === 'USDC' ? 2 : rail === 'ADA' ? 4 : 6;
+        amount.textContent = 'Live market estimate: ' + (usd / rate).toFixed(precision) + ' ' + rail + ' for this watch (USD $' + usd.toLocaleString() + ').';
+      }
+    } catch (_) {}
+  };
+
   byId('ioncore-copy-wallet')?.addEventListener('click', async () => {
     if (!walletInput || !walletInput.value) return;
     try { await navigator.clipboard.writeText(walletInput.value); setStatus('Wallet copied.'); } catch (_) { walletInput.focus(); walletInput.select(); }
   });
+  currency?.addEventListener('change', loadMarketRates);
+  product?.addEventListener('change', loadMarketRates);
+  loadMarketRates();
+
   byId('ioncore-create-watch-intent')?.addEventListener('click', async () => {
     setStatus('Creating checkout intent...');
     try {
@@ -167,7 +188,35 @@ const SALES_WALLETS = {
   USDC: '0xE916E16848acc2c5D06F3e3183116EE475a927f6',
   ADA: 'DdzFFzCqrhstF7Vb9Ro5rmUX1hbQPg9XfnQoVPV81uteLyFK9GAXW2qUsFLhR7rUuNSqXtgkH33wBPvobNJQa3FMvx4WWyjX6eMd6s2tG'
 };
-const SALES_FX = { USDC: 1, BTC: 95000, ETH: 3200, ADA: 0.68 };
+const SALES_FX_FALLBACK = { USDC: 1, BTC: 95000, ETH: 3200, ADA: 0.68 };
+let salesFxCache = { ...SALES_FX_FALLBACK };
+let salesFxFetchedAt = 0;
+
+async function getSalesFxRates(forceRefresh = false) {
+  const cacheAgeMs = Date.now() - salesFxFetchedAt;
+  if (!forceRefresh && cacheAgeMs < 1000 * 60 * 5) return salesFxCache;
+  try {
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,cardano&vs_currencies=usd',
+      { headers: { accept: 'application/json' } }
+    );
+    if (!response.ok) throw new Error(`CoinGecko request failed (${response.status})`);
+    const data = await response.json();
+    const nextRates = {
+      USDC: 1,
+      BTC: Number(data?.bitcoin?.usd) || SALES_FX_FALLBACK.BTC,
+      ETH: Number(data?.ethereum?.usd) || SALES_FX_FALLBACK.ETH,
+      ADA: Number(data?.cardano?.usd) || SALES_FX_FALLBACK.ADA
+    };
+    salesFxCache = nextRates;
+    salesFxFetchedAt = Date.now();
+    return salesFxCache;
+  } catch (error) {
+    if (!salesFxFetchedAt) salesFxFetchedAt = Date.now();
+    console.warn('Using fallback FX rates for sales checkout.', error?.message || error);
+    return salesFxCache;
+  }
+}
 const salesCheckouts = new Map();
 const FUNDRAISING_PRODUCTS = [
   { code: 'PRESEED-250', name: 'Pre-Seed Access Note', usd: 250, category: 'Pre-Seed' },
@@ -1496,7 +1545,8 @@ app.post('/api/sales/checkout-intent', async (req, res) => {
   if (!['USDC', 'BTC', 'ETH', 'ADA'].includes(currencyRaw)) return res.status(400).json({ message: 'Currency must be USDC, BTC, ETH, or ADA.' });
   if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
   const usd = product.usd;
-  const fx = SALES_FX[currencyRaw];
+  const fxRates = await getSalesFxRates();
+  const fx = fxRates[currencyRaw] || SALES_FX_FALLBACK[currencyRaw];
   const cryptoAmount = usd / fx;
   const checkoutId = `SALE-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
   const checkout = { checkoutId, productCode, productName: product.name, currency: currencyRaw, usdAmount: usd, cryptoAmount, buyerName, buyerEmail, createdAt: new Date().toISOString(), status: 'intent-created' };
@@ -1534,6 +1584,14 @@ app.post('/api/sales/confirm', async (req, res) => {
   return res.json({ message: 'Sales payment submitted and recorded.', checkout });
 });
 
+app.get('/api/sales/market-rates', async (req, res) => {
+  const rates = await getSalesFxRates(req.query.refresh === '1');
+  return res.json({
+    updatedAt: salesFxFetchedAt ? new Date(salesFxFetchedAt).toISOString() : null,
+    rates
+  });
+});
+
 app.get('/api/sales/summary', (req, res) => {
   const checkoutSales = Array.from(salesCheckouts.values()).filter((item) => item.status === 'payment-submitted');
   const checkoutRevenueUsd = checkoutSales.reduce((sum, item) => sum + (Number(item.usdAmount) || 0), 0);
@@ -1569,10 +1627,10 @@ app.get('/api/fundraising/catalog', (req, res) => {
     rails: {
       paypal: { enabled: true, label: 'PayPal Checkout' },
       stripe: { enabled: true, label: 'Stripe Card Checkout' },
-      ethereum: { enabled: true, wallet: SALES_WALLETS.ETH, fx: SALES_FX.ETH },
-      bitcoin: { enabled: true, wallet: SALES_WALLETS.BTC, fx: SALES_FX.BTC },
-      ada: { enabled: true, wallet: SALES_WALLETS.ADA, fx: SALES_FX.ADA },
-      usdc: { enabled: true, wallet: SALES_WALLETS.USDC, fx: SALES_FX.USDC || 1, token: 'USDC', network: 'ethereum' }
+      ethereum: { enabled: true, wallet: SALES_WALLETS.ETH, fx: salesFxCache.ETH },
+      bitcoin: { enabled: true, wallet: SALES_WALLETS.BTC, fx: salesFxCache.BTC },
+      ada: { enabled: true, wallet: SALES_WALLETS.ADA, fx: salesFxCache.ADA },
+      usdc: { enabled: true, wallet: SALES_WALLETS.USDC, fx: salesFxCache.USDC || 1, token: 'USDC', network: 'ethereum' }
     }
   });
 });
@@ -1608,9 +1666,9 @@ app.post('/api/fundraising/checkout', async (req, res) => {
     ipAddress: req.ip
   };
 
-  if (paymentRail === 'ethereum') record.cryptoAmount = Number((product.usd / SALES_FX.ETH).toFixed(8));
-  if (paymentRail === 'bitcoin') record.cryptoAmount = Number((product.usd / SALES_FX.BTC).toFixed(8));
-  if (paymentRail === 'ada') record.cryptoAmount = Number((product.usd / SALES_FX.ADA).toFixed(6));
+  if (paymentRail === 'ethereum') record.cryptoAmount = Number((product.usd / salesFxCache.ETH).toFixed(8));
+  if (paymentRail === 'bitcoin') record.cryptoAmount = Number((product.usd / salesFxCache.BTC).toFixed(8));
+  if (paymentRail === 'ada') record.cryptoAmount = Number((product.usd / salesFxCache.ADA).toFixed(6));
   if (paymentRail === 'usdc') record.cryptoAmount = Number(product.usd.toFixed(2));
 
   store.fundraisingOrders.push(record);

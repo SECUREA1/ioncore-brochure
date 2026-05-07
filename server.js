@@ -174,6 +174,17 @@ const BITCOIN_SETTLEMENT_WINDOW_MINUTES = Math.min(
 
 
 const SALES_PRODUCTS = {
+  // Watch-market checkout SKUs ($15k-$45k policy window)
+  'WATCH-SURGE-STANDARD': { name: 'Surge Standard', usd: 15000 },
+  'WATCH-SURGE-LUXURY-BLACK-CHROME': { name: 'Surge Luxury (Black Chrome)', usd: 22000 },
+  'WATCH-DUALTONE-SET': { name: 'DualTone Set', usd: 26500 },
+  'WATCH-SURGE-FOUNDERS-GOLD': { name: 'Surge Founders (Gold)', usd: 45000 },
+  'WATCH-WOMENS-DIAMOND': { name: "Women's Diamond", usd: 31000 },
+  'WATCH-DIGITAL-GOLD': { name: 'Digital Gold', usd: 19500 },
+  'WATCH-POCKET-EXPOSED': { name: 'Pocket Exposed', usd: 17500 },
+  'WATCH-POCKET-LUXE': { name: 'Pocket Luxe', usd: 28000 },
+  'WATCH-AERODESK-CLOCK': { name: 'AeroDesk Clock', usd: 15500 },
+  // Legacy SKUs retained for compatibility with older checkout links
   'PK30-BASIC': { name: 'Peak 30 portable kinetic generator', usd: 3175 },
   'FSCU-BASE': { name: 'Flywheel Self-Charging Unit', usd: 1748 },
   'ION-HOME-LUX': { name: 'Ioncore Round Luxury Homes', usd: 105000 },

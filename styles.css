@@ -459,11 +459,24 @@ main {
   margin-top: 32px;
 }
 
+.hero__actions .btn {
+  min-height: 68px;
+  font-size: 1rem;
+}
+
+.hero__actions .btn--half {
+  flex: 1 1 calc(50% - 8px);
+}
+
+.hero__actions .btn--full {
+  flex: 1 1 100%;
+}
+
 .partner-actions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 16px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .engagement-counters {
@@ -2555,9 +2568,12 @@ main {
     width: 100%;
   }
 
+  .hero__actions .btn,
+  .hero__actions .btn--half,
+  .hero__actions .btn--full,
   .partner-actions {
     width: 100%;
-    flex-wrap: wrap;
+    flex: 1 1 100%;
   }
 
   .btn-graphic {

@@ -17,10 +17,10 @@ const TIMEPIECES_HTML = 'ioncore_ready_to_sell_brochure_mint_5_with_solana_desc.
 
 const TIMEPIECE_BITCOIN_SALES_SECTION = `
 <section id="ioncore-usdc-sales" style="margin:2rem auto;max-width:960px;padding:1.25rem;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(8,12,24,.9);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.35);font-family:inherit;">
-  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Timepiece Checkout (Crypto Wallet)</h2>
-  <p style="margin:0 0 .65rem;opacity:.92;">Select your watch, choose wallet rail (USDC, ETH, BTC, ADA), then purchase using the same crypto flow as checkout. Submit your transfer hash to confirm and record settlement.</p>
+  <h2 style="margin:0 0 .75rem;font-size:1.5rem;letter-spacing:.04em;">Watch Market Checkout (Crypto Wallet)</h2>
+  <p style="margin:0 0 .65rem;opacity:.92;">All listed models are in the watch market and priced in the $15,000–$45,000 range. Select your watch, choose wallet rail (USDC, ETH, BTC, ADA), then submit your transfer hash to confirm settlement.</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;align-items:end;margin-bottom:.85rem;">
-    <div><label for="ioncore-watch-product" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Watch</label><select id="ioncore-watch-product" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="TIME-APEX-X">Apex X Timepiece — $4,900</option><option value="TIME-CHRONO-S">Chrono S Timepiece — $6,400</option><option value="TIME-NOVA-R">Nova R Timepiece — $9,200</option></select></div>
+    <div><label for="ioncore-watch-product" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Watch</label><select id="ioncore-watch-product" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="WATCH-SURGE-STANDARD">Surge Standard — $15,000</option><option value="WATCH-SURGE-LUXURY-BLACK-CHROME">Surge Luxury (Black Chrome) — $22,000</option><option value="WATCH-DUALTONE-SET">DualTone Set — $26,500</option><option value="WATCH-SURGE-FOUNDERS-GOLD">Surge Founders (Gold) — $45,000</option><option value="WATCH-WOMENS-DIAMOND">Women's Diamond — $31,000</option><option value="WATCH-DIGITAL-GOLD">Digital Gold — $19,500</option><option value="WATCH-POCKET-EXPOSED">Pocket Exposed — $17,500</option><option value="WATCH-POCKET-LUXE">Pocket Luxe — $28,000</option><option value="WATCH-AERODESK-CLOCK">AeroDesk Clock — $15,500</option></select></div>
     <div><label for="ioncore-watch-currency" style="display:block;font-size:.9rem;opacity:.85;margin-bottom:.35rem;">Payment rail</label><select id="ioncore-watch-currency" style="width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.28);color:#fff;"><option value="USDC">USDC</option><option value="ETH">ETH</option><option value="BTC">BTC</option><option value="ADA">ADA</option></select></div>
     <button type="button" id="ioncore-create-watch-intent" style="padding:.72rem .9rem;border:0;border-radius:10px;background:#2f8cff;color:#fff;cursor:pointer;">Create checkout</button>
   </div>
@@ -44,6 +44,10 @@ const TIMEPIECE_BITCOIN_SALES_SECTION = `
     <button type="button" id="ioncore-submit-watch-payment" style="padding:.72rem .95rem;border:0;border-radius:10px;background:#6aff3b;color:#05121f;font-weight:700;cursor:pointer;">Confirm payment</button>
   </div>
   <p id="ioncore-watch-status" style="margin:.75rem 0 0;font-size:.92rem;opacity:.92;"></p>
+  <section aria-label="Watch Market Compliance" style="margin-top:.9rem;padding:.75rem .9rem;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);">
+    <h3 style="margin:.1rem 0 .4rem;font-size:1rem;letter-spacing:.02em;">Watch Market Compliance</h3>
+    <p style="margin:0;font-size:.88rem;opacity:.9;">This checkout lists watch-market models only, with pricing constrained to the $15,000–$45,000 range for route-level policy alignment.</p>
+  </section>
 </section>
 <script>
 (function(){

@@ -322,6 +322,24 @@
         return PAYPAL_CHECKOUT_LINKS[selectedCode] || PAYPAL_CHECKOUT_LINKS.default;
       };
 
+      const checkoutParams = new URLSearchParams(window.location.search || '');
+      const queryProduct = (checkoutParams.get('product') || '').trim().toLowerCase();
+      const queryRail = (checkoutParams.get('rail') || '').trim().toLowerCase();
+      const queryPurchaseType = (checkoutParams.get('purchaseType') || '').trim().toLowerCase();
+
+      const railAlias = {
+        stripe: 'magstripe',
+        magstripe: 'magstripe',
+        paypal: 'paypal',
+        usdc: 'usdc',
+        eth: 'ethereum',
+        ethereum: 'ethereum',
+        btc: 'bitcoin',
+        bitcoin: 'bitcoin',
+        ada: 'ada'
+      };
+      const requestedMethod = railAlias[queryRail] || null;
+
       const setFeedback = (message, variant) => {
         if (!feedback) {
           return;
@@ -429,6 +447,17 @@
           const data = await response.json();
           if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) return;
           productSelect.innerHTML = data.products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
+
+          if (queryProduct) {
+            const requestedOption = Array.from(productSelect.options).find((opt) => {
+              const optionValue = (opt.value || '').toLowerCase();
+              return optionValue === queryProduct || optionValue.includes(queryProduct);
+            });
+            if (requestedOption) {
+              productSelect.value = requestedOption.value;
+            }
+          }
+
           const syncAmount = () => {
             const selected = productSelect.selectedOptions[0];
             const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
@@ -440,8 +469,13 @@
       };
 
       loadCatalog();
-const selectedMethod = paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
+      const selectedMethod = requestedMethod || paymentMethodInputs.find((input) => input.checked)?.value || 'stripe';
+      const selectedInput = paymentMethodInputs.find((input) => input.value === selectedMethod);
+      if (selectedInput) selectedInput.checked = true;
       updatePaymentMethod(selectedMethod);
+      if (queryPurchaseType === 'reserve') {
+        setFeedback('Reserve checkout ready. Confirm customer details, then continue payment.', 'success');
+      }
 
       paymentMethodInputs.forEach((input) => {
         input.addEventListener('change', (event) => {

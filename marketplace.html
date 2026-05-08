@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ioncore Full Marketplace Presale</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .market-wrap{max-width:1200px;margin:2rem auto;padding:0 1rem}
+    .market-head{display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap}
+    .market-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-top:1rem}
+    .card{background:#0f1117;border:1px solid #2a2f3a;border-radius:14px;padding:1rem;color:#f5f7ff}
+    .meta{font-size:.85rem;opacity:.8}
+    .stock{color:#6aff3b;font-weight:700}
+    .controls{display:flex;gap:.5rem;align-items:center;margin:.75rem 0}
+    .controls input{width:88px;padding:.5rem;border-radius:8px;border:1px solid #3b4252;background:#111722;color:#fff}
+    .cart{position:sticky;top:0;background:#10151f;border:1px solid #2a2f3a;padding:1rem;border-radius:12px;margin-top:1rem}
+    .cart ul{margin:.5rem 0 0;padding-left:1rem}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap}
+    select{padding:.6rem;border-radius:8px;background:#111722;color:#fff;border:1px solid #3b4252}
+  </style>
+</head>
+<body>
+  <main class="market-wrap">
+    <a class="btn btn-outline" href="index.html">← Back to Library</a>
+    <section class="market-head">
+      <div>
+        <h1>Ioncore Full Marketplace (Presale Allocation)</h1>
+        <p>Reserve presale inventory across every market before each product line enters production.</p>
+      </div>
+      <div class="row">
+        <label for="marketFilter" class="meta">Market</label>
+        <select id="marketFilter"><option value="all">All markets</option></select>
+      </div>
+    </section>
+
+    <section class="cart">
+      <h2>Presale Cart</h2>
+      <p class="meta">Every reservation is tied to available presale stock. Submit to lock allocation.</p>
+      <ul id="cartList"></ul>
+      <button class="btn btn-primary" id="checkoutBtn">Proceed to Purchase Request</button>
+    </section>
+
+    <section id="marketGrid" class="market-grid"></section>
+  </main>
+
+  <script>
+    const products = [
+      ["Investment & Access", "Unified Fundraising & Presale Launch", "fundraising2.html", 120],
+      ["Investment & Access", "Magnetic Stripe Checkout", "magnetic-stripe-checkout.html", 300],
+      ["Core Systems", "50mm Magnetic Inertia System", "50%20mm.html", 60],
+      ["Core Systems", "Magnetic Inertia System | Energy Brochure", "magnetic%20inertia%20system.html", 75],
+      ["Core Systems", "OmniCore X15", "OmniCore%20X15.html", 40],
+      ["Core Systems", "Permanent Magnet Synchronous Generator (PMSG)", "Permanent%20Magnet%20Synchronous%20Generator.html", 55],
+      ["Mobility & Industrial", "Hybrid Turbine–Magnetic Engine Program", "hybrid%20turnine%20engine.html", 28],
+      ["Mobility & Industrial", "Magnetic Inertia Jet Engine", "Magnetic%20Inertia%20Jet%20Engine.html", 24],
+      ["Mobility & Industrial", "Magnetic Inertia Air Propulsion", "magnetic_inertia_airprop_brochure.html", 32],
+      ["Mobility & Industrial", "Industrial Power Plants", "industrial.html", 22],
+      ["Built Environment", "Camper & Hotel Division", "camp.html", 36],
+      ["Built Environment", "Condo Prototype", "condo%20play.html", 30],
+      ["Built Environment", "MI-HWC Hot-Water Charger", "MI-HWC%20%E2%80%94%20Magnetic%20Inertia%20Hot-Water%20Charger.html", 50],
+      ["Cooling & Thermal", "Cooling System Breakdown", "Complete%20Breakdown%20Cooling%20System%20for%20Magnetic%20Inertia%20System.html", 80],
+      ["Cooling & Thermal", "Cryogenic Cooling System", "cryogenic_cooling_brochure.html", 65],
+      ["Cooling & Thermal", "Dual-Loop Cryogenic Thermal Tower", "dual-loop-cryogenic-thermal-tower.html", 45],
+      ["Cooling & Thermal", "Cryo Cooler Overview", "cryo.html", 70],
+      ["Storage & Electronics", "High-Capacity Battery Solutions", "High-Capacity%20Battery%20Solution.html", 120],
+      ["Storage & Electronics", "Hybrid Flywheel + Battery Storage", "Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html", 54],
+      ["Storage & Electronics", "Rotational Gyrating Flywheel", "flywheeldisk.html", 46],
+      ["Storage & Electronics", "Holophone", "holophone.html", 140],
+      ["AI, Security & XR", "Sentinel Multi‑Cam AI Platform", "Sentinel%20Multi%E2%80%91cam%20Ai.html", 110],
+      ["AI, Security & XR", "Sentinel Pricing & Packages", "Sentinel%20Multi%E2%80%91Cam%20AI%20Surveillance%20Platform1.html", 200],
+      ["AI, Security & XR", "Integrated Intelligent Node System", "IntegratedIntelligentNodeSystem.html", 85],
+      ["AI, Security & XR", "Ion Eye AR Headset", "ioncore/IonCore%20%E2%80%94%20Ion%20Eye%20%C2%B7%20AR%20Headset%20for%20Robotics%20%26%20Smart%20Systems.html", 44],
+      ["AI, Security & XR", "Ion Eye Sentinel Sync Demo", "ioncore/IonCore%20%C2%B7%20Ion%20Eye%20%E2%80%94%20Sentinel%20Sync%20%26%20Full%20Demo.html", 44],
+      ["Advanced Manufacturing", "IonCore FiberCut 1k", "IonCore%20FiberCut%201k%20%E2%80%93%20Mobile%20Tracker%20Laser%20Cutting%20System.html", 35],
+      ["Advanced Manufacturing", "IonCore FiberCut M1 Pro", "IonCore%20FiberCut%20M1%20Pro%20_%20Industrial-Grade%20Mobile%20Precision%20Cutting%20Platform.html", 29],
+      ["Platform Tools", "Omconsole Neural Control Console", "Omconsole.html", 95],
+      ["Platform Tools", "ForgeLink Brochure", "forgelink_brochure_bundle/forgelink_brochure_selfcontained.html", 150],
+      ["Platform Tools", "Peak Series 3D Brochure", "peak_series_brochure.html", 90],
+      ["Platform Tools", "Mag-Inertia Dashboard", "Mag-Inertia%20One%E2%84%A2%20v1%20System%20Dashboard.html", 110]
+    ];
+    const markets = [...new Set(products.map(p => p[0]))];
+    const marketFilter = document.getElementById('marketFilter');
+    markets.forEach(m => marketFilter.insertAdjacentHTML('beforeend', `<option value="${m}">${m}</option>`));
+
+    const cart = new Map();
+    const cartList = document.getElementById('cartList');
+
+    function renderCards() {
+      const choice = marketFilter.value;
+      const rows = products.filter(p => choice === 'all' || p[0] === choice);
+      const html = rows.map(([market, name, link, stock], idx) => `
+        <article class="card">
+          <div class="meta">${market}</div>
+          <h3>${name}</h3>
+          <div class="meta">Presale stock available: <span class="stock">${stock}</span></div>
+          <div class="controls">
+            <label for="qty-${idx}">Qty</label>
+            <input id="qty-${idx}" type="number" min="1" max="${stock}" value="1">
+            <button class="btn btn-outline" onclick="reserve('${name.replace(/'/g, "\\'")}', ${stock}, document.getElementById('qty-${idx}').value)">Reserve</button>
+          </div>
+          <a class="btn btn-primary" href="${link}">Open Product Page</a>
+        </article>`).join('');
+      document.getElementById('marketGrid').innerHTML = html;
+    }
+
+    window.reserve = (name, stock, qtyRaw) => {
+      const qty = Math.max(1, Number(qtyRaw) || 1);
+      if (qty > stock) return alert(`Only ${stock} units are available for presale.`);
+      cart.set(name, { qty, stock });
+      drawCart();
+    };
+
+    function drawCart() {
+      cartList.innerHTML = [...cart.entries()].map(([name, item]) => `<li>${name}: ${item.qty} / ${item.stock}</li>`).join('') || '<li>No reservations yet.</li>';
+    }
+
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+      if (!cart.size) return alert('Add at least one product to proceed.');
+      const lines = [...cart.entries()].map(([name, item]) => `${name} — Qty ${item.qty}`).join('%0D%0A');
+      const subject = encodeURIComponent('Ioncore Marketplace Presale Purchase Request');
+      const body = `Please confirm the following presale allocations:%0D%0A%0D%0A${lines}%0D%0A%0D%0ASubmitted from the full marketplace page.`;
+      window.location.href = `mailto:ioncoreenergy@gmail.com?subject=${subject}&body=${body}`;
+    });
+
+    marketFilter.addEventListener('change', renderCards);
+    renderCards();
+    drawCart();
+  </script>
+</body>
+</html>

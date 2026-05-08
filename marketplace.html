@@ -27,6 +27,13 @@
     .market-defs ul{margin:.5rem 0 0;padding-left:1.1rem}
     .market-defs li{margin:.35rem 0}
     .unit-note{font-size:.84rem;opacity:.9;line-height:1.35;margin:.55rem 0 .35rem}
+    .market-section{margin-top:1rem;background:#0b121d;border:1px solid #2a2f3a;border-radius:14px;padding:1rem}
+    .market-section h2{margin:.15rem 0 .35rem}
+    .market-assets{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-top:.8rem}
+    .bulk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem;margin:.6rem 0}
+    .bulk-grid div{background:#121926;border:1px solid #2a2f3a;border-radius:8px;padding:.4rem .5rem;font-size:.84rem}
+    .market-summary{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.45rem}
+    .market-summary .pill{background:#121926;border:1px solid #2a2f3a;border-radius:999px;padding:.35rem .65rem;font-size:.82rem}
   </style>
 </head>
 <body>
@@ -112,33 +119,73 @@
     const cart = new Map();
     const cartList = document.getElementById('cartList');
 
+    function bulkDeals(basePrice) {
+      return [
+        { label: '5+ units', discount: 0.08, minQty: 5 },
+        { label: '10+ units', discount: 0.12, minQty: 10 },
+        { label: '20+ units', discount: 0.18, minQty: 20 }
+      ].map(tier => ({ ...tier, unitPrice: Math.round(basePrice * (1 - tier.discount)) }));
+    }
+
     function renderCards() {
       const choice = marketFilter.value;
-      const rows = products.filter(p => choice === 'all' || p[0] === choice);
-      const html = rows.map(([market, name, link, stock, listPrice, luxuryPrice, unitLabel, unitDetail], idx) => {
-        const listVal = listPrice * stock;
-        const luxuryVal = luxuryPrice * stock;
+      const grouped = new Map();
+      products.forEach(row => {
+        const market = row[0];
+        if (choice !== 'all' && market !== choice) return;
+        if (!grouped.has(market)) grouped.set(market, []);
+        grouped.get(market).push(row);
+      });
+
+      const html = [...grouped.entries()].map(([market, rows]) => {
+        const marketUnits = rows.reduce((sum, [, , , stock]) => sum + stock, 0);
+        const marketList = rows.reduce((sum, [, , , stock, listPrice]) => sum + (stock * listPrice), 0);
+        const marketLuxury = rows.reduce((sum, [, , , stock, , luxuryPrice]) => sum + (stock * luxuryPrice), 0);
+
+        const assets = rows.map(([m, name, link, stock, listPrice, luxuryPrice, unitLabel, unitDetail], idx) => {
+          const listVal = listPrice * stock;
+          const luxuryVal = luxuryPrice * stock;
+          const listBulk = bulkDeals(listPrice);
+          const luxuryBulk = bulkDeals(luxuryPrice);
+          return `
+          <article class="card">
+            <div class="meta">${m}</div>
+            <h3>${name}</h3>
+            <div class="meta">Presale stock available: <span class="stock">${stock}</span> ${unitLabel}${stock === 1 ? "" : "s"}</div>
+            <p class="unit-note"><strong>Unit definition:</strong> ${unitDetail}</p>
+            <div class="price-grid">
+              <div>List Price / Unit<br><span class="money">${money.format(listPrice)}</span></div>
+              <div>Luxury Price / Unit<br><span class="money">${money.format(luxuryPrice)}</span></div>
+              <div>List Sellout Value<br><span class="money">${money.format(listVal)}</span></div>
+              <div>Luxury Sellout Value<br><span class="money">${money.format(luxuryVal)}</span></div>
+            </div>
+            <div class="bulk-grid">
+              ${listBulk.map((tier, i) => `<div><strong>${tier.label}</strong><br>List ${money.format(tier.unitPrice)} | Luxury ${money.format(luxuryBulk[i].unitPrice)}</div>`).join('')}
+            </div>
+            <div class="controls">
+              <label for="qty-${idx}-${name.length}">Qty</label>
+              <input id="qty-${idx}-${name.length}" type="number" min="1" max="${stock}" value="1">
+              <button class="btn btn-outline" onclick="reserve('${name.replace(/'/g, "\'")}', ${stock}, ${listPrice}, ${luxuryPrice}, document.getElementById('qty-${idx}-${name.length}').value)">Reserve</button>
+            </div>
+            <a class="btn btn-primary" href="${link}">Open Product Page</a>
+          </article>`;
+        }).join('');
+
         return `
-        <article class="card">
-          <div class="meta">${market}</div>
-          <h3>${name}</h3>
-          <div class="meta">Presale stock available: <span class="stock">${stock}</span> ${unitLabel}${stock === 1 ? "" : "s"}</div>
-          <p class="unit-note"><strong>Unit definition:</strong> ${unitDetail}</p>
-          <div class="price-grid">
-            <div>List Price / Unit<br><span class="money">${money.format(listPrice)}</span></div>
-            <div>Luxury Price / Unit<br><span class="money">${money.format(luxuryPrice)}</span></div>
-            <div>List Sellout Value<br><span class="money">${money.format(listVal)}</span></div>
-            <div>Luxury Sellout Value<br><span class="money">${money.format(luxuryVal)}</span></div>
+        <section class="market-section">
+          <h2>${market}</h2>
+          <p class="meta">${marketDefinitions[market] || 'Defined marketplace segment for product grouping and valuation.'}</p>
+          <div class="market-summary">
+            <span class="pill">Assets: ${rows.length}</span>
+            <span class="pill">Units in market: ${marketUnits}</span>
+            <span class="pill">List sellout: ${money.format(marketList)}</span>
+            <span class="pill">Luxury sellout: ${money.format(marketLuxury)}</span>
           </div>
-          <div class="controls">
-            <label for="qty-${idx}">Qty</label>
-            <input id="qty-${idx}" type="number" min="1" max="${stock}" value="1">
-            <button class="btn btn-outline" onclick="reserve('${name.replace(/'/g, "\\'")}', ${stock}, ${listPrice}, ${luxuryPrice}, document.getElementById('qty-${idx}').value)">Reserve</button>
-          </div>
-          <a class="btn btn-primary" href="${link}">Open Product Page</a>
-        </article>`;
+          <div class="market-assets">${assets}</div>
+        </section>`;
       }).join('');
-      document.getElementById('marketGrid').innerHTML = html;
+
+      document.getElementById('marketGrid').innerHTML = html || '<p class="meta">No assets found for this market selection.</p>';
     }
 
     window.reserve = (name, stock, listPrice, luxuryPrice, qtyRaw) => {

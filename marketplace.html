@@ -23,6 +23,9 @@
     .money{font-weight:700;color:#99f3ff}
     .valuation{margin-top:1rem;background:#0d1420;border:1px solid #2a2f3a;border-radius:12px;padding:1rem}
     .valuation h3{margin:.1rem 0 .5rem}
+    .market-defs{margin-top:1rem;background:#0e1623;border:1px solid #2a2f3a;border-radius:12px;padding:1rem}
+    .market-defs ul{margin:.5rem 0 0;padding-left:1.1rem}
+    .market-defs li{margin:.35rem 0}
   </style>
 </head>
 <body>
@@ -31,7 +34,7 @@
     <section class="market-head">
       <div>
         <h1>Ioncore Full Marketplace (Presale Allocation)</h1>
-        <p>Luxury/list pricing with complete sell-out valuation across all available product inventory.</p>
+        <p>Refined list/luxury pricing with normalized stock counts and complete sell-out valuation based on corrected inventory totals.</p>
       </div>
       <div class="row">
         <label for="marketFilter" class="meta">Market</label>
@@ -49,46 +52,59 @@
     <section class="valuation" id="valuationSummary"></section>
     <section id="marketGrid" class="market-grid"></section>
     <section class="valuation" id="marketAnalysis"></section>
+    <section class="market-defs" id="marketDefinitions"></section>
   </main>
 
   <script>
     const products = [
-      ["Investment & Access", "Unified Fundraising & Presale Launch", "fundraising2.html", 120, 250000, 325000],
-      ["Investment & Access", "Magnetic Stripe Checkout", "magnetic-stripe-checkout.html", 300, 19000, 26000],
-      ["Core Systems", "50mm Magnetic Inertia System", "50%20mm.html", 60, 2200000, 2950000],
-      ["Core Systems", "Magnetic Inertia System | Energy Brochure", "magnetic%20inertia%20system.html", 75, 1100000, 1450000],
-      ["Core Systems", "OmniCore X15", "OmniCore%20X15.html", 40, 6500000, 8400000],
-      ["Core Systems", "Permanent Magnet Synchronous Generator (PMSG)", "Permanent%20Magnet%20Synchronous%20Generator.html", 55, 760000, 985000],
-      ["Mobility & Industrial", "Hybrid Turbine–Magnetic Engine Program", "hybrid%20turnine%20engine.html", 28, 7400000, 9800000],
-      ["Mobility & Industrial", "Magnetic Inertia Jet Engine", "Magnetic%20Inertia%20Jet%20Engine.html", 24, 9100000, 12000000],
-      ["Mobility & Industrial", "Magnetic Inertia Air Propulsion", "magnetic_inertia_airprop_brochure.html", 32, 3700000, 4900000],
-      ["Mobility & Industrial", "Industrial Power Plants", "industrial.html", 22, 14600000, 19100000],
-      ["Built Environment", "Camper & Hotel Division", "camp.html", 36, 4200000, 5600000],
-      ["Built Environment", "Condo Prototype", "condo%20play.html", 30, 5100000, 6800000],
-      ["Built Environment", "MI-HWC Hot-Water Charger", "MI-HWC%20%E2%80%94%20Magnetic%20Inertia%20Hot-Water%20Charger.html", 50, 850000, 1125000],
-      ["Cooling & Thermal", "Cooling System Breakdown", "Complete%20Breakdown%20Cooling%20System%20for%20Magnetic%20Inertia%20System.html", 80, 470000, 620000],
-      ["Cooling & Thermal", "Cryogenic Cooling System", "cryogenic_cooling_brochure.html", 65, 980000, 1300000],
-      ["Cooling & Thermal", "Dual-Loop Cryogenic Thermal Tower", "dual-loop-cryogenic-thermal-tower.html", 45, 1400000, 1890000],
-      ["Cooling & Thermal", "Cryo Cooler Overview", "cryo.html", 70, 390000, 525000],
-      ["Storage & Electronics", "High-Capacity Battery Solutions", "High-Capacity%20Battery%20Solution.html", 120, 950000, 1300000],
-      ["Storage & Electronics", "Hybrid Flywheel + Battery Storage", "Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html", 54, 1800000, 2350000],
-      ["Storage & Electronics", "Rotational Gyrating Flywheel", "flywheeldisk.html", 46, 1500000, 2000000],
-      ["Storage & Electronics", "Holophone", "holophone.html", 140, 22000, 30000],
-      ["AI, Security & XR", "Sentinel Multi‑Cam AI Platform", "Sentinel%20Multi%E2%80%91cam%20Ai.html", 110, 310000, 420000],
-      ["AI, Security & XR", "Sentinel Pricing & Packages", "Sentinel%20Multi%E2%80%91Cam%20AI%20Surveillance%20Platform1.html", 200, 120000, 165000],
-      ["AI, Security & XR", "Integrated Intelligent Node System", "IntegratedIntelligentNodeSystem.html", 85, 580000, 760000],
-      ["AI, Security & XR", "Ion Eye AR Headset", "ioncore/IonCore%20%E2%80%94%20Ion%20Eye%20%C2%B7%20AR%20Headset%20for%20Robotics%20%26%20Smart%20Systems.html", 44, 275000, 365000],
-      ["AI, Security & XR", "Ion Eye Sentinel Sync Demo", "ioncore/IonCore%20%C2%B7%20Ion%20Eye%20%E2%80%94%20Sentinel%20Sync%20%26%20Full%20Demo.html", 44, 95000, 130000],
-      ["Advanced Manufacturing", "IonCore FiberCut 1k", "IonCore%20FiberCut%201k%20%E2%80%93%20Mobile%20Tracker%20Laser%20Cutting%20System.html", 35, 2700000, 3500000],
-      ["Advanced Manufacturing", "IonCore FiberCut M1 Pro", "IonCore%20FiberCut%20M1%20Pro%20_%20Industrial-Grade%20Mobile%20Precision%20Cutting%20Platform.html", 29, 4200000, 5500000],
-      ["Platform Tools", "Omconsole Neural Control Console", "Omconsole.html", 95, 65000, 90000],
-      ["Platform Tools", "ForgeLink Brochure", "forgelink_brochure_bundle/forgelink_brochure_selfcontained.html", 150, 45000, 62000],
-      ["Platform Tools", "Peak Series 3D Brochure", "peak_series_brochure.html", 90, 39000, 54000],
-      ["Platform Tools", "Mag-Inertia Dashboard", "Mag-Inertia%20One%E2%84%A2%20v1%20System%20Dashboard.html", 110, 72000, 98000]
+      ["Investment & Access", "Unified Fundraising & Presale Launch", "fundraising2.html", 60, 180000, 225000],
+      ["Investment & Access", "Magnetic Stripe Checkout", "magnetic-stripe-checkout.html", 240, 12500, 15600],
+      ["Core Systems", "50mm Magnetic Inertia System", "50mm%20Magnetic%20Inertia%20System.html", 24, 1650000, 2062500],
+      ["Core Systems", "Magnetic Inertia System | Energy Brochure", "magnetic%20inertia%20system.html", 30, 825000, 1031250],
+      ["Core Systems", "OmniCore X15", "OmniCore%20X15.html", 16, 4875000, 6093750],
+      ["Core Systems", "Permanent Magnet Synchronous Generator (PMSG)", "Permanent%20Magnet%20Synchronous%20Generator.html", 28, 570000, 712500],
+      ["Mobility & Industrial", "Hybrid Turbine–Magnetic Engine Program", "hybrid%20turnine%20engine.html", 14, 5550000, 6937500],
+      ["Mobility & Industrial", "Magnetic Inertia Jet Engine", "Magnetic%20Inertia%20Jet%20Engine.html", 10, 6825000, 8531250],
+      ["Mobility & Industrial", "Magnetic Inertia Air Propulsion", "magnetic_inertia_airprop_brochure.html", 18, 2775000, 3468750],
+      ["Mobility & Industrial", "Industrial Power Plants", "industrial.html", 8, 10950000, 13687500],
+      ["Built Environment", "Camper & Hotel Division", "camp.html", 20, 3150000, 3937500],
+      ["Built Environment", "Condo Prototype", "condo%20play.html", 16, 3825000, 4781250],
+      ["Built Environment", "MI-HWC Hot-Water Charger", "MI-HWC%20%E2%80%94%20Magnetic%20Inertia%20Hot-Water%20Charger.html", 36, 637500, 796875],
+      ["Cooling & Thermal", "Cooling System Breakdown", "Complete%20Breakdown%20Cooling%20System%20for%20Magnetic%20Inertia%20System.html", 40, 352500, 440625],
+      ["Cooling & Thermal", "Cryogenic Cooling System", "cryogenic_cooling_brochure.html", 28, 735000, 918750],
+      ["Cooling & Thermal", "Dual-Loop Cryogenic Thermal Tower", "dual-loop-cryogenic-thermal-tower.html", 22, 1050000, 1312500],
+      ["Cooling & Thermal", "Cryo Cooler Overview", "cryo.html", 44, 292500, 365625],
+      ["Storage & Electronics", "High-Capacity Battery Solutions", "High-Capacity%20Battery%20Solution.html", 48, 712500, 890625],
+      ["Storage & Electronics", "Hybrid Flywheel + Battery Storage", "Hybrid%20Flywheel%20+%20Battery%20Home%20Energy%20Storage%20System.html", 24, 1350000, 1687500],
+      ["Storage & Electronics", "Rotational Gyrating Flywheel", "flywheeldisk.html", 24, 1125000, 1406250],
+      ["Storage & Electronics", "Holophone", "holophone.html", 120, 16500, 20625],
+      ["AI, Security & XR", "Sentinel Multi‑Cam AI Platform", "Sentinel%20Multi%E2%80%91cam%20Ai.html", 84, 232500, 290625],
+      ["AI, Security & XR", "Sentinel Pricing & Packages", "Sentinel%20Multi%E2%80%91Cam%20AI%20Surveillance%20Platform1.html", 120, 90000, 112500],
+      ["AI, Security & XR", "Integrated Intelligent Node System", "IntegratedIntelligentNodeSystem.html", 36, 435000, 543750],
+      ["AI, Security & XR", "Ion Eye AR Headset", "ioncore/IonCore%20%E2%80%94%20Ion%20Eye%20%C2%B7%20AR%20Headset%20for%20Robotics%20%26%20Smart%20Systems.html", 24, 206250, 257813],
+      ["AI, Security & XR", "Ion Eye Sentinel Sync Demo", "ioncore/IonCore%20%C2%B7%20Ion%20Eye%20%E2%80%94%20Sentinel%20Sync%20%26%20Full%20Demo.html", 24, 71250, 89063],
+      ["Advanced Manufacturing", "IonCore FiberCut 1k", "IonCore%20FiberCut%201k%20%E2%80%93%20Mobile%20Tracker%20Laser%20Cutting%20System.html", 16, 2025000, 2531250],
+      ["Advanced Manufacturing", "IonCore FiberCut M1 Pro", "IonCore%20FiberCut%20M1%20Pro%20_%20Industrial-Grade%20Mobile%20Precision%20Cutting%20Platform.html", 12, 3150000, 3937500],
+      ["Platform Tools", "Omconsole Neural Control Console", "Omconsole.html", 72, 48750, 60938],
+      ["Platform Tools", "ForgeLink Brochure", "forgelink_brochure_bundle/forgelink_brochure_selfcontained.html", 120, 33750, 42188],
+      ["Platform Tools", "Peak Series 3D Brochure", "peak_series_brochure.html", 72, 29250, 36563],
+      ["Platform Tools", "Mag-Inertia Dashboard", "Mag-Inertia%20One%E2%84%A2%20v1%20System%20Dashboard.html", 72, 54000, 67500]
     ];
 
     const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     const markets = [...new Set(products.map(p => p[0]))];
+    const marketDefinitions = {
+      "Investment & Access": "Capital raises, transaction rails, and buyer-entry systems that enable presale onboarding and conversion.",
+      "Core Systems": "Primary power-generation and conversion hardware forming the backbone of the Ioncore energy stack.",
+      "Mobility & Industrial": "Propulsion and heavy-duty deployment systems for transportation, aerospace, and plant-scale operations.",
+      "Built Environment": "Residential, hospitality, and infrastructure products focused on property-ready energy integration.",
+      "Cooling & Thermal": "Thermal-management and cryogenic subsystems that stabilize performance, efficiency, and lifespan.",
+      "Storage & Electronics": "Energy storage, rotational storage, and edge electronics that support delivery and continuity.",
+      "AI, Security & XR": "Autonomy, surveillance, and XR interfaces for monitoring, control, and operator visibility.",
+      "Advanced Manufacturing": "Precision fabrication platforms and mobile industrial tooling used to build and service systems.",
+      "Platform Tools": "Software and visualization tools used for operations, configuration, and commercial presentation."
+    };
+
     const marketFilter = document.getElementById('marketFilter');
     markets.forEach(m => marketFilter.insertAdjacentHTML('beforeend', `<option value="${m}">${m}</option>`));
 
@@ -136,6 +152,16 @@
       ).join('') || '<li>No reservations yet.</li>';
     }
 
+
+    function renderMarketDefinitions() {
+      const html = markets.map((market) => `<li><strong>${market}:</strong> ${marketDefinitions[market] || 'Defined marketplace segment for product grouping and valuation.'}</li>`).join('');
+      document.getElementById('marketDefinitions').innerHTML = `
+        <h3>Defined Market Segments</h3>
+        <p class="meta">Market categories are explicitly defined below so inventory, pricing, and valuation are grouped consistently.</p>
+        <ul>${html}</ul>
+      `;
+    }
+
     function renderValuations() {
       const listTotal = products.reduce((sum, [, , , stock, listPrice]) => sum + (stock * listPrice), 0);
       const luxuryTotal = products.reduce((sum, [, , , stock, , luxuryPrice]) => sum + (stock * luxuryPrice), 0);
@@ -170,6 +196,7 @@
     renderCards();
     drawCart();
     renderValuations();
+    renderMarketDefinitions();
   </script>
 </body>
 </html>

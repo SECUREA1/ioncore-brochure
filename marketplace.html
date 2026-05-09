@@ -49,6 +49,7 @@
     <section class="valuation" id="valuationSummary"></section>
     <section id="marketGrid" class="market-grid"></section>
     <section class="valuation" id="marketAnalysis"></section>
+    <section class="valuation" id="projectAnalysis"></section>
   </main>
 
   <script>
@@ -137,24 +138,83 @@
     }
 
     function renderValuations() {
+      const totalStock = products.reduce((sum, [, , , stock]) => sum + stock, 0);
       const listTotal = products.reduce((sum, [, , , stock, listPrice]) => sum + (stock * listPrice), 0);
       const luxuryTotal = products.reduce((sum, [, , , stock, , luxuryPrice]) => sum + (stock * luxuryPrice), 0);
+
+      const pct = (num, den) => den ? `${((num / den) * 100).toFixed(2)}%` : '0.00%';
+      const categories = [...new Set(products.map(([market]) => market))];
+
       document.getElementById('valuationSummary').innerHTML = `
         <h3>Complete Marketplace Sellout Valuation</h3>
-        <p class="meta">If every listed product inventory is sold out at list or luxury pricing, total valuation is:</p>
+        <p class="meta">Portfolio totals used for stock and value allocation across all sections and projects.</p>
+        <p><strong>Total Presale Stock:</strong> <span class="money">${totalStock.toLocaleString('en-US')}</span></p>
         <p><strong>List Sellout Valuation:</strong> <span class="money">${money.format(listTotal)}</span></p>
         <p><strong>Luxury Sellout Valuation:</strong> <span class="money">${money.format(luxuryTotal)}</span></p>
       `;
 
-      const connieRows = products.filter(([market]) => market === 'Built Environment');
-      const connieList = connieRows.reduce((sum, [, , , stock, listPrice]) => sum + (stock * listPrice), 0);
-      const connieLuxury = connieRows.reduce((sum, [, , , stock, , luxuryPrice]) => sum + (stock * luxuryPrice), 0);
+      const categoryRows = categories.map((market) => {
+        const rows = products.filter(([m]) => m === market);
+        const marketStock = rows.reduce((sum, [, , , stock]) => sum + stock, 0);
+        const marketList = rows.reduce((sum, [, , , stock, listPrice]) => sum + (stock * listPrice), 0);
+        const marketLuxury = rows.reduce((sum, [, , , stock, , luxuryPrice]) => sum + (stock * luxuryPrice), 0);
+        return `
+          <tr>
+            <td>${market}</td>
+            <td>${marketStock.toLocaleString('en-US')}</td>
+            <td>${pct(marketStock, totalStock)}</td>
+            <td>${pct(marketList, listTotal)}</td>
+            <td>${pct(marketLuxury, luxuryTotal)}</td>
+          </tr>`;
+      }).join('');
+
       document.getElementById('marketAnalysis').innerHTML = `
-        <h3>Marketplace Analysis — Connie's Market (Built Environment)</h3>
-        <p class="meta">Assuming Connie's market refers to the Built Environment products (Camper & Hotel Division, Condo Prototype, and MI-HWC Hot-Water Charger):</p>
-        <p><strong>Built Environment list sellout:</strong> <span class="money">${money.format(connieList)}</span></p>
-        <p><strong>Built Environment luxury sellout:</strong> <span class="money">${money.format(connieLuxury)}</span></p>
-        <p class="meta">This segment shows strong high-ticket project potential with clear upside under premium/luxury positioning and full inventory conversion.</p>
+        <h3>Market Category Share of Portfolio</h3>
+        <p class="meta">Each market category shown as a percentage share of full portfolio stock, list valuation, and luxury valuation.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Stock Units</th>
+              <th>Stock Share %</th>
+              <th>List Value Share %</th>
+              <th>Luxury Value Share %</th>
+            </tr>
+          </thead>
+          <tbody>${categoryRows}</tbody>
+        </table>
+      `;
+
+      const projectRows = products.map(([market, name, , stock, listPrice, luxuryPrice]) => {
+        const listValue = stock * listPrice;
+        const luxuryValue = stock * luxuryPrice;
+        return `
+          <tr>
+            <td>${market}</td>
+            <td>${name}</td>
+            <td>${stock.toLocaleString('en-US')}</td>
+            <td>${pct(stock, totalStock)}</td>
+            <td>${pct(listValue, listTotal)}</td>
+            <td>${pct(luxuryValue, luxuryTotal)}</td>
+          </tr>`;
+      }).join('');
+
+      document.getElementById('projectAnalysis').innerHTML = `
+        <h3>Project-by-Project Share Breakdown</h3>
+        <p class="meta">Detailed stock allocation and valuation contribution percentages for every project in the marketplace portfolio.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Project</th>
+              <th>Stock Units</th>
+              <th>Stock Share %</th>
+              <th>List Value Share %</th>
+              <th>Luxury Value Share %</th>
+            </tr>
+          </thead>
+          <tbody>${projectRows}</tbody>
+        </table>
       `;
     }
 

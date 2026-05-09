@@ -94,6 +94,12 @@
     const cart = new Map();
     const cartList = document.getElementById('cartList');
 
+    function normalizeBatchQty(qtyRaw, maxBatches) {
+      const qty = Math.floor(Number(qtyRaw));
+      if (!Number.isFinite(qty) || qty < 1) return 1;
+      return Math.min(qty, maxBatches);
+    }
+
     function renderCards() {
       const choice = marketFilter.value;
       const rows = products.filter(p => choice === 'all' || p[0] === choice);
@@ -104,15 +110,15 @@
         <article class="card">
           <div class="meta">${market}</div>
           <h3>${name}</h3>
-          <div class="meta">Presale stock available: <span class="stock">${stock}</span></div>
+          <div class="meta">Max stock batches available: <span class="stock">${stock}</span></div>
           <div class="price-grid">
-            <div>List Price<br><span class="money">${money.format(listPrice)}</span></div>
-            <div>Luxury Price<br><span class="money">${money.format(luxuryPrice)}</span></div>
-            <div>List Sellout Value<br><span class="money">${money.format(listVal)}</span></div>
-            <div>Luxury Sellout Value<br><span class="money">${money.format(luxuryVal)}</span></div>
+            <div>List Price (Stock Batch)<br><span class="money">${money.format(listPrice)}</span></div>
+            <div>Luxury Price (Stock Batch)<br><span class="money">${money.format(luxuryPrice)}</span></div>
+            <div>List Sellout (Max Batches)<br><span class="money">${money.format(listVal)}</span></div>
+            <div>Luxury Sellout (Max Batches)<br><span class="money">${money.format(luxuryVal)}</span></div>
           </div>
           <div class="controls">
-            <label for="qty-${idx}">Qty</label>
+            <label for="qty-${idx}">Batches</label>
             <input id="qty-${idx}" type="number" min="1" max="${stock}" value="1">
             <button class="btn btn-outline" onclick="reserve('${name.replace(/'/g, "\\'")}', ${stock}, ${listPrice}, ${luxuryPrice}, document.getElementById('qty-${idx}').value)">Reserve</button>
           </div>
@@ -123,15 +129,15 @@
     }
 
     window.reserve = (name, stock, listPrice, luxuryPrice, qtyRaw) => {
-      const qty = Math.max(1, Number(qtyRaw) || 1);
-      if (qty > stock) return alert(`Only ${stock} units are available for presale.`);
+      const qty = normalizeBatchQty(qtyRaw, stock);
+      if (Number(qtyRaw) > stock) return alert(`Only ${stock} stock batches are available for presale.`);
       cart.set(name, { qty, stock, listPrice, luxuryPrice });
       drawCart();
     };
 
     function drawCart() {
       cartList.innerHTML = [...cart.entries()].map(([name, item]) =>
-        `<li>${name}: ${item.qty} / ${item.stock} | List ${money.format(item.qty * item.listPrice)} | Luxury ${money.format(item.qty * item.luxuryPrice)}</li>`
+        `<li>${name}: ${item.qty} / ${item.stock} batches | List ${money.format(item.qty * item.listPrice)} | Luxury ${money.format(item.qty * item.luxuryPrice)}</li>`
       ).join('') || '<li>No reservations yet.</li>';
     }
 
@@ -146,7 +152,7 @@
       document.getElementById('valuationSummary').innerHTML = `
         <h3>Complete Marketplace Sellout Valuation</h3>
         <p class="meta">Portfolio totals used for stock and value allocation across all sections and projects.</p>
-        <p><strong>Total Presale Stock:</strong> <span class="money">${totalStock.toLocaleString('en-US')}</span></p>
+        <p><strong>Total Presale Stock Batches:</strong> <span class="money">${totalStock.toLocaleString('en-US')}</span></p>
         <p><strong>List Sellout Valuation:</strong> <span class="money">${money.format(listTotal)}</span></p>
         <p><strong>Luxury Sellout Valuation:</strong> <span class="money">${money.format(luxuryTotal)}</span></p>
       `;
@@ -173,7 +179,7 @@
           <thead>
             <tr>
               <th>Category</th>
-              <th>Stock Units</th>
+              <th>Stock Batches</th>
               <th>Stock Share %</th>
               <th>List Value Share %</th>
               <th>Luxury Value Share %</th>
@@ -199,13 +205,13 @@
 
       document.getElementById('projectAnalysis').innerHTML = `
         <h3>Project-by-Project Share Breakdown</h3>
-        <p class="meta">Detailed stock allocation and valuation contribution percentages for every project in the marketplace portfolio.</p>
+        <p class="meta">Detailed stock-batch allocation and valuation contribution percentages for every project in the marketplace portfolio.</p>
         <table>
           <thead>
             <tr>
               <th>Category</th>
               <th>Project</th>
-              <th>Stock Units</th>
+              <th>Stock Batches</th>
               <th>Stock Share %</th>
               <th>List Value Share %</th>
               <th>Luxury Value Share %</th>
@@ -218,7 +224,7 @@
 
     document.getElementById('checkoutBtn').addEventListener('click', () => {
       if (!cart.size) return alert('Add at least one product to proceed.');
-      const lines = [...cart.entries()].map(([name, item]) => `${name} — Qty ${item.qty} | List ${money.format(item.qty * item.listPrice)} | Luxury ${money.format(item.qty * item.luxuryPrice)}`).join('%0D%0A');
+      const lines = [...cart.entries()].map(([name, item]) => `${name} — Batches ${item.qty} | List ${money.format(item.qty * item.listPrice)} | Luxury ${money.format(item.qty * item.luxuryPrice)}`).join('%0D%0A');
       const subject = encodeURIComponent('Ioncore Marketplace Presale Purchase Request');
       const body = `Please confirm the following presale allocations:%0D%0A%0D%0A${lines}%0D%0A%0D%0ASubmitted from the full marketplace page.`;
       window.location.href = `mailto:ioncoreenergy@gmail.com?subject=${subject}&body=${body}`;

@@ -1432,7 +1432,7 @@ function generateMeknxPassId() {
 app.get('/login', async (req, res) => {
   const queryNext = typeof req.query.next === 'string' ? req.query.next : '/webpage.html';
   const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/webpage.html';
-  return res.redirect(safeNext);
+  return res.redirect(`/login.html?next=${encodeURIComponent(safeNext)}`);
 });
 
 app.post('/login', async (req, res) => {
@@ -2372,13 +2372,9 @@ function isPublicRoute(req) {
 
   if (isReadOnlyRequest) {
     const publicHtml = new Set([
-      '/',
       '/login',
-      '/ioncore-contracting.html',
-      '/IONCORECHAT',
-      '/IONCORECHAT/',
-      '/IONCORECHAT/index',
-      '/IONCORECHAT/index.html',
+      '/login.html',
+      '/webpage-login.html',
       '/metrics'
     ]);
     if (publicHtml.has(req.path)) {
@@ -2401,7 +2397,23 @@ function isPublicRoute(req) {
 }
 
 function requireAuth(req, res, next) {
-  return next();
+  if (isPublicRoute(req)) {
+    return next();
+  }
+
+  const sessionId = getSessionIdFromCookies(req);
+  const hasSession = validateAuthSession(sessionId);
+  if (hasSession) {
+    return next();
+  }
+
+  const method = typeof req.method === 'string' ? req.method.toUpperCase() : 'GET';
+  const requestedPath = req.originalUrl || req.url || '/webpage.html';
+  if (method === 'GET' || method === 'HEAD') {
+    return res.redirect(`/login.html?next=${encodeURIComponent(requestedPath)}`);
+  }
+
+  return res.status(401).json({ message: 'Login required for this session.' });
 }
 
 async function getHtmlFiles(dir) {

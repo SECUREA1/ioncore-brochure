@@ -23,7 +23,6 @@
         <li><a href="#solutions">Solutions</a></li>
         <li><a href="#technology">Technology</a></li>
         <li><a href="#deployment">Deployment</a></li>
-        <li><a href="#fundraising">Fundraising</a></li>
         <li><a href="#insights">Insights</a></li>
         <li><a href="#confidential">Confidential portfolio</a></li>
         <li><a href="fullexperience.html">Full experience</a></li>
@@ -31,7 +30,7 @@
       </ul>
     </nav>
 
-    <a class="btn btn-primary btn--half" href="index.html">Explore our projects</a>
+    <a class="btn btn-primary" href="index.html">Explore our projects</a>
     <a class="btn btn-outline" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Connect</a>
 
   </header>
@@ -43,20 +42,17 @@
         <h1>Elite, silent power for bold environments.</h1>
         <p>Magnetic inertia, flywheel, and cryogenic platforms keep luxury estates, campuses, fleets, and missions online without compromise.</p>
         <div class="hero__actions">
-          <a class="btn btn-primary btn--half" href="index.html">Explore our projects</a>
-          <a class="btn btn-primary btn--full" href="mailto:ioncoreenergy@gmail.com">Schedule a private consultation</a>
-          <div class="partner-actions btn--full">
-            <a class="btn btn-rednode btn--half" href="https://rednode.ai/" target="_blank" rel="noreferrer noopener">
-              <span class="btn-icon">
-                <img src="rednode-excavator.svg" alt="" aria-hidden="true">
-              </span>
-              <span class="btn-rednode__label">
-                <small>Launch</small>
-                rednode.ai
-              </span>
-            </a>
-            <a class="btn btn-outline btn--half" href="https://watchtower1-qfrz.onrender.com/" target="_blank" rel="noreferrer noopener">Launch Watchtower</a>
-          </div>
+          <a class="btn btn-primary" href="index.html">Explore our projects</a>
+          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a private consultation</a>
+          <a class="btn btn-rednode" href="https://rednode.ai" target="_blank" rel="noreferrer noopener">
+            <span class="btn-icon">
+              <img src="rednode-excavator.svg" alt="" aria-hidden="true">
+            </span>
+            <span class="btn-rednode__label">
+              <small>Launch</small>
+              RedNode.ai
+            </span>
+          </a>
         </div>
         <div class="engagement-counters" aria-live="polite">
           <div class="counter-card tile-highlight" aria-label="Number of visitors currently viewing this experience">
@@ -247,22 +243,6 @@
             <span>Aerospace Consortium</span>
           </div>
         </article>
-      </div>
-    </section>
-
-    <section class="container page-section" id="fundraising">
-      <span class="eyebrow">Capital Raise</span>
-      <h2 class="section-title">Investor-Ready Fundraising Portfolio</h2>
-      <p class="section-subtitle">Review a polished, investor-ready fundraising suite with dedicated views for shareholder onboarding and production launch planning.</p>
-      <div class="cta-panel tile-highlight">
-        <div class="hero__actions">
-        </div>
-        <iframe
-          src="fundraising.html"
-          title="Ioncore investor-ready shareholder fundraising presentation iframe"
-          loading="lazy"
-          style="width: 100%; min-height: 720px; border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; background: rgba(7,12,24,0.7);"
-        ></iframe>
       </div>
     </section>
 
@@ -612,7 +592,51 @@
   </footer>
   <script>
 
-        (() => {
+    (() => {
+      const LOGIN_PATH = 'login.html';
+      const LOGIN_SESSION_KEY = 'ioncore-login-session';
+
+      const isInternalNavigableLink = (anchor) => {
+        if (!anchor) return false;
+        const href = anchor.getAttribute('href');
+        if (!href || href.startsWith('#')) return false;
+        if (/^(mailto:|tel:|javascript:)/i.test(href)) return false;
+        const url = new URL(anchor.href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        if (/\/login\.html$/i.test(url.pathname) || /\/webpage-login\.html$/i.test(url.pathname)) return false;
+        return /\.html?$/i.test(url.pathname) || url.pathname === '/' || url.pathname === '';
+      };
+
+      const hasLoginSession = () => {
+        try {
+          const raw = sessionStorage.getItem(LOGIN_SESSION_KEY);
+          if (!raw) return false;
+          const parsed = JSON.parse(raw);
+          return !!(parsed && parsed.authenticated === true);
+        } catch (error) {
+          return false;
+        }
+      };
+
+      const redirectToLogin = (nextTarget) => {
+        const targetPath = nextTarget.startsWith('/') ? nextTarget : `/${nextTarget}`;
+        const loginUrl = new URL(LOGIN_PATH, window.location.href);
+        loginUrl.searchParams.set('next', targetPath);
+        window.location.assign(loginUrl.toString());
+      };
+
+      document.addEventListener('click', (event) => {
+        const anchor = event.target instanceof Element ? event.target.closest('a') : null;
+        if (!isInternalNavigableLink(anchor)) return;
+        if (hasLoginSession()) return;
+
+        event.preventDefault();
+        const target = new URL(anchor.href, window.location.href);
+        redirectToLogin(`${target.pathname}${target.search}${target.hash}`);
+      });
+    })();
+
+    (() => {
       const liveEl = document.getElementById('live-counter');
       const viewedEl = document.getElementById('viewed-counter');
       if (!liveEl || !viewedEl || typeof fetch !== 'function') {

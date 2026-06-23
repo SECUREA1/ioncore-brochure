@@ -2775,8 +2775,8 @@
             <input id="username" name="username" type="text" placeholder="e.g. INVESTOR-ALPHA" value="guest">
           </div>
           <div class="field">
-            <label for="password">Clearance Code</label>
-            <input id="password" name="password" type="password" placeholder="••••••••">
+            <label for="password">Clearance Code <span class="field-hint">optional</span></label>
+            <input id="password" name="password" type="password" placeholder="Optional">
           </div>
         </div>
         <div class="mode-panel" id="meknx-panel" data-mode="meknx" role="tabpanel" aria-labelledby="tab-meknx" hidden>
@@ -5171,7 +5171,7 @@
 
         if (activeMode === 'credentials') {
           if (usernameInput) usernameInput.required = true;
-          if (passwordInput) passwordInput.required = true;
+          if (passwordInput) passwordInput.required = false;
         } else {
           if (usernameInput) usernameInput.required = false;
           if (passwordInput) passwordInput.required = false;
@@ -5725,20 +5725,26 @@
           return;
         }
 
-        const verifyingMessage =
-          activeMode === 'wallet'
-            ? 'Verifying wallet clearance…'
-            : activeMode === 'meknx'
-            ? 'Confirming MEKNX credential…'
-            : 'Decrypting clearance codes…';
-        updateStatus(verifyingMessage);
+        try {
+          sessionStorage.setItem(
+            'ioncore-login-session',
+            JSON.stringify({
+              authenticated: true,
+              authenticatedAt: Date.now(),
+              next: nextPath || '/'
+            })
+          );
+        } catch (storageError) {
+          console.warn('Unable to persist open-access session state', storageError);
+        }
+
+        updateStatus('Open access enabled. Opening vault…', 'success');
         submitButton.disabled = true;
-        submitButton.textContent =
-          activeMode === 'wallet'
-            ? 'Verifying Wallet…'
-            : activeMode === 'meknx'
-            ? 'Verifying MEKNX…'
-            : 'Verifying…';
+        submitButton.textContent = 'Opening…';
+        setTimeout(() => {
+          window.location.href = nextPath || '/';
+        }, 250);
+        return;
 
         const payload = {
           method: activeMode,

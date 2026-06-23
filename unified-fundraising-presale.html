@@ -4,21 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IonCore Energy | Unified Fundraising & Presale</title>
-  <meta name="description" content="IonCore Energy unified fundraising and presale page featuring portable, residential, commercial, and propulsion platforms." />
+  <meta name="description" content="Ioncore Energy unified fundraising and presale launch page for portable, residential, commercial, and propulsion platforms." />
+  <meta name="application-name" content="Ioncore Energy">
+  <meta name="apple-mobile-web-app-title" content="Ioncore Energy">
+  <meta name="theme-color" content="#6aff3b">
+  <meta property="og:site_name" content="Ioncore Energy">
+  <meta property="og:title" content="Ioncore Energy | Unified Fundraising & Presale">
+  <meta property="og:image" content="battery.svg">
+  <link rel="icon" type="image/svg+xml" href="battery.svg">
+  <link rel="shortcut icon" href="battery.svg">
+  <link rel="apple-touch-icon" href="battery.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
-      --bg: #07111d;
-      --bg2: #0b1728;
-      --panel: rgba(255,255,255,0.06);
-      --panel2: rgba(255,255,255,0.04);
-      --line: rgba(255,255,255,0.11);
-      --text: #eef5ff;
-      --muted: #b8c6dc;
-      --accent: #58c9ff;
-      --accent2: #84ffbd;
-      --gold: #ffd166;
-      --gold2: #ffebad;
-      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --bg: #030712;
+      --bg2: #09101d;
+      --panel: rgba(9,16,29,0.78);
+      --panel2: rgba(13,24,46,0.72);
+      --line: rgba(255,255,255,0.12);
+      --text: #f5f8ff;
+      --muted: #b7c7e4;
+      --accent: #6aff3b;
+      --accent2: #6aff3b;
+      --gold: #facc15;
+      --gold2: #fff3a3;
+      --shadow: 0 28px 60px rgba(8,14,31,0.42);
       --radius: 18px;
       --max: 1280px;
     }
@@ -27,11 +40,11 @@
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(88,201,255,0.14), transparent 28%),
-        radial-gradient(circle at top right, rgba(132,255,189,0.08), transparent 25%),
+        radial-gradient(circle at 20% 20%, rgba(106,255,59,0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(88,201,255,0.08), transparent 25%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
       line-height: 1.6;
     }
@@ -43,7 +56,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(7,17,29,0.84);
+      background: rgba(3,7,18,0.86);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--line);
     }
@@ -57,13 +70,17 @@
       flex-wrap: wrap;
     }
 
-    .brand strong {
+    .brand { display:flex; align-items:center; gap:12px; }
+
+    .brand img { width:48px; height:48px; border-radius:12px; }
+
+    .brand-copy strong {
       display: block;
       font-size: 1.15rem;
       letter-spacing: .4px;
     }
 
-    .brand span {
+    .brand-copy span {
       color: var(--muted);
       font-size: .9rem;
     }
@@ -93,19 +110,19 @@
     }
 
     .btn-primary {
-      background: linear-gradient(90deg, var(--accent), #88e0ff);
-      color: #05101b;
-      box-shadow: 0 8px 22px rgba(88,201,255,0.25);
+      background: linear-gradient(135deg, var(--accent), #3cbf2a);
+      color: #051016;
+      box-shadow: 0 16px 42px rgba(106,255,59,0.34);
     }
 
     .btn-secondary {
-      background: rgba(255,255,255,0.04);
+      background: rgba(9,16,29,0.72);
       border-color: var(--line);
       color: var(--text);
     }
 
     .btn-gold {
-      background: linear-gradient(90deg, var(--gold), #ffe49a);
+      background: linear-gradient(90deg, var(--gold), #fff3a3);
       color: #181100;
       box-shadow: 0 8px 22px rgba(255,209,102,0.22);
     }
@@ -120,7 +137,7 @@
 
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.15fr .95fr;
+      grid-template-columns: 1.1fr .45fr .65fr;
       gap: 28px;
       align-items: center;
     }
@@ -189,7 +206,10 @@
     }
 
     .hero-card, .card, .meter-card, .pricing-card { padding: 24px; }
-    .fund-box { padding: 28px; background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04)); }
+    .hero-media-card { padding: 14px; overflow: hidden; }
+    .hero-media-card img { width:100%; border-radius:14px; box-shadow: 0 0 0 1px rgba(106,255,59,.22), 0 24px 60px rgba(0,0,0,.35); }
+    .media-caption { color: var(--muted); font-size:.88rem; padding: 12px 4px 2px; }
+    .fund-box { padding: 28px; background: linear-gradient(180deg, rgba(106,255,59,0.10), rgba(88,201,255,0.04)); }
 
     .section-title {
       margin: 0 0 10px;
@@ -211,9 +231,9 @@
       margin-bottom: 14px;
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(88,201,255,0.12);
+      background: rgba(106,255,59,0.14);
       color: var(--accent);
-      border: 1px solid rgba(88,201,255,0.16);
+      border: 1px solid rgba(106,255,59,0.22);
       font-size: .84rem;
       font-weight: bold;
     }
@@ -285,7 +305,7 @@
 
     .meter-fill { height: 100%; border-radius: 999px; width: 0%; }
     .gold { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
-    .blue { background: linear-gradient(90deg, var(--accent), #8ee2ff); }
+    .blue { background: linear-gradient(90deg, var(--accent), #3cbf2a); }
     .green { background: linear-gradient(90deg, #62ffb4, #aafed3); }
     .purple { background: linear-gradient(90deg, #b48cff, #7fdcff); }
 
@@ -342,7 +362,7 @@
       text-align: center;
       border-top: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(88,201,255,0.08), rgba(132,255,189,0.04));
+      background: linear-gradient(180deg, rgba(106,255,59,0.10), rgba(88,201,255,0.04));
     }
 
     .cta-box { max-width: 960px; margin: 0 auto; }
@@ -374,7 +394,8 @@
     }
 
     @media (max-width: 1120px) {
-      .hero-grid, .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
+      .hero-grid { grid-template-columns: 1fr 1fr; }
+      .grid-2, .grid-3, .grid-4, .meter-grid, .stats, .split, .timeline, .kpi-row {
         grid-template-columns: 1fr 1fr;
       }
     }
@@ -393,10 +414,13 @@
 <body>
   <header class="topbar">
     <div class="container nav">
-      <div class="brand">
-        <strong>IonCore Energy</strong>
-        <span>Unified Fundraising, Presale, Energy Systems & Propulsion Platform</span>
-      </div>
+      <a class="brand" href="fullexperience.html" aria-label="Ioncore Energy main experience">
+        <img src="battery.svg" alt="Ioncore Energy mark" width="48" height="48">
+        <span class="brand-copy">
+          <strong><span style="color:var(--accent);">Ioncore</span> Energy</strong>
+          <span>Unified Fundraising, Presale, Energy Systems & Propulsion Platform</span>
+        </span>
+      </a>
       <nav class="nav-links">
         <a href="#fundraise">Fundraise</a>
         <a href="#progress">Progress</a>
@@ -456,6 +480,11 @@
             </div>
           </div>
         </div>
+
+        <aside class="hero-card hero-media-card">
+          <img src="IMG_3576.jpeg" alt="Ioncore Energy platform display" loading="lazy">
+          <div class="media-caption">Branded launch hub aligned with the Ioncore brochure library visual system.</div>
+        </aside>
 
         <aside class="hero-card">
           <span class="tag tag-gold">Unified Platform Logic</span>

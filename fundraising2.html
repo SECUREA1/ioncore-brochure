@@ -861,9 +861,6 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
-                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
@@ -897,9 +894,6 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
-                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
@@ -936,9 +930,6 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
-                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
@@ -972,9 +963,6 @@
               <div class="paypal-inline"></div>
               <div class="micro">PayPal and Bitcoin are both enabled for early capital and direct sales.</div>
               <div class="pay-grid">
-                <button class="btn btn-secondary pay-rail" data-rail="USDC">Pay USDC</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ETH">Pay ETH</button>
-                <button class="btn btn-secondary pay-rail" data-rail="ADA">Pay ADA</button>
                 <button class="btn btn-secondary pay-rail" data-rail="STRIPE">Pay Stripe</button>
                 <button class="btn btn-secondary pay-rail" data-rail="PAYPAL">Pay PayPal</button>
                 <button class="btn btn-secondary pay-rail" data-rail="BTC">Pay Bitcoin</button>
@@ -1154,19 +1142,19 @@
 
     <section id="crypto-sales">
       <div class="container">
-        <h2 class="section-title">Direct Crypto Sales Checkout</h2>
-        <p class="section-subtitle">Choose a purchase path (unit purchase or stock participation), select payment rail (USDC first), and complete checkout. Unit purchases include a 15% tax and shipping contingency.</p>
+        <h2 class="section-title">Direct Sales Checkout</h2>
+        <p class="section-subtitle">Choose a purchase path (unit purchase or stock participation), select Bitcoin, Stripe, or PayPal, and complete checkout. Unit purchases include a 15% tax and shipping contingency.</p>
         <article class="card" style="max-width:860px;margin:0 auto;">
           <form id="crypto-sales-form" class="deposit-form">
             <div class="field"><label for="salePurchasePath">Purchase path</label><select id="salePurchasePath" name="purchasePath" required><option value="UNIT">Purchase a unit</option><option value="STOCK">Buy into $2M stock raise</option></select></div>
             <div class="field"><label for="saleProduct">Product or stock ticket</label><select id="saleProduct" name="productCode" required><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option><option value="TIME-APEX-X" data-price="2450">Apex X Timepiece — $2,450</option><option value="TIME-CHRONO-S" data-price="3200">Chrono S Timepiece — $3,200</option><option value="TIME-NOVA-R" data-price="4600">Nova R Timepiece — $4,600</option><option value="STOCK-25000" data-price="25000">Stock participation ticket — $25,000</option></select></div>
             <div class="field"><label for="saleReturnType">Return preference (stock path)</label><select id="saleReturnType" name="returnType" required><option value="SHARES">Shares at $300M valuation</option><option value="ANNUAL_8">8% annual return</option></select></div>
-            <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="USDC">USDC (MetaMask / WalletConnect)</option><option value="ETH">Ethereum (MetaMask)</option><option value="BTC">Bitcoin (Phantom recommended)</option><option value="ADA">Cardano (Lace / Phantom handoff)</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
+            <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="BTC">Bitcoin checkout</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
             <div class="field"><label for="saleBuyer">Buyer name</label><input id="saleBuyer" name="buyerName" required /></div>
             <div class="field"><label for="saleEmail">Buyer email</label><input id="saleEmail" name="buyerEmail" type="email" /></div>
             <div class="field"><label>Exact amount</label><input id="saleAmount" readonly /></div>
           </form>
-          <div class="hero-actions" style="margin-top:14px;"><button id="begin-crypto-sale" class="btn btn-primary" type="button">Connect Wallet & Send</button></div>
+          <div class="hero-actions" style="margin-top:14px;"><button id="begin-crypto-sale" class="btn btn-primary" type="button">Continue Checkout</button></div>
           <div id="crypto-sale-status" class="status" role="status" aria-live="polite"></div>
           <div id="unified-sales-status" class="micro" style="margin-top:12px;"></div>
         </article>

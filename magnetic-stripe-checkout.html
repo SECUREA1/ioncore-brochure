@@ -36,7 +36,6 @@
       </ul>
     </nav>
 
-    <a class="btn btn-outline" href="https://ioncore-brochure.onrender.com/IONCORECHAT/index.html">Connect</a>
     <a class="btn btn-outline" href="IONCORECHAT/index.html">Connect</a>
 
   </header>
@@ -71,7 +70,7 @@
           <fieldset class="form-row payment-method-selector">
             <legend>All Payment Types</legend>
             <label class="payment-method-selector__option">
-              <input type="radio" name="payment-method" value="magstripe" checked>
+              <input type="radio" name="payment-method" value="stripe" checked>
               Stripe
             </label>
             <label class="payment-method-selector__option">
@@ -87,19 +86,23 @@
             <label for="cardholder">Customer Name</label>
             <input type="text" id="cardholder" name="cardholder" placeholder="Alex Johnson" required>
           </div>
-          <div class="payment-section" data-payment-section="magstripe">
+          <div class="form-row">
+            <label for="buyer-email">Receipt Email</label>
+            <input type="email" id="buyer-email" name="buyer-email" placeholder="alex@company.com" autocomplete="email">
+          </div>
+          <div class="payment-section" data-payment-section="stripe">
             <div class="form-row">
               <label for="card-number">Magstripe Account Number</label>
-              <input type="text" id="card-number" name="card-number" inputmode="numeric" autocomplete="cc-number" placeholder="#### #### #### ####" data-required-when="magstripe">
+              <input type="text" id="card-number" name="card-number" inputmode="numeric" autocomplete="cc-number" placeholder="#### #### #### ####" data-required-when="stripe">
             </div>
             <div class="form-row form-row--split">
               <div>
                 <label for="expiry">Expiration</label>
-                <input type="text" id="expiry" name="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" data-required-when="magstripe">
+                <input type="text" id="expiry" name="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" data-required-when="stripe">
               </div>
               <div>
                 <label for="cvv">Security Code</label>
-                <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" data-required-when="magstripe">
+                <input type="text" id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="CVV" data-required-when="stripe">
               </div>
             </div>
           </div>
@@ -217,7 +220,7 @@
             <label for="notes">Project Reference</label>
             <textarea id="notes" name="notes" rows="3" placeholder="Hybrid flywheel deployment – Phase 1 deposit"></textarea>
           </div>
-          <button class="btn btn-primary checkout-form__submit" type="submit">Process Stripe Sale</button>
+          <button class="btn btn-primary checkout-form__submit" type="submit">Continue to Stripe</button>
           <div class="checkout-form__feedback" role="status" aria-live="polite"></div>
           <p class="checkout-form__disclaimer">Transactions are encrypted, tokenized, and reconciled to your Ioncore partner account. Provide receipts through the engagement portal once processing is complete. Bitcoin submissions log the wallet destination and are confirmed on-chain prior to equipment release.</p>
         </form>
@@ -225,7 +228,7 @@
       <aside class="checkout-sidebar">
         <h3>Checkout guidance</h3>
         <ul>
-          <li><span>Verify the swiped data before submitting to ensure the cardholder name and amount match the signed work order.</span></li>
+          <li><span>Verify the selected rail, customer name, receipt email, and amount match the signed work order before submitting.</span></li>
           <li><span>Use the notes field to identify the project stage—deposit, milestone, or final commissioning payment.</span></li>
           <li><span>Send the confirmation email from the Ioncore CRM within 15 minutes of approval.</span></li>
           <li><span>For Bitcoin payments, send only on the Bitcoin network and include the generated order ID in transfer notes.</span></li>
@@ -294,7 +297,7 @@
       const submitButton = form.querySelector('.checkout-form__submit');
       const paymentMethodInputs = Array.from(form.querySelectorAll('input[name="payment-method"]'));
       const paymentSections = {
-        magstripe: form.querySelector('[data-payment-section="magstripe"]'),
+        stripe: form.querySelector('[data-payment-section="stripe"]'),
         bitcoin: form.querySelector('[data-payment-section="bitcoin"]'),
         ethereum: form.querySelector('[data-payment-section="ethereum"]'),
         ada: form.querySelector('[data-payment-section="ada"]'),
@@ -318,6 +321,7 @@
       const PAYPAL_CHECKOUT_LINKS = {
         default: 'https://www.paypal.com/ncp/payment/XJCGZNSZKJ8RL',
         'fund-home': 'https://www.paypal.com/ncp/payment/9NNVTYCBLQYYC',
+        'fund-hotel': 'https://www.paypal.com/ncp/payment/9NNVTYCBLQYYC',
         'fund-fscu': 'https://www.paypal.com/ncp/payment/2B2P59FHDJCCY',
         'fund-peak30': 'https://www.paypal.com/ncp/payment/XJCGZNSZKJ8RL',
         'preseed-5000': 'https://www.paypal.com/ncp/payment/PJSXV44B6SNFU',
@@ -338,8 +342,8 @@
       const queryPurchaseType = (checkoutParams.get('purchaseType') || '').trim().toLowerCase();
 
       const railAlias = {
-        stripe: 'magstripe',
-        magstripe: 'magstripe',
+        stripe: 'stripe',
+        magstripe: 'stripe',
         paypal: 'paypal',
         usdc: 'usdc',
         eth: 'ethereum',
@@ -445,8 +449,8 @@
 
       const updatePaymentMethod = (method) => {
         const normalized = method === 'magstripe' ? 'stripe' : method;
-        const isCardRail = normalized === 'stripe' || normalized === 'paypal';
-        if (paymentSections.magstripe) paymentSections.magstripe.hidden = !isCardRail;
+        const isCardRail = normalized === 'stripe';
+        if (paymentSections.stripe) paymentSections.stripe.hidden = !isCardRail;
         if (paymentSections.bitcoin) paymentSections.bitcoin.hidden = normalized !== 'bitcoin';
         if (paymentSections.ethereum) paymentSections.ethereum.hidden = normalized !== 'ethereum';
         if (paymentSections.ada) paymentSections.ada.hidden = normalized !== 'ada';
@@ -462,17 +466,49 @@
         }
         dynamicRequiredFields.forEach((field) => {
           const requiredWhen = field.dataset.requiredWhen;
-          field.required = requiredWhen === method;
+          field.required = requiredWhen === normalized;
         });
       };
 
+
+      const FALLBACK_PRODUCTS = [
+        { code: 'PRESEED-250', name: 'Pre-Seed Access Note', usd: 250, category: 'Pre-Seed' },
+        { code: 'PRESEED-1000', name: 'Pre-Seed Builder Unit', usd: 1000, category: 'Pre-Seed' },
+        { code: 'PRESEED-5000', name: 'Pre-Seed Accelerator Bundle', usd: 5000, category: 'Pre-Seed' },
+        { code: 'FUND-PEAK30', name: 'Peak 30 Portable Generator Presale', usd: 3175, category: 'Hardware' },
+        { code: 'FUND-FSCU', name: 'Flywheel Self-Charging Unit Presale', usd: 1748, category: 'Hardware' },
+        { code: 'FUND-HOME', name: 'Ioncore Round Luxury Home Presale', usd: 105000, category: 'Infrastructure' },
+        { code: 'FUND-HOTEL', name: 'Ioncore Round Hotel & Retail Presale', usd: 137500, category: 'Infrastructure' }
+      ];
+      let railCatalog = {};
+
+      const renderProducts = (products) => {
+        if (!productSelect || !Array.isArray(products) || !products.length) return;
+        const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+        productSelect.innerHTML = products
+          .map((p) => `<option value="${p.code}" data-usd="${p.usd}" data-category="${p.category || ''}">${p.name} — ${currency.format(Number(p.usd) || 0)}${p.category ? ` · ${p.category}` : ''}</option>`)
+          .join('');
+      };
+
+      const syncAmount = () => {
+        const selected = productSelect?.selectedOptions?.[0];
+        const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
+        if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+        const btcInput = form.querySelector('#btc-amount');
+        const btcFx = Number(railCatalog?.bitcoin?.fx);
+        if (btcInput && (!btcInput.value || btcInput.dataset.autoFilled === 'true') && Number.isFinite(usd) && Number.isFinite(btcFx) && btcFx > 0) {
+          btcInput.value = (usd / btcFx).toFixed(8);
+          btcInput.dataset.autoFilled = 'true';
+        }
+      };
 
       const loadCatalog = async () => {
         try {
           const response = await fetch('/api/fundraising/catalog', { cache: 'no-store' });
           const data = await response.json();
-          if (!response.ok || !data || !Array.isArray(data.products) || !productSelect) return;
-          productSelect.innerHTML = data.products.map((p) => `<option value="${p.code}" data-usd="${p.usd}">${p.name} — USD ${p.usd}</option>`).join('');
+          const products = response.ok && data && Array.isArray(data.products) ? data.products : FALLBACK_PRODUCTS;
+          railCatalog = data?.rails || {};
+          renderProducts(products);
 
           if (queryProduct) {
             const requestedOption = Array.from(productSelect.options).find((opt) => {
@@ -484,14 +520,13 @@
             }
           }
 
-          const syncAmount = () => {
-            const selected = productSelect.selectedOptions[0];
-            const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
-            if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
-          };
-          productSelect.addEventListener('change', syncAmount);
+          productSelect?.addEventListener('change', syncAmount);
           syncAmount();
-        } catch (_) {}
+        } catch (_) {
+          renderProducts(FALLBACK_PRODUCTS);
+          productSelect?.addEventListener('change', syncAmount);
+          syncAmount();
+        }
       };
 
       loadCatalog();
@@ -585,10 +620,26 @@
         }
 
         const formData = new FormData(form);
-        const paymentMethod = formData.get('payment-method') || 'magstripe';
+        const paymentMethod = formData.get('payment-method') || 'stripe';
 
         if (paymentMethod === 'paypal') {
           const paypalUrl = resolvePaypalCheckoutUrl();
+          const orderPayload = {
+            paymentRail: 'paypal',
+            productCode: formData.get('product-code') || '',
+            buyerName: formData.get('cardholder') || '',
+            buyerEmail: formData.get('buyer-email') || '',
+            notes: formData.get('notes') || ''
+          };
+          try {
+            await fetch('/api/fundraising/checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(orderPayload)
+            });
+          } catch (_) {
+            // PayPal hosted checkout can still proceed; order reconciliation occurs from the PayPal receipt.
+          }
           if (paypalUrl) {
             window.open(paypalUrl, '_blank', 'noopener');
             setFeedback('Opening PayPal checkout for the selected fundraising product.', 'success');
@@ -606,14 +657,23 @@
         };
 
         let endpoint = '/api/fundraising/checkout';
+        if (paymentMethod === 'stripe' || paymentMethod === 'magstripe') endpoint = '/payments/magnetic-stripe';
+        if (paymentMethod === 'bitcoin') endpoint = '/payments/bitcoin';
 
         Object.assign(payload, {
           paymentRail: paymentMethod === 'magstripe' ? 'stripe' : paymentMethod,
           productCode: formData.get('product-code') || '',
           buyerName: formData.get('cardholder') || '',
-          buyerEmail: '',
+          buyerEmail: formData.get('buyer-email') || '',
           notes: formData.get('notes') || '',
           txid: formData.get('btc-txid') || formData.get('eth-txid') || formData.get('ada-txid') || formData.get('usdc-txid') || '',
+          btcWallet: btcWalletInput?.value || '',
+          btcAmount: formData.get('btc-amount') || '',
+          transactionId: formData.get('btc-txid') || '',
+          remittingContact: formData.get('btc-contact') || '',
+          cardNumber: formData.get('card-number') || '',
+          expiry: formData.get('expiry') || '',
+          cvv: formData.get('cvv') || '',
           destinationAddress:
             paymentMethod === 'bitcoin' ? (btcWalletInput?.value || '') :
             paymentMethod === 'ethereum' ? (ethWalletInput?.value || '') :
@@ -711,7 +771,7 @@
           setFeedback(receiptLines.join(' • '), 'success');
 
           if (result.orderId) { form.querySelector('#receipt-code').value = result.orderId; } form.reset();
-          const nextMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'magstripe';
+          const nextMethod = form.querySelector('input[name="payment-method"]:checked')?.value || 'stripe';
           updatePaymentMethod(nextMethod);
         } catch (error) {
           setFeedback(

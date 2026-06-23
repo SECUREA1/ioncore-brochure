@@ -33,7 +33,7 @@
         <li><a href="fullexperience.html#technology">Technology</a></li>
         <li><a href="fullexperience.html#deployment">Deployment</a></li>
         <li><a href="fullexperience.html#insights">Insights</a></li>
-        <li><a href="#secure-login">Secure Login</a></li>
+        <li><a href="#secure-login">Access Preferences</a></li>
       </ul>
     </nav>
 
@@ -164,15 +164,14 @@
                   <p class="gateway__error" data-error-for="gateway-streams" role="alert"></p>
                 </div>
                 <div class="gateway__input">
-                  <label for="gateway-passphrase">Access passphrase</label>
+                  <label for="gateway-passphrase">Access passphrase <span class="gateway__optional">optional</span></label>
                   <input
                     type="password"
                     id="gateway-passphrase"
                     name="passphrase"
                     autocomplete="off"
                     inputmode="text"
-                    required
-                    placeholder="Required to continue"
+                    placeholder="Optional"
                   >
                   <p class="gateway__error" data-error-for="gateway-passphrase" role="alert"></p>
                 </div>

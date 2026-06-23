@@ -1284,13 +1284,6 @@ function pruneSessions() {
   }
 }
 
-const AUTH_USER = process.env.BASIC_AUTH_USER || 'guest';
-const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'boots';
-
-const COOKIE_NAME = 'ioncore_session';
-const COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
-
-const authSessions = new Map();
 const meknxRegistry = new Map();
 
 function registerSession() {
@@ -1342,28 +1335,6 @@ async function sendHtml(res, filePath) {
   }
 }
 
-function createAuthSession() {
-  const sessionId = randomUUID();
-  authSessions.set(sessionId, Date.now());
-  return sessionId;
-}
-
-function validateAuthSession(sessionId) {
-  if (typeof sessionId !== 'string' || !sessionId) {
-    return false;
-  }
-  const lastSeen = authSessions.get(sessionId);
-  if (!lastSeen) {
-    return false;
-  }
-  if (Date.now() - lastSeen > COOKIE_MAX_AGE_MS) {
-    authSessions.delete(sessionId);
-    return false;
-  }
-  authSessions.set(sessionId, Date.now());
-  return true;
-}
-
 function buildHead(pageTitle) {
   const brandName = BRAND.name;
   const fullTitle = pageTitle.toLowerCase().includes(brandName.toLowerCase())
@@ -1374,39 +1345,6 @@ function buildHead(pageTitle) {
   return `<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="application-name" content="${brandName}"><meta name="apple-mobile-web-app-title" content="${brandName}"><meta name="theme-color" content="${themeColor}"><meta property="og:site_name" content="${brandName}"><meta property="og:title" content="${fullTitle}"><meta property="og:image" content="${ogImage}"><title>${fullTitle}</title><link rel="icon" type="image/svg+xml" href="${BRAND.icon}"><link rel="apple-touch-icon" href="${BRAND.icon}"><link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">`;
 }
 
-function destroyAuthSession(sessionId) {
-  if (typeof sessionId !== 'string' || !sessionId) {
-    return;
-  }
-  authSessions.delete(sessionId);
-}
-
-function getSessionIdFromCookies(req) {
-  const cookieHeader = req.headers.cookie;
-  if (!cookieHeader) {
-    return '';
-  }
-  const cookies = cookieHeader.split(';');
-  for (const cookie of cookies) {
-    const [rawName, ...rest] = cookie.trim().split('=');
-    if (rawName === COOKIE_NAME) {
-      return rest.join('=');
-    }
-  }
-  return '';
-}
-
-function setSessionCookie(res, sessionId) {
-  const maxAgeSeconds = Math.floor(COOKIE_MAX_AGE_MS / 1000);
-  res.setHeader(
-    'Set-Cookie',
-    `${COOKIE_NAME}=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAgeSeconds}`
-  );
-}
-
-function clearSessionCookie(res) {
-  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
-}
 
 function normalizeProvider(provider) {
   if (typeof provider !== 'string') {
@@ -1428,28 +1366,6 @@ function normalizeProvider(provider) {
 function generateMeknxPassId() {
   return `MEKNX-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
 }
-
-app.get('/login', async (req, res) => {
-  const queryNext = typeof req.query.next === 'string' ? req.query.next : '/webpage.html';
-  const safeNext = queryNext.startsWith('/') && !queryNext.startsWith('//') ? queryNext : '/webpage.html';
-  return res.redirect(`/login.html?next=${encodeURIComponent(safeNext)}`);
-});
-
-app.post('/login', async (req, res) => {
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
-  let nextPath = typeof body.next === 'string' ? body.next : '/webpage.html';
-
-  if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
-    nextPath = '/webpage.html';
-  }
-
-  const sessionId = createAuthSession();
-  setSessionCookie(res, sessionId);
-  return res.json({
-    message: 'Authentication is no longer required. Redirecting to the requested page.',
-    redirect: nextPath
-  });
-});
 
 app.post('/contact', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -1554,20 +1470,7 @@ app.post('/gateway', async (req, res) => {
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
 
-  const sessionId = createAuthSession();
-  setSessionCookie(res, sessionId);
-  await recordLoginEvent({
-    method: 'gateway',
-    username: name,
-    success: true,
-    metadata: serializeMetadata({
-      role,
-      selections: normalizedStreams
-    }),
-    ipAddress: req.ip
-  });
-
-  const expiresAt = new Date(Date.now() + COOKIE_MAX_AGE_MS).toISOString();
+  const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
   const readableSelections = normalizedStreams.map((value) => streamOptions.get(value));
   const message = `${roleLabels.get(role)} preferences saved. Redirecting to brochure.`;
 
@@ -1976,13 +1879,6 @@ app.post('/api/chat/ledger', async (req, res) => {
   }
 });
 
-app.post('/logout', (req, res) => {
-  const sessionId = getSessionIdFromCookies(req);
-  destroyAuthSession(sessionId);
-  clearSessionCookie(res);
-  res.json({ message: 'Logged out' });
-});
-
 app.post('/access/meknx', (req, res) => {
   const body = req.body || {};
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
@@ -2346,76 +2242,6 @@ app.get('/api/marketplace', (req, res) => {
   });
 });
 
-function isPublicRoute(req) {
-  const method = typeof req.method === 'string' ? req.method.toUpperCase() : 'GET';
-
-  if (
-    method === 'POST' &&
-    [
-      '/login',
-      '/logout',
-      '/access/meknx',
-      '/access/ionc',
-      '/access/cardano',
-      '/contact',
-      '/gateway',
-      '/api/marketplace/uploads',
-      '/api/marketplace/bids',
-      '/metrics/view',
-      '/metrics/leave'
-    ].includes(req.path)
-  ) {
-    return true;
-  }
-
-  const isReadOnlyRequest = method === 'GET' || method === 'HEAD';
-
-  if (isReadOnlyRequest) {
-    const publicHtml = new Set([
-      '/login',
-      '/login.html',
-      '/webpage-login.html',
-      '/metrics'
-    ]);
-    if (publicHtml.has(req.path)) {
-      return true;
-    }
-
-    const publicAssets = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.json', '.txt']);
-    const extension = path.extname(req.path).toLowerCase();
-    if (publicAssets.has(extension)) {
-      return true;
-    }
-
-    const publicApis = new Set(['/api/marketplace']);
-    if (publicApis.has(req.path)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function requireAuth(req, res, next) {
-  if (isPublicRoute(req)) {
-    return next();
-  }
-
-  const sessionId = getSessionIdFromCookies(req);
-  const hasSession = validateAuthSession(sessionId);
-  if (hasSession) {
-    return next();
-  }
-
-  const method = typeof req.method === 'string' ? req.method.toUpperCase() : 'GET';
-  const requestedPath = req.originalUrl || req.url || '/webpage.html';
-  if (method === 'GET' || method === 'HEAD') {
-    return res.redirect(`/login.html?next=${encodeURIComponent(requestedPath)}`);
-  }
-
-  return res.status(401).json({ message: 'Login required for this session.' });
-}
-
 async function getHtmlFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   let files = [];
@@ -2438,7 +2264,6 @@ async function getTitle(filePath) {
   return match ? match[1].trim() : path.basename(filePath);
 }
 
-app.use(requireAuth);
 
 // Public homepage
 app.get('/', async (req, res) => {

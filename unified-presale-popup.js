@@ -101,8 +101,10 @@
       font-size: 0.66rem;
       line-height: 1.25;
     }
-    .ioncore-presale-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .ioncore-presale-link {
+    .ioncore-presale-actions,
+    .ioncore-presale-tab-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ioncore-presale-link,
+    .ioncore-presale-tab-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -115,6 +117,11 @@
       text-decoration: none;
       box-shadow: 0 14px 36px rgba(255, 214, 102, 0.24), 0 10px 30px rgba(106, 255, 59, 0.22);
     }
+    .ioncore-presale-link--secondary,
+    .ioncore-presale-tab-link--secondary {
+      background: linear-gradient(135deg, #49d2ff, #9ffcff);
+      box-shadow: 0 14px 36px rgba(73, 210, 255, 0.20), 0 10px 30px rgba(159, 252, 255, 0.16);
+    }
     .ioncore-presale-toggle {
       border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 999px;
@@ -126,31 +133,46 @@
       font-size: 0.79rem;
       font-weight: 850;
     }
-    #ioncore-presale-popup.is-collapsed { width: auto; }
+    #ioncore-presale-popup.is-collapsed { width: min(390px, calc(100vw - 28px)); }
     #ioncore-presale-popup.is-collapsed .ioncore-presale-card { display: none; }
     #ioncore-presale-popup:not(.is-collapsed) .ioncore-presale-tab { display: none; }
     .ioncore-presale-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
+      display: grid;
+      gap: 10px;
       border: 1px solid rgba(255, 214, 102, 0.58);
       border-radius: 999px;
       padding: 12px 16px;
       background: linear-gradient(135deg, rgba(5, 9, 18, 0.97), rgba(18, 37, 32, 0.97));
       color: #ffffff;
       box-shadow: 0 14px 44px rgba(0, 0, 0, 0.40), 0 0 34px rgba(255, 214, 102, 0.18);
-      cursor: pointer;
       font: inherit;
       font-size: 0.82rem;
       font-weight: 950;
     }
-    .ioncore-presale-tab::before {
+    .ioncore-presale-tab-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .ioncore-presale-tab-label::before {
       content: "";
       width: 9px;
       height: 9px;
       border-radius: 50%;
       background: #6aff3b;
       box-shadow: 0 0 18px rgba(106, 255, 59, 0.9);
+    }
+    .ioncore-presale-tab-link { padding: 10px 13px; font-size: 0.76rem; }
+    .ioncore-presale-tab-expand {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      padding: 10px 13px;
+      background: rgba(255, 255, 255, 0.075);
+      color: #ffffff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.76rem;
+      font-weight: 850;
     }
     @media (max-width: 420px) {
       .ioncore-presale-points { grid-template-columns: 1fr; }
@@ -175,11 +197,19 @@
         <div class="ioncore-presale-point"><strong>Launch</strong><span>Unified sales story</span></div>
       </div>
       <div class="ioncore-presale-actions">
-        <a class="ioncore-presale-link" href="/unified-fundraising-presale.html">Open sales page</a>
+        <a class="ioncore-presale-link ioncore-presale-link--secondary" href="/ambassador-partner-grants.html">Ambassador page</a>
+        <a class="ioncore-presale-link" href="/unified-fundraising-presale.html">Sales page</a>
         <button class="ioncore-presale-toggle" type="button" aria-expanded="true">Collapse tile</button>
       </div>
     </div>
-    <button class="ioncore-presale-tab" type="button" aria-expanded="false">Sales &amp; Prefunding</button>
+    <div class="ioncore-presale-tab" aria-label="IonCore quick links">
+      <div class="ioncore-presale-tab-label">IonCore quick links</div>
+      <div class="ioncore-presale-tab-actions">
+        <a class="ioncore-presale-tab-link ioncore-presale-tab-link--secondary" href="/ambassador-partner-grants.html">Ambassador</a>
+        <a class="ioncore-presale-tab-link" href="/unified-fundraising-presale.html">Sales page</a>
+        <button class="ioncore-presale-tab-expand" type="button" aria-expanded="false">Details</button>
+      </div>
+    </div>
   `;
 
   const setCollapsed = (collapsed) => {
@@ -190,7 +220,8 @@
   };
 
   popup.querySelector('.ioncore-presale-toggle').addEventListener('click', () => setCollapsed(true));
-  popup.querySelector('.ioncore-presale-tab').addEventListener('click', () => setCollapsed(false));
+  popup.querySelector('.ioncore-presale-tab-expand').addEventListener('click', () => setCollapsed(false));
+  setCollapsed(true);
 
   document.head.appendChild(style);
   document.body.appendChild(popup);

@@ -214,6 +214,7 @@ const SALES_PRODUCTS = {
   'WATCH-POCKET-LUXE': { name: 'Pocket Luxe', usd: 28000 },
   'WATCH-AERODESK-CLOCK': { name: 'AeroDesk Clock', usd: 15500 },
   // Legacy SKUs retained for compatibility with older checkout links
+  'ION-FOUNDATION-MODEL': { name: 'Ioncore Foundation Model Reservation', usd: 25000 },
   'PK30-BASIC': { name: 'Peak 30 portable kinetic generator', usd: 3175 },
   'FSCU-BASE': { name: 'Flywheel Self-Charging Unit', usd: 1748 },
   'ION-HOME-LUX': { name: 'Ioncore Round Luxury Homes', usd: 105000 },
@@ -257,8 +258,26 @@ async function getSalesFxRates(forceRefresh = false) {
     return salesFxCache;
   }
 }
+
+function calculateReserveDepositUsd(usd) {
+  const amount = Number(usd) || 0;
+  if (amount <= 0) return 0;
+  return Number(Math.min(amount * 0.2, 5000).toFixed(2));
+}
+
+function normalizeSalesPaymentOption(value) {
+  return typeof value === 'string' && value.trim().toLowerCase() === 'reserve' ? 'reserve' : 'full';
+}
 const salesCheckouts = new Map();
 const FUNDRAISING_PRODUCTS = [
+  { code: 'ION-FOUNDATION-MODEL', name: 'Ioncore Foundation Model Reservation', usd: 25000, category: 'Infrastructure' },
+  { code: 'PK30-BASIC', name: 'Peak 30 portable kinetic generator', usd: 3175, category: 'Hardware' },
+  { code: 'FSCU-BASE', name: 'Flywheel Self-Charging Unit', usd: 1748, category: 'Hardware' },
+  { code: 'ION-HOME-LUX', name: 'Ioncore Round Luxury Homes', usd: 105000, category: 'Infrastructure' },
+  { code: 'ION-HOTEL-LUX', name: 'Ioncore Round Hotel & Retail', usd: 137500, category: 'Infrastructure' },
+  { code: 'TIME-APEX-X', name: 'Apex X Timepiece', usd: 4900, category: 'Timepiece' },
+  { code: 'TIME-CHRONO-S', name: 'Chrono S Timepiece', usd: 6400, category: 'Timepiece' },
+  { code: 'TIME-NOVA-R', name: 'Nova R Timepiece', usd: 9200, category: 'Timepiece' },
   { code: 'PRESEED-250', name: 'Pre-Seed Access Note', usd: 250, category: 'Pre-Seed' },
   { code: 'PRESEED-1000', name: 'Pre-Seed Builder Unit', usd: 1000, category: 'Pre-Seed' },
   { code: 'PRESEED-5000', name: 'Pre-Seed Accelerator Bundle', usd: 5000, category: 'Pre-Seed' },
@@ -1490,16 +1509,19 @@ app.post('/api/sales/checkout-intent', async (req, res) => {
   const currencyRaw = typeof body.currency === 'string' ? body.currency.trim().toUpperCase() : '';
   const buyerName = typeof body.buyerName === 'string' ? body.buyerName.trim() : '';
   const buyerEmail = typeof body.buyerEmail === 'string' ? body.buyerEmail.trim() : '';
+  const paymentOption = normalizeSalesPaymentOption(body.paymentOption || body.purchaseType || body.checkoutType);
   const product = SALES_PRODUCTS[productCode];
   if (!product) return res.status(400).json({ message: 'Invalid product selection.' });
   if (!['USDC', 'BTC', 'ETH', 'ADA'].includes(currencyRaw)) return res.status(400).json({ message: 'Currency must be USDC, BTC, ETH, or ADA.' });
   if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
-  const usd = product.usd;
+  const productUsd = product.usd;
+  const reserveDepositUsd = calculateReserveDepositUsd(productUsd);
+  const usd = paymentOption === 'reserve' ? reserveDepositUsd : productUsd;
   const fxRates = await getSalesFxRates();
   const fx = fxRates[currencyRaw] || SALES_FX_FALLBACK[currencyRaw];
   const cryptoAmount = usd / fx;
   const checkoutId = `SALE-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
-  const checkout = { checkoutId, productCode, productName: product.name, currency: currencyRaw, usdAmount: usd, cryptoAmount, buyerName, buyerEmail, createdAt: new Date().toISOString(), status: 'intent-created' };
+  const checkout = { checkoutId, productCode, productName: product.name, currency: currencyRaw, usdAmount: usd, productUsd, paymentOption, reserveDepositUsd, balanceDueUsd: Number(Math.max(productUsd - usd, 0).toFixed(2)), cryptoAmount, buyerName, buyerEmail, createdAt: new Date().toISOString(), status: 'intent-created' };
   salesCheckouts.set(checkoutId, checkout);
   if (currencyRaw === 'USDC') {
     const usdcAmount = Number(cryptoAmount.toFixed(2));
@@ -1581,7 +1603,22 @@ app.get('/api/fundraising/catalog', (req, res) => {
       bitcoin: { enabled: true, wallet: SALES_WALLETS.BTC, fx: salesFxCache.BTC },
       ada: { enabled: true, wallet: SALES_WALLETS.ADA, fx: salesFxCache.ADA },
       usdc: { enabled: true, wallet: SALES_WALLETS.USDC, fx: salesFxCache.USDC || 1, token: 'USDC', network: 'ethereum' }
-    }
+    },
+    reservePolicy: { depositPercent: 20, maxDepositUsd: 5000, label: '20% reserve deposit capped at $5,000' }
+  });
+});
+
+app.get('/api/sales/reserve-policy', (req, res) => {
+  res.json({
+    depositPercent: 20,
+    maxDepositUsd: 5000,
+    products: Object.entries(SALES_PRODUCTS).map(([code, product]) => ({
+      code,
+      name: product.name,
+      usd: product.usd,
+      reserveDepositUsd: calculateReserveDepositUsd(product.usd),
+      balanceDueUsd: Number(Math.max(product.usd - calculateReserveDepositUsd(product.usd), 0).toFixed(2))
+    }))
   });
 });
 
@@ -1592,6 +1629,7 @@ app.post('/api/fundraising/checkout', async (req, res) => {
   const buyerName = typeof body.buyerName === 'string' ? body.buyerName.trim() : '';
   const buyerEmail = typeof body.buyerEmail === 'string' ? body.buyerEmail.trim() : '';
   const notes = typeof body.notes === 'string' ? body.notes.trim() : '';
+  const paymentOption = normalizeSalesPaymentOption(body.paymentOption || body.purchaseType || body.checkoutType);
   const product = FUNDRAISING_PRODUCTS.find((item) => item.code === productCode);
 
   if (!product) return res.status(400).json({ message: 'Select a valid fundraising product.' });
@@ -1601,12 +1639,19 @@ app.post('/api/fundraising/checkout', async (req, res) => {
   if (buyerName.length < 2) return res.status(400).json({ message: 'Buyer name is required.' });
 
   const orderId = `ION-FUND-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
+  const productUsd = product.usd;
+  const reserveDepositUsd = calculateReserveDepositUsd(productUsd);
+  const amountUsd = paymentOption === 'reserve' ? reserveDepositUsd : productUsd;
   const record = {
     orderId,
     productCode: product.code,
     productName: product.name,
     category: product.category,
-    amountUsd: product.usd,
+    amountUsd,
+    productUsd,
+    paymentOption,
+    reserveDepositUsd,
+    balanceDueUsd: Number(Math.max(productUsd - amountUsd, 0).toFixed(2)),
     paymentRail,
     buyerName,
     buyerEmail,
@@ -1616,20 +1661,24 @@ app.post('/api/fundraising/checkout', async (req, res) => {
     ipAddress: req.ip
   };
 
-  if (paymentRail === 'ethereum') record.cryptoAmount = Number((product.usd / salesFxCache.ETH).toFixed(8));
-  if (paymentRail === 'bitcoin') record.cryptoAmount = Number((product.usd / salesFxCache.BTC).toFixed(8));
-  if (paymentRail === 'ada') record.cryptoAmount = Number((product.usd / salesFxCache.ADA).toFixed(6));
-  if (paymentRail === 'usdc') record.cryptoAmount = Number(product.usd.toFixed(2));
+  if (paymentRail === 'ethereum') record.cryptoAmount = Number((amountUsd / salesFxCache.ETH).toFixed(8));
+  if (paymentRail === 'bitcoin') record.cryptoAmount = Number((amountUsd / salesFxCache.BTC).toFixed(8));
+  if (paymentRail === 'ada') record.cryptoAmount = Number((amountUsd / salesFxCache.ADA).toFixed(6));
+  if (paymentRail === 'usdc') record.cryptoAmount = Number(amountUsd.toFixed(2));
 
   store.fundraisingOrders.push(record);
   await enqueueStoreSave();
 
   const response = {
-    message: 'Pre-sale order created. Complete payment on the selected rail to finalize allocation.',
+    message: paymentOption === 'reserve' ? 'Reserve payment order created. Complete the 20% deposit (capped at $5,000) to hold allocation.' : 'Pre-sale order created. Complete payment on the selected rail to finalize allocation.',
     orderId,
     product: { code: product.code, name: product.name, usd: product.usd, category: product.category },
     paymentRail,
-    amountUsd: product.usd
+    paymentOption,
+    productUsd,
+    reserveDepositUsd,
+    balanceDueUsd: record.balanceDueUsd,
+    amountUsd
   };
 
   if (paymentRail === 'paypal') {

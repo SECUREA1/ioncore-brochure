@@ -1147,8 +1147,9 @@
         <article class="card" style="max-width:860px;margin:0 auto;">
           <form id="crypto-sales-form" class="deposit-form">
             <div class="field"><label for="salePurchasePath">Purchase path</label><select id="salePurchasePath" name="purchasePath" required><option value="UNIT">Purchase a unit</option><option value="STOCK">Buy into $2M stock raise</option></select></div>
-            <div class="field"><label for="saleProduct">Product or stock ticket</label><select id="saleProduct" name="productCode" required><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option><option value="TIME-APEX-X" data-price="2450">Apex X Timepiece — $2,450</option><option value="TIME-CHRONO-S" data-price="3200">Chrono S Timepiece — $3,200</option><option value="TIME-NOVA-R" data-price="4600">Nova R Timepiece — $4,600</option><option value="STOCK-25000" data-price="25000">Stock participation ticket — $25,000</option></select></div>
+            <div class="field"><label for="saleProduct">Product or stock ticket</label><select id="saleProduct" name="productCode" required><option value="ION-FOUNDATION-MODEL" data-price="25000">Ioncore Foundation Model Reservation — $25,000</option><option value="PK30-BASIC" data-price="3175">Peak 30 portable kinetic generator — $3,175</option><option value="FSCU-BASE" data-price="1748">Flywheel Self-Charging Unit — $1,748</option><option value="ION-HOME-LUX" data-price="105000">Ioncore Round Luxury Homes — $105,000</option><option value="ION-HOTEL-LUX" data-price="137500">Ioncore Round Hotel & Retail — $137,500</option><option value="TIME-APEX-X" data-price="2450">Apex X Timepiece — $2,450</option><option value="TIME-CHRONO-S" data-price="3200">Chrono S Timepiece — $3,200</option><option value="TIME-NOVA-R" data-price="4600">Nova R Timepiece — $4,600</option><option value="STOCK-25000" data-price="25000">Stock participation ticket — $25,000</option></select></div>
             <div class="field"><label for="saleReturnType">Return preference (stock path)</label><select id="saleReturnType" name="returnType" required><option value="SHARES">Shares at $300M valuation</option><option value="ANNUAL_8">8% annual return</option></select></div>
+            <div class="field"><label for="salePaymentOption">Checkout option</label><select id="salePaymentOption" name="paymentOption" required><option value="full">Pay full purchase amount</option><option value="reserve">Reserve model with 20% deposit (max $5,000)</option></select></div>
             <div class="field"><label for="saleCurrency">Payment rail</label><select id="saleCurrency" name="currency" required><option value="BTC">Bitcoin checkout</option><option value="STRIPE">Stripe card checkout</option><option value="PAYPAL">PayPal checkout</option></select></div>
             <div class="field"><label for="saleBuyer">Buyer name</label><input id="saleBuyer" name="buyerName" required /></div>
             <div class="field"><label for="saleEmail">Buyer email</label><input id="saleEmail" name="buyerEmail" type="email" /></div>
@@ -1401,11 +1402,12 @@
       const product = document.getElementById('saleProduct');
       const pathSelect = document.getElementById('salePurchasePath');
       const returnType = document.getElementById('saleReturnType');
+      const paymentOption = document.getElementById('salePaymentOption');
       const currency = document.getElementById('saleCurrency');
       const amount = document.getElementById('saleAmount');
       const status = document.getElementById('crypto-sale-status');
       const btn = document.getElementById('begin-crypto-sale');
-      if (!form || !product || !pathSelect || !returnType || !currency || !amount || !status || !btn) return;
+      if (!form || !product || !pathSelect || !returnType || !paymentOption || !currency || !amount || !status || !btn) return;
       const unifiedStatus = document.getElementById('unified-sales-status');
       const setStatus = (msg,err=false)=>{ status.textContent=msg; status.style.display=msg?'block':'none'; status.classList.toggle('error',!!err); };
       const syncFormByPath = () => {
@@ -1414,15 +1416,19 @@
         if (!isStock) returnType.value = 'SHARES';
       };
       const withContingency = (base) => Math.round(base * 1.15 * 100) / 100;
+      const reserveDeposit = (base) => Math.min(base * 0.2, 5000);
       const syncAmount = () => {
         const base = Number(product.selectedOptions[0]?.dataset?.price||0);
         const isStock = pathSelect.value === 'STOCK';
-        const total = isStock ? base : withContingency(base);
-        amount.value = `$${total.toLocaleString()} USD`;
+        const fullTotal = isStock ? base : withContingency(base);
+        const total = paymentOption.value === 'reserve' ? reserveDeposit(fullTotal) : fullTotal;
+        const suffix = paymentOption.value === 'reserve' ? ` reserve deposit • $${Math.max(fullTotal - total, 0).toLocaleString()} balance` : '';
+        amount.value = `$${total.toLocaleString()} USD${suffix}`;
       };
       syncFormByPath();
       syncAmount();
       product.addEventListener('change', syncAmount);
+      paymentOption.addEventListener('change', syncAmount);
       pathSelect.addEventListener('change', ()=>{ syncFormByPath(); syncAmount(); });
       const refreshUnifiedSales = async () => {
         if (!unifiedStatus) return;
@@ -1438,7 +1444,7 @@
       refreshUnifiedSales();
       btn.addEventListener('click', async () => {
         try {
-          const payload = {productCode: product.value, purchasePath: pathSelect.value, returnType: returnType.value, currency: currency.value, buyerName: form.saleBuyer.value.trim(), buyerEmail: form.saleEmail.value.trim()};
+          const payload = {productCode: product.value, purchasePath: pathSelect.value, returnType: returnType.value, paymentOption: paymentOption.value, currency: currency.value, buyerName: form.saleBuyer.value.trim(), buyerEmail: form.saleEmail.value.trim()};
           if (!payload.buyerName) throw new Error('Buyer name is required.');
           if (payload.currency === 'PAYPAL') {
             document.getElementById('deposits')?.scrollIntoView({ behavior: 'smooth' });
@@ -1446,7 +1452,7 @@
             return;
           }
           if (payload.currency === 'STRIPE') {
-            window.location.href = '/magnetic-stripe-checkout.html';
+            window.location.href = `/magnetic-stripe-checkout.html?product=${encodeURIComponent(product.value)}&rail=stripe&paymentOption=${encodeURIComponent(paymentOption.value)}`;
             return;
           }
           const resp = await fetch('/api/sales/checkout-intent', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});

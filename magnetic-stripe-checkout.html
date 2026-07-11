@@ -213,7 +213,15 @@
             <select id="product-code" name="product-code" required></select>
           </div>
           <div class="form-row">
-            <label for="amount">Product Price (USD)</label>
+            <label for="payment-option">Checkout Option</label>
+            <select id="payment-option" name="payment-option" required>
+              <option value="full">Pay full purchase price</option>
+              <option value="reserve">Reserve with 20% deposit (max $5,000)</option>
+            </select>
+            <p class="form-help" id="reserve-help">Reserve payments apply a 20% deposit capped at $5,000, with the remaining balance due before production release.</p>
+          </div>
+          <div class="form-row">
+            <label for="amount">Checkout Amount (USD)</label>
             <input type="number" id="amount" name="amount" placeholder="25000" min="1" step="0.01" required readonly>
           </div>
           <div class="form-row">
@@ -305,6 +313,8 @@
       };
       const productSelect = form.querySelector('#product-code');
       const amountInput = form.querySelector('#amount');
+      const paymentOptionSelect = form.querySelector('#payment-option');
+      const reserveHelp = form.querySelector('#reserve-help');
       const dynamicRequiredFields = Array.from(form.querySelectorAll('[data-required-when]'));
       const btcWalletInput = form.querySelector('#btc-wallet');
       const btcQrImage = form.querySelector('#btc-qr');
@@ -339,7 +349,7 @@
       const checkoutParams = new URLSearchParams(window.location.search || '');
       const queryProduct = (checkoutParams.get('product') || '').trim().toLowerCase();
       const queryRail = (checkoutParams.get('rail') || '').trim().toLowerCase();
-      const queryPurchaseType = (checkoutParams.get('purchaseType') || '').trim().toLowerCase();
+      const queryPurchaseType = (checkoutParams.get('purchaseType') || checkoutParams.get('paymentOption') || '').trim().toLowerCase();
 
       const railAlias = {
         stripe: 'stripe',
@@ -490,10 +500,19 @@
           .join('');
       };
 
+      const calculateReserveDeposit = (usd) => Number(Math.min((Number(usd) || 0) * 0.2, 5000).toFixed(2));
       const syncAmount = () => {
         const selected = productSelect?.selectedOptions?.[0];
-        const usd = selected ? Number(selected.getAttribute('data-usd')) : 0;
+        const productUsd = selected ? Number(selected.getAttribute('data-usd')) : 0;
+        const isReserve = paymentOptionSelect?.value === 'reserve';
+        const reserveUsd = calculateReserveDeposit(productUsd);
+        const usd = isReserve ? reserveUsd : productUsd;
         if (amountInput) amountInput.value = Number.isFinite(usd) ? usd.toFixed(2) : '';
+        if (reserveHelp && Number.isFinite(productUsd) && productUsd > 0) {
+          reserveHelp.textContent = isReserve
+            ? `Reserve deposit: $${reserveUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Balance due before release: $${Math.max(productUsd - reserveUsd, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`
+            : `Full purchase amount selected. Reserve option is 20% capped at $5,000 ($${reserveUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} today).`;
+        }
         const btcInput = form.querySelector('#btc-amount');
         const btcFx = Number(railCatalog?.bitcoin?.fx);
         if (btcInput && (!btcInput.value || btcInput.dataset.autoFilled === 'true') && Number.isFinite(usd) && Number.isFinite(btcFx) && btcFx > 0) {
@@ -521,10 +540,12 @@
           }
 
           productSelect?.addEventListener('change', syncAmount);
+          paymentOptionSelect?.addEventListener('change', syncAmount);
           syncAmount();
         } catch (_) {
           renderProducts(FALLBACK_PRODUCTS);
           productSelect?.addEventListener('change', syncAmount);
+          paymentOptionSelect?.addEventListener('change', syncAmount);
           syncAmount();
         }
       };
@@ -543,7 +564,9 @@
       });
 
       if (queryPurchaseType === 'reserve') {
-        setFeedback('Reserve checkout ready. Confirm customer details, then continue payment.', 'success');
+        if (paymentOptionSelect) paymentOptionSelect.value = 'reserve';
+        syncAmount();
+        setFeedback('Reserve checkout ready. This charges a 20% deposit capped at $5,000 to hold allocation.', 'success');
       }
 
       paymentMethodInputs.forEach((input) => {
@@ -629,7 +652,8 @@
             productCode: formData.get('product-code') || '',
             buyerName: formData.get('cardholder') || '',
             buyerEmail: formData.get('buyer-email') || '',
-            notes: formData.get('notes') || ''
+            notes: formData.get('notes') || '',
+            paymentOption: formData.get('payment-option') || 'full'
           };
           try {
             await fetch('/api/fundraising/checkout', {
@@ -662,6 +686,7 @@
 
         Object.assign(payload, {
           paymentRail: paymentMethod === 'magstripe' ? 'stripe' : paymentMethod,
+          paymentOption: formData.get('payment-option') || 'full',
           productCode: formData.get('product-code') || '',
           buyerName: formData.get('cardholder') || '',
           buyerEmail: formData.get('buyer-email') || '',

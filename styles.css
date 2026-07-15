@@ -4321,3 +4321,97 @@ main {
 .gateway__wallet-status.is-error {
   color: #ff8c8c;
 }
+
+html.webpage-login-locked,
+body.webpage-login-locked {
+  overflow: hidden;
+}
+
+body.webpage-login-locked main,
+body.webpage-login-locked header.site-header,
+body.webpage-login-locked footer {
+  filter: blur(10px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.webpage-login {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: radial-gradient(circle at top, rgba(106, 255, 59, 0.2), transparent 34%), rgba(3, 7, 18, 0.92);
+  color: #f7fbff;
+}
+
+.webpage-login__card {
+  width: min(100%, 520px);
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  border: 1px solid rgba(106, 255, 59, 0.28);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(8, 16, 30, 0.96), rgba(18, 28, 48, 0.96));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+}
+
+.webpage-login__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.webpage-login__brand img {
+  width: 44px;
+  height: 44px;
+}
+
+.webpage-login h1 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  line-height: 0.95;
+}
+
+.webpage-login__copy {
+  margin: 0 0 1.5rem;
+  color: rgba(247, 251, 255, 0.78);
+  line-height: 1.6;
+}
+
+.webpage-login label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.webpage-login input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+}
+
+.webpage-login input:focus {
+  outline: 2px solid rgba(106, 255, 59, 0.7);
+  outline-offset: 3px;
+}
+
+.webpage-login__error {
+  min-height: 1.4rem;
+  margin: 0.75rem 0 0;
+  color: #ffb4b4;
+  font-weight: 700;
+}
+
+.webpage-login__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}

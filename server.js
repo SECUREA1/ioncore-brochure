@@ -985,7 +985,10 @@ async function recordGatewaySubmission(submission) {
     databaseOptIn: submission.databaseOptIn ? 1 : 0,
     userAgent: normalizeForStorage(submission.userAgent),
     referer: normalizeForStorage(submission.referer),
-    ipAddress: normalizeForStorage(submission.ipAddress)
+    ipAddress: normalizeForStorage(submission.ipAddress),
+    walletAddress: normalizeForStorage(submission.walletAddress),
+    walletProvider: normalizeForStorage(submission.walletProvider),
+    meknxPassId: normalizeForStorage(submission.meknxPassId)
   };
 
   let entryId = null;
@@ -999,7 +1002,10 @@ async function recordGatewaySubmission(submission) {
       selections: record.selections,
       databaseOptIn: 1,
       createdAt,
-      updatedAt: createdAt
+      updatedAt: createdAt,
+      walletAddress: record.walletAddress,
+      walletProvider: record.walletProvider,
+      meknxPassId: record.meknxPassId
     };
   }
 
@@ -1418,6 +1424,9 @@ app.post('/gateway', async (req, res) => {
   const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
   const streamsRaw = body.streams;
   const databaseOptInRaw = body.databaseOptIn;
+  const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
+  const walletProvider = normalizeProvider(typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '');
+  const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
 
   const roleLabels = new Map([
     ['investor', 'Investor'],
@@ -1478,8 +1487,24 @@ app.post('/gateway', async (req, res) => {
     databaseOptIn,
     userAgent: req.get('user-agent'),
     referer: req.get('referer'),
-    ipAddress: req.ip
+    ipAddress: req.ip,
+    walletAddress,
+    walletProvider,
+    meknxPassId
   };
+
+  if (walletAddress) {
+    await recordLoginEvent({
+      method: 'gateway-crypto',
+      username: name,
+      walletAddress,
+      walletProvider,
+      meknxPassId,
+      success: true,
+      metadata: { role, streams: normalizedStreams },
+      ipAddress: req.ip
+    });
+  }
 
   const stored = await recordGatewaySubmission(submission);
 
@@ -1538,7 +1563,7 @@ app.post('/api/sales/checkout-intent', async (req, res) => {
   return res.status(201).json({ ...checkout, uri, to: SALES_WALLETS[currencyRaw] });
 });
 
-app.post('/api/sales/confirm', async (req, res) => {
+async function handleSalesConfirm(req, res) {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const checkoutId = typeof body.checkoutId === 'string' ? body.checkoutId.trim() : '';
   const txHash = typeof body.txHash === 'string' ? body.txHash.trim() : '';
@@ -1554,7 +1579,10 @@ app.post('/api/sales/confirm', async (req, res) => {
   checkout.confirmedAt = new Date().toISOString();
   salesCheckouts.set(checkoutId, checkout);
   return res.json({ message: 'Sales payment submitted and recorded.', checkout });
-});
+}
+
+app.post('/api/sales/confirm', handleSalesConfirm);
+app.post('/api/sales/checkout-submit', handleSalesConfirm);
 
 app.get('/api/sales/market-rates', async (req, res) => {
   const rates = await getSalesFxRates(req.query.refresh === '1');

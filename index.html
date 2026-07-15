@@ -68,6 +68,94 @@
       </div>
     </section>
 
+
+    <section class="gateway-section page-section" id="gateway-entry" aria-labelledby="gateway-title">
+      <div class="container">
+        <div class="gateway">
+          <div class="gateway__grid" aria-hidden="true"></div>
+          <div class="gateway__content">
+            <div class="gateway__header">
+              <div class="gateway__logo"><img src="battery.svg" alt="" aria-hidden="true"></div>
+              <div>
+                <span class="gateway__identity">Ioncore gateway entry</span>
+                <h2 class="gateway__title" id="gateway-title">Full secure login + crypto clearance</h2>
+                <p class="gateway__subtitle">Choose your access profile, enter the Boots gateway code, then optionally bind the session to a completed MEKNX / IONC / Cardano wallet clearance before entering the web experience.</p>
+              </div>
+            </div>
+
+            <div class="gateway__roles" aria-label="Access profile">
+              <button type="button" class="gateway-role" data-role="investor">
+                <span class="gateway-role__eyebrow">01</span>
+                <span class="gateway-role__title">Investor</span>
+                <span class="gateway-role__copy">Dossiers, valuation context, and portfolio summaries.</span>
+              </button>
+              <button type="button" class="gateway-role" data-role="buyer">
+                <span class="gateway-role__eyebrow">02</span>
+                <span class="gateway-role__title">Industrial buyer</span>
+                <span class="gateway-role__copy">Technical pages, deployment playbooks, and checkout paths.</span>
+              </button>
+              <button type="button" class="gateway-role" data-role="team">
+                <span class="gateway-role__eyebrow">03</span>
+                <span class="gateway-role__title">Team</span>
+                <span class="gateway-role__copy">Internal operating alignment and gateway audit records.</span>
+              </button>
+            </div>
+
+            <form class="gateway__form" id="gateway-form" novalidate>
+              <div class="gateway__form-row">
+                <div class="gateway__input">
+                  <label for="gateway-name">Full name</label>
+                  <input id="gateway-name" name="name" autocomplete="name">
+                  <span class="gateway__error" data-error-for="gateway-name"></span>
+                </div>
+                <div class="gateway__input">
+                  <label for="gateway-email">Work email <span class="gateway__optional">Optional</span></label>
+                  <input id="gateway-email" name="email" type="email" autocomplete="email">
+                  <span class="gateway__error" data-error-for="gateway-email"></span>
+                </div>
+              </div>
+
+              <fieldset class="gateway__toggles" role="group" aria-describedby="gateway-streams-error">
+                <legend>Access toggles</legend>
+                <div class="gateway__toggle-list">
+                  <label class="gateway-toggle"><input type="checkbox" name="streams" value="investor-dossier"><span class="gateway-toggle__body"><span class="gateway-toggle__indicator"></span><span class="gateway-toggle__content"><span class="gateway-toggle__title">Investor dossiers</span><span class="gateway-toggle__copy">Funding, roadmap, and market-position materials.</span></span></span></label>
+                  <label class="gateway-toggle"><input type="checkbox" name="streams" value="industrial-playbooks"><span class="gateway-toggle__body"><span class="gateway-toggle__indicator"></span><span class="gateway-toggle__content"><span class="gateway-toggle__title">Industrial playbooks</span><span class="gateway-toggle__copy">Deployment and product evaluation pages.</span></span></span></label>
+                  <label class="gateway-toggle"><input type="checkbox" name="streams" value="team-ops"><span class="gateway-toggle__body"><span class="gateway-toggle__indicator"></span><span class="gateway-toggle__content"><span class="gateway-toggle__title">Team ops</span><span class="gateway-toggle__copy">Session record, database opt-in, and operating context.</span></span></span></label>
+                </div>
+                <span class="gateway__error" id="gateway-streams-error" data-error-for="gateway-streams"></span>
+              </fieldset>
+
+              <div class="gateway__form-row">
+                <div class="gateway__input">
+                  <label for="gateway-passphrase">Gateway code</label>
+                  <input id="gateway-passphrase" name="passphrase" type="password" autocomplete="current-password" placeholder="Boots">
+                  <span class="gateway__error" data-error-for="gateway-passphrase"></span>
+                </div>
+                <div class="gateway__input">
+                  <label for="gateway-wallet">Crypto wallet clearance <span class="gateway__optional">Optional</span></label>
+                  <div class="gateway-wallet-row">
+                    <select id="gateway-wallet-provider" name="walletProvider" aria-label="Wallet network"><option value="solana">Solana / IONC</option><option value="evm">EVM / MEKNX</option><option value="cardano">Cardano policy</option></select>
+                    <button class="btn btn-outline" type="button" id="gateway-connect-wallet">Connect</button>
+                  </div>
+                  <input id="gateway-wallet" name="walletAddress" placeholder="Wallet address or connect wallet">
+                  <input id="gateway-meknx-pass" name="meknxPassId" placeholder="MEKNX pass id (auto-filled after mint/verify)">
+                  <p class="gateway__wallet-status" id="gateway-wallet-status">Crypto login is ready: connect Phantom, MetaMask, Cardano, or paste a completed clearance.</p>
+                </div>
+              </div>
+
+              <label class="gateway-toggle gateway-toggle--compact"><input type="checkbox" name="databaseOptIn"><span class="gateway-toggle__body"><span class="gateway-toggle__indicator"></span><span class="gateway-toggle__content"><span class="gateway-toggle__title">Save me to the gateway database</span><span class="gateway-toggle__copy">Stores a reusable admin record for follow-up and audit continuity.</span></span></span></label>
+
+              <div class="gateway__actions">
+                <p class="gateway__privacy">Credential login, webpage entry, and completed crypto clearance are recorded together for a unified gateway session.</p>
+                <button class="gateway__submit" type="submit">Enter gateway <i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+            </form>
+            <div class="gateway__status" id="gateway-status"><span class="status-icon"><i class="fa-solid fa-circle-check"></i></span><span class="status-message">Gateway access granted.</span><span class="status-code" id="gateway-status-code"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="container page-section--tight">
       <div class="index-table-wrapper">
         <table class="index-table">

@@ -12,6 +12,11 @@
   const status = document.getElementById('gateway-status');
   const statusCode = document.getElementById('gateway-status-code');
   const submitButton = document.querySelector('.gateway__submit');
+  const walletInput = document.getElementById('gateway-wallet');
+  const walletProvider = document.getElementById('gateway-wallet-provider');
+  const walletStatus = document.getElementById('gateway-wallet-status');
+  const meknxPassInput = document.getElementById('gateway-meknx-pass');
+  const connectWalletButton = document.getElementById('gateway-connect-wallet');
   const defaultSubmitLabel = submitButton ? submitButton.innerHTML : '';
   let selectedRole = '';
 
@@ -57,6 +62,70 @@
     general.textContent = message;
     form.setAttribute('aria-describedby', 'gateway-general-error');
   }
+
+
+  function setWalletStatus(message, isError = false) {
+    if (!walletStatus) return;
+    walletStatus.textContent = message;
+    walletStatus.classList.toggle('is-error', isError);
+  }
+
+  async function postAccess(path, payload) {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || 'Wallet clearance could not be completed.');
+    }
+    return data;
+  }
+
+  async function detectWalletAddress(provider) {
+    if (provider === 'solana' && window.solana?.connect) {
+      const response = await window.solana.connect();
+      return response?.publicKey?.toString() || window.solana.publicKey?.toString() || '';
+    }
+    if (provider === 'evm' && window.ethereum?.request) {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      return Array.isArray(accounts) ? accounts[0] || '' : '';
+    }
+    if (provider === 'cardano' && window.cardano) {
+      const walletName = Object.keys(window.cardano).find((key) => window.cardano[key]?.enable);
+      if (walletName) {
+        const api = await window.cardano[walletName].enable();
+        const addresses = await api.getUsedAddresses();
+        return Array.isArray(addresses) ? addresses[0] || '' : '';
+      }
+    }
+    return walletInput?.value.trim() || '';
+  }
+
+  connectWalletButton?.addEventListener('click', async () => {
+    const provider = walletProvider?.value || 'solana';
+    connectWalletButton.disabled = true;
+    setWalletStatus('Connecting wallet and completing crypto clearance…');
+    try {
+      const address = await detectWalletAddress(provider);
+      if (!address) throw new Error('No wallet address was returned. Paste an address or install the matching wallet.');
+      if (walletInput) walletInput.value = address;
+      const pass = await postAccess('/access/meknx', { walletAddress: address, walletProvider: provider, action: 'mint' });
+      if (meknxPassInput) meknxPassInput.value = pass.passId || '';
+      if (provider === 'solana') {
+        await postAccess('/access/ionc', { walletAddress: address, walletProvider: provider, meknxPassId: pass.passId });
+      }
+      if (provider === 'cardano') {
+        await postAccess('/access/cardano', { walletAddress: address, walletProvider: provider, meknxPassId: pass.passId, policyId: pass.cardanoPolicyId });
+      }
+      setWalletStatus(`${provider.toUpperCase()} crypto clearance complete for ${address.slice(0, 8)}…${address.slice(-6)}.`);
+    } catch (error) {
+      setWalletStatus(error?.message || 'Wallet clearance failed.', true);
+    } finally {
+      connectWalletButton.disabled = false;
+    }
+  });
 
   function setSubmitting(isSubmitting) {
     if (!submitButton) return;
@@ -126,7 +195,10 @@
       name: name.value.trim(),
       email: emailValue,
       streams: selectedStreams,
-      databaseOptIn: !!databaseToggle && databaseToggle.checked
+      databaseOptIn: !!databaseToggle && databaseToggle.checked,
+      walletAddress: walletInput?.value.trim() || '',
+      walletProvider: walletProvider?.value || '',
+      meknxPassId: meknxPassInput?.value.trim() || ''
     };
 
     const roleLabels = {
@@ -174,6 +246,9 @@
       name: name.value.trim(),
       streams: selectedStreams,
       databaseOptIn: !!(databaseToggle && databaseToggle.checked),
+      walletAddress: walletInput?.value.trim() || '',
+      walletProvider: walletProvider?.value || '',
+      meknxPassId: meknxPassInput?.value.trim() || '',
       grantedAt: now,
       expires: now + twelveHours
     };

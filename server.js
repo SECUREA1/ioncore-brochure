@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import os from 'os';
 import unzipper from 'unzipper';
-import { createHash, randomUUID } from 'crypto';
+import { createHash, createHmac, randomUUID } from 'crypto';
 import { executeMeknxGate, isThirdwebConfigured } from './integrations/thirdweb-client.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -182,6 +182,12 @@ const ADMIN_PROMO_SECTION = `
 const TIMEPIECE_LOCK_OVERLAY = '';
 const CARDANO_POLICY_ID =
   process.env.CARDANO_POLICY_ID || 'f1a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8';
+
+
+const GATEWAY_CODE = (process.env.GATEWAY_ACCESS_CODE || 'Boots').trim().toLowerCase();
+const WEBPAGE_ACCESS_CODE = (process.env.WEBPAGE_ACCESS_CODE || 'burrito').trim().toLowerCase();
+const ACCESS_SESSION_MS = 12 * 60 * 60 * 1000;
+const ACCESS_COOKIE_SECRET = process.env.ACCESS_COOKIE_SECRET || process.env.SESSION_SECRET || 'ioncore-local-access-secret';
 
 const BRAND = {
   name: 'Ioncore Energy',
@@ -1371,6 +1377,58 @@ function buildHead(pageTitle) {
 }
 
 
+
+function base64UrlEncode(value) {
+  return Buffer.from(value, 'utf8').toString('base64url');
+}
+
+function base64UrlDecode(value) {
+  return Buffer.from(value, 'base64url').toString('utf8');
+}
+
+function signAccessPayload(payload) {
+  return createHmac('sha256', ACCESS_COOKIE_SECRET).update(payload).digest('base64url');
+}
+
+function createAccessToken(data) {
+  const payload = base64UrlEncode(JSON.stringify(data));
+  return `${payload}.${signAccessPayload(payload)}`;
+}
+
+function readCookie(req, name) {
+  const header = req.get('cookie') || '';
+  return header
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
+function verifyAccessToken(token) {
+  if (typeof token !== 'string' || !token.includes('.')) return null;
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature || signAccessPayload(payload) !== signature) return null;
+  try {
+    const data = JSON.parse(base64UrlDecode(payload));
+    if (!data || typeof data !== 'object' || Number(data.expires) <= Date.now()) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function setAccessCookie(res, name, data) {
+  const expires = new Date(Number(data.expires)).toUTCString();
+  res.setHeader(
+    'Set-Cookie',
+    `${name}=${createAccessToken(data)}; Path=/; Expires=${expires}; HttpOnly; SameSite=Lax`
+  );
+}
+
+function hasGatewayCookie(req) {
+  return !!verifyAccessToken(readCookie(req, 'ioncore_gateway'));
+}
+
 function normalizeProvider(provider) {
   if (typeof provider !== 'string') {
     return 'evm';
@@ -1427,6 +1485,7 @@ app.post('/gateway', async (req, res) => {
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const walletProvider = normalizeProvider(typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '');
   const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
+  const passphrase = typeof body.passphrase === 'string' ? body.passphrase.trim().toLowerCase() : '';
 
   const roleLabels = new Map([
     ['investor', 'Investor'],
@@ -1442,6 +1501,10 @@ app.post('/gateway', async (req, res) => {
 
   if (!name) {
     return res.status(400).json({ message: 'Enter your full name to continue.' });
+  }
+
+  if (!passphrase || passphrase !== GATEWAY_CODE) {
+    return res.status(401).json({ message: 'Gateway access code is incorrect.' });
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1514,9 +1577,17 @@ app.post('/gateway', async (req, res) => {
       .json({ message: 'We were unable to record your access request. Please try again shortly.' });
   }
 
-  const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + ACCESS_SESSION_MS).toISOString();
   const readableSelections = normalizedStreams.map((value) => streamOptions.get(value));
   const message = `${roleLabels.get(role)} preferences saved. Redirecting to brochure.`;
+
+  setAccessCookie(res, 'ioncore_gateway', {
+    role,
+    name,
+    entryId: stored.entryId || '',
+    grantedAt: Date.now(),
+    expires: Date.parse(expiresAt)
+  });
 
   return res.status(201).json({
     message,
@@ -1527,6 +1598,62 @@ app.post('/gateway', async (req, res) => {
   });
 });
 
+
+
+app.post('/webpage-login', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const code = typeof body.code === 'string' ? body.code.trim().toLowerCase() : '';
+  const gatewaySession = body.gatewaySession && typeof body.gatewaySession === 'object' ? body.gatewaySession : {};
+  const name = typeof gatewaySession.name === 'string' ? gatewaySession.name.trim() : '';
+  const role = typeof gatewaySession.role === 'string' ? gatewaySession.role.trim().toLowerCase() : '';
+  const grantedAt = Number(gatewaySession.grantedAt);
+  const expires = Number(gatewaySession.expires);
+  const walletAddress = typeof gatewaySession.walletAddress === 'string' ? gatewaySession.walletAddress.trim() : '';
+  const walletProvider = normalizeProvider(
+    typeof gatewaySession.walletProvider === 'string' ? gatewaySession.walletProvider.trim() : ''
+  );
+  const meknxPassId = typeof gatewaySession.meknxPassId === 'string' ? gatewaySession.meknxPassId.trim() : '';
+
+  if (!name || !role || !Number.isFinite(grantedAt) || !Number.isFinite(expires) || expires <= Date.now()) {
+    return res.status(401).json({ message: 'Complete the gateway login before unlocking this webpage.' });
+  }
+
+  if (!code || code !== WEBPAGE_ACCESS_CODE) {
+    await recordLoginEvent({
+      method: 'webpage-login',
+      username: name,
+      walletAddress,
+      walletProvider,
+      meknxPassId,
+      success: false,
+      metadata: { role, reason: 'invalid-webpage-code' },
+      ipAddress: req.ip
+    });
+    return res.status(401).json({ message: 'Webpage access code is incorrect.' });
+  }
+
+  const expiresAt = new Date(Math.min(expires, Date.now() + ACCESS_SESSION_MS)).toISOString();
+  await recordLoginEvent({
+    method: 'webpage-login',
+    username: name,
+    walletAddress,
+    walletProvider,
+    meknxPassId,
+    success: true,
+    metadata: { role, gatewayGrantedAt: grantedAt },
+    ipAddress: req.ip
+  });
+
+  setAccessCookie(res, 'ioncore_webpage', {
+    role,
+    name,
+    gatewayGrantedAt: grantedAt,
+    grantedAt: Date.now(),
+    expires: Date.parse(expiresAt)
+  });
+
+  return res.status(201).json({ message: 'Webpage login verified.', expiresAt });
+});
 
 app.post('/api/sales/checkout-intent', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -2378,6 +2505,9 @@ app.get('/timepieces', async (req, res) => {
 
 app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
   const rel = decodeURIComponent(req.path.slice(1));
+  if (rel.toLowerCase() === 'webpage.html' && !hasGatewayCookie(req)) {
+    return res.redirect('/index.html#gateway-entry');
+  }
   const filePath = path.join(__dirname, rel);
   if (!filePath.startsWith(__dirname)) {
     return res.status(400).send('Invalid path');

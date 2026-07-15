@@ -198,7 +198,8 @@
       databaseOptIn: !!databaseToggle && databaseToggle.checked,
       walletAddress: walletInput?.value.trim() || '',
       walletProvider: walletProvider?.value || '',
-      meknxPassId: meknxPassInput?.value.trim() || ''
+      meknxPassId: meknxPassInput?.value.trim() || '',
+      passphrase: passphraseValue
     };
 
     const roleLabels = {
@@ -249,6 +250,7 @@
       walletAddress: walletInput?.value.trim() || '',
       walletProvider: walletProvider?.value || '',
       meknxPassId: meknxPassInput?.value.trim() || '',
+      entryId: responseData?.entryId || '',
       grantedAt: now,
       expires: now + twelveHours
     };

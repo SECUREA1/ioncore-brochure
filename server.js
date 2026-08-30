@@ -1429,6 +1429,10 @@ function hasGatewayCookie(req) {
   return !!verifyAccessToken(readCookie(req, 'ioncore_gateway'));
 }
 
+function hasWebpageCookie(req) {
+  return !!verifyAccessToken(readCookie(req, 'ioncore_webpage'));
+}
+
 function normalizeProvider(provider) {
   if (typeof provider !== 'string') {
     return 'evm';
@@ -1482,6 +1486,7 @@ app.post('/gateway', async (req, res) => {
   const emailRaw = typeof body.email === 'string' ? body.email.trim() : '';
   const streamsRaw = body.streams;
   const databaseOptInRaw = body.databaseOptIn;
+  const ndaAcceptedRaw = body.ndaAccepted;
   const walletAddress = typeof body.walletAddress === 'string' ? body.walletAddress.trim() : '';
   const walletProvider = normalizeProvider(typeof body.walletProvider === 'string' ? body.walletProvider.trim() : '');
   const meknxPassId = typeof body.meknxPassId === 'string' ? body.meknxPassId.trim() : '';
@@ -1542,12 +1547,19 @@ app.post('/gateway', async (req, res) => {
     databaseOptInRaw === 'on' ||
     databaseOptInRaw === '1';
 
+  const ndaAccepted =
+    ndaAcceptedRaw === true || ndaAcceptedRaw === 'true' || ndaAcceptedRaw === 'on' || ndaAcceptedRaw === '1';
+  if (!ndaAccepted) {
+    return res.status(400).json({ message: 'Accept the confidentiality and NDA notice to continue.' });
+  }
+
   const submission = {
     role,
     name,
     email,
     selections: normalizedStreams,
     databaseOptIn,
+    ndaAccepted,
     userAgent: req.get('user-agent'),
     referer: req.get('referer'),
     ipAddress: req.ip,
@@ -1601,6 +1613,9 @@ app.post('/gateway', async (req, res) => {
 
 
 app.post('/webpage-login', async (req, res) => {
+  if (!hasGatewayCookie(req)) {
+    return res.status(401).json({ message: 'Complete the dossier acknowledgement before unlocking the catalogue.' });
+  }
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const code = typeof body.code === 'string' ? body.code.trim().toLowerCase() : '';
   const gatewaySession = body.gatewaySession && typeof body.gatewaySession === 'object' ? body.gatewaySession : {};
@@ -2471,7 +2486,13 @@ async function getTitle(filePath) {
 
 // Public homepage
 app.get('/', async (req, res) => {
-  res.redirect('/webpage.html');
+  res.redirect('/login.html');
+});
+
+app.get('/login', (req, res) => res.redirect('/login.html'));
+
+app.get('/catalogue', (req, res) => {
+  res.redirect(hasWebpageCookie(req) ? '/webpage.html' : '/webpage-login.html');
 });
 
 app.get('/timepieces', async (req, res) => {
@@ -2505,8 +2526,8 @@ app.get('/timepieces', async (req, res) => {
 
 app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
   const rel = decodeURIComponent(req.path.slice(1));
-  if (rel.toLowerCase() === 'webpage.html' && !hasGatewayCookie(req)) {
-    return res.redirect('/index.html#gateway-entry');
+  if (rel.toLowerCase() === 'webpage.html' && !hasWebpageCookie(req)) {
+    return res.redirect('/webpage-login.html');
   }
   const filePath = path.join(__dirname, rel);
   if (!filePath.startsWith(__dirname)) {

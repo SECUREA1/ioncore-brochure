@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07111d"><title>Ioncore Energy | Dossier Entry</title>
+  <meta name="description" content="Confidentiality acknowledgement and dossier entry for the Ioncore brochure library.">
+  <link rel="icon" href="/battery.svg"><link rel="stylesheet" href="/styles.css">
+  <script src="/login.js" defer></script>
+</head>
+<body class="access-page">
+  <main class="access-shell">
+    <section class="access-panel" aria-labelledby="entry-title">
+      <a class="access-brand" href="/login.html"><img src="/battery.svg" alt=""><span>Ioncore Energy</span></a>
+      <div class="access-heading"><span class="eyebrow">Confidential dossier</span><h1 id="entry-title">Enter the brochure library</h1><p>Review the confidentiality notice, identify yourself, and continue to the clean public index.</p></div>
+      <div class="nda-notice"><strong>NDA &amp; confidentiality notice</strong><p>The index provides overview materials. Restricted engineering, pricing, and commercial catalogue information remains confidential and requires a separate webpage login.</p></div>
+      <form id="dossier-form" class="access-form" novalidate>
+        <div class="access-fields"><label>Full name<input name="name" autocomplete="name" required></label><label>Work email <small>(optional)</small><input name="email" type="email" autocomplete="email"></label></div>
+        <label>Gateway code<input name="passphrase" type="password" autocomplete="current-password" required></label>
+        <label class="access-check"><input name="ndaAccepted" type="checkbox" required><span>I acknowledge the confidentiality notice and agree not to distribute restricted dossier materials without authorization.</span></label>
+        <p id="dossier-error" class="access-error" role="alert"></p>
+        <button class="btn btn-primary" type="submit">Acknowledge &amp; open index</button>
+      </form>
+    </section>
+    <aside class="access-aside"><span>01</span><h2>Clean entry.<br>Clear access.</h2><p>The public library and restricted catalogue now use distinct, predictable steps.</p></aside>
+  </main>
+</body>
+</html>

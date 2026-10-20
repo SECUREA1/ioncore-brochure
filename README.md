@@ -2,7 +2,7 @@
 
 This repository contains a collection of HTML brochures. A small Express server is included so the pages can be browsed locally or deployed on Render.
 
-The public homepage at `/` (also `/index.html`) is the project index. Image categories jump to grouped project lists and their brochure/demo buttons. The second page, `/webpage.html` (also `/catalogue`), provides the energy overview. Neither page requires a login; an optional login link remains in the homepage navigation.
+The public homepage at `/` (also `/webpage.html` and `/catalogue`) is the main Ioncore webpage. Its **Explore Ioncore projects** button opens `/index.html`, where five image categories jump to grouped project lists and brochure/demo buttons. The index links back to the main webpage. Neither page requires a login; an optional login link remains in the homepage navigation.
 
 ## Development
 

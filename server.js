@@ -2484,9 +2484,9 @@ async function getTitle(filePath) {
 }
 
 
-// Public homepage
+// Public main webpage; the project library remains at /index.html.
 app.get('/', async (req, res) => {
-  await sendHtml(res, path.join(__dirname, 'index.html'));
+  await sendHtml(res, path.join(__dirname, 'webpage.html'));
 });
 
 app.get('/login', (req, res) => res.redirect('/login.html'));

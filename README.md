@@ -2,18 +2,18 @@
 
 This repository contains a collection of HTML brochures. A small Express server is included so the pages can be browsed locally or deployed on Render.
 
-The public homepage lives at `/` and links to an admin-only index of every HTML file. That listing resides at `/admin` and is protected with Basic Auth (`investor`/`burrito`). All brochure HTML files—even those not included on the old `index.html` page—require the same credentials. Selecting a link opens the brochure wrapped with a "Back" button so you can return to the index, and the browser tab title reflects the brochure's own title.
+The public homepage at `/` (also `/index.html`) is the project index. Image categories jump to grouped project lists and their brochure/demo buttons. The second page, `/webpage.html` (also `/catalogue`), provides the energy overview. Neither page requires a login; an optional login link remains in the homepage navigation.
 
 ## Development
 
-Install dependencies and start the server:
+Use Node.js 24 and install the locked dependencies:
 
 ```bash
-npm install
+npm ci --no-audit --no-fund
 npm start
 ```
 
-Visit <http://localhost:3000> for the homepage. Click **All HTML Files** and sign in with the admin credentials to browse the full index of brochures.
+The server listens on port 3000 by default; set `PORT` to override it. Verify `/`, `/index.html`, `/webpage.html`, and a linked brochure return HTTP 200 without cookies. Run `node --test tests/public-home.test.js` for the public homepage and project-resource regression check. No build step is required. Do not run `build-index` during setup: it overwrites the curated homepage. Thirdweb credentials are optional for public browsing and only required for the separate MEKNX contract verification flow.
 
 ## Live engagement counters
 

@@ -2486,13 +2486,13 @@ async function getTitle(filePath) {
 
 // Public homepage
 app.get('/', async (req, res) => {
-  res.redirect('/login.html');
+  await sendHtml(res, path.join(__dirname, 'index.html'));
 });
 
 app.get('/login', (req, res) => res.redirect('/login.html'));
 
 app.get('/catalogue', (req, res) => {
-  res.redirect(hasWebpageCookie(req) ? '/webpage.html' : '/webpage-login.html');
+  res.redirect('/webpage.html');
 });
 
 app.get('/timepieces', async (req, res) => {
@@ -2526,9 +2526,6 @@ app.get('/timepieces', async (req, res) => {
 
 app.get(/^\/(?!view$)[^?]*\.html$/i, async (req, res) => {
   const rel = decodeURIComponent(req.path.slice(1));
-  if (rel.toLowerCase() === 'webpage.html' && !hasWebpageCookie(req)) {
-    return res.redirect('/webpage-login.html');
-  }
   const filePath = path.join(__dirname, rel);
   if (!filePath.startsWith(__dirname)) {
     return res.status(400).send('Invalid path');

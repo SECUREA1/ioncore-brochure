@@ -13,7 +13,7 @@ npm ci --no-audit --no-fund
 npm start
 ```
 
-The server listens on port 3000 by default; set `PORT` to override it. Verify `/`, `/index.html`, `/webpage.html`, and a linked brochure return HTTP 200 without cookies. Run `node --test tests/public-home.test.js` for the public homepage and project-resource regression check. No build step is required. Do not run `build-index` during setup: it overwrites the curated homepage. Thirdweb credentials are optional for public browsing and only required for the separate MEKNX contract verification flow.
+The server listens on port 3000 by default; set `PORT` to override it. Verify `/`, `/index.html`, `/webpage.html`, and a linked brochure return HTTP 200 without cookies. Run `node --test tests/public-home.test.js` for the public homepage and project-resource regression check. No build step is required. The catalogue is maintained as described below. Thirdweb credentials are optional for public browsing and only required for the separate MEKNX contract verification flow.
 
 ## Live engagement counters
 
@@ -73,3 +73,17 @@ logins. Configure the following environment variables to enable the integration:
 If both client ID and secret key are absent the MEKNX login flow returns a 503 response
 informing users that verification is temporarily offline. When configured, the gate reads
 the contract and stores the raw result alongside the login record for auditing.
+
+## Project index maintenance
+
+The index lists the reviewed project pages from `data/project-catalogue.json`, grouped into five categories. Distinct technical briefs, pricing pages, plans and interactive demos remain separate; exact copies and superseded versions point to a preferred page in the manifest's `excluded` records. Administrative/access pages and non-page fragments are also documented there. Original files are preserved.
+
+After adding a project page, add its path, readable title and category to the manifest. If a page is a duplicate, record its preferred `canonical` page and the reason instead. Then run:
+
+```bash
+npm run build-index
+node scripts/build-index.js --check
+node --test tests/public-home.test.js
+```
+
+The builder updates only the marked catalogue section, preserving the homepage layout and navigation. It fails on unreviewed HTML files, missing pages, duplicate file contents, or invalid canonical references. The `--check` command also detects stale generated output without changing files. Search progressively enhances the static list; all category/project links work with JavaScript disabled.

@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { once } from 'node:events';
+import { readFile } from 'node:fs/promises';
 
 // An independent server exercises routing without cookies or an existing login.
 test('public main webpage, category index and linked project resources', async (t) => {
@@ -42,6 +44,9 @@ test('public main webpage, category index and linked project resources', async (
   for (const path of ['/webpage.html', '/catalogue']) {
     assert.ok(!(await get(path)).includes('webpage-login.js'), path);
   }
+  const catalogue = JSON.parse(await readFile(new URL('../data/project-catalogue.json', import.meta.url), 'utf8'));
+  assert.equal((home.match(/class="project-item"/g) || []).length, catalogue.projects.length);
+  assert.ok(home.includes('src="project-index.js"'));
   const ids = new Set([...home.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
   const resources = new Set();
   for (const [, url] of home.matchAll(/(?:href|src)="([^"]+)"/g)) {
@@ -49,4 +54,11 @@ test('public main webpage, category index and linked project resources', async (
     else if (!/^(?:[a-z]+:|\/\/)/i.test(url)) resources.add('/' + url.replace(/^\//, ''));
   }
   for (const path of resources) await get(path);
+});
+
+
+test('catalogue is current and every repository HTML page has a reviewed disposition', async () => {
+  await promisify(execFile)(process.execPath, ['scripts/build-index.js', '--check'], {
+    cwd: new URL('..', import.meta.url),
+  });
 });

@@ -1,0 +1,586 @@
+{
+  "categories": [
+    {
+      "id": "energy",
+      "title": "Energy & storage"
+    },
+    {
+      "id": "cooling",
+      "title": "Cooling & cryogenics"
+    },
+    {
+      "id": "living",
+      "title": "Buildings & living"
+    },
+    {
+      "id": "technology",
+      "title": "Technology & tools"
+    },
+    {
+      "id": "interactive",
+      "title": "Interactive projects"
+    }
+  ],
+  "projects": [
+    {
+      "file": "50 mm.html",
+      "title": "Ioncore InertiaCharge 50mm System",
+      "category": "energy"
+    },
+    {
+      "file": "50mm Magnetic Inertia System.html",
+      "title": "50mm magnetic inertia — deployment brochure",
+      "category": "energy"
+    },
+    {
+      "file": "Complete Breakdown Cooling System for Magnetic Inertia System.html",
+      "title": "Cooling System Implementation",
+      "category": "cooling"
+    },
+    {
+      "file": "High-Capacity Battery Solution.html",
+      "title": "High-Capacity Battery Solutions",
+      "category": "energy"
+    },
+    {
+      "file": "How It Works.html",
+      "title": "InertiaCharge 50 - Portable Magnetic Inertia Generator",
+      "category": "energy"
+    },
+    {
+      "file": "Hybrid Flywheel + Battery Home Energy Storage System.html",
+      "title": "Hybrid Flywheel + Battery Home Energy Storage System",
+      "category": "energy"
+    },
+    {
+      "file": "IONCORE Poker — Secure Gesture Login + Glass UI + Full Audio + AI Traits.html",
+      "title": "IONCORE Poker — Secure Gesture Login + Glass UI + Full Audio + AI Traits",
+      "category": "interactive"
+    },
+    {
+      "file": "IONCORE • RAD-TOX FIELD (FULL + PRO AUDIO).html",
+      "title": "IONCORE • RAD-TOX FIELD (FULL + PRO AUDIO)",
+      "category": "interactive"
+    },
+    {
+      "file": "IONCORECHAT/index.html",
+      "title": "Ioncore Chat — live forum & studio",
+      "category": "interactive"
+    },
+    {
+      "file": "InertiaCharge Portable Generator.html",
+      "title": "InertiaCharge Portable Generator - Brochure",
+      "category": "energy"
+    },
+    {
+      "file": "IntegratedIntelligentNodeSystem.html",
+      "title": "Integrated Intelligent Node System",
+      "category": "technology"
+    },
+    {
+      "file": "IonCore FiberCut 1k – Mobile Tracker Laser Cutting System.html",
+      "title": "IonCore FiberCut 1k – Mobile Tracker Laser Cutting System",
+      "category": "technology"
+    },
+    {
+      "file": "IonCore FiberCut M1 Pro _ Industrial-Grade Mobile Precision Cutting Platform.html",
+      "title": "IonCore FiberCut M1 Pro | Industrial-Grade Mobile Precision Cutting Platform",
+      "category": "technology"
+    },
+    {
+      "file": "LaserEyesHUD.html",
+      "title": "Laser Eyes HUD — Gaze Cursor + Wizard + Shockwave Shooter + Vision AR (Faces/Objects + Logging)",
+      "category": "interactive"
+    },
+    {
+      "file": "MI-HWC — Magnetic Inertia Hot-Water Charger.html",
+      "title": "MI-HWC — Magnetic Inertia Hot-Water Charger",
+      "category": "energy"
+    },
+    {
+      "file": "Mag-Inertia One™ v1 System Dashboard.html",
+      "title": "Mag-Inertia One™ v1 System Dashboard",
+      "category": "energy"
+    },
+    {
+      "file": "Magnetic Inertia Generator.html",
+      "title": "Magnetic Inertia Generator Brochure",
+      "category": "energy"
+    },
+    {
+      "file": "Magnetic Inertia Jet Engine.html",
+      "title": "Magnetic Inertia Jet Engine – Technology Brochure",
+      "category": "energy"
+    },
+    {
+      "file": "Magnetic Inertia Power System.html",
+      "title": "Magnetic Inertia Power System",
+      "category": "energy"
+    },
+    {
+      "file": "Omconsole.html",
+      "title": "Omconsole Neural Control Console",
+      "category": "technology"
+    },
+    {
+      "file": "OmniCore X15.html",
+      "title": "OmniCore X15",
+      "category": "energy"
+    },
+    {
+      "file": "Permanent Magnet Synchronous Generator.html",
+      "title": "Permanent Magnet Synchronous Generator",
+      "category": "energy"
+    },
+    {
+      "file": "Product Line & Retail Pricing (50% Profit MMRSP).html",
+      "title": "InertiaCharge Generator - Product Line Overview",
+      "category": "energy"
+    },
+    {
+      "file": "Sentinel Multi‑Cam AI Surveillance Platform1.html",
+      "title": "Sentinel Multi‑Cam AI Surveillance Platform | Pricing & Packages",
+      "category": "interactive"
+    },
+    {
+      "file": "Sentinel Multi‑cam Ai.html",
+      "title": "Sentinel Multi‑Cam AI",
+      "category": "interactive"
+    },
+    {
+      "file": "ambassador-partner-grants.html",
+      "title": "Ioncore Ambassador & Partner Grants Program | Application Portal",
+      "category": "technology"
+    },
+    {
+      "file": "brochure 50 plus.html",
+      "title": "InertiaCharge 50 Brochure",
+      "category": "energy"
+    },
+    {
+      "file": "camp.html",
+      "title": "Ioncore • Hybrid Energy Systems for Hospitality, RV & Trail Series",
+      "category": "living"
+    },
+    {
+      "file": "capital-plan-200k.html",
+      "title": "IonCore | $200K Foundation Plan",
+      "category": "technology"
+    },
+    {
+      "file": "capital-plan-32m.html",
+      "title": "IonCore | $32M Growth Plan",
+      "category": "technology"
+    },
+    {
+      "file": "capital-plan-5m.html",
+      "title": "IonCore | $5M Validation Plan",
+      "category": "technology"
+    },
+    {
+      "file": "capital-plans.html",
+      "title": "IonCore | Capital Deployment Plans",
+      "category": "technology"
+    },
+    {
+      "file": "condo play.html",
+      "title": "Ioncore Condo Energy System",
+      "category": "living"
+    },
+    {
+      "file": "core - Copy.html",
+      "title": "Mag-Inertia One v1 — system brochure & calculator",
+      "category": "energy"
+    },
+    {
+      "file": "cryo.html",
+      "title": "Cryogenic Cooling Overview",
+      "category": "cooling"
+    },
+    {
+      "file": "cryogenic_cooling_brochure.html",
+      "title": "Cryogenic Cooling System Brochure",
+      "category": "cooling"
+    },
+    {
+      "file": "dual-loop-cryogenic-thermal-tower.html",
+      "title": "Dual-Loop Cryogenic Thermal Tower",
+      "category": "cooling"
+    },
+    {
+      "file": "flywheeldisk.html",
+      "title": "Flywheel Self‑Charging Unit",
+      "category": "energy"
+    },
+    {
+      "file": "forge_link_brochure_all_assets_ion_core_energy(2).html",
+      "title": "ForgeLink — direct energy tool system",
+      "category": "technology"
+    },
+    {
+      "file": "forgelink.html",
+      "title": "ForgeLink — direct sales",
+      "category": "technology"
+    },
+    {
+      "file": "fullexperience.html",
+      "title": "Ioncore Energy",
+      "category": "energy"
+    },
+    {
+      "file": "fun facts.html",
+      "title": "InertiaCharge 50 Full Brochure",
+      "category": "energy"
+    },
+    {
+      "file": "fundraising.html",
+      "title": "Ioncore Platform Update: Fundraising & Growth Plan (May 2026)",
+      "category": "technology"
+    },
+    {
+      "file": "fundraising2.html",
+      "title": "Investor Fundraising Platform",
+      "category": "technology"
+    },
+    {
+      "file": "header.html",
+      "title": "Magnetic inertia — executive overview",
+      "category": "energy"
+    },
+    {
+      "file": "holophone.html",
+      "title": "Holophone™ | Immersive Product Line",
+      "category": "technology"
+    },
+    {
+      "file": "holopitch.html",
+      "title": "Holophone — investor & product pitch",
+      "category": "technology"
+    },
+    {
+      "file": "hybrid turnine engine.html",
+      "title": "Hybrid Turbine–Magnetic Engine Program | Project Index",
+      "category": "energy"
+    },
+    {
+      "file": "industrial.html",
+      "title": "Ioncore Industrial Power Plants | Magnetic Inertia Energy Systems",
+      "category": "living"
+    },
+    {
+      "file": "inertai breakdown.html",
+      "title": "Magnetic inertia — detailed component breakdown",
+      "category": "energy"
+    },
+    {
+      "file": "inertia bom.html",
+      "title": "InertiaCharge 200 - BOM & Cost Breakdown",
+      "category": "energy"
+    },
+    {
+      "file": "inertia charge 200.html",
+      "title": "InertiaCharge 200 – Portable Power System",
+      "category": "energy"
+    },
+    {
+      "file": "inertia system.html",
+      "title": "Magnetic inertia — performance & system breakdown",
+      "category": "energy"
+    },
+    {
+      "file": "ionc-token-chart.html",
+      "title": "IONC Token Intelligence Console",
+      "category": "technology"
+    },
+    {
+      "file": "ioncore/IonCore · Ion Eye — Sentinel Sync & Full Demo.html",
+      "title": "IonCore · Ion Eye — Sentinel Sync & Full Demo",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/IonCore — Ion Eye AR Suite (Field + Sentinel Mesh).html",
+      "title": "IonCore — Ion Eye AR Suite (Field + Sentinel Mesh)",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/IonCore — Ion Eye Dashboard.html",
+      "title": "IonCore — Ion Eye Dashboard",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/IonCore — Ion Eye · AR Headset for Robotics & Smart Systems.html",
+      "title": "IonCore — Ion Eye · AR Headset for Robotics & Smart Systems",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/RedAR + IonEye — Multi-Cam + Face_Object + Sentinel + WebXR.html",
+      "title": "RedAR + IonEye — Multi-Cam + Face/Object + Sentinel + WebXR",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/ioncore/Atomic Defense — Space Attack (Nebula Upgrade).html",
+      "title": "Atomic Defense — Space Attack (SVG + Shop) — Nebula Upgrade",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/ioncore/IonCore Drone — Space Battles (Nova).html",
+      "title": "IonCore Drone — Space Battles (Nova)",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/ioncore/IonCore — Deep Sea Drone Simulator (Gesture + Combat).html",
+      "title": "IonCore — Deep Sea Drone Simulator (Gesture + Combat)",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/ioncore/IonCore — Mars Run (Viewport HUD).html",
+      "title": "IonCore — Mars Run (Viewport HUD)",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/ioncore/Omconsole Tank Battles.html",
+      "title": "Tank Battle — Levels + Store + Inventory (Gesture or Keyboard)",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore/ioncore/Secure Login - Abyss Runner.html",
+      "title": "IonCore — Abyss Runner (Secure Gesture Controls)",
+      "category": "interactive"
+    },
+    {
+      "file": "ioncore energy.html",
+      "title": "Portable Magnetic-Bearing Flywheel Generators",
+      "category": "energy"
+    },
+    {
+      "file": "ioncore-contracting.html",
+      "title": "IonCore Contracting | Property Maintenance & Site Services",
+      "category": "living"
+    },
+    {
+      "file": "jet enginew.html",
+      "title": "Magnetic inertia jet engine — development overview",
+      "category": "energy"
+    },
+    {
+      "file": "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (2).html",
+      "title": "InertiaCharge — product cost breakdown (CAD)",
+      "category": "energy"
+    },
+    {
+      "file": "magnaflux.html",
+      "title": "MagnaLuxe™ Self-Reliant Luxury Lamp",
+      "category": "living"
+    },
+    {
+      "file": "magnetic inertia system.html",
+      "title": "Magnetic Inertia System",
+      "category": "energy"
+    },
+    {
+      "file": "magnetic-stripe-checkout.html",
+      "title": "Stripe Checkout",
+      "category": "technology"
+    },
+    {
+      "file": "magnetic_inertia_airprop_brochure.html",
+      "title": "IONCORE | Magnetic Inertia AirProp Engine — Interactive 3D Brochure",
+      "category": "energy"
+    },
+    {
+      "file": "marketplace.html",
+      "title": "Ioncore Full Marketplace Presale",
+      "category": "technology"
+    },
+    {
+      "file": "omconsole_render_single_games_ROUTING.html",
+      "title": "OMConsole — Multi-Modal Control Dashboard",
+      "category": "technology"
+    },
+    {
+      "file": "peak_series_brochure.html",
+      "title": "Peak Series Portable Power Modules",
+      "category": "energy"
+    },
+    {
+      "file": "security.html",
+      "title": "IonCore Energy — Security",
+      "category": "interactive"
+    },
+    {
+      "file": "startupradio/index.html",
+      "title": "Startup Radio",
+      "category": "interactive"
+    },
+    {
+      "file": "tesla_battery_brochure(1) - Copy.html",
+      "title": "50mm system — cost & ROI analysis",
+      "category": "energy"
+    },
+    {
+      "file": "tesla_battery_brochure.html",
+      "title": "Battery storage — cell options & cost comparison",
+      "category": "energy"
+    },
+    {
+      "file": "power core.html",
+      "title": "Small drone power core — investor & development brief",
+      "category": "energy"
+    },
+    {
+      "file": "unified-fundraising-presale.html",
+      "title": "Unified Fundraising & Presale",
+      "category": "technology"
+    },
+    {
+      "file": "valuation.html",
+      "title": "Ioncore | Valuation & Readiness Brief",
+      "category": "technology"
+    },
+    {
+      "file": "/timepieces",
+      "title": "Ioncore Timepieces — watch collection",
+      "category": "technology"
+    },
+    {
+      "file": "non-disclosure-products.html",
+      "title": "Ioncore — product portfolio & capabilities",
+      "category": "technology"
+    }
+  ],
+  "excluded": {
+    "index.html": {
+      "reason": "Site navigation or access page, not a project"
+    },
+    "webpage.html": {
+      "reason": "Site navigation or access page, not a project"
+    },
+    "login.html": {
+      "reason": "Site navigation or access page, not a project"
+    },
+    "webpage-login.html": {
+      "reason": "Site navigation or access page, not a project"
+    },
+    "admin.html": {
+      "reason": "Site navigation or access page, not a project"
+    },
+    "extracted_omnicore_file.html": {
+      "reason": "PNG image bytes, not an HTML project page"
+    },
+    "forgelink_brochure_bundle/forgelink_brochure_selfcontained.html": {
+      "reason": "Footer fragment only; complete ForgeLink brochure selected",
+      "canonical": "forge_link_brochure_all_assets_ion_core_energy(2).html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (4) - Copy - Copy.html": {
+      "reason": "Untitled legacy fragment, not a standalone project page"
+    },
+    "flywheel 27.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Hybrid Flywheel + Battery Home Energy Storage System.html"
+    },
+    "flywheel sale.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Hybrid Flywheel + Battery Home Energy Storage System.html"
+    },
+    "flywheel.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Hybrid Flywheel + Battery Home Energy Storage System.html"
+    },
+    "flywheel2.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Hybrid Flywheel + Battery Home Energy Storage System.html"
+    },
+    "flywheelse.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Hybrid Flywheel + Battery Home Energy Storage System.html"
+    },
+    "hybrid flywheel.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Hybrid Flywheel + Battery Home Energy Storage System.html"
+    },
+    "magnaflux - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "magnaflux.html"
+    },
+    "magnaflux - Copy - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "magnaflux.html"
+    },
+    "Sentinel Multi‑cam A1i.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Sentinel Multi‑cam Ai.html"
+    },
+    "inertiacharge 2.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "inertia charge 200.html"
+    },
+    "InertiaCharge 50 Brochure.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "brochure 50 plus.html"
+    },
+    "Product Tiers & MMRSP (50% Profit Margin).html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "Product Line & Retail Pricing (50% Profit MMRSP).html"
+    },
+    "scripts/hybrid turnine engine.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "hybrid turnine engine.html"
+    },
+    "tesla_battery_brochure(2).html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "High-Capacity Battery Solution.html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (5) - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy  - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "OmniCore X15.html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (2) - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy  - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "magnetic inertia system.html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (2) - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "magnetic inertia system.html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (2) - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "magnetic inertia system.html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy.html": {
+      "reason": "Alternate version of the same project; preferred complete brochure selected",
+      "canonical": "magnetic inertia system.html"
+    },
+    "ioncore/ioncore/IONCORE Poker — Secure Gesture Login + Glass UI + Full Audio + AI Traits.html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "IONCORE Poker — Secure Gesture Login + Glass UI + Full Audio + AI Traits.html"
+    },
+    "ioncore/ioncore/IONCORE • RAD-TOX FIELD (FULL + PRO AUDIO).html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "IONCORE • RAD-TOX FIELD (FULL + PRO AUDIO).html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (2) - Copy - Copy.html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "InertiaCharge Portable Generator.html"
+    },
+    "mafnetic inertia systems.html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "inertia system.html"
+    },
+    "core - Copy - Copy.html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "inertia system.html"
+    },
+    "core - Copy - Copy - Copy.html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "inertia system.html"
+    },
+    "magnaflux - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy - Copy (2) - Copy - Copy - Copy - Copy - Copy - Copy - Copy.html": {
+      "reason": "Duplicate of an alternate brochure; preferred complete version selected",
+      "canonical": "brochure 50 plus.html"
+    },
+    "turbinee2.html": {
+      "reason": "Byte-for-byte duplicate",
+      "canonical": "power core.html"
+    }
+  }
+}

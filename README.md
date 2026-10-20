@@ -87,3 +87,7 @@ node --test tests/public-home.test.js
 ```
 
 The builder updates only the marked catalogue section, preserving the homepage layout and navigation. It fails on unreviewed HTML files, missing pages, duplicate file contents, or invalid canonical references. The `--check` command also detects stale generated output without changing files. Search progressively enhances the static list; all category/project links work with JavaScript disabled.
+
+## Company contact
+
+All company contact links use **jodelchad@chaines.io — Founder, Patent Holder & IP Development Contact**. The contact form saves an inquiry locally and provides a prefilled email draft to this address; the visitor must open and send the draft. ForgeLink requests also provide a draft rather than claiming to have sent email. The server has no outbound email provider configured. Mailbox aliases and forwarding must be managed with the email provider; changing website links does not forward mail sent to older addresses.

@@ -43,7 +43,7 @@
         <p>Magnetic inertia, flywheel, and cryogenic platforms keep luxury estates, campuses, fleets, and missions online without compromise.</p>
         <div class="hero__actions">
           <a class="btn btn-primary" href="index.html">Explore Ioncore projects</a>
-          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com">Schedule a private consultation</a>
+          <a class="btn btn-primary" href="mailto:jodelchad@chaines.io" title="Founder, Patent Holder &amp; IP Development Contact">Schedule a private consultation</a>
           <a class="btn btn-rednode" href="https://rednode.ai" target="_blank" rel="noreferrer noopener">
             <span class="btn-icon">
               <img src="rednode-excavator.svg" alt="" aria-hidden="true">
@@ -416,7 +416,7 @@
           <p class="section-subtitle">Align on NDA, roadmap access, and a tailored engagement path with the Ioncore partnerships team.</p>
         </div>
         <div class="hero__actions">
-          <a class="btn btn-primary" href="mailto:ioncoreenergy@gmail.com?subject=Confidential%20Portfolio%20Inquiry">Initiate NDA process</a>
+          <a class="btn btn-primary" href="mailto:jodelchad@chaines.io?subject=Confidential%20Portfolio%20Inquiry" title="Founder, Patent Holder &amp; IP Development Contact">Initiate NDA process</a>
           <a class="btn btn-outline" href="https://t.me/+2GW6Ksve5z8xYTVh">Chat on Telegram</a>
         </div>
         <p class="section-subtitle">© 2025 Ioncore Energy. Information presented remains confidential and must not be distributed without written consent.</p>
@@ -431,7 +431,7 @@
           <p>Request a concise roadmap for your property, project, or portfolio and receive a curated energy vision within 72 hours.</p>
         </div>
         <div class="hero__actions">
-          <a class="btn btn-outline" href="mailto:ioncoreenergy@gmail.com">Request proposal</a>
+          <a class="btn btn-outline" href="mailto:jodelchad@chaines.io" title="Founder, Patent Holder &amp; IP Development Contact">Request proposal</a>
           <a class="btn btn-primary" href="index.html">Explore Ioncore projects</a>
         </div>
       </div>
@@ -529,7 +529,7 @@
             pair it with your project requirements, and deliver a tailored energy dossier.
           </p>
         </div>
-        <form id="contact-form" class="contact-form" novalidate>
+        <form id="contact-form" class="contact-form" action="mailto:jodelchad@chaines.io" method="post" enctype="text/plain" novalidate>
           <div class="contact-form__field">
             <label for="contact-name">Name</label>
             <input id="contact-name" name="name" type="text" placeholder="Avery Callahan" autocomplete="name">
@@ -548,8 +548,9 @@
             ></textarea>
           </div>
           <div class="contact-form__actions">
-            <button type="submit" class="btn btn-primary">Transmit request</button>
-            <p class="contact-form__status" role="status" aria-live="polite"></p>
+            <button type="submit" class="btn btn-primary">Prepare founder inquiry</button>
+            <p class="contact-form__status" role="status" aria-live="polite">Prepare your inquiry, then open and send the email draft to the founder.</p>
+            <a id="contact-email-draft" class="btn btn-outline" href="mailto:jodelchad@chaines.io" hidden>Open email to founder &amp; IP contact</a>
           </div>
         </form>
       </div>
@@ -578,7 +579,7 @@
         <div class="footer-col">
           <h4>Connect</h4>
           <ul>
-            <li><a href="mailto:ioncoreenergy@gmail.com">ioncoreenergy@gmail.com</a></li>
+            <li><a href="mailto:jodelchad@chaines.io" title="Founder, Patent Holder &amp; IP Development Contact">jodelchad@chaines.io</a> <small>Founder, Patent Holder &amp; IP Development Contact</small></li>
             <li><a href="https://t.me/+2GW6Ksve5z8xYTVh">Chat with us on Telegram</a></li>
             <li><a href="https://www.linkedin.com" rel="noopener" target="_blank">LinkedIn</a></li>
           </ul>
@@ -1104,7 +1105,9 @@
           submitButton.disabled = true;
           submitButton.textContent = 'Transmitting…';
         }
-        setStatus('Transmitting to Ioncore command…', 'pending');
+        const draft = document.getElementById('contact-email-draft');
+        draft.hidden = true;
+        setStatus('Preparing your inquiry…', 'pending');
 
         try {
           const response = await fetch('/contact', {
@@ -1119,7 +1122,8 @@
           const data = await response.json().catch(() => ({}));
           if (response.ok) {
             setStatus(data.message || 'Request received. Stand by for a direct response.', 'success');
-            form.reset();
+            draft.href = data.emailUrl;
+            draft.hidden = false;
           } else {
             setStatus(
               (data && data.message) || 'We could not log your request. Please verify your email and try again.',
@@ -1132,7 +1136,7 @@
         } finally {
           if (submitButton) {
             submitButton.disabled = false;
-            submitButton.textContent = 'Transmit request';
+            submitButton.textContent = 'Prepare founder inquiry';
           }
         }
       });

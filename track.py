@@ -1476,7 +1476,7 @@ class _MediaHandler(http.server.SimpleHTTPRequestHandler):
     </a>
     <div class=\"header-actions\">
       <span class=\"header__badge\">Sentinel Security Network</span>
-      <a class=\"btn btn-outline\" href=\"mailto:ioncoreenergy@gmail.com\">Contact Ioncore</a>
+      <a class=\"btn btn-outline\" href=\"mailto:jodelchad@chaines.io\">Contact Ioncore</a>
       <a class=\"btn btn-primary\" href=\"/\">Refresh feed</a>
     </div>
   </header>
@@ -2977,9 +2977,9 @@ def _refresh_command_center():
 
 def _contact_ioncore():
     try:
-        webbrowser.open("mailto:ioncoreenergy@gmail.com")
+        webbrowser.open("mailto:jodelchad@chaines.io")
     except Exception:
-        messagebox.showinfo("Contact", "Email ioncoreenergy@gmail.com")
+        messagebox.showinfo("Contact", "Email jodelchad@chaines.io")
 
 
 def _launch_media_vault():

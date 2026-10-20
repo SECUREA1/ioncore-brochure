@@ -380,7 +380,7 @@
             <button type="submit" class="btn" style="border:0">Request Invoice</button>
             <a href="#downloads" class="ghost btn" style="padding:12px 18px">Download Price Sheet</a>
           </div>
-          <p id="orderAck" class="small" style="display:none;margin-top:10px;color:#c8ffe0">Request received. Our team will reach out with a pro‑forma invoice and onboarding steps.</p>
+          <p id="orderAck" class="small" style="display:none;margin-top:10px;color:#c8ffe0">Your email draft is ready. Send it to jodelchad@chaines.io to complete your request.</p>
         </form>
       </div>
       <div class="card">
@@ -398,7 +398,14 @@
       (function(){
         const f=document.getElementById('orderForm');
         const ack=document.getElementById('orderAck');
-        f.addEventListener('submit',e=>{e.preventDefault(); ack.style.display='block';});
+        f.addEventListener('submit',e=>{
+          e.preventDefault();
+          const body = [...new FormData(f)].map(([key,value])=>`${key}: ${value}`).join('\n');
+          const url = 'mailto:jodelchad@chaines.io?subject=ForgeLink%20inquiry&body='+encodeURIComponent(body);
+          ack.textContent='Open your email draft and send it to complete your request. ';
+          const link=document.createElement('a'); link.href=url; link.textContent='Email founder & IP contact';
+          ack.appendChild(link); ack.style.display='block';
+        });
         document.getElementById('connectWallet').addEventListener('click',()=>alert('Wallet connect placeholder: inject your provider here.'));
         document.getElementById('mintNow').addEventListener('click',()=>alert('Mint placeholder: route to your smart‑contract or entitlement service.'));
       })();

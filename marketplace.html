@@ -229,7 +229,7 @@
       const lines = [...cart.entries()].map(([name, item]) => `${name} — Units ${item.qty} | List ${money.format(item.qty * item.listPrice)} | Luxury ${money.format(item.qty * item.luxuryPrice)}`).join('%0D%0A');
       const subject = encodeURIComponent('Ioncore Marketplace Presale Purchase Request');
       const body = `Please confirm the following presale allocations:%0D%0A%0D%0A${lines}%0D%0A%0D%0ASubmitted from the full marketplace page.`;
-      window.location.href = `mailto:ioncoreenergy@gmail.com?subject=${subject}&body=${body}`;
+      window.location.href = `mailto:jodelchad@chaines.io?subject=${subject}&body=${body}`;
     });
 
     marketFilter.addEventListener('change', renderCards);

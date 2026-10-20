@@ -293,7 +293,7 @@ const FUNDRAISING_PRODUCTS = [
   { code: 'FUND-HOTEL', name: 'Ioncore Round Hotel & Retail Presale', usd: 137500, category: 'Infrastructure' }
 ];
 
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = path.resolve(process.env.IONCORE_DATA_DIR || path.join(__dirname, 'data'));
 await fs.mkdir(DATA_DIR, { recursive: true });
 
 const STORE_PATH = path.join(DATA_DIR, 'gateway-store.json');
@@ -1476,7 +1476,12 @@ app.post('/contact', async (req, res) => {
     return res.status(500).json({ message: 'Unable to record your request right now. Please try again shortly.' });
   }
 
-  res.json({ message: 'Submission received. Our advisors will reach out shortly.' });
+  const emailBody = `Name: ${name}\nReply email: ${email}\n\n${message}`;
+  const emailUrl = `mailto:jodelchad@chaines.io?subject=${encodeURIComponent('Ioncore project inquiry')}&body=${encodeURIComponent(emailBody)}`;
+  res.json({
+    message: 'Request saved locally. Open the email draft below and send it to the founder to complete your inquiry.',
+    emailUrl
+  });
 });
 
 app.post('/gateway', async (req, res) => {
@@ -2550,7 +2555,7 @@ app.get('/admin', async (req, res) => {
     const list = items
       .map((i) => `<div class="card"><h2>${i.title}</h2><a class="btn" href="/view?f=${encodeURIComponent(i.rel)}">View</a></div>`)
       .join('');
-    const html = `<!DOCTYPE html><html lang="en"><head>${buildHead('Brochures Dashboard')}</head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
+    const html = `<!DOCTYPE html><html lang="en"><head>${buildHead('Brochures Dashboard')}</head><body><header><h1>Brochures</h1><div class="cta-buttons"><a class="btn" href="/">Home</a></div></header><div class="grid">${list}</div><footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:jodelchad@chaines.io" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
     res.send(applyIoncoreBranding(html));
   } catch (err) {
     res.status(500).send('Failed to load index');
@@ -3020,7 +3025,7 @@ app.get('/view', async (req, res) => {
   try {
     const html = await fs.readFile(filePath, 'utf8');
     const title = await getTitle(filePath);
-    const wrapped = `<!DOCTYPE html><html lang="en"><head>${buildHead(title)}</head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:ioncoreenergy@gmail.com" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
+    const wrapped = `<!DOCTYPE html><html lang="en"><head>${buildHead(title)}</head><body><header><div class="cta-buttons"><a class="btn" href="/admin">Back</a><a class="btn" href="/index.html">Index Page</a></div></header>${html}<footer id="contact"><h3>Ready to Energize Your Future?</h3><p>Contact Ioncore Energy today for partnership, investment, or project inquiries.</p><a href="mailto:jodelchad@chaines.io" class="footer-btn">Contact Us</a><div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> Ioncore Energy. All rights reserved.</div></footer></body></html>`;
     res.send(applyIoncoreBranding(wrapped));
   } catch {
     res.status(404).send('Not found');

@@ -4519,3 +4519,6 @@ html { scroll-behavior: smooth; }
 .project-open { flex-shrink: 0; color: var(--accent); font-size: .85rem; }
 .project-catalogue [hidden] { display: none !important; }
 @media (max-width: 680px) { .project-list { grid-template-columns: 1fr; } }
+
+.contact-form [hidden] { display: none !important; }
+.footer-col li > small { display: block; margin-top: .35rem; color: var(--text-med); }

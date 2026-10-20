@@ -3,13 +3,16 @@ import assert from 'node:assert/strict';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { once } from 'node:events';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 // An independent server exercises routing without cookies or an existing login.
 test('public main webpage, category index and linked project resources', async (t) => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), 'ioncore-contact-test-'));
   const server = spawn(process.execPath, ['server.js'], {
     cwd: new URL('..', import.meta.url),
-    env: { ...process.env, PORT: '3107' },
+    env: { ...process.env, PORT: '3107', IONCORE_DATA_DIR: dataDir },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   t.after(async () => {
@@ -17,6 +20,7 @@ test('public main webpage, category index and linked project resources', async (
       server.kill();
       await once(server, 'exit');
     }
+    await rm(dataDir, { recursive: true, force: true });
   });
   await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('Server did not start')), 15000);
@@ -53,7 +57,26 @@ test('public main webpage, category index and linked project resources', async (
     if (url.startsWith('#')) assert.ok(ids.has(url.slice(1)), url);
     else if (!/^(?:[a-z]+:|\/\/)/i.test(url)) resources.add('/' + url.replace(/^\//, ''));
   }
-  for (const path of resources) await get(path);
+  for (const path of resources) {
+    const content = await get(path);
+    for (const match of content.matchAll(/mailto:([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/gi)) {
+      assert.equal(match[1], 'jodelchad@chaines.io', `Company contact in ${path}`);
+    }
+  }
+  const response = await fetch('http://127.0.0.1:3107/contact', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Inquiry Test', email: 'visitor@example.test', message: 'IP & patent inquiry? Costs #1' }),
+  });
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  const draft = new URL(result.emailUrl);
+  assert.equal(draft.protocol, 'mailto:');
+  assert.equal(draft.pathname, 'jodelchad@chaines.io');
+  assert.ok(draft.searchParams.get('body').includes('IP & patent inquiry? Costs #1'));
+  assert.ok(draft.searchParams.get('body').includes('visitor@example.test'));
+  assert.ok(result.message.includes('send it'));
+  const stored = JSON.parse(await readFile(path.join(dataDir, 'gateway-store.json'), 'utf8'));
+  assert.equal(stored.contactSubmissions.at(-1).email, 'visitor@example.test');
 });
 
 
